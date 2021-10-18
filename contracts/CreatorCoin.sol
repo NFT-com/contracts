@@ -2,6 +2,7 @@
 pragma solidity >=0.8.4;
 
 import "./oz_modified/ERC20.sol";
+import "./interface/ICreatorCoin.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 interface INftToken {
@@ -13,8 +14,8 @@ contract CreatorCoin is ERC20 {
 
     mapping (address => uint256) private _fees;
 
-    address private nftCashAddress;
-    address private nftProfileAddress;
+    address public nftCashAddress;
+    address public nftProfileAddress;
 
     constructor(
         address _nftProfileContract,
@@ -58,7 +59,7 @@ contract CreatorCoin is ERC20 {
             _mint(_user, _remaining);
         } else {
             _burn(_user, _total);
-            IERC20(nftCashAddress).transfer(_user, _remaining);
+            require(IERC20(nftCashAddress).transfer(_user, _remaining));
         }
     }
 

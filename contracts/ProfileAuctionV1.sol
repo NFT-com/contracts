@@ -2,7 +2,7 @@
 pragma solidity >=0.8.4;
 
 import "./interface/INftProfileHelper.sol";
-import "./interface/INftProfile.sol";
+import "./interface/INftProfileV1.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -23,17 +23,19 @@ contract ProfileAuctionV1 is Initializable,
 
     mapping(address => Bid[]) internal _bids;
 
-    address internal governor;
-    address internal minter;
-    address internal owner;
-    address internal nftErc20Contract;
-    address internal nftProfile;
-    uint256 public publicClaim;
+    address public governor;
+    address public minter;
+    address public owner;
+    address public nftErc20Contract;
+    address public nftProfile;
+    bool public publicClaim;
     uint256 public staticFee;
     uint256 public profileFee;
     uint256 public blockWait;
     address public nftProfileHelperAddress;
-    address internal coldWallet;
+    address public coldWallet;
+
+    enum Action { SubmitBid, RemoveBid, MintProfile, RedeemProfile }
 
     event UpdateBid(address _user, string _val, uint256 _addition, uint256 _final);
     event NewBid(address _user, string _val, uint256 _amount);
@@ -43,9 +45,9 @@ contract ProfileAuctionV1 is Initializable,
     event NewClaimableProfile(address _user, string _val, uint256 _amount, uint256 _blockNum);
     event ChangedBidURI(address _user, string _old, string _new, uint256 _merge); // _merge = 0 => new order, 1 => merged existing order
 
-    modifier validURI_ (string memory _profileURI) {
+    modifier validAndUnusedURI (string memory _profileURI) {
         require(validURI(_profileURI));
-        require(!INftProfile(nftProfile).tokenUsed(_profileURI));
+        require(!INftProfileV1(nftProfile).tokenUsed(_profileURI));
         _;
     }
 
@@ -73,9 +75,9 @@ contract ProfileAuctionV1 is Initializable,
         nftErc20Contract = _nftErc20Contract;
         nftProfile = _nftProfile;
         blockWait = 1228540;
-        profileFee = 500000000000000000;
-        staticFee = 10000000000000000000000;
-        publicClaim = 0;
+        profileFee = 5 * 10 ** 17;      // 0.5 ETH
+        staticFee = 10000 * 10 ** 18;   // 10,000 NFT tokens
+        publicClaim = false;
         nftProfileHelperAddress = _nftProfileHelperAddress;
         coldWallet = _coldWallet;
 
@@ -123,7 +125,7 @@ contract ProfileAuctionV1 is Initializable,
     function findEffectDeleteArray(
         address _user,
         string memory _profileURI,
-        uint256 _action,
+        Action _action,
         uint256 _nftTokens
     ) private returns (bool) {
         Bid[] storage bids = _bids[_user];
@@ -131,13 +133,15 @@ contract ProfileAuctionV1 is Initializable,
         // loop through existing bids
         for (uint256 i = 0; i < bids.length; i++) {
             if (compareString(bids[i]._profileURI, _profileURI)) {
-                if (_action == 0) {
+                if (_action == Action.SubmitBid) {
                     require(_bids[_user][i]._blockMinted == 0, "claim");
-                    emit UpdateBid(_user, _profileURI, _nftTokens, _bids[_user][i]._nftTokens.add(_nftTokens));
 
-                    _bids[_user][i]._nftTokens = _bids[_user][i]._nftTokens.add(_nftTokens);
+                    uint256 newBid = _bids[_user][i]._nftTokens.add(_nftTokens);
+                    
+                    emit UpdateBid(_user, _profileURI, _nftTokens, newBid);
+                    _bids[_user][i]._nftTokens = newBid;
                     return true;
-                } else if (_action == 1) {
+                } else if (_action == Action.RemoveBid) {
                     require(_bids[_user][i]._blockMinted == 0, "claim");
                     uint256 _amount = _bids[_user][i]._nftTokens.mul(9950).div(10000);
 
@@ -147,11 +151,13 @@ contract ProfileAuctionV1 is Initializable,
                         _amount
                     );
 
-                    IERC20Upgradeable(nftErc20Contract).transfer(
+                    require(IERC20Upgradeable(nftErc20Contract).transfer(
                         _user,
                         _amount
-                    );
-                } else if (_action == 2) {
+                    ));
+
+                    INftToken(nftErc20Contract).burn(_bids[_user][i]._nftTokens.mul(50).div(10000));
+                } else if (_action == Action.MintProfile) {
                     // 2 is set by our minter
                     // set block minted => this prevents user from withdrawing bid, they must now claim
                     _bids[_user][i]._blockMinted = block.number;
@@ -160,7 +166,7 @@ contract ProfileAuctionV1 is Initializable,
                     return true; // do not delete bid if just allowing to claim
                 } else {
                     require(_bids[_user][i]._blockMinted != 0);
-                    INftProfile(nftProfile).createProfile(
+                    INftProfileV1(nftProfile).createProfile(
                         _user,
                         _bids[_user][i]._nftTokens,
                         _bids[_user][i]._profileURI,
@@ -169,7 +175,8 @@ contract ProfileAuctionV1 is Initializable,
                     );
 
                     emit MintedProfile(_user, _profileURI, _bids[_user][i]._nftTokens, _bids[_user][i]._blockMinted);
-                    payable(coldWallet).transfer(profileFee);
+                    (bool success, ) = payable(coldWallet).call{value: profileFee}("");
+                    require(success);
                 }
                 
                 deleteBid(i, _user);
@@ -178,7 +185,7 @@ contract ProfileAuctionV1 is Initializable,
         }
 
         // comes here if no existing bids are found
-        if (_action == 0) { // submitBidFor
+        if (_action == Action.SubmitBid) {
             bids.push(Bid(
                 _nftTokens,
                 0,
@@ -205,9 +212,9 @@ contract ProfileAuctionV1 is Initializable,
 
     /**
      @notice opens self-serve registration
-     @param _val self-serve = true when _val > 0
+     @param _val self-serve boolean
     */
-    function setPublicClaim(uint256 _val) external onlyGovernor {
+    function setPublicClaim(bool _val) external onlyGovernor {
         publicClaim = _val;
     }
 
@@ -248,9 +255,9 @@ contract ProfileAuctionV1 is Initializable,
     function submitProfileBid(
         uint256 _nftTokens,
         string memory _profileURI
-    ) external nonReentrant validURI_(_profileURI) {
+    ) external nonReentrant validAndUnusedURI(_profileURI) {
         require(transferNftTokens(msg.sender, _nftTokens));
-        findEffectDeleteArray(msg.sender, _profileURI, 0, _nftTokens);
+        findEffectDeleteArray(msg.sender, _profileURI, Action.SubmitBid, _nftTokens);
     }
 
     /**
@@ -261,7 +268,7 @@ contract ProfileAuctionV1 is Initializable,
     */
     function deleteBid(uint256 _index, address _user) private {
         Bid[] storage bids = _bids[_user];
-        if (_index != bids.length - 1) bids[_index] = bids[bids.length - 1];
+        if (_index < bids.length - 1) bids[_index] = bids[bids.length - 1];
         bids.pop();
     }
 
@@ -273,7 +280,7 @@ contract ProfileAuctionV1 is Initializable,
     function changeBidURI(
         string memory _oldProfileURI,
         string memory _newProfileURI
-    ) external nonReentrant validURI_(_newProfileURI) {
+    ) external nonReentrant validAndUnusedURI(_newProfileURI) {
         require(!compareString(_oldProfileURI, _newProfileURI));
 
         Bid[] storage bids = _bids[msg.sender];
@@ -321,11 +328,11 @@ contract ProfileAuctionV1 is Initializable,
         uint256 _nftTokens,
         string memory _profileURI,
         uint8 v, bytes32 r, bytes32 s
-    ) external nonReentrant validURI_(_profileURI) {
+    ) external nonReentrant validAndUnusedURI(_profileURI) {
         IERC20PermitUpgradeable(nftErc20Contract).permit(msg.sender, address(this), 2**256 - 1, 2**256 - 1, v, r, s);
 
         require(transferNftTokens(msg.sender, _nftTokens));
-        findEffectDeleteArray(msg.sender, _profileURI, 0, _nftTokens);
+        findEffectDeleteArray(msg.sender, _profileURI, Action.SubmitBid, _nftTokens);
     }
 
     /**
@@ -334,8 +341,8 @@ contract ProfileAuctionV1 is Initializable,
     */
     function removeProfileBid(
         string memory _profileURI
-    ) external {
-        findEffectDeleteArray(msg.sender, _profileURI, 1, 0);
+    ) external nonReentrant {
+        findEffectDeleteArray(msg.sender, _profileURI, Action.RemoveBid, 0);
     }
 
     /**
@@ -347,9 +354,9 @@ contract ProfileAuctionV1 is Initializable,
     function mintProfileFor(
         address _buyer,
         string memory _profileURI
-    ) external nonReentrant validURI_(_profileURI) {
+    ) external nonReentrant {
         require(msg.sender == minter);
-        findEffectDeleteArray(_buyer, _profileURI, 2, 0);
+        findEffectDeleteArray(_buyer, _profileURI, Action.MintProfile, 0);
     }
 
     /**
@@ -358,12 +365,12 @@ contract ProfileAuctionV1 is Initializable,
     */
     function buyProfile(
         string memory _profileURI
-    ) external payable nonReentrant validURI_(_profileURI) {
-        require(publicClaim != 0, "!claim");
+    ) external payable nonReentrant validAndUnusedURI(_profileURI) {
+        require(publicClaim, "!claim");
         require(msg.value == profileFee, "!ETH");
         require(transferNftTokens(msg.sender, staticFee));
 
-        INftProfile(nftProfile).createProfile(
+        INftProfileV1(nftProfile).createProfile(
             msg.sender, 
             staticFee,
             _profileURI,
@@ -371,7 +378,8 @@ contract ProfileAuctionV1 is Initializable,
             block.number
         );
 
-        payable(coldWallet).transfer(profileFee);
+        (bool success, ) = payable(coldWallet).call{value: profileFee}("");
+        require(success);
     }
 
     /**
@@ -381,14 +389,14 @@ contract ProfileAuctionV1 is Initializable,
     function buyProfileWithPermit(
         string memory _profileURI,
         uint8 v, bytes32 r, bytes32 s
-    ) external payable nonReentrant validURI_(_profileURI) {
-        require(publicClaim != 0, "!claim");
+    ) external payable nonReentrant validAndUnusedURI(_profileURI) {
+        require(publicClaim, "!claim");
         require(msg.value == profileFee, "!ETH");
 
         IERC20PermitUpgradeable(nftErc20Contract).permit(msg.sender, address(this), 2**256 - 1, 2**256 - 1, v, r, s);
         require(transferNftTokens(msg.sender, staticFee));
 
-        INftProfile(nftProfile).createProfile(
+        INftProfileV1(nftProfile).createProfile(
             msg.sender, 
             staticFee,
             _profileURI,
@@ -396,7 +404,8 @@ contract ProfileAuctionV1 is Initializable,
             block.number
         );
 
-        payable(coldWallet).transfer(profileFee);
+        (bool success, ) = payable(coldWallet).call{value: profileFee}("");
+        require(success);
     }
 
     /**
@@ -405,9 +414,9 @@ contract ProfileAuctionV1 is Initializable,
     */
     function claimProfile(
         string memory _profileURI
-    ) external payable {
+    ) external nonReentrant validAndUnusedURI(_profileURI) payable {
         require(msg.value == profileFee, "!ETH"); // only required on claim
-        findEffectDeleteArray(msg.sender, _profileURI, 3, 0);
+        findEffectDeleteArray(msg.sender, _profileURI, Action.RedeemProfile, 0);
     }
 
     /**
@@ -417,26 +426,28 @@ contract ProfileAuctionV1 is Initializable,
      @param _tokenId the ID of the NFT.com profile
     */
     function redeemProfile(uint256 _tokenId) external {
-        require(INftProfile(nftProfile).profileDetails(_tokenId)._blockMinted != 0, "invalid or unclaimed profile");
+        Bid memory details = INftProfileV1(nftProfile).profileDetails(_tokenId);
+
+        require(details._blockMinted != 0, "invalid or unclaimed profile");
 
         require(block.number >= 
-            INftProfile(nftProfile).profileDetails(_tokenId)._blockMinted.add(
-                INftProfile(nftProfile).profileDetails(_tokenId)._blockWait), "block wait not met");
+            details._blockMinted.add(
+                details._blockWait), "block wait not met");
 
         IERC721EnumerableUpgradeable(nftProfile).transferFrom(msg.sender, governor, _tokenId);
 
-        uint256 amount = INftProfile(nftProfile).profileDetails(_tokenId)._nftTokens.mul(9950).div(10000);
+        uint256 amount = details._nftTokens.mul(9950).div(10000);
 
-        IERC20Upgradeable(nftErc20Contract).transfer(
+        require(IERC20Upgradeable(nftErc20Contract).transfer(
             msg.sender,
             amount
-        );
+        ));
 
-        INftToken(nftErc20Contract).burn(INftProfile(nftProfile).profileDetails(_tokenId)._nftTokens.mul(50).div(10000));
+        INftToken(nftErc20Contract).burn(details._nftTokens.mul(50).div(10000));
 
         emit RedeemProfile(
             msg.sender,
-            INftProfile(nftProfile).profileDetails(_tokenId)._profileURI,
+            details._profileURI,
             block.number,
             amount,
             _tokenId

@@ -1,18 +1,49 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "./interface/INftProfileHelper.sol";
+
 contract NftProfileHelper {
-    address public owner;
-    string public _allowedChar;
+    mapping(bytes1 => bool) _allowedChar;
 
     constructor() {
-        owner = msg.sender;
-        _allowedChar = "abcdefghijklmnopqrstuvwxyz1234567890_";
-    }
-
-    modifier onlyOwner {
-        require(msg.sender == owner, "!owner");
-        _;
+        _allowedChar["a"] = true;
+        _allowedChar["b"] = true;
+        _allowedChar["c"] = true;
+        _allowedChar["d"] = true;
+        _allowedChar["e"] = true;
+        _allowedChar["f"] = true;
+        _allowedChar["g"] = true;
+        _allowedChar["h"] = true;
+        _allowedChar["i"] = true;
+        _allowedChar["j"] = true;
+        _allowedChar["k"] = true;
+        _allowedChar["l"] = true;
+        _allowedChar["m"] = true;
+        _allowedChar["n"] = true;
+        _allowedChar["o"] = true;
+        _allowedChar["p"] = true;
+        _allowedChar["q"] = true;
+        _allowedChar["r"] = true;
+        _allowedChar["s"] = true;
+        _allowedChar["t"] = true;
+        _allowedChar["u"] = true;
+        _allowedChar["v"] = true;
+        _allowedChar["w"] = true;
+        _allowedChar["x"] = true;
+        _allowedChar["y"] = true;
+        _allowedChar["z"] = true;
+        _allowedChar["0"] = true;
+        _allowedChar["1"] = true;
+        _allowedChar["2"] = true;
+        _allowedChar["3"] = true;
+        _allowedChar["4"] = true;
+        _allowedChar["5"] = true;
+        _allowedChar["6"] = true;
+        _allowedChar["7"] = true;
+        _allowedChar["8"] = true;
+        _allowedChar["9"] = true;
+        _allowedChar["_"] = true;
     }
 
     function bytesStringLength(string memory _string) private pure returns (uint256) {
@@ -23,10 +54,6 @@ contract NftProfileHelper {
         return bytesStringLength(_string) > 0 && bytesStringLength(_string) <= 60;
     }
 
-    function allowedBytes() private view returns (bytes memory) {
-        return bytes(_allowedChar);
-    }
-
     /**
      @notice checks for a valid URI with length and allowed characters
      @param _name string for a given URI
@@ -34,23 +61,10 @@ contract NftProfileHelper {
     */
     function _validURI(string memory _name) external view returns (bool) {
         require(correctLength(_name), "invalid length");
-        uint256 allowedChars = 0;
         bytes memory byteString = bytes(_name);
-        bytes memory allowed = allowedBytes();
         for (uint256 i = 0; i < byteString.length; i++) {
-           for (uint256 j = 0; j < allowed.length; j++) {
-              if (byteString[i] == allowed[j]) allowedChars++;
-           }
+           if (!_allowedChar[byteString[i]]) return false;
         }
-        if (allowedChars < byteString.length) return false;
         return true;
-    }
-
-    function transferOwnership(address _newOwner) external onlyOwner {
-        owner = _newOwner;
-    }
-
-    function changeAllowedChar(string memory _new) external onlyOwner {
-        _allowedChar = _new;
     }
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "./interface/ICreatorBondingCurve.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -16,6 +17,9 @@ contract CreatorBondingCurve {
     }
 
     /**
+     @dev Babylonian Method by @dapp-bin and @uniswap
+     @dev https://github.com/ethereum/dapp-bin/pull/50/files
+     @dev https://github.com/Uniswap/v2-core/blob/v1.0.1/contracts/libraries/Math.sol
      @notice calculates the square root of a given uint256
      @param x input number
      @return square root approximation of x
