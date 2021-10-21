@@ -6,7 +6,7 @@ const DECIMALS = 18;
 
 const convertBig = input => input * 10000;
 
-describe("NFT.com V1", function () {
+describe("NFT.com", function () {
   try {
     let NftToken;
     let deployedNftToken;
@@ -21,13 +21,13 @@ describe("NFT.com V1", function () {
     let NftProfileHelper;
     let deployedNftProfileHelper;
     let profileFeeWei = "500000000000000000";
-    const ZERO_BYTES = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    let _loops = 50;
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
     beforeEach(async function () {
       // Get the ContractFactory and Signers here.
-      NftToken = await ethers.getContractFactory("NftToken");
+      NftToken = await ethers.getContractFactory("NftTokenV1");
       [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
       let coldWallet = owner.address;
@@ -38,7 +38,7 @@ describe("NFT.com V1", function () {
       NftProfileHelper = await ethers.getContractFactory("NftProfileHelper");
       deployedNftProfileHelper = await NftProfileHelper.deploy();
 
-      deployedNftToken = await NftToken.deploy();
+      deployedNftToken = await upgrades.deployProxy(NftToken, { kind: "uups" });
 
       NftProfile = await ethers.getContractFactory("NftProfileV1");
       deployedNftProfile = await upgrades.deployProxy(
@@ -124,11 +124,11 @@ describe("NFT.com V1", function () {
       });
 
       it("minting creator coins should not work without a valid profile", async function () {
-        await expect(deployedNftProfile.mintCreatorCoin(1000000, 0, 0, 0x0, 0x0)).to.be.reverted;
+        await expect(deployedNftProfile.mintCreatorCoin(1000000, 0)).to.be.reverted;
       });
 
       it("burning creator coins should not work without a valid profile", async function () {
-        await expect(deployedNftProfile.burnCreatorCoin(1000000, 0, 0, 0x0, 0x0)).to.be.reverted;
+        await expect(deployedNftProfile.burnCreatorCoin(1000000, 0)).to.be.reverted;
       });
     });
 
@@ -143,6 +143,10 @@ describe("NFT.com V1", function () {
 
       it("should allow owner to set new owner on the profile auction" , async function () {
         await deployedProfileAuction.setProfileFee(1);
+      });
+
+      it("should allow owner to set new owner on the nft token" , async function () {
+        await deployedNftToken.setOwner(addr1.address);
       });
 
       it("should allow owner to set new owner on the nft profile" , async function () {
@@ -180,7 +184,7 @@ describe("NFT.com V1", function () {
         await expect(deployedProfileAuction.buyProfile("helloworld", { value: profileFeeWei })).to.be.reverted;
 
         // on
-        await deployedProfileAuction.connect(owner).setPublicClaim(true);
+        await deployedProfileAuction.connect(owner).setPublicClaim(1);
 
         await expect(deployedProfileAuction.buyProfile("helloworld", { value: profileFeeWei }));
       });
@@ -297,7 +301,7 @@ describe("NFT.com V1", function () {
 
         expect(await deployedNftProfile.getProfileOwnerFee(0)).to.be.equal(0);
 
-        await deployedNftProfile.initializeCreatorCoin(0, 0, 0, ZERO_BYTES, ZERO_BYTES);
+        await deployedNftProfile.initializeCreatorCoin(0);
         expect(await deployedNftProfile.getProfileOwnerFee(0)).to.be.equal(1000);
 
         await deployedNftProfile.modifyProfileRate(1, 0);
@@ -518,8 +522,8 @@ describe("NFT.com V1", function () {
         expect((await deployedProfileAuction.getBids(owner.address)).length).to.be.equal(1);
         expect((await deployedProfileAuction.getBids(addr1.address)).length).to.be.equal(0);
 
-        expect(await deployedNftToken.balanceOf(deployedProfileAuction.address)).to.be.equal(24000); // 10945 NFT.com tokens sent to addr1, 55 burned
-        
+        expect(await deployedNftToken.balanceOf(deployedProfileAuction.address)).to.be.equal(24055); // 10945 NFT.com tokens sent to addr1
+
         expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
       });
 
@@ -592,6 +596,18 @@ describe("NFT.com V1", function () {
         expect(await deployedNftProfileV2a.getVariable()).to.be.equal("hello");
 
         expect(await deployedNftProfileV2a.testFunction()).to.be.equal(12345);
+      });
+    });
+
+    describe("Protocol Upgrades", function () {
+      it("should upgrade profile contract to V2", async function () {
+        const NftTokenV2a = await ethers.getContractFactory("NftTokenV2a");
+
+        let deployedNftTokenV2a = await upgrades.upgradeProxy(deployedNftToken.address, NftTokenV2a);
+
+        expect(await deployedNftTokenV2a.getVariable()).to.be.equal("hello");
+
+        expect(await deployedNftTokenV2a.testFunction()).to.be.equal(12345);
       });
     });
   } catch (err) {
