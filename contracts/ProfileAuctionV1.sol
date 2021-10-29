@@ -157,6 +157,9 @@ contract ProfileAuctionV1 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
                     return true; // do not delete bid if just allowing to claim
                 } else {
                     require(_bids[_user][i]._blockMinted != 0);
+
+                    emit MintedProfile(_user, _profileURI, _bids[_user][i]._nftTokens, _bids[_user][i]._blockMinted);
+
                     INftProfileV1(nftProfile).createProfile(
                         _user,
                         _bids[_user][i]._nftTokens,
@@ -165,8 +168,7 @@ contract ProfileAuctionV1 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
                         _bids[_user][i]._blockMinted
                     );
 
-                    emit MintedProfile(_user, _profileURI, _bids[_user][i]._nftTokens, _bids[_user][i]._blockMinted);
-                    (bool success, ) = payable(coldWallet).call{ value: profileFee }("");
+                    (bool success, ) = payable(coldWallet).call{value: profileFee}("");
                     require(success);
                 }
 
@@ -398,21 +400,33 @@ contract ProfileAuctionV1 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
              user will receive NFT.com collateral with a 0.5% burn fee attached
      @param _tokenId the ID of the NFT.com profile
     */
-    function redeemProfile(uint256 _tokenId) external {
+    function redeemProfile(uint256 _tokenId) external nonReentrant {
+        // checks
         Bid memory details = INftProfileV1(nftProfile).profileDetails(_tokenId);
 
         require(details._blockMinted != 0, "invalid or unclaimed profile");
 
         require(block.number >= details._blockMinted.add(details._blockWait), "block wait not met");
 
-        IERC721EnumerableUpgradeable(nftProfile).transferFrom(msg.sender, governor, _tokenId);
-
         uint256 amount = details._nftTokens.mul(9950).div(10000);
 
-        require(IERC20Upgradeable(nftErc20Contract).transfer(msg.sender, amount));
+        emit RedeemProfile(
+            msg.sender,
+            details._profileURI,
+            block.number,
+            amount,
+            _tokenId
+        );
+
+        // effects
+
+        // interactions
+        IERC721EnumerableUpgradeable(nftProfile).transferFrom(msg.sender, governor, _tokenId);
+        require(IERC20Upgradeable(nftErc20Contract).transfer(
+            msg.sender,
+            amount
+        ));
 
         INftToken(nftErc20Contract).burn(details._nftTokens.mul(50).div(10000));
-
-        emit RedeemProfile(msg.sender, details._profileURI, block.number, amount, _tokenId);
     }
 }

@@ -9,7 +9,7 @@ interface INftToken {
     function burn(uint256 _amount) external;
 }
 
-contract CreatorCoin is ERC20 {
+contract CreatorCoin is ERC20, ICreatorCoin {
     using SafeMath for uint256;
 
     mapping(address => uint256) private _fees;

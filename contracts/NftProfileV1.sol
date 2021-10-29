@@ -4,20 +4,13 @@ pragma solidity >=0.8.4;
 import "./interface/ICreatorCoin.sol";
 import "./interface/ICreatorBondingCurve.sol";
 import "./CreatorCoin.sol";
-import "./interface/INftProfile.sol";
+import "./interface/INftProfileV1.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
-
-struct Bid {
-    uint256 _nftTokens;
-    uint256 _blockMinted;
-    string _profileURI;
-    uint256 _blockWait;
-}
 
 struct CreatorCoinParam {
     address profileOwner;
@@ -28,7 +21,12 @@ struct CreatorCoinParam {
     uint256 _customTotal;
 }
 
-contract NftProfileV1 is Initializable, ERC721EnumerableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+contract NftProfileV1 is Initializable,
+    ERC721EnumerableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable,
+    INftProfileV1
+{
     using SafeMath for uint256;
 
     mapping(uint256 => uint256) internal _profileOwnerFee;
