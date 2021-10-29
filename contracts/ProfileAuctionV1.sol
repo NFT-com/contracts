@@ -166,6 +166,9 @@ contract ProfileAuctionV1 is Initializable,
                     return true; // do not delete bid if just allowing to claim
                 } else {
                     require(_bids[_user][i]._blockMinted != 0);
+
+                    emit MintedProfile(_user, _profileURI, _bids[_user][i]._nftTokens, _bids[_user][i]._blockMinted);
+
                     INftProfileV1(nftProfile).createProfile(
                         _user,
                         _bids[_user][i]._nftTokens,
@@ -174,7 +177,6 @@ contract ProfileAuctionV1 is Initializable,
                         _bids[_user][i]._blockMinted
                     );
 
-                    emit MintedProfile(_user, _profileURI, _bids[_user][i]._nftTokens, _bids[_user][i]._blockMinted);
                     (bool success, ) = payable(coldWallet).call{value: profileFee}("");
                     require(success);
                 }
