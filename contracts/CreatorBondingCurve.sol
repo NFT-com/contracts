@@ -5,7 +5,7 @@ import "./interface/ICreatorBondingCurve.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract CreatorBondingCurve {
+contract CreatorBondingCurve is ICreatorBondingCurve {
     using SafeMath for uint256;
 
     uint256 public numerator;

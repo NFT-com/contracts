@@ -32,7 +32,8 @@ struct CreatorCoinParam {
 contract NftProfileV1 is Initializable,
     ERC721EnumerableUpgradeable,
     ReentrancyGuardUpgradeable,
-    UUPSUpgradeable
+    UUPSUpgradeable,
+    INftProfile
 {
     using SafeMath for uint256;
 

@@ -425,7 +425,8 @@ contract ProfileAuctionV1 is Initializable,
              user will receive NFT.com collateral with a 0.5% burn fee attached
      @param _tokenId the ID of the NFT.com profile
     */
-    function redeemProfile(uint256 _tokenId) external {
+    function redeemProfile(uint256 _tokenId) external nonReentrant {
+        // checks
         Bid memory details = INftProfileV1(nftProfile).profileDetails(_tokenId);
 
         require(details._blockMinted != 0, "invalid or unclaimed profile");
@@ -434,16 +435,7 @@ contract ProfileAuctionV1 is Initializable,
             details._blockMinted.add(
                 details._blockWait), "block wait not met");
 
-        IERC721EnumerableUpgradeable(nftProfile).transferFrom(msg.sender, governor, _tokenId);
-
         uint256 amount = details._nftTokens.mul(9950).div(10000);
-
-        require(IERC20Upgradeable(nftErc20Contract).transfer(
-            msg.sender,
-            amount
-        ));
-
-        INftToken(nftErc20Contract).burn(details._nftTokens.mul(50).div(10000));
 
         emit RedeemProfile(
             msg.sender,
@@ -452,5 +444,16 @@ contract ProfileAuctionV1 is Initializable,
             amount,
             _tokenId
         );
+
+        // effects
+
+        // interactions
+        IERC721EnumerableUpgradeable(nftProfile).transferFrom(msg.sender, governor, _tokenId);
+        require(IERC20Upgradeable(nftErc20Contract).transfer(
+            msg.sender,
+            amount
+        ));
+
+        INftToken(nftErc20Contract).burn(details._nftTokens.mul(50).div(10000));
     }
 }

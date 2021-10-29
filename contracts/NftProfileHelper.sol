@@ -3,7 +3,7 @@ pragma solidity >=0.8.4;
 
 import "./interface/INftProfileHelper.sol";
 
-contract NftProfileHelper {
+contract NftProfileHelper is INftProfileHelper {
     mapping(bytes1 => bool) _allowedChar;
 
     constructor() {
