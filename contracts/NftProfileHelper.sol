@@ -59,7 +59,7 @@ contract NftProfileHelper is INftProfileHelper {
      @param _name string for a given URI
      @return true if valid
     */
-    function _validURI(string memory _name) external view returns (bool) {
+    function _validURI(string memory _name) external override view returns (bool) {
         require(correctLength(_name), "invalid length");
         bytes memory byteString = bytes(_name);
         for (uint256 i = 0; i < byteString.length; i++) {

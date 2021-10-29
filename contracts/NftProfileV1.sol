@@ -4,20 +4,13 @@ pragma solidity >=0.8.4;
 import "./interface/ICreatorCoin.sol";
 import "./interface/ICreatorBondingCurve.sol";
 import "./CreatorCoin.sol";
-import "./interface/INftProfile.sol";
+import "./interface/INftProfileV1.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
-
-struct Bid {
-    uint256 _nftTokens;                 
-    uint256 _blockMinted;
-    string _profileURI;
-    uint256 _blockWait;
-}
 
 struct CreatorCoinParam {
     address profileOwner;
@@ -33,7 +26,7 @@ contract NftProfileV1 is Initializable,
     ERC721EnumerableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable,
-    INftProfile
+    INftProfileV1
 {
     using SafeMath for uint256;
 
@@ -116,7 +109,7 @@ contract NftProfileV1 is Initializable,
      @param _tokenId the ID of the NFT.com profile
      @return details about the NFT.com profile
     */
-    function profileDetails(uint256 _tokenId) external view returns (Bid memory) {
+    function profileDetails(uint256 _tokenId) external override view returns (Bid memory) {
         require(_exists(_tokenId));
         return _profileDetails[_tokenId];
     }
@@ -136,7 +129,7 @@ contract NftProfileV1 is Initializable,
      @param _string profile URI
      @return true is a profile exists and is minted for a given string
     */
-    function tokenUsed(string memory _string) external view returns (bool) {
+    function tokenUsed(string memory _string) external override view returns (bool) {
         return _tokenUsedURIs[_string] != 0;
     }
 
@@ -182,7 +175,7 @@ contract NftProfileV1 is Initializable,
         string memory _profileURI,
         uint256 _blockWait,
         uint256 _blockMinted
-    ) external {
+    ) external override {
         require(msg.sender == profileAuctionContract);
         uint256 preSupply = totalSupply();
 

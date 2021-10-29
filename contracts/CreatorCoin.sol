@@ -46,7 +46,7 @@ contract CreatorCoin is ERC20, ICreatorCoin {
         uint256 _protocolFee,
         uint256 _remaining,
         uint256 _total
-    ) external {
+    ) external override {
         require(msg.sender == nftProfileAddress);
 
         // accrue fees

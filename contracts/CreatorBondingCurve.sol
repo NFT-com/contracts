@@ -42,7 +42,7 @@ contract CreatorBondingCurve is ICreatorBondingCurve {
      @param _amount _type = 1: # of NFT.com tokens sent, _type = 0, # of creator coins burned
      @return _type = 1: # of creator coins to mint, _type = 0, # of NFT.com tokens to return
     */
-    function getPrice(uint256 _type, address _creatorCoin, uint256 _amount) external view returns (uint256) {
+    function getPrice(uint256 _type, address _creatorCoin, uint256 _amount) external override view returns (uint256) {
         uint256 x = IERC20(_creatorCoin).totalSupply();
         uint256 y = _amount;
         uint256 b = x.mul(x);
