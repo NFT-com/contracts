@@ -46,7 +46,7 @@ contract CreatorBondingCurve is ICreatorBondingCurve {
         uint256 _type,
         address _creatorCoin,
         uint256 _amount
-    ) external view returns (uint256) {
+    ) external view override returns (uint256) {
         uint256 x = IERC20(_creatorCoin).totalSupply();
         uint256 y = _amount;
         uint256 b = x.mul(x);

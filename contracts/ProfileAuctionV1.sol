@@ -168,7 +168,7 @@ contract ProfileAuctionV1 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
                         _bids[_user][i]._blockMinted
                     );
 
-                    (bool success, ) = payable(coldWallet).call{value: profileFee}("");
+                    (bool success, ) = payable(coldWallet).call{ value: profileFee }("");
                     require(success);
                 }
 
@@ -410,22 +410,13 @@ contract ProfileAuctionV1 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
 
         uint256 amount = details._nftTokens.mul(9950).div(10000);
 
-        emit RedeemProfile(
-            msg.sender,
-            details._profileURI,
-            block.number,
-            amount,
-            _tokenId
-        );
+        emit RedeemProfile(msg.sender, details._profileURI, block.number, amount, _tokenId);
 
         // effects
 
         // interactions
         IERC721EnumerableUpgradeable(nftProfile).transferFrom(msg.sender, governor, _tokenId);
-        require(IERC20Upgradeable(nftErc20Contract).transfer(
-            msg.sender,
-            amount
-        ));
+        require(IERC20Upgradeable(nftErc20Contract).transfer(msg.sender, amount));
 
         INftToken(nftErc20Contract).burn(details._nftTokens.mul(50).div(10000));
     }

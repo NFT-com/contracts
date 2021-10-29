@@ -14,11 +14,11 @@ describe("NFT.com Exchange", function () {
 
       deployedNftExchange = await upgrades.deployProxy(NftExchange, { kind: "uups" });
 
-      console.log('deployedNftExchange: ', deployedNftExchange.address);
+      console.log("deployedNftExchange: ", deployedNftExchange.address);
     });
 
     describe("Initialize Exchange", function () {
-      console.log('TBD');
+      console.log("TBD");
     });
   } catch (err) {
     console.log("NFT Exchange error: ", err);

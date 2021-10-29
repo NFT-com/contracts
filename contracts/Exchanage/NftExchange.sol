@@ -33,7 +33,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     event ProxyChange(bytes4 indexed assetType, address proxy);
     event Cancel(bytes32 hash, address maker, LibAsset.AssetType makeAssetType, LibAsset.AssetType takeAssetType);
     event Approval(bytes32 hash, address maker, LibAsset.AssetType makeAssetType, LibAsset.AssetType takeAssetType);
-    event Transfer(LibAsset.Asset asset, address from, address to, bytes4 transferDirection, bytes4 transferType);
+    event Transfer(LibAsset.Asset asset, address from, address to);
     event Match(
         bytes32 leftHash,
         bytes32 rightHash,
@@ -50,22 +50,41 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         _;
     }
 
-    function initialize() public initializer {
+    function initialize(INftTransferProxy _transferProxy, IERC20TransferProxy _erc20TransferProxy) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
+
+        proxies[LibAsset.ERC20_ASSET_CLASS] = address(_erc20TransferProxy);
+        proxies[LibAsset.ERC721_ASSET_CLASS] = address(_transferProxy);
+        proxies[LibAsset.ERC1155_ASSET_CLASS] = address(_transferProxy);
 
         owner = msg.sender;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
+    /**
+     * @dev internal functions for returning struct hash, after verifying it is valid
+     * @param order the order itself
+     * @param sig the struct sig (contains VRS)
+     */
     function requireValidOrder(LibSignature.Order memory order, Sig memory sig) internal view returns (bytes32) {
         bytes32 hash = LibSignature.getStructHash(order);
         require(validateOrder(hash, order, sig));
         return hash;
     }
 
-    function validateOrder(bytes32 hash, LibSignature.Order memory order, Sig memory sig) internal view returns (bool) {
+    /**
+     * @dev internal function for validating a buy or sell order
+     * @param hash the struct hash for a bid
+     * @param order the order itself
+     * @param sig the struct sig (contains VRS)
+     */
+    function validateOrder(
+        bytes32 hash,
+        LibSignature.Order memory order,
+        Sig memory sig
+    ) internal view returns (bool) {
         LibSignature.validate(order); // validates start and end time
 
         if (cancelledOrFinalized[hash]) {
@@ -87,16 +106,15 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /**
      * @dev public facing function that validates an order with a signature
      * @param order a buy or sell order
-     * @param v
-     * @param r
-     * @param s
+     * @param v sigV
+     * @param r sigR
+     * @param s sigS
      */
     function validateOrder_(
         LibSignature.Order memory order,
         uint8 v,
         bytes32 r,
         bytes32 s
-        
     ) public view returns (bool) {
         bytes32 hash = LibSignature.getStructHash(order);
         return validateOrder(hash, order, Sig(v, r, s));
@@ -111,14 +129,10 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @dev Approve an bid. Must be called by the _owner of the bid
-     * @param _nftTokens nft tokens for bid
-     * @param _profileURI uri to bid for
-     * @param _owner user who is making bid
+     * @dev Approve an order
+     * @param order the order (buy or sell) in question
      */
-    function approveOrder_(
-        LibSignature.Order memory order
-    ) internal {
+    function approveOrder_(LibSignature.Order memory order) internal {
         // checks
         require(msg.sender == order.maker, "not a maker");
         require(order.salt != 0, "0 salt can't be used");
@@ -136,19 +150,21 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param sellOrder the listing
      * @param buyOrder bid for a listing
      */
-    function validateMatch(
-        LibSignature.Order memory sellOrder,
-        LibSignature.Order memory buyOrder
-    ) internal returns (bool) {
-                // token denominating sell order listing
-        return  (sellOrder.takeAsset.assetType.assetClass == buyOrder.makeAsset.assetType.assetClass) &&
-                // asset being sold
-                (sellOrder.makeAsset.assetType.assetClass == buyOrder.takeAsset.assetType.assetClass) &&
-                // sellOrder taker must be valid
-                (sellOrder.taker == address(0) || sellOrder.taker == buyOrder.maker) &&
-                // buyOrder taker must be valid
-                (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker);
-                // TODO: Add Royalties + Fees
+    function validateMatch(LibSignature.Order memory sellOrder, LibSignature.Order memory buyOrder)
+        internal
+        pure
+        returns (bool)
+    {
+        // token denominating sell order listing
+        return
+            (sellOrder.takeAsset.assetType.assetClass == buyOrder.makeAsset.assetType.assetClass) &&
+            // asset being sold
+            (sellOrder.makeAsset.assetType.assetClass == buyOrder.takeAsset.assetType.assetClass) &&
+            // sellOrder taker must be valid
+            (sellOrder.taker == address(0) || sellOrder.taker == buyOrder.maker) &&
+            // buyOrder taker must be valid
+            (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker);
+        // TODO: Add Royalties + Fees
     }
 
     /**
@@ -156,10 +172,11 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param sellOrder the listing
      * @param buyOrder bid for a listing
      */
-    function validateMatch_(
-        LibSignature.Order memory sellOrder,
-        LibSignature.Order memory buyOrder
-    ) public view returns (bool) {
+    function validateMatch_(LibSignature.Order memory sellOrder, LibSignature.Order memory buyOrder)
+        public
+        pure
+        returns (bool)
+    {
         return validateMatch(sellOrder, buyOrder);
     }
 
@@ -179,19 +196,21 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         bytes32[2] calldata s
     ) external payable {
         // checks
-        bytes32 sellHash = requireValidOrder(
-            sellOrder,
-            Sig(v[0], r[0], s[0])
-        );
+        bytes32 sellHash = requireValidOrder(sellOrder, Sig(v[0], r[0], s[0]));
 
-        bytes32 buyHash = requireValidOrder(
-            buyOrder,
-            Sig(v[1], r[1], s[1])
-        );
+        bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]));
 
         require(validateMatch(sellOrder, buyOrder));
 
         // effects
+
+        // reasoning is that anyone can match orders together
+        // case 1: if buyer executes, sellOrder is used
+        // case 2: if seller executes, buyOrder is used
+        // case 3: if 3rd party executes, both orders are used
+        // in both case 1 and 2:
+        //  the other order is not set "used" as it cannot match with any other order in the system
+        //  this is mainly done to save on gas costs
         if (msg.sender != buyOrder.maker) {
             cancelledOrFinalized[buyHash] = true;
         }
@@ -200,9 +219,11 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         }
 
         // interactions (i.e. perform swap)
+        transfer(sellOrder.makeAsset, sellOrder.maker, buyOrder.maker); // send listed asset to buyer from seller
+        transfer(sellOrder.takeAsset, buyOrder.maker, sellOrder.maker); // send denominated asset to seller from buyer
+        transferFees();
     }
 
-    // Transfer Executor
     function setTransferProxy(bytes4 assetType, address proxy) external onlyOwner {
         proxies[assetType] = proxy;
         emit ProxyChange(assetType, proxy);
@@ -213,15 +234,24 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         require(success, "transfer failed");
     }
 
+    /**
+     * @dev transfers fees to protocol contract
+     */
+    function transferFees() internal {}
+
+    /**
+     * @dev multi-asset transfer function
+     * @param asset the asset being transferred
+     * @param from address where asset is being sent from
+     * @param to address receiving said asset
+     */
     function transfer(
         LibAsset.Asset memory asset,
         address from,
-        address to,
-        bytes4 transferDirection,
-        bytes4 transferType
-    ) internal override {
+        address to
+    ) internal {
         if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
-            to.transferEth(asset.value);
+            transferEth(to, asset.value);
         } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
             address token = abi.decode(asset.assetType.data, (address));
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
@@ -252,6 +282,6 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         } else {
             ITransferProxy(proxies[asset.assetType.assetClass]).transfer(asset, from, to);
         }
-        emit Transfer(asset, from, to, transferDirection, transferType);
+        emit Transfer(asset, from, to);
     }
 }

@@ -1,15 +1,15 @@
-const ethUtil = require('ethereumjs-util');
+const ethUtil = require("ethereumjs-util");
 
 function id(str) {
-	return `0x${ethUtil.keccak256(str).toString("hex").substring(0, 8)}`;
+  return `0x${ethUtil.keccak256(str).toString("hex").substring(0, 8)}`;
 }
 
 function enc(token, tokenId) {
-	if (tokenId) {
-		return web3.eth.abi.encodeParameters(["address", "uint256"], [token, tokenId]);
-	} else {
-		return web3.eth.abi.encodeParameter("address", token);
-	}
+  if (tokenId) {
+    return web3.eth.abi.encodeParameters(["address", "uint256"], [token, tokenId]);
+  } else {
+    return web3.eth.abi.encodeParameter("address", token);
+  }
 }
 
 const ETH = id("ETH");
@@ -28,4 +28,22 @@ const ROYALTY = id("ROYALTY");
 const ORIGIN = id("ORIGIN");
 const PAYOUT = id("PAYOUT");
 
-module.exports = { id, ETH, ERC20, ERC721, ERC721_LAZY, ERC1155, ERC1155_LAZY, ORDER_DATA_V1, TO_MAKER, TO_TAKER, PROTOCOL, ROYALTY, ORIGIN, PAYOUT, CRYPTO_PUNK, COLLECTION, enc }
+module.exports = {
+  id,
+  ETH,
+  ERC20,
+  ERC721,
+  ERC721_LAZY,
+  ERC1155,
+  ERC1155_LAZY,
+  ORDER_DATA_V1,
+  TO_MAKER,
+  TO_TAKER,
+  PROTOCOL,
+  ROYALTY,
+  ORIGIN,
+  PAYOUT,
+  CRYPTO_PUNK,
+  COLLECTION,
+  enc,
+};
