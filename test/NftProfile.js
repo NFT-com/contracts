@@ -47,7 +47,7 @@ describe("NFT.com", function () {
           "NFT.com", // string memory name,
           "NFT.com", // string memory symbol,
           deployedNftToken.address, // address _nftCashAddress,
-          deployedCreatorBondingCurve.address // deployedCreatorBondingCurve address
+          deployedCreatorBondingCurve.address, // deployedCreatorBondingCurve address
         ],
         { kind: "uups" },
       );
@@ -133,23 +133,23 @@ describe("NFT.com", function () {
     });
 
     describe("Edge Functions", function () {
-      it("should allow owner to set new owner on the profile auction" , async function () {
+      it("should allow owner to set new owner on the profile auction", async function () {
         await deployedProfileAuction.setOwner(addr1.address);
       });
 
-      it("should allow owner to set new owner on the profile auction" , async function () {
+      it("should allow owner to set new owner on the profile auction", async function () {
         await deployedProfileAuction.setStaticFee(1);
       });
 
-      it("should allow owner to set new owner on the profile auction" , async function () {
+      it("should allow owner to set new owner on the profile auction", async function () {
         await deployedProfileAuction.setProfileFee(1);
       });
 
-      it("should allow owner to set new owner on the nft token" , async function () {
+      it("should allow owner to set new owner on the nft token", async function () {
         await deployedNftToken.setOwner(addr1.address);
       });
 
-      it("should allow owner to set new owner on the nft profile" , async function () {
+      it("should allow owner to set new owner on the nft profile", async function () {
         await deployedNftProfile.setOwner(addr1.address);
       });
     });
@@ -312,7 +312,7 @@ describe("NFT.com", function () {
 
         let tokenURI = await deployedNftProfile.tokenURI(0);
 
-        expect(tokenURI).to.be.equal('https://api.nft.com/uri/george');
+        expect(tokenURI).to.be.equal("https://api.nft.com/uri/george");
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
       });

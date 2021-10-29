@@ -16,15 +16,12 @@ interface INftToken {
     function burn(uint256 _amount) external;
 }
 
-contract ProfileAuctionV2 is Initializable,
-    UUPSUpgradeable,
-    ReentrancyGuardUpgradeable   
-{
+contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMathUpgradeable for uint256;
 
-    mapping(bytes32 => bool) public cancelledOrFinalized;   // Cancelled / finalized bid, by hash
-    mapping(bytes32 => uint256) public claimableBlock;      // Claimable bid (0 = not claimable, > 0 = claimable), by hash
-    mapping(bytes32 => bool) public approvedBids;           // Bids verified by on-chain approval (optional)
+    mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized bid, by hash
+    mapping(bytes32 => uint256) public claimableBlock; // Claimable bid (0 = not claimable, > 0 = claimable), by hash
+    mapping(bytes32 => bool) public approvedBids; // Bids verified by on-chain approval (optional)
 
     address public governor;
     address public minter;
@@ -41,26 +38,26 @@ contract ProfileAuctionV2 is Initializable,
     event NewClaimableProfile(address _user, string _val, uint256 _amount, uint256 _blockNum);
     event MintedProfile(address _user, string _val, uint256 _amount, uint256 _blockNum);
     event RedeemProfile(address _user, string _val, uint256 _block, uint256 _amount, uint256 _tokenId);
-    
-    /* An ECDSA signature. */ 
+
+    /* An ECDSA signature. */
     struct Sig {
         uint8 v;
         bytes32 r;
         bytes32 s;
     }
 
-    modifier validAndUnusedURI (string memory _profileURI) {
+    modifier validAndUnusedURI(string memory _profileURI) {
         require(validURI(_profileURI));
         require(!INftProfile(nftProfile).tokenUsed(_profileURI));
         _;
     }
 
-    modifier onlyGovernor () {
+    modifier onlyGovernor() {
         require(msg.sender == governor);
         _;
     }
 
-    modifier onlyOwner () {
+    modifier onlyOwner() {
         require(msg.sender == owner);
         _;
     }
@@ -79,7 +76,7 @@ contract ProfileAuctionV2 is Initializable,
         nftErc20Contract = _nftErc20Contract;
         nftProfile = _nftProfile;
         blockWait = 1228540;
-        profileFee = 10 ** 17; // 0.1 ETH
+        profileFee = 10**17; // 0.1 ETH
         nftProfileHelperAddress = _nftProfileHelperAddress;
         coldWallet = _coldWallet;
 
@@ -97,11 +94,7 @@ contract ProfileAuctionV2 is Initializable,
     */
     function transferNftTokens(address _user, uint256 _amount) private returns (bool) {
         require(_amount != 0);
-        return IERC20Upgradeable(nftErc20Contract).transferFrom(
-                _user,
-                address(this),
-                _amount
-            );
+        return IERC20Upgradeable(nftErc20Contract).transferFrom(_user, address(this), _amount);
     }
 
     /**
@@ -114,15 +107,7 @@ contract ProfileAuctionV2 is Initializable,
         bytes32 r,
         bytes32 s
     ) private {
-        return IERC20PermitUpgradeable(nftErc20Contract).permit(
-            _owner,
-            spender,
-            2**256 - 1,
-            2**256 - 1,
-            v,
-            r,
-            s
-        );
+        return IERC20PermitUpgradeable(nftErc20Contract).permit(_owner, spender, 2**256 - 1, 2**256 - 1, v, r, s);
     }
 
     function validURI(string memory _name) private view returns (bool) {
@@ -141,11 +126,7 @@ contract ProfileAuctionV2 is Initializable,
         string memory _profileURI,
         address _owner,
         Sig memory sig
-    )
-        internal
-        view
-        returns (bytes32)
-    {
+    ) internal view returns (bytes32) {
         bytes32 hash = getStructHash(_nftTokens, _profileURI, _owner);
         require(validateBid_(hash, _nftTokens, _owner, sig));
         return hash;
@@ -163,19 +144,17 @@ contract ProfileAuctionV2 is Initializable,
         string memory _profileURI,
         address _owner,
         Sig memory sig
-    ) 
-        internal
-    {
+    ) internal {
         /* CHECKS */
 
         /* Calculate bid hash. */
         bytes32 hash = requireValidBid_(_nftTokens, _profileURI, _owner, sig);
 
-        require(msg.sender == _owner);  // must be owner
+        require(msg.sender == _owner); // must be owner
         require(claimableBlock[hash] == 0); // must not be claimable
-  
+
         /* EFFECTS */
-      
+
         /* Mark bid as cancelled, preventing it from being matched. */
         cancelledOrFinalized[hash] = true;
 
@@ -193,10 +172,7 @@ contract ProfileAuctionV2 is Initializable,
         uint256 _nftTokens,
         string memory _profileURI,
         address _owner
-    )
-        internal
-        validAndUnusedURI(_profileURI)
-    {
+    ) internal validAndUnusedURI(_profileURI) {
         // checks
         require(msg.sender == _owner);
         bytes32 hash = getStructHash(_nftTokens, _profileURI, _owner);
@@ -220,11 +196,7 @@ contract ProfileAuctionV2 is Initializable,
         uint256 _nftTokens,
         address _owner,
         Sig memory sig
-    )
-        internal
-        view
-        returns (bool)
-    {
+    ) internal view returns (bool) {
         /* Bid must have valid token amount. */
         if (_nftTokens == 0) {
             return false;
@@ -234,7 +206,7 @@ contract ProfileAuctionV2 is Initializable,
         if (cancelledOrFinalized[hash]) {
             return false;
         }
-        
+
         /* Bid authentication. Bid must be either:
         /* (a) previously approved */
         if (approvedBids[hash]) {
@@ -257,30 +229,27 @@ contract ProfileAuctionV2 is Initializable,
         address _owner,
         uint8 v,
         bytes32 r,
-        bytes32 s)
-        view
-        external
-        returns (bool)
-    {
+        bytes32 s
+    ) external view returns (bool) {
         bytes32 hash = getStructHash(_nftTokens, _profileURI, _owner);
 
-        return validateBid_(
-          hash,
-          _nftTokens,
-          _owner,
-          Sig(v, r, s)
-        );
+        return validateBid_(hash, _nftTokens, _owner, Sig(v, r, s));
     }
 
     function _domainSeparatorV4ProfileAuction() internal view returns (bytes32) {
-        bytes32 _TYPE_HASH = keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
-        return keccak256(abi.encode(
-            _TYPE_HASH,
-            keccak256("NFT.com Domain Auction"),
-            keccak256("1"),
-            block.chainid,
-            address(this)
-        ));
+        bytes32 _TYPE_HASH = keccak256(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+        );
+        return
+            keccak256(
+                abi.encode(
+                    _TYPE_HASH,
+                    keccak256("NFT.com Domain Auction"),
+                    keccak256("1"),
+                    block.chainid,
+                    address(this)
+                )
+            );
     }
 
     function _hashTypedDataV4ProfileAuction(bytes32 structHash) internal view virtual returns (bytes32) {
@@ -316,9 +285,7 @@ contract ProfileAuctionV2 is Initializable,
         uint256 _nftTokens,
         string memory _profileURI,
         address _owner
-    ) 
-        external
-    {
+    ) external {
         return approveBid_(_nftTokens, _profileURI, _owner);
     }
 
@@ -328,16 +295,9 @@ contract ProfileAuctionV2 is Initializable,
         address _owner,
         uint8 v,
         bytes32 r,
-        bytes32 s)
-        external
-    {
-
-        return cancelBid_(
-          _nftTokens,
-          _profileURI,
-          _owner,
-          Sig(v, r, s)
-        );
+        bytes32 s
+    ) external {
+        return cancelBid_(_nftTokens, _profileURI, _owner, Sig(v, r, s));
     }
 
     /**
@@ -382,14 +342,14 @@ contract ProfileAuctionV2 is Initializable,
         bytes32 s,
         uint8 nftV,
         bytes32 nftR,
-        bytes32 nftS 
+        bytes32 nftS
     ) external nonReentrant validAndUnusedURI(_profileURI) {
         // checks
         require(msg.sender == minter);
         bytes32 hash = requireValidBid_(_nftTokens, _profileURI, _owner, Sig(v, r, s));
         require(!cancelledOrFinalized[hash]);
         require(claimableBlock[hash] == 0);
-  
+
         // effects
         claimableBlock[hash] = block.number;
 
@@ -399,7 +359,7 @@ contract ProfileAuctionV2 is Initializable,
             permitNFT(_owner, address(this), nftV, nftR, nftS); // approve NFT token
         }
 
-        require(transferNftTokens(_owner, _nftTokens));         // transfer NFT token
+        require(transferNftTokens(_owner, _nftTokens)); // transfer NFT token
 
         emit NewClaimableProfile(_owner, _profileURI, _nftTokens, block.number);
     }
@@ -421,21 +381,15 @@ contract ProfileAuctionV2 is Initializable,
         bytes32 hash = requireValidBid_(_nftTokens, _profileURI, _owner, Sig(v, r, s));
         require(!cancelledOrFinalized[hash]);
         require(claimableBlock[hash] != 0);
-  
+
         // effects
         cancelledOrFinalized[hash] = true;
 
         // interactions
-        INftProfile(nftProfile).createProfile(
-            _owner,
-            _nftTokens,
-            _profileURI,
-            blockWait,
-            claimableBlock[hash]
-        );
+        INftProfile(nftProfile).createProfile(_owner, _nftTokens, _profileURI, blockWait, claimableBlock[hash]);
 
         emit MintedProfile(_owner, _profileURI, _nftTokens, claimableBlock[hash]);
-        (bool success, ) = payable(coldWallet).call{value: profileFee}("");
+        (bool success, ) = payable(coldWallet).call{ value: profileFee }("");
         require(success);
     }
 
@@ -450,28 +404,16 @@ contract ProfileAuctionV2 is Initializable,
 
         require(details._blockMinted != 0, "invalid or unclaimed profile");
 
-        require(block.number >= 
-            details._blockMinted.add(
-                details._blockWait), "block wait not met");
+        require(block.number >= details._blockMinted.add(details._blockWait), "block wait not met");
 
         IERC721EnumerableUpgradeable(nftProfile).transferFrom(msg.sender, governor, _tokenId);
 
         uint256 amount = details._nftTokens.mul(9950).div(10000);
 
-        require(IERC20Upgradeable(nftErc20Contract).transfer(
-            msg.sender,
-            amount
-        ));
+        require(IERC20Upgradeable(nftErc20Contract).transfer(msg.sender, amount));
 
-        INftToken(nftErc20Contract).burn(
-            details._nftTokens.mul(50).div(10000));
+        INftToken(nftErc20Contract).burn(details._nftTokens.mul(50).div(10000));
 
-        emit RedeemProfile(
-            msg.sender,
-            details._profileURI,
-            block.number,
-            amount,
-            _tokenId
-        );
+        emit RedeemProfile(msg.sender, details._profileURI, block.number, amount, _tokenId);
     }
 }

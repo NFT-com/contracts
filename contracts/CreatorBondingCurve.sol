@@ -42,7 +42,11 @@ contract CreatorBondingCurve {
      @param _amount _type = 1: # of NFT.com tokens sent, _type = 0, # of creator coins burned
      @return _type = 1: # of creator coins to mint, _type = 0, # of NFT.com tokens to return
     */
-    function getPrice(uint256 _type, address _creatorCoin, uint256 _amount) external view returns (uint256) {
+    function getPrice(
+        uint256 _type,
+        address _creatorCoin,
+        uint256 _amount
+    ) external view returns (uint256) {
         uint256 x = IERC20(_creatorCoin).totalSupply();
         uint256 y = _amount;
         uint256 b = x.mul(x);
@@ -50,9 +54,10 @@ contract CreatorBondingCurve {
         if (_type != 0) {
             uint256 a = y.mul(denominator).div(numerator);
             uint256 c = a.add(b);
-            
+
             return sqrt(c).sub(x);
-        } else { // _type == 0
+        } else {
+            // _type == 0
             require(x >= y);
             uint256 z = x.sub(y);
             uint256 a = z.mul(z);

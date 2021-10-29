@@ -46,7 +46,7 @@ describe("NFT.com", function () {
           "NFT.com", // string memory name,
           "NFT.com", // string memory symbol,
           deployedNftToken.address, // address _nftCashAddress,
-          deployedCreatorBondingCurve.address // deployedCreatorBondingCurve address
+          deployedCreatorBondingCurve.address, // deployedCreatorBondingCurve address
         ],
         { kind: "uups" },
       );
@@ -104,12 +104,9 @@ describe("NFT.com", function () {
       it("should mint and burn along bonding curve for profile and allocate fees, and allow rewards to user who staked", async function () {
         expect(await deployedNftToken.balanceOf(deployedCreatorCoin.address)).to.be.equal(0);
 
-        await expect(deployedNftProfile.connect(owner).mintCreatorCoin(c(100), 0)).to.emit(deployedNftToken, "Transfer")
-        .withArgs(
-          deployedCreatorCoin.address,
-          ethers.constants.AddressZero,
-          c(100) * 0.02
-        );
+        await expect(deployedNftProfile.connect(owner).mintCreatorCoin(c(100), 0))
+          .to.emit(deployedNftToken, "Transfer")
+          .withArgs(deployedCreatorCoin.address, ethers.constants.AddressZero, c(100) * 0.02);
 
         expect(await deployedCreatorCoin.fees(owner.address)).to.be.equal(c(100) * 0.1); // fee is 10%
 

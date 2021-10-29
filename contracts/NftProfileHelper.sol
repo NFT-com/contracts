@@ -63,7 +63,7 @@ contract NftProfileHelper {
         require(correctLength(_name), "invalid length");
         bytes memory byteString = bytes(_name);
         for (uint256 i = 0; i < byteString.length; i++) {
-           if (!_allowedChar[byteString[i]]) return false;
+            if (!_allowedChar[byteString[i]]) return false;
         }
         return true;
     }

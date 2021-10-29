@@ -13,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
 struct Bid {
-    uint256 _nftTokens;                 
+    uint256 _nftTokens;
     uint256 _blockMinted;
     string _profileURI;
     uint256 _blockWait;
@@ -22,18 +22,13 @@ struct Bid {
 struct CreatorCoinParam {
     address profileOwner;
     uint256 feeNumerator;
-    
     uint256 _customToken;
     uint256 _creatorFee;
     uint256 _protocolFee;
     uint256 _customTotal;
 }
 
-contract NftProfileV1 is Initializable,
-    ERC721EnumerableUpgradeable,
-    ReentrancyGuardUpgradeable,
-    UUPSUpgradeable
-{
+contract NftProfileV1 is Initializable, ERC721EnumerableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using SafeMath for uint256;
 
     mapping(uint256 => uint256) internal _profileOwnerFee;
@@ -48,7 +43,7 @@ contract NftProfileV1 is Initializable,
     address public nftErc20Contract;
     address public owner;
 
-    modifier onlyOwner () {
+    modifier onlyOwner() {
         require(msg.sender == owner);
         _;
     }
@@ -63,7 +58,7 @@ contract NftProfileV1 is Initializable,
         __ERC721Enumerable_init();
         __ERC721_init(name, symbol);
         __UUPSUpgradeable_init();
-        protocolFee = 200;  // 2% fee
+        protocolFee = 200; // 2% fee
 
         owner = msg.sender;
         nftErc20Contract = _nftErc20Contract;
@@ -92,7 +87,13 @@ contract NftProfileV1 is Initializable,
      @param _tokenId the ID of the NFT.com profile,
      @param _nftTokens optional parameter of the number of NFT tokens passed to mint
     */
-    function initializeCreatorCoin(uint256 _tokenId, uint256 _nftTokens, uint8 v, bytes32 r, bytes32 s) external {
+    function initializeCreatorCoin(
+        uint256 _tokenId,
+        uint256 _nftTokens,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
         require(_exists(_tokenId) && _creatorCoinMap[_tokenId] == address(0x0));
 
         CreatorCoin creatorCoinContract = new CreatorCoin(
@@ -187,12 +188,7 @@ contract NftProfileV1 is Initializable,
 
         _mint(_receiver, preSupply);
         setTokenURI(preSupply, _profileURI);
-        _profileDetails[preSupply] = Bid(
-            _nftTokens,
-            _blockMinted,
-            _profileURI,
-            _blockWait
-        );
+        _profileDetails[preSupply] = Bid(_nftTokens, _blockMinted, _profileURI, _blockWait);
     }
 
     /**
@@ -229,7 +225,11 @@ contract NftProfileV1 is Initializable,
      @param _amount 1 = # of NFT.com tokens sent, 0 = # of creator tokens to burn
      @return 1 = # of creator coins to mint, 0 = # of nft tokens to receive
     */
-    function getPrice(uint256 _type, address _creatorCoin, uint256 _amount) private view returns (uint256) {
+    function getPrice(
+        uint256 _type,
+        address _creatorCoin,
+        uint256 _amount
+    ) private view returns (uint256) {
         return ICreatorBondingCurve(_bondingCurveContract).getPrice(_type, _creatorCoin, _amount);
     }
 
@@ -243,15 +243,7 @@ contract NftProfileV1 is Initializable,
         bytes32 r,
         bytes32 s
     ) private {
-        return IERC20PermitUpgradeable(nftErc20Contract).permit(
-            _owner,
-            spender,
-            2**256 - 1,
-            2**256 - 1,
-            v,
-            r,
-            s
-        );
+        return IERC20PermitUpgradeable(nftErc20Contract).permit(_owner, spender, 2**256 - 1, 2**256 - 1, v, r, s);
     }
 
     /**
@@ -260,7 +252,15 @@ contract NftProfileV1 is Initializable,
      @param _amount when _type = 1, _amount represents the # of NFT.com tokens used to mint. wwhen _type = 0, _amount represents # of creator tokens to burn
      @param tokenId tokenId of the profile, links to the specific creator coin we wish to mint/burn for
     */
-    function mintBurnHelper(address _caller, uint256 _type, uint256 _amount, uint256 tokenId, uint8 v, bytes32 r, bytes32 s) private nonReentrant {
+    function mintBurnHelper(
+        address _caller,
+        uint256 _type,
+        uint256 _amount,
+        uint256 tokenId,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) private nonReentrant {
         require(_exists(tokenId), "!exists");
 
         CreatorCoinParam memory c = CreatorCoinParam(
@@ -274,7 +274,7 @@ contract NftProfileV1 is Initializable,
 
         if (_type != 0) {
             c._creatorFee = _amount.mul(_profileOwnerFee[tokenId]).div(10000);
-            c._protocolFee = _amount.mul(protocolFee).div(10000); 
+            c._protocolFee = _amount.mul(protocolFee).div(10000);
 
             c._customToken = getPrice(1, _creatorCoinMap[tokenId], _amount.mul(c.feeNumerator).div(10000));
 
@@ -311,7 +311,13 @@ contract NftProfileV1 is Initializable,
      @param _amount amount of NFT.com ERC20 that is sent
      @param tokenId the ID of the NFT.com profile you want to mint for
     */
-    function mintCreatorCoin(uint256 _amount, uint256 tokenId, uint8 v, bytes32 r, bytes32 s) external {
+    function mintCreatorCoin(
+        uint256 _amount,
+        uint256 tokenId,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
         require(_creatorCoinMap[tokenId] != address(0x0), "requires init");
         mintBurnHelper(msg.sender, 1, _amount, tokenId, v, r, s);
     }
@@ -321,7 +327,13 @@ contract NftProfileV1 is Initializable,
      @param _amount amount of creator coin that is being burned
      @param tokenId the ID of the NFT.com profile you want to burn from
     */
-    function burnCreatorCoin(uint256 _amount, uint256 tokenId, uint8 v, bytes32 r, bytes32 s) external {
+    function burnCreatorCoin(
+        uint256 _amount,
+        uint256 tokenId,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
         mintBurnHelper(msg.sender, 0, _amount, tokenId, v, r, s);
     }
 
