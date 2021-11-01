@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-struct BidLocal {
+struct Bid {
     uint256 _nftTokens;                 // number of nft tokens associated with bid
     uint256 _blockMinted;               // block bid is minted
     string _profileURI;                 // profile url
@@ -9,7 +9,7 @@ struct BidLocal {
 }
 
 // a new bonding contract is created with every new profile created
-interface INftProfile {
+interface INftProfileV1 {
     function createProfile(
         address receiver,
         uint256 _nftTokens,
@@ -19,5 +19,5 @@ interface INftProfile {
     ) external;
 
     function tokenUsed(string memory _string) external view returns (bool);
-    function profileDetails(uint256 tokenId) external view returns (BidLocal memory);
+    function profileDetails(uint256 tokenId) external view returns (Bid memory);
 }

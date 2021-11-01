@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "../NftTokenV1.sol";
+import "../NftProfileV1.sol";
 
-contract NftTokenV2a is NftTokenV1 {
+contract NftProfileV2a is NftProfileV1 {
     string private constant testVariable = "hello";
 
     function getVariable() public pure returns (string memory) {
