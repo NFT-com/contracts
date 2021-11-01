@@ -21,10 +21,7 @@ interface INftToken {
 /// profileAuctionV2 does a similar task of bidding but uses off-chain signatures
 /// units tests will still run for this contract
 
-contract ProfileAuctionV1 is Initializable,
-    UUPSUpgradeable,
-    ReentrancyGuardUpgradeable
-{
+contract ProfileAuctionV1 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     mapping(address => Bid[]) internal _bids;
@@ -366,13 +363,7 @@ contract ProfileAuctionV1 is Initializable,
         require(msg.value == profileFee, "!ETH");
         require(transferNftTokens(msg.sender, staticFee));
 
-        INftProfile(nftProfile).createProfile(
-            msg.sender, 
-            staticFee,
-            _profileURI,
-            blockWait,
-            block.number
-        );
+        INftProfile(nftProfile).createProfile(msg.sender, staticFee, _profileURI, blockWait, block.number);
 
         (bool success, ) = payable(coldWallet).call{ value: profileFee }("");
         require(success);
@@ -394,13 +385,7 @@ contract ProfileAuctionV1 is Initializable,
         IERC20PermitUpgradeable(nftErc20Contract).permit(msg.sender, address(this), 2**256 - 1, 2**256 - 1, v, r, s);
         require(transferNftTokens(msg.sender, staticFee));
 
-        INftProfile(nftProfile).createProfile(
-            msg.sender, 
-            staticFee,
-            _profileURI,
-            blockWait,
-            block.number
-        );
+        INftProfile(nftProfile).createProfile(msg.sender, staticFee, _profileURI, blockWait, block.number);
 
         (bool success, ) = payable(coldWallet).call{ value: profileFee }("");
         require(success);

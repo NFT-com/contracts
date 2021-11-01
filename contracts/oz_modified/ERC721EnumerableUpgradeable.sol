@@ -18,8 +18,8 @@ abstract contract ERC721EnumerableUpgradeable is Initializable, ERC721Upgradeabl
         __ERC721Enumerable_init_unchained();
     }
 
-    function __ERC721Enumerable_init_unchained() internal initializer {
-    }
+    function __ERC721Enumerable_init_unchained() internal initializer {}
+
     // Mapping from owner to list of owned token IDs
     mapping(address => mapping(uint256 => uint256)) private _ownedTokens;
 
@@ -35,7 +35,13 @@ abstract contract ERC721EnumerableUpgradeable is Initializable, ERC721Upgradeabl
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165Upgradeable, ERC721Upgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(IERC165Upgradeable, ERC721Upgradeable)
+        returns (bool)
+    {
         return interfaceId == type(IERC721EnumerableUpgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
 
@@ -168,5 +174,6 @@ abstract contract ERC721EnumerableUpgradeable is Initializable, ERC721Upgradeabl
         delete _allTokensIndex[tokenId];
         _allTokens.pop();
     }
+
     uint256[46] private __gap;
 }

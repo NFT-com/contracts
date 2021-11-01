@@ -26,7 +26,7 @@ describe("NFT.com", function () {
     // time. It receives a callback, which can be async.
     beforeEach(async function () {
       // Get the ContractFactory and Signers here.
-      NftToken = await ethers.getContractFactory("NftTokenV1");
+      NftToken = await ethers.getContractFactory("NftToken");
       [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
       coldWallet = owner.address;
@@ -37,7 +37,7 @@ describe("NFT.com", function () {
       NftProfileHelper = await ethers.getContractFactory("NftProfileHelper");
       deployedNftProfileHelper = await NftProfileHelper.deploy();
 
-      deployedNftToken = await upgrades.deployProxy(NftToken, { kind: "uups" });
+      deployedNftToken = await NftToken.deploy();
 
       NftProfile = await ethers.getContractFactory("NftProfileV1");
       deployedNftProfile = await upgrades.deployProxy(
