@@ -3,6 +3,7 @@
 This repository covers logic for NFT.com profile bidding, and the NFT.com exchange itself. Further developments will be added here in the future.
 
 ### Tools Used
+
 - [Hardhat](https://github.com/nomiclabs/hardhat): compile and run the smart contracts on a local development network
 - [TypeChain](https://github.com/ethereum-ts/TypeChain): generate TypeScript types for smart contracts
 - [Ethers](https://github.com/ethers-io/ethers.js/): renowned Ethereum library and wallet implementation
