@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "./interface/ICreatorBondingCurve.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract CreatorBondingCurve {
+contract CreatorBondingCurve is ICreatorBondingCurve {
     using SafeMath for uint256;
 
     uint256 public numerator;
@@ -16,6 +17,9 @@ contract CreatorBondingCurve {
     }
 
     /**
+     @dev Babylonian Method by @dapp-bin and @uniswap
+     @dev https://github.com/ethereum/dapp-bin/pull/50/files
+     @dev https://github.com/Uniswap/v2-core/blob/v1.0.1/contracts/libraries/Math.sol
      @notice calculates the square root of a given uint256
      @param x input number
      @return square root approximation of x
@@ -38,7 +42,7 @@ contract CreatorBondingCurve {
      @param _amount _type = 1: # of NFT.com tokens sent, _type = 0, # of creator coins burned
      @return _type = 1: # of creator coins to mint, _type = 0, # of NFT.com tokens to return
     */
-    function getPrice(uint256 _type, address _creatorCoin, uint256 _amount) external view returns (uint256) {
+    function getPrice(uint256 _type, address _creatorCoin, uint256 _amount) external override view returns (uint256) {
         uint256 x = IERC20(_creatorCoin).totalSupply();
         uint256 y = _amount;
         uint256 b = x.mul(x);
