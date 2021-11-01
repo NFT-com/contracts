@@ -5922,7 +5922,7 @@
           {
             "contract": "NftProfileV1",
             "label": "_profileDetails",
-            "type": "t_mapping(t_uint256,t_struct(Bid)8324_storage)",
+            "type": "t_mapping(t_uint256,t_struct(Bid)8004_storage)",
             "src": "contracts/NftProfileV1.sol:37"
           },
           {
@@ -5978,10 +5978,10 @@
           "t_address": {
             "label": "address"
           },
-          "t_mapping(t_uint256,t_struct(Bid)8324_storage)": {
+          "t_mapping(t_uint256,t_struct(Bid)8004_storage)": {
             "label": "mapping(uint256 => struct Bid)"
           },
-          "t_struct(Bid)8324_storage": {
+          "t_struct(Bid)8004_storage": {
             "label": "struct Bid",
             "members": [
               {
@@ -6187,7 +6187,7 @@
           {
             "contract": "NftProfileV1",
             "label": "_profileDetails",
-            "type": "t_mapping(t_uint256,t_struct(Bid)8324_storage)",
+            "type": "t_mapping(t_uint256,t_struct(Bid)8004_storage)",
             "src": "contracts/NftProfileV1.sol:37"
           },
           {
@@ -6243,10 +6243,10 @@
           "t_address": {
             "label": "address"
           },
-          "t_mapping(t_uint256,t_struct(Bid)8324_storage)": {
+          "t_mapping(t_uint256,t_struct(Bid)8004_storage)": {
             "label": "mapping(uint256 => struct Bid)"
           },
-          "t_struct(Bid)8324_storage": {
+          "t_struct(Bid)8004_storage": {
             "label": "struct Bid",
             "members": [
               {
@@ -6344,87 +6344,87 @@
           {
             "contract": "ProfileAuctionV1",
             "label": "_bids",
-            "type": "t_mapping(t_address,t_array(t_struct(Bid)8324_storage)dyn_storage)",
-            "src": "contracts/ProfileAuctionV1.sol:24"
+            "type": "t_mapping(t_address,t_array(t_struct(Bid)8004_storage)dyn_storage)",
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:30"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "governor",
             "type": "t_address",
-            "src": "contracts/ProfileAuctionV1.sol:26"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:32"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "minter",
             "type": "t_address",
-            "src": "contracts/ProfileAuctionV1.sol:27"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:33"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "owner",
             "type": "t_address",
-            "src": "contracts/ProfileAuctionV1.sol:28"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:34"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "nftErc20Contract",
             "type": "t_address",
-            "src": "contracts/ProfileAuctionV1.sol:29"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:35"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "nftProfile",
             "type": "t_address",
-            "src": "contracts/ProfileAuctionV1.sol:30"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:36"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "publicClaim",
             "type": "t_bool",
-            "src": "contracts/ProfileAuctionV1.sol:31"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:37"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "staticFee",
             "type": "t_uint256",
-            "src": "contracts/ProfileAuctionV1.sol:32"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:38"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "profileFee",
             "type": "t_uint256",
-            "src": "contracts/ProfileAuctionV1.sol:33"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:39"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "blockWait",
             "type": "t_uint256",
-            "src": "contracts/ProfileAuctionV1.sol:34"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:40"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "nftProfileHelperAddress",
             "type": "t_address",
-            "src": "contracts/ProfileAuctionV1.sol:35"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:41"
           },
           {
             "contract": "ProfileAuctionV1",
             "label": "coldWallet",
             "type": "t_address",
-            "src": "contracts/ProfileAuctionV1.sol:36"
+            "src": "contracts/deprecated/ProfileAuctionV1.sol:42"
           }
         ],
         "types": {
-          "t_mapping(t_address,t_array(t_struct(Bid)8324_storage)dyn_storage)": {
+          "t_mapping(t_address,t_array(t_struct(Bid)8004_storage)dyn_storage)": {
             "label": "mapping(address => struct Bid[])"
           },
           "t_address": {
             "label": "address"
           },
-          "t_array(t_struct(Bid)8324_storage)dyn_storage": {
+          "t_array(t_struct(Bid)8004_storage)dyn_storage": {
             "label": "struct Bid[]"
           },
-          "t_struct(Bid)8324_storage": {
+          "t_struct(Bid)8004_storage": {
             "label": "struct Bid",
             "members": [
               {
