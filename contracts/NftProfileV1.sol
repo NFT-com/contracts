@@ -4,7 +4,7 @@ pragma solidity >=0.8.4;
 import "./interface/ICreatorCoin.sol";
 import "./interface/ICreatorBondingCurve.sol";
 import "./CreatorCoin.sol";
-import "./interface/INftProfileV1.sol";
+import "./interface/INftProfile.sol";
 import "./oz_modified/ERC721EnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -26,7 +26,7 @@ contract NftProfileV1 is Initializable,
     ERC721EnumerableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable,
-    INftProfileV1
+    INftProfile
 {
     using SafeMath for uint256;
 
