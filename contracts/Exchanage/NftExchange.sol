@@ -9,7 +9,6 @@ import "./lib/LibSignature.sol";
 import "./interfaces/IERC20TransferProxy.sol";
 import "./interfaces/INftTransferProxy.sol";
 import "./interfaces/ITransferProxy.sol";
-import "./interfaces/ITransferExecutor.sol";
 
 contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using SafeMathUpgradeable for uint256;
@@ -24,6 +23,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     uint256 private constant UINT256_MAX = 2**256 - 1;
 
     address public owner;
+    uint256 public protocolFee; // value 0 - 10000, where 10000 = 100% fees, 100 = 1%
     mapping(bytes32 => uint256) public fills; // state of the orders
     mapping(bytes4 => address) proxies;
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
@@ -59,6 +59,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         proxies[LibAsset.ERC1155_ASSET_CLASS] = address(_transferProxy);
 
         owner = msg.sender;
+        protocolFee = 250; // initial fee = 2.5%
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -164,7 +165,6 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             (sellOrder.taker == address(0) || sellOrder.taker == buyOrder.maker) &&
             // buyOrder taker must be valid
             (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker);
-        // TODO: Add Royalties + Fees
     }
 
     /**
@@ -219,9 +219,9 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         }
 
         // interactions (i.e. perform swap)
+        // these two functions also transfer fees AND royalties
         transfer(sellOrder.makeAsset, sellOrder.maker, buyOrder.maker); // send listed asset to buyer from seller
         transfer(sellOrder.takeAsset, buyOrder.maker, sellOrder.maker); // send denominated asset to seller from buyer
-        transferFees();
     }
 
     function setTransferProxy(bytes4 assetType, address proxy) external onlyOwner {
@@ -233,11 +233,6 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         (bool success, ) = to.call{ value: value }("");
         require(success, "transfer failed");
     }
-
-    /**
-     * @dev transfers fees to protocol contract
-     */
-    function transferFees() internal {}
 
     /**
      * @dev multi-asset transfer function
