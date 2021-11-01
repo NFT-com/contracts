@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "./interface/INftProfileHelper.sol";
-import "./interface/INftProfileV1.sol";
+import "../interface/INftProfileHelper.sol";
+import "../interface/INftProfile.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -15,9 +15,15 @@ interface INftToken {
     function burn(uint256 _amount) external;
 }
 
+/// @title DEPRECATED Contract (ProfileAuctionV1)
+/// @author @gmaijoe
+/// @notice this contract is deprecated due to expensive on-chain fees.
+/// profileAuctionV2 does a similar task of bidding but uses off-chain signatures
+/// units tests will still run for this contract
+
 contract ProfileAuctionV1 is Initializable,
     UUPSUpgradeable,
-    ReentrancyGuardUpgradeable   
+    ReentrancyGuardUpgradeable
 {
     using SafeMathUpgradeable for uint256;
 
@@ -47,7 +53,7 @@ contract ProfileAuctionV1 is Initializable,
 
     modifier validAndUnusedURI (string memory _profileURI) {
         require(validURI(_profileURI));
-        require(!INftProfileV1(nftProfile).tokenUsed(_profileURI));
+        require(!INftProfile(nftProfile).tokenUsed(_profileURI));
         _;
     }
 
@@ -169,7 +175,7 @@ contract ProfileAuctionV1 is Initializable,
 
                     emit MintedProfile(_user, _profileURI, _bids[_user][i]._nftTokens, _bids[_user][i]._blockMinted);
 
-                    INftProfileV1(nftProfile).createProfile(
+                    INftProfile(nftProfile).createProfile(
                         _user,
                         _bids[_user][i]._nftTokens,
                         _bids[_user][i]._profileURI,
@@ -372,7 +378,7 @@ contract ProfileAuctionV1 is Initializable,
         require(msg.value == profileFee, "!ETH");
         require(transferNftTokens(msg.sender, staticFee));
 
-        INftProfileV1(nftProfile).createProfile(
+        INftProfile(nftProfile).createProfile(
             msg.sender, 
             staticFee,
             _profileURI,
@@ -398,7 +404,7 @@ contract ProfileAuctionV1 is Initializable,
         IERC20PermitUpgradeable(nftErc20Contract).permit(msg.sender, address(this), 2**256 - 1, 2**256 - 1, v, r, s);
         require(transferNftTokens(msg.sender, staticFee));
 
-        INftProfileV1(nftProfile).createProfile(
+        INftProfile(nftProfile).createProfile(
             msg.sender, 
             staticFee,
             _profileURI,
@@ -429,7 +435,7 @@ contract ProfileAuctionV1 is Initializable,
     */
     function redeemProfile(uint256 _tokenId) external nonReentrant {
         // checks
-        Bid memory details = INftProfileV1(nftProfile).profileDetails(_tokenId);
+        Bid memory details = INftProfile(nftProfile).profileDetails(_tokenId);
 
         require(details._blockMinted != 0, "invalid or unclaimed profile");
 

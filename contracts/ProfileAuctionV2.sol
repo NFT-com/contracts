@@ -446,7 +446,7 @@ contract ProfileAuctionV2 is Initializable,
      @param _tokenId the ID of the NFT.com profile
     */
     function redeemProfile(uint256 _tokenId) external {
-        BidLocal memory details = INftProfile(nftProfile).profileDetails(_tokenId);
+        Bid memory details = INftProfile(nftProfile).profileDetails(_tokenId);
 
         require(details._blockMinted != 0, "invalid or unclaimed profile");
 
