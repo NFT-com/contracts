@@ -31,7 +31,7 @@ export const domainSeparator = async (
     name: string, // name is deprecated
     contractAddress: string
 ): Promise<string> => {
-    const domain = await getDomain(provider, contractAddress.toLowerCase(), contractAddress);
+    const domain = await getDomain(provider, name, contractAddress);
     return _TypedDataEncoder.hashDomain(domain);
 };
 
