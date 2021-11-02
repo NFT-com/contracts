@@ -33,7 +33,7 @@ describe("template", function () {
             let deadline = currentTime + 100;
             const nftTokenPermitDigest = await getDigest(
                 ethers.provider,
-                await deployedNftToken.name(),
+                "NFT.com",
                 deployedNftToken.address,
                 getHash(
                     ["bytes32", "address", "address", "uint256", "uint256", "uint256"],
@@ -48,7 +48,7 @@ describe("template", function () {
             expect(await deployedNftToken.balanceOf(testUser.address)).to.be.equal(10000);
             expect(await deployedNftToken.allowance(testUser.address, deployedNftStake.address)).to.be.equal(0);
 
-            const { v: v0, r: r0, s: s0 } = await sign(nftTokenPermitDigest, testUser);
+            const { v: v0, r: r0, s: s0 } = sign(nftTokenPermitDigest, testUser);
 
             await deployedNftToken.permit(testUser.address, deployedNftStake.address, 1000, deadline, v0, r0, s0);
             expect(await deployedNftToken.allowance(testUser.address, deployedNftStake.address)).to.be.equal(1000);
