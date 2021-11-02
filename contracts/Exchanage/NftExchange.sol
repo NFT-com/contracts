@@ -23,9 +23,10 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     uint256 private constant UINT256_MAX = 2**256 - 1;
 
     address public owner;
+    address public stakingContract;
     uint256 public protocolFee; // value 0 - 10000, where 10000 = 100% fees, 100 = 1%
-    mapping(bytes32 => uint256) public fills; // state of the orders
     mapping(bytes4 => address) proxies;
+    mapping(address => bool) whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
     mapping(bytes32 => bool) public approvedOrders; // order verified by on-chain approval (optional)
 
@@ -246,15 +247,23 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         address to
     ) internal {
         if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
+            // get ETH / USD
+            // get NFT / USD
+            // transfer NFT tokens to staking contract [stakingContract]
             transferEth(to, asset.value);
         } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
             address token = abi.decode(asset.assetType.data, (address));
+            require(whitelistERC20[token], "NFT.COM: ERC20 NOT SUPPORTED");
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
                 IERC20Upgradeable(token),
                 from,
                 to,
                 asset.value
             );
+
+            // get oracle USD price from supported whitelist
+            // get NFT / USD price
+            // transfer NFT tokens to staking contract [stakingContract]
         } else if (asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
             (address token, uint256 tokenId) = abi.decode(asset.assetType.data, (address, uint256));
             require(asset.value == 1, "erc721 value error");
