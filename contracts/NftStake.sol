@@ -28,7 +28,7 @@ contract NftStake is ERC20Permit {
         bytes32 r,
         bytes32 s
     ) private {
-        return IERC20Permit(address(this)).permit(_owner, spender, 2**256 - 1, 2**256 - 1, v, r, s);
+        return IERC20Permit(nftToken).permit(_owner, spender, 2**256 - 1, 2**256 - 1, v, r, s);
     }
 
     /**
@@ -44,6 +44,13 @@ contract NftStake is ERC20Permit {
         bytes32 r,
         bytes32 s
     ) public {
+        // only apply approve permit for first time
+        if (IERC20(address(this)).allowance(msg.sender, address(this)) < _amount) {
+            permitXNFT(msg.sender, address(this), v, r, s); // approve xNFT token
+        }
+
+        IERC20(nftToken).transferFrom(msg.sender, address(this), _amount);
+
         uint256 totalNftTokenLocked = IERC20(nftToken).balanceOf(address(this));
         uint256 totalSupply = totalSupply();
 
@@ -53,13 +60,6 @@ contract NftStake is ERC20Permit {
             uint256 xNftTokenAmount = _amount.mul(totalSupply).div(totalNftTokenLocked);
             _mint(msg.sender, xNftTokenAmount);
         }
-
-        // only apply approve permit for first time
-        if (IERC20(address(this)).allowance(msg.sender, address(this)) == 0) {
-            permitXNFT(msg.sender, address(this), v, r, s); // approve xNFT token
-        }
-
-        IERC20(nftToken).transferFrom(msg.sender, address(this), _amount);
     }
 
     function leave(uint256 _xNftAmount) public {
