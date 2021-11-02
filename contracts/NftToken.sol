@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
 contract NftToken is ERC20Permit {
     constructor() ERC20Permit("NFT.com") ERC20("NFT.com", "NFT") {
-        _mint(msg.sender, 10 * 10 ** 9 * 10 ** 18);
+        _mint(msg.sender, 10 * 10**9 * 10**18);
     }
 
     /**

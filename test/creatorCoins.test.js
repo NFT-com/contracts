@@ -1,12 +1,8 @@
 const { expect } = require("chai");
-const { BigNumber } = require("@ethersproject/bignumber");
-const converter = require('json-2-csv');
-const fs = require('fs')
 
 // used because the bonding curve doesn't work well with small uint256
 // * 10000 for larger magnitude
 const c = input => input * 10000;
-const cBIG = input => BigNumber.from(input).mul(BigNumber.from(10).pow(18));
 
 describe("NFT.com", function () {
   try {
@@ -18,15 +14,13 @@ describe("NFT.com", function () {
     let deployedProfileAuction;
     let CreatorBondingCurve;
     let deployedCreatorBondingCurve;
-    let _numerator = BigNumber.from(10).pow(1);
-    let _denominator = BigNumber.from(10).pow(24);
-    let _loops = 50;
+    let _numerator = 1;
+    let _denominator = 1000000;
     let NftProfileHelper;
     let deployedNftProfileHelper;
     let CreatorCoin;
     let deployedCreatorCoin;
     let coldWallet;
-    const ZERO_BYTES = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -52,7 +46,7 @@ describe("NFT.com", function () {
           "NFT.com", // string memory name,
           "NFT.com", // string memory symbol,
           deployedNftToken.address, // address _nftCashAddress,
-          deployedCreatorBondingCurve.address // deployedCreatorBondingCurve address
+          deployedCreatorBondingCurve.address, // deployedCreatorBondingCurve address
         ],
         { kind: "uups" },
       );
@@ -74,7 +68,7 @@ describe("NFT.com", function () {
       deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
 
       // creator coin logic
-      await deployedNftToken.connect(owner).approve(deployedProfileAuction.address, cBIG(2500000));
+      await deployedNftToken.connect(owner).approve(deployedProfileAuction.address, c(2500000));
 
       await expect(deployedProfileAuction.connect(owner).submitProfileBid(10000, "george"))
         .to.emit(deployedProfileAuction, "NewBid")
@@ -92,7 +86,7 @@ describe("NFT.com", function () {
 
       expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
 
-      await deployedNftProfile.initializeCreatorCoin(0, 0, 0, ZERO_BYTES, ZERO_BYTES);
+      await deployedNftProfile.initializeCreatorCoin(0);
       await deployedNftToken.connect(owner).approve(await deployedNftProfile.creatorCoin(0), c(2500000));
 
       CreatorCoin = await ethers.getContractFactory("CreatorCoin");
@@ -102,80 +96,17 @@ describe("NFT.com", function () {
       await deployedNftToken.connect(owner).approve(deployedNftProfile.address, c(2500000));
     });
 
-    describe("BondingCurve Test", function () {
-      it("should simulate creator coin supply curve", async function () {
-        expect(await deployedNftToken.balanceOf(deployedCreatorCoin.address)).to.be.equal(0);
-        await deployedNftToken.connect(owner).approve(deployedNftProfile.address, cBIG(100000000));
-        let data = [];
-  
-        for (let i = 0; i < _loops; i++) {
-          await deployedNftProfile.connect(owner).mintCreatorCoin(cBIG(100), 0, 0, ZERO_BYTES, ZERO_BYTES);
-
-          let cSupply = await deployedCreatorCoin.totalSupply();
-          let lockedNFT = await deployedNftToken.balanceOf(deployedCreatorCoin.address);
-
-          data.push({
-            x: Number(lockedNFT),
-            y: Number(cSupply)
-          });
-        }
-
-        // converter.json2csv(data, (err, csv) => {
-        //   if (err) {
-        //       throw err;
-        //   }
-      
-        //   // write CSV to a file
-        //   fs.writeFileSync(`test/curves/${_numerator}_${_denominator}_${_loops}.csv`, csv);
-          
-        // });
-      });
-    });
-
     describe("Creator Coins", function () {
       it("should not allow burning of insufficient creator coin", async function () {
-        await expect(deployedNftProfile.burnCreatorCoin(c(1), 0, 0, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
+        await expect(deployedNftProfile.burnCreatorCoin(c(1), 0)).to.be.reverted;
       });
 
-      it("should allow a user to initialize and mint in the same tx", async function() {
-        await expect(deployedProfileAuction.connect(owner).submitProfileBid(10000, "george2"))
-        .to.emit(deployedProfileAuction, "NewBid")
-        .withArgs(owner.address, "george2", 10000);
-
-        expect(await deployedNftToken.balanceOf(deployedProfileAuction.address)).to.be.equal(20000);
-
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
-
-        expect(await deployedProfileAuction.connect(owner).mintProfileFor(owner.address, "george2"));
-
-        await deployedProfileAuction.connect(owner).claimProfile("george2", { value: "500000000000000000" });
-
-        expect((await deployedProfileAuction.getBids(owner.address)).length).to.be.equal(0);
-
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
-
-        await deployedNftProfile.initializeCreatorCoin(1, c(100), 0, ZERO_BYTES, ZERO_BYTES);
-
-        CreatorCoin = await ethers.getContractFactory("CreatorCoin");
-        let deployedCreatorCoin2 = await CreatorCoin.attach(await deployedNftProfile.creatorCoin(1));
-
-        expect(await deployedCreatorCoin2.fees(owner.address)).to.be.equal(c(100) * 0.1); // fee is 10%
-
-        expect(await deployedNftToken.balanceOf(deployedCreatorCoin2.address)).to.be.equal(c(98));
-      });
-      
       it("should mint and burn along bonding curve for profile and allocate fees, and allow rewards to user who staked", async function () {
         expect(await deployedNftToken.balanceOf(deployedCreatorCoin.address)).to.be.equal(0);
-        
-        await deployedNftToken.connect(owner).approve(deployedNftProfile.address, c(100000000));
-        // @dev: figure out how to add V R S signature via hardhat (ETH-SIGN-V4)
-        // Temp Solution: manually set approve to max and pass in dummy variables that are not used for VRS
-        await expect(deployedNftProfile.connect(owner).mintCreatorCoin(c(100), 0,  0, ZERO_BYTES, ZERO_BYTES)).to.emit(deployedNftToken, "Transfer")
-        .withArgs(
-          deployedCreatorCoin.address,
-          ethers.constants.AddressZero,
-          c(100) * 0.02
-        );
+
+        await expect(deployedNftProfile.connect(owner).mintCreatorCoin(c(100), 0))
+          .to.emit(deployedNftToken, "Transfer")
+          .withArgs(deployedCreatorCoin.address, ethers.constants.AddressZero, c(100) * 0.02);
 
         expect(await deployedCreatorCoin.fees(owner.address)).to.be.equal(c(100) * 0.1); // fee is 10%
 
@@ -199,7 +130,7 @@ describe("NFT.com", function () {
         // get total supply creator coin
         let preSupply = await deployedCreatorCoin.totalSupply();
 
-        await expect(deployedNftProfile.connect(owner).burnCreatorCoin(creatorCoinToBurn, 0, 0, ZERO_BYTES, ZERO_BYTES))
+        await expect(deployedNftProfile.connect(owner).burnCreatorCoin(creatorCoinToBurn, 0))
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(deployedCreatorCoin.address, ethers.constants.AddressZero, Math.trunc(nftTokensReleased * 0.02));
 
