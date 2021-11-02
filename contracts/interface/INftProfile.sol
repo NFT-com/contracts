@@ -2,10 +2,10 @@
 pragma solidity >=0.8.4;
 
 struct Bid {
-    uint256 _nftTokens;                 // number of nft tokens associated with bid
-    uint256 _blockMinted;               // block bid is minted
-    string _profileURI;                 // profile url
-    uint256 _blockWait;                 // minimum wait time before nft tokens can be unlocked
+    uint256 _nftTokens; // number of nft tokens associated with bid
+    uint256 _blockMinted; // block bid is minted
+    string _profileURI; // profile url
+    uint256 _blockWait; // minimum wait time before nft tokens can be unlocked
 }
 
 // a new bonding contract is created with every new profile created
@@ -19,5 +19,6 @@ interface INftProfile {
     ) external;
 
     function tokenUsed(string memory _string) external view returns (bool);
+
     function profileDetails(uint256 tokenId) external view returns (Bid memory);
 }

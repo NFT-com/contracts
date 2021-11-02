@@ -14,5 +14,14 @@
   },
   "exclude": ["node_modules"],
   "files": ["./hardhat.config.ts"],
-  "include": ["tasks/**/*.ts", "test/**/*.ts", "typechain/**/*.d.ts", "typechain/**/*.ts", "tasks/clean.ts", "tasks/accounts.ts", "tasks/deployers/index.ts", "tasks/deployers/greeter.js"]
+  "include": [
+    "tasks/**/*.ts",
+    "test/**/*.ts",
+    "typechain/**/*.d.ts",
+    "typechain/**/*.ts",
+    "tasks/clean.ts",
+    "tasks/accounts.ts",
+    "tasks/deployers/index.ts",
+    "tasks/deployers/greeter.js"
+  ]
 }

@@ -12,7 +12,7 @@ interface INftToken {
 contract CreatorCoin is ERC20, ICreatorCoin {
     using SafeMath for uint256;
 
-    mapping (address => uint256) private _fees;
+    mapping(address => uint256) private _fees;
 
     address public nftCashAddress;
     address public nftProfileAddress;
