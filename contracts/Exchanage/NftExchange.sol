@@ -26,7 +26,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     address public stakingContract;
     uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
     mapping(bytes4 => address) proxies;
-    mapping(address => bool) whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
+    mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
     mapping(bytes32 => bool) public approvedOrders; // order verified by on-chain approval (optional)
 
@@ -293,6 +293,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param value base value of ETH in wei
      */
     function transferEth(address to, uint256 value) internal {
+        // ETH Fee
         (bool success1, ) = stakingContract.call{ value: value.mul(protocolFee).div(10000) }("");
         (bool success2, ) = to.call{ value: value }("");
         require(success1 && success2, "NFT.COM: transfer failed");
@@ -315,6 +316,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             address token = abi.decode(asset.assetType.data, (address));
             require(whitelistERC20[token], "NFT.COM: ERC20 NOT SUPPORTED");
 
+            // ERC20 Fee
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
                 IERC20Upgradeable(token),
                 from,

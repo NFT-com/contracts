@@ -3,15 +3,102 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "./interface/INftExchange.sol";
 
-contract NftStake is ERC20Permit {
+interface IUniswapRouter is ISwapRouter {
+    function refundETH() external payable;
+}
+
+contract NftStake is ERC20Permit, ReentrancyGuard {
     using SafeMath for uint256;
+
     address public nftToken;
+    INftExchange public nftExchange;
+
+    IUniswapRouter public constant uniswapRouter = IUniswapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
+    address private constant WETH9 = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+
 
     constructor(address _nftToken) ERC20Permit("xNFT.com") ERC20("xNFT.com", "xNFT") {
         nftToken = _nftToken;
     }
+
+    function isContract(address account) internal view returns (bool) {
+        // This method relies on extcodesize, which returns 0 for contracts in
+        // construction, since the code is only stored at the end of the
+        // constructor execution.
+
+        uint256 size;
+        assembly {
+            size := extcodesize(account)
+        }
+        return size > 0;
+    }
+
+    function approveToken(address token, address spender) external {
+        require(nftExchange.whitelistERC20(token), "NFT.COM: !ERC20");
+        IERC20(token).approve(spender, 2**256 - 1);
+    }
+
+    function convertEthToNFT() external nonReentrant {
+        require(!isContract(msg.sender), "NFT.COM: !CONTRACT");
+
+        uint256 deadline = block.timestamp + 7;
+        address tokenIn = WETH9;
+        address tokenOut = nftToken;
+        uint24 fee = 3000;
+        address recipient = address(this);
+        uint256 amountIn = address(this).balance;
+        uint256 amountOutMinimum = 1;
+        uint160 sqrtPriceLimitX96 = 0;
+        
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
+            tokenIn,
+            tokenOut,
+            fee,
+            recipient,
+            deadline,
+            amountIn,
+            amountOutMinimum,
+            sqrtPriceLimitX96
+        );
+        
+        uniswapRouter.exactInputSingle{ value: address(this).balance }(params);
+        uniswapRouter.refundETH();
+    }
+
+    function convertERC20ToNFT(address tokenIn) external nonReentrant {
+        require(!isContract(msg.sender), "NFT.COM: !CONTRACT");
+        require(nftExchange.whitelistERC20(tokenIn), "NFT.COM: !ERC20");
+
+        uint256 deadline = block.timestamp + 7;
+        address tokenOut = nftToken;
+        uint24 fee = 3000;
+        address recipient = address(this);
+        uint256 amountIn = IERC20(tokenIn).balanceOf(address(this));
+        uint256 amountOutMinimum = 1;
+        uint160 sqrtPriceLimitX96 = 0;
+        
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
+            tokenIn,
+            tokenOut,
+            fee,
+            recipient,
+            deadline,
+            amountIn,
+            amountOutMinimum,
+            sqrtPriceLimitX96
+        );
+        
+        uniswapRouter.exactInputSingle(params);
+    }
+  
+    // important to receive ETH
+    receive() payable external {}
 
     /**
      @notice internal helper function to call allowance for a token
@@ -43,7 +130,7 @@ contract NftStake is ERC20Permit {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) public {
+    ) public nonReentrant {
         // only apply approve permit for first time
         if (IERC20(address(this)).allowance(msg.sender, address(this)) < _amount) {
             permitXNFT(msg.sender, address(this), v, r, s); // approve xNFT token
@@ -62,7 +149,7 @@ contract NftStake is ERC20Permit {
         }
     }
 
-    function leave(uint256 _xNftAmount) public {
+    function leave(uint256 _xNftAmount) public nonReentrant {
         uint256 totalSupply = totalSupply();
 
         uint256 nftAmount = _xNftAmount.mul(IERC20(nftToken).balanceOf(address(this))).div(totalSupply);
