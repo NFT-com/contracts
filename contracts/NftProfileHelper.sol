@@ -2,10 +2,10 @@
 pragma solidity >=0.8.4;
 
 import "./interface/INftProfileHelper.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract NftProfileHelper is INftProfileHelper {
+contract NftProfileHelper is INftProfileHelper, Ownable {
     mapping(bytes1 => bool) _allowedChar;
-
     constructor() {
         _allowedChar["a"] = true;
         _allowedChar["b"] = true;
@@ -52,6 +52,11 @@ contract NftProfileHelper is INftProfileHelper {
 
     function correctLength(string memory _string) private pure returns (bool) {
         return bytesStringLength(_string) > 0 && bytesStringLength(_string) <= 60;
+    }
+
+    function changeAllowedChar(string memory char, bool flag) external onlyOwner {
+        require(bytesStringLength(char) == 1, "invalid length");
+        _allowedChar[bytes1(bytes(char))] = flag;
     }
 
     /**
