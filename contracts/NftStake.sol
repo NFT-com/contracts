@@ -20,11 +20,19 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
     INftExchange public nftExchange;
 
     IUniswapRouter public constant uniswapRouter = IUniswapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-    address private constant WETH9 = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
+    // mainnet: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
+    // rinkeby: 0xc778417E063141139Fce010982780140Aa0cD5Ab
+    address public WETH9;
 
-    constructor(address _nftToken) ERC20Permit("xNFT.com") ERC20("xNFT.com", "xNFT") {
+    constructor(
+        address _nftToken,
+        address _weth,
+        INftExchange _nftExchange
+    ) ERC20Permit("xNFT.com") ERC20("xNFT.com", "xNFT") {
         nftToken = _nftToken;
+        WETH9 = _weth;
+        nftExchange = _nftExchange;
     }
 
     function isContract(address account) internal view returns (bool) {
@@ -39,9 +47,9 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
         return size > 0;
     }
 
-    function approveToken(address token, address spender) external {
+    function approveToken(address token) external {
         require(nftExchange.whitelistERC20(token), "NFT.COM: !ERC20");
-        IERC20(token).approve(spender, 2**256 - 1);
+        IERC20(token).approve(address(uniswapRouter), 2**256 - 1);
     }
 
     function convertEthToNFT() external nonReentrant {
