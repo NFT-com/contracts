@@ -23,13 +23,16 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     uint256 private constant UINT256_MAX = 2**256 - 1;
 
     address public owner;
-    uint256 public protocolFee; // value 0 - 10000, where 10000 = 100% fees, 100 = 1%
-    mapping(bytes32 => uint256) public fills; // state of the orders
+    address public stakingContract;
+    uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
+    bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
     mapping(bytes4 => address) proxies;
+    mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
     mapping(bytes32 => bool) public approvedOrders; // order verified by on-chain approval (optional)
 
     //events
+    event ProtocolFeeChange(uint256 fee);
     event ProxyChange(bytes4 indexed assetType, address proxy);
     event Cancel(bytes32 hash, address maker, LibAsset.AssetType makeAssetType, LibAsset.AssetType takeAssetType);
     event Approval(bytes32 hash, address maker, LibAsset.AssetType makeAssetType, LibAsset.AssetType takeAssetType);
@@ -75,6 +78,12 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         return hash;
     }
 
+    function changeProtocolFee(uint256 _fee) external onlyOwner {
+        require(_fee < 2000, "NFT.COM: 20% MAX");
+        protocolFee = _fee;
+        emit ProtocolFeeChange(_fee);
+    }
+
     /**
      * @dev internal function for validating a buy or sell order
      * @param hash the struct hash for a bid
@@ -100,6 +109,8 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         if (ECDSAUpgradeable.recover(hashV4, sig.v, sig.r, sig.s) == order.maker) {
             return true;
         }
+
+        // TODO: add contract signature valiadtion (DAOs)
 
         return false;
     }
@@ -147,6 +158,21 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
+     * @dev validateBuyNow makes sure a buyer can fulfill the sellOrder and that the sellOrder is formatted properly
+     * @param sellOrder the listing
+     * @param buyer potential executor of sellOrder
+     */
+    function validateBuyNow(LibSignature.Order memory sellOrder, address buyer)
+        internal
+        pure
+        returns (bool)
+    {
+        return 
+            (sellOrder.takeAsset.value != 0) &&
+            (sellOrder.taker == 0x0000000000000000000000000000000000000000 || sellOrder.taker == buyer);
+    }
+
+    /**
      * @dev validateMatch makes sure two orders (on sell side and buy side) match correctly
      * @param sellOrder the listing
      * @param buyOrder bid for a listing
@@ -156,15 +182,19 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         pure
         returns (bool)
     {
-        // token denominating sell order listing
+        (uint256 minimumBidValue) = abi.decode(sellOrder.data, (uint256));
+
         return
+            // token denominating sell order listing
             (sellOrder.takeAsset.assetType.assetClass == buyOrder.makeAsset.assetType.assetClass) &&
             // asset being sold
             (sellOrder.makeAsset.assetType.assetClass == buyOrder.takeAsset.assetType.assetClass) &&
             // sellOrder taker must be valid
             (sellOrder.taker == address(0) || sellOrder.taker == buyOrder.maker) &&
             // buyOrder taker must be valid
-            (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker);
+            (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker) && 
+            // buyOrder must be within bounds
+            (buyOrder.makeAsset.value >= minimumBidValue);
     }
 
     /**
@@ -178,6 +208,39 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         returns (bool)
     {
         return validateMatch(sellOrder, buyOrder);
+    }
+
+    function checkRoyalties(address _contract) internal returns (bool) {
+        (bool success) = IERC165(_contract).supportsInterface(_INTERFACE_ID_ERC2981);
+        return success;
+    }
+
+    /**
+     * @dev functions that allows anyone to execute a sell order that has a specified price > 0
+     * @param sellOrder the listing
+     * @param v vSig
+     * @param r rSig
+     * @param s sSig
+     */
+    function buyNow(
+        LibSignature.Order memory sellOrder,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external payable {
+        // checks
+        bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s));
+
+        require(validateBuyNow(sellOrder, msg.sender));
+
+        if (msg.sender != sellOrder.maker) {
+            cancelledOrFinalized[sellHash] = true;
+        }
+
+        // interactions (i.e. perform swap)
+        // these two functions also transfer fees AND royalties
+        transfer(sellOrder.takeAsset, msg.sender, sellOrder.maker); // send denominated asset to seller from buyer
+        transfer(sellOrder.makeAsset, sellOrder.maker, msg.sender); // send listed asset to buyer from seller
     }
 
     /**
@@ -220,8 +283,8 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         // interactions (i.e. perform swap)
         // these two functions also transfer fees AND royalties
+        transfer(buyOrder.makeAsset, buyOrder.maker, sellOrder.maker); // send denominated asset to seller from buyer
         transfer(sellOrder.makeAsset, sellOrder.maker, buyOrder.maker); // send listed asset to buyer from seller
-        transfer(sellOrder.takeAsset, buyOrder.maker, sellOrder.maker); // send denominated asset to seller from buyer
     }
 
     function setTransferProxy(bytes4 assetType, address proxy) external onlyOwner {
@@ -229,9 +292,17 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         emit ProxyChange(assetType, proxy);
     }
 
+    /**
+     * @dev internal function for transferring ETH w/ fees
+     * @notice fees are being sent in addition to base ETH price
+     * @param to counterparty receiving ETH for transaction
+     * @param value base value of ETH in wei
+     */
     function transferEth(address to, uint256 value) internal {
-        (bool success, ) = to.call{ value: value }("");
-        require(success, "transfer failed");
+        // ETH Fee
+        (bool success1, ) = stakingContract.call{ value: value.mul(protocolFee).div(10000) }("");
+        (bool success2, ) = to.call{ value: value }("");
+        require(success1 && success2, "NFT.COM: transfer failed");
     }
 
     /**
@@ -249,6 +320,16 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             transferEth(to, asset.value);
         } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
             address token = abi.decode(asset.assetType.data, (address));
+            require(whitelistERC20[token], "NFT.COM: ERC20 NOT SUPPORTED");
+
+            // ERC20 Fee
+            IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
+                IERC20Upgradeable(token),
+                from,
+                stakingContract,
+                asset.value.mul(protocolFee).div(10000)
+            );
+
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
                 IERC20Upgradeable(token),
                 from,
@@ -275,6 +356,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
                 ""
             );
         } else {
+            // non standard NFTs
             ITransferProxy(proxies[asset.assetType.assetClass]).transfer(asset, from, to);
         }
         emit Transfer(asset, from, to);

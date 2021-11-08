@@ -7,6 +7,7 @@ describe("NFT Token Staking", function () {
     let NftToken, NftStake;
     let deployedNftToken, deployedNftStake;
     const MAX_UINT = (BigNumber.from(2).pow(BigNumber.from(256))).sub(1);
+    const RINKEBY_WETH = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -18,7 +19,7 @@ describe("NFT Token Staking", function () {
       deployedNftToken = await NftToken.deploy(); // mint 10B tokens
 
       NftStake = await ethers.getContractFactory("NftStake");
-      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address, RINKEBY_WETH);
     });
 
     describe("Test Staking and Unstaking", function () {
@@ -120,7 +121,7 @@ describe("NFT Token Staking", function () {
         .withArgs(testUser.address, ethers.constants.AddressZero, 1000);
     });
 
-    it("should allow stkaing users to receive additional NFT tokens as yield", async function () {
+    it("should allow staking users to receive additional NFT tokens as yield", async function () {
       const testUser = ethers.Wallet.createRandom();
 
       const nftTokenPermitDigest = await getDigest(
