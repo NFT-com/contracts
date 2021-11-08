@@ -6,7 +6,9 @@ import "./interface/ICreatorBondingCurve.sol";
 import "./CreatorCoin.sol";
 import "./interface/INftProfile.sol";
 import "./oz_modified/ERC721EnumerableUpgradeable.sol";
+import "./royalties/IERC2981Royalties.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -26,10 +28,18 @@ contract NftProfileV1 is
     ERC721EnumerableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable,
-    INftProfile
+    INftProfile,
+    ERC165Upgradeable,
+    IERC2981Royalties
 {
     using SafeMath for uint256;
 
+    struct RoyaltyInfo {
+        address recipient;
+        uint24 amount;
+    }
+
+    RoyaltyInfo private _royalties;
     mapping(uint256 => uint256) internal _profileOwnerFee;
     mapping(uint256 => string) internal _tokenURIs;
     mapping(string => uint256) internal _tokenUsedURIs;
@@ -79,6 +89,50 @@ contract NftProfileV1 is
 
         // adds 1 to preserve 0 being the default not found case
         _tokenUsedURIs[_tokenURI] = _tokenId.add(1);
+    }
+
+    /**
+     @dev Sets token royalties
+     @param recipient recipient of the royalties
+     @param value percentage (using 2 decimals - 10000 = 100, 0 = 0)
+    */
+    function _setRoyalties(address recipient, uint256 value) internal {
+        require(value <= 10000, "NFT.COM: ERC-2981 Royalty Too High");
+        _royalties = RoyaltyInfo(recipient, uint24(value));
+    }
+
+    /* @inheritdoc IERC2981Royalties */
+    function royaltyInfo(uint256, uint256 value)
+        external
+        view
+        override
+        returns (address receiver, uint256 royaltyAmount)
+    {
+        RoyaltyInfo memory royalties = _royalties;
+        receiver = royalties.recipient;
+        royaltyAmount = (value * royalties.amount) / 10000;
+    }
+
+    /* @inheritdoc ERC165Upgradeable */
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC721EnumerableUpgradeable)
+        returns (bool)
+    {
+        return interfaceId == type(IERC2981Royalties).interfaceId ||
+            super.supportsInterface(interfaceId);
+    }
+
+    /**
+     @notice Allows to set the royalties on the contract
+     @dev This function in a real contract should be protected with a onlOwner (or equivalent) modifier
+     @param recipient the royalties recipient
+     @param value royalties value (between 0 and 10000)
+    */
+    function setRoyalties(address recipient, uint256 value) external onlyOwner {
+        _setRoyalties(recipient, value);
     }
 
     /**
