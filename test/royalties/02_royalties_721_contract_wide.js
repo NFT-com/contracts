@@ -12,15 +12,10 @@ describe('ERC721WithContractWideRoyalties', () => {
         [deployer, randomAccount, royaltiesRecipient] =
             await ethers.getSigners();
 
-        await deployments.fixture();
-        ERC721WithContractWideRoyalties = await deployments.get(
+        ERC721WithContractWideRoyalties = await ethers.getContractFactory(
             'ERC721WithContractWideRoyalties',
         );
-        erc721WithRoyalties = await ethers.getContractAt(
-            'ERC721WithContractWideRoyalties',
-            ERC721WithContractWideRoyalties.address,
-            deployer,
-        );
+        erc721WithRoyalties = await ERC721WithContractWideRoyalties.deploy("NAME", "SYMBOL");
     });
 
     describe('Contract wide Royalties', async () => {

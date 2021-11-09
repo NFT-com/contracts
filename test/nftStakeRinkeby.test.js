@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { sign, getDigest, getHash, ERC20_PERMIT_TYPEHASH } = require("./utils/sign-utils");
 
-describe("NFT Token Staking", function () {
+describe("NFT Token Staking (Rinkeby)", function () {
   try {
     let NftToken, NftStake;
     let deployedNftToken, deployedNftStake, deployedXEENUS;
