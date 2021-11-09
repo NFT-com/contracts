@@ -9,6 +9,7 @@ import "./lib/LibSignature.sol";
 import "./interfaces/IERC20TransferProxy.sol";
 import "./interfaces/INftTransferProxy.sol";
 import "./interfaces/ITransferProxy.sol";
+import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using SafeMathUpgradeable for uint256;
@@ -210,8 +211,8 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         return validateMatch(sellOrder, buyOrder);
     }
 
-    function checkRoyalties(address _contract) internal returns (bool) {
-        (bool success) = IERC165(_contract).supportsInterface(_INTERFACE_ID_ERC2981);
+    function checkRoyalties(address _contract) internal view returns (bool) {
+        (bool success) = IERC165Upgradeable(_contract).supportsInterface(_INTERFACE_ID_ERC2981);
         return success;
     }
 
