@@ -139,6 +139,10 @@ describe("NFT Gasless Auction V2", function () {
           '10000'
         );
       });
+
+      it("should allow users to submit a signed signature for a bid", async function () {
+        
+      });
     });
   } catch (err) {
     console.log("error: ", err);
