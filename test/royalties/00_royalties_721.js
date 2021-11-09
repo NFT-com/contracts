@@ -1,5 +1,4 @@
 const { expect } = require('chai');
-const { deployments, ethers } = require('hardhat');
 
 const _INTERFACE_ID_ERC165 = '0x01ffc9a7';
 const _INTERFACE_ID_ROYALTIES_EIP2981 = '0x2a55205a';
@@ -16,13 +15,8 @@ describe('ERC721WithRoyalties', () => {
         [deployer, randomAccount, royaltiesRecipient] =
             await ethers.getSigners();
 
-        await deployments.fixture();
-        ERC721WithRoyalties = await deployments.get('ERC721WithRoyalties');
-        erc721WithRoyalties = await ethers.getContractAt(
-            'ERC721WithRoyalties',
-            ERC721WithRoyalties.address,
-            deployer,
-        );
+        ERC721WithRoyalties = await ethers.getContractFactory('ERC721WithRoyalties');
+        erc721WithRoyalties = await ERC721WithRoyalties.deploy("NAME", "SYMBOL");
     });
 
     describe('Royalties', async () => {

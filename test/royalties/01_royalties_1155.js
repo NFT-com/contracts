@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { deployments, ethers } = require('hardhat');
+const { ethers } = require('hardhat');
 
 describe('ERC1155WithRoyalties', () => {
     let ERC1155WithRoyalties;
@@ -13,13 +13,8 @@ describe('ERC1155WithRoyalties', () => {
         [deployer, randomAccount, royaltiesRecipient] =
             await ethers.getSigners();
 
-        await deployments.fixture();
-        ERC1155WithRoyalties = await deployments.get('ERC1155WithRoyalties');
-        erc1155WithRoyalties = await ethers.getContractAt(
-            'ERC1155WithRoyalties',
-            ERC1155WithRoyalties.address,
-            deployer,
-        );
+        ERC1155WithRoyalties = await ethers.getContractFactory('ERC1155WithRoyalties');
+        erc1155WithRoyalties = await ERC1155WithRoyalties.deploy("TEST_URI");
     });
 
     describe('Royalties', async () => {
