@@ -163,12 +163,8 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param sellOrder the listing
      * @param buyer potential executor of sellOrder
      */
-    function validateBuyNow(LibSignature.Order memory sellOrder, address buyer)
-        internal
-        pure
-        returns (bool)
-    {
-        return 
+    function validateBuyNow(LibSignature.Order memory sellOrder, address buyer) internal pure returns (bool) {
+        return
             (sellOrder.takeAsset.value != 0) &&
             (sellOrder.taker == 0x0000000000000000000000000000000000000000 || sellOrder.taker == buyer);
     }
@@ -183,7 +179,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         pure
         returns (bool)
     {
-        (uint256 minimumBidValue) = abi.decode(sellOrder.data, (uint256));
+        uint256 minimumBidValue = abi.decode(sellOrder.data, (uint256));
 
         return
             // token denominating sell order listing
@@ -193,7 +189,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             // sellOrder taker must be valid
             (sellOrder.taker == address(0) || sellOrder.taker == buyOrder.maker) &&
             // buyOrder taker must be valid
-            (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker) && 
+            (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker) &&
             // buyOrder must be within bounds
             (buyOrder.makeAsset.value >= minimumBidValue);
     }
@@ -212,7 +208,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     function checkRoyalties(address _contract) internal view returns (bool) {
-        (bool success) = IERC165Upgradeable(_contract).supportsInterface(_INTERFACE_ID_ERC2981);
+        bool success = IERC165Upgradeable(_contract).supportsInterface(_INTERFACE_ID_ERC2981);
         return success;
     }
 

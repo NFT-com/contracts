@@ -6,7 +6,7 @@ describe("NFT Token Staking (Localnet)", function () {
   try {
     let NftToken, NftStake;
     let deployedNftToken, deployedNftStake;
-    const MAX_UINT = (BigNumber.from(2).pow(BigNumber.from(256))).sub(1);
+    const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
     const RINKEBY_WETH = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
 
     // `beforeEach` will run before each test, re-deploying the contract every
