@@ -189,6 +189,20 @@ describe("NFT Gasless Auction V2", function () {
       });
     });
 
+    it("should hit edge functions", async function () {
+      await deployedProfileAuction.setProfileFee(0);
+
+      await deployedProfileAuction.setOwner(owner.address);
+
+      expect(await deployedProfileAuction.validateBid(0, "test", owner.address, 28, "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9", "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe")).to.be.false;
+
+      await deployedProfileAuction.approveBid(1, "test", owner.address);
+
+      expect(await deployedProfileAuction.validateBid(1, "test", owner.address, 28, "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9", "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe")).to.be.true;;
+
+      expect(await deployedProfileAuction.validateBid(1, "test2", owner.address, 28, "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9", "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe")).to.be.false;
+    });
+
     it("should allow a user to cancel existing bid for a profile", async function () {
       const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
 
@@ -319,6 +333,18 @@ describe("NFT Gasless Auction V2", function () {
 
       // token comes back to user
       expect(await deployedNftProfile.ownerOf(0)).to.be.equal(owner.address);
+    });
+
+    describe("Protocol Upgrades", function () {
+      it("should upgrade profile contract to V3", async function () {
+        const ProfileAuctionV3 = await ethers.getContractFactory("ProfileAuctionV3");
+
+        let deployedProfileAuctionV3 = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV3);
+
+        expect(await deployedProfileAuctionV3.getVariable()).to.be.equal("hello");
+
+        expect(await deployedProfileAuctionV3.testFunction()).to.be.equal(12345);
+      });
     });
   } catch (err) {
     console.log("error: ", err);
