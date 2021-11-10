@@ -14,6 +14,8 @@ export const ERC20_PERMIT_TYPEHASH = convertToHash(
   "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)",
 );
 
+export const BID_TYPEHASH = convertToHash("Bid(uint256 _nftTokens,string _profileURI,address _owner)");
+
 interface Domain {
   name: string;
   version: string;
@@ -23,6 +25,7 @@ interface Domain {
 
 const getDomain = async (provider: any, name: string, verifyingContract: string): Promise<Domain> => {
   const chainId = await getChainId(provider);
+
   return { name, version: "1", chainId, verifyingContract };
 };
 
@@ -32,6 +35,7 @@ export const domainSeparator = async (
   contractAddress: string,
 ): Promise<string> => {
   const domain = await getDomain(provider, name, contractAddress);
+
   return _TypedDataEncoder.hashDomain(domain);
 };
 

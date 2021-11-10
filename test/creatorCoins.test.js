@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { BigNumber } = require("@ethersproject/bignumber");
-const converter = require('json-2-csv');
-const fs = require('fs')
+const converter = require("json-2-csv");
+const fs = require("fs");
 
 // used because the bonding curve doesn't work well with small uint256
 // * 10000 for larger magnitude
@@ -107,7 +107,7 @@ describe("NFT.com", function () {
         expect(await deployedNftToken.balanceOf(deployedCreatorCoin.address)).to.be.equal(0);
         await deployedNftToken.connect(owner).approve(deployedNftProfile.address, cBIG(100000000));
         let data = [];
-  
+
         for (let i = 0; i < _loops; i++) {
           await deployedNftProfile.connect(owner).mintCreatorCoin(cBIG(100), 0, 0, ZERO_BYTES, ZERO_BYTES);
 
@@ -116,7 +116,7 @@ describe("NFT.com", function () {
 
           data.push({
             x: Number(lockedNFT),
-            y: Number(cSupply)
+            y: Number(cSupply),
           });
         }
 
@@ -124,10 +124,10 @@ describe("NFT.com", function () {
         //   if (err) {
         //       throw err;
         //   }
-      
+
         //   // write CSV to a file
         //   fs.writeFileSync(`test/curves/${_numerator}_${_denominator}_${_loops}.csv`, csv);
-          
+
         // });
       });
     });

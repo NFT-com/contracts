@@ -119,8 +119,7 @@ contract NftProfileV1 is
         override(ERC721EnumerableUpgradeable)
         returns (bool)
     {
-        return interfaceId == type(IERC2981Royalties).interfaceId ||
-            super.supportsInterface(interfaceId);
+        return interfaceId == type(IERC2981Royalties).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**

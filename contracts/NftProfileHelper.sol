@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract NftProfileHelper is INftProfileHelper, Ownable {
     mapping(bytes1 => bool) _allowedChar;
+
     constructor() {
         _allowedChar["a"] = true;
         _allowedChar["b"] = true;

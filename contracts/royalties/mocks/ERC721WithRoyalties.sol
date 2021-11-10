@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-import '../ERC2981PerTokenRoyalties.sol';
+import "../ERC2981PerTokenRoyalties.sol";
 
 /// @title Example of ERC721 contract with ERC2981
 /// @author Simon Fremaux (@dievardump)
@@ -11,18 +11,10 @@ import '../ERC2981PerTokenRoyalties.sol';
 contract ERC721WithRoyalties is ERC721, ERC2981PerTokenRoyalties {
     uint256 nextTokenId;
 
-    constructor(string memory name_, string memory symbol_)
-        ERC721(name_, symbol_)
-    {}
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {}
 
     /// @inheritdoc	ERC165
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721, ERC2981Base)
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, ERC2981Base) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
@@ -36,7 +28,7 @@ contract ERC721WithRoyalties is ERC721, ERC2981PerTokenRoyalties {
         uint256 royaltyValue
     ) external {
         uint256 tokenId = nextTokenId;
-        _safeMint(to, tokenId, '');
+        _safeMint(to, tokenId, "");
 
         if (royaltyValue > 0) {
             _setTokenRoyalty(tokenId, royaltyRecipient, royaltyValue);
@@ -56,19 +48,14 @@ contract ERC721WithRoyalties is ERC721, ERC2981PerTokenRoyalties {
     ) external {
         uint256 tokenId = nextTokenId;
         require(
-            recipients.length == royaltyRecipients.length &&
-                recipients.length == royaltyValues.length,
-            'ERC721: Arrays length mismatch'
+            recipients.length == royaltyRecipients.length && recipients.length == royaltyValues.length,
+            "ERC721: Arrays length mismatch"
         );
 
         for (uint256 i; i < recipients.length; i++) {
-            _safeMint(recipients[i], tokenId, '');
+            _safeMint(recipients[i], tokenId, "");
             if (royaltyValues[i] > 0) {
-                _setTokenRoyalty(
-                    tokenId,
-                    royaltyRecipients[i],
-                    royaltyValues[i]
-                );
+                _setTokenRoyalty(tokenId, royaltyRecipients[i], royaltyValues[i]);
             }
             tokenId++;
         }
