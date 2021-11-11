@@ -5,14 +5,17 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "./lib/LibSignature.sol";
 import "./interfaces/IERC20TransferProxy.sol";
 import "./interfaces/INftTransferProxy.sol";
 import "./interfaces/ITransferProxy.sol";
+import "./interfaces/IERC1271.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using SafeMathUpgradeable for uint256;
+    using AddressUpgradeable for address;
 
     /* An ECDSA signature. */
     struct Sig {
@@ -22,6 +25,10 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     uint256 private constant UINT256_MAX = 2**256 - 1;
+
+    // bytes4(keccak256("isValidSignature(bytes32,bytes)")
+    bytes4 constant internal MAGICVALUE = 0x1626ba7e;
+
 
     address public owner;
     address public stakingContract;
@@ -85,6 +92,16 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         emit ProtocolFeeChange(_fee);
     }
 
+    function concatVRS(uint8 v, bytes32 r, bytes32 s) pure internal returns (bytes memory) {
+        bytes memory result = new bytes(65);
+        assembly {
+            mstore(add(result, 1), bytes1(v))
+            mstore(add(result, 33), r)
+            mstore(add(result, 65), s)
+        }
+        return result;
+    }
+
     /**
      * @dev internal function for validating a buy or sell order
      * @param hash the struct hash for a bid
@@ -111,7 +128,18 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             return true;
         }
 
-        // TODO: add contract signature valiadtion (DAOs)
+        // EIP 1271 Contract Validation
+        if (order.maker.isContract()) {
+            require(
+                IERC1271(order.maker).isValidSignature(
+                    _hashTypedDataV4(hash),
+                    concatVRS(sig.v, sig.r, sig.s)
+                ) == MAGICVALUE,
+                "contract order signature verification error"
+            );
+
+            return true;
+        }
 
         return false;
     }
