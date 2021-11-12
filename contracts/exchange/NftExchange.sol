@@ -154,6 +154,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         }
 
         bytes32 hashV4 = LibSignature._hashTypedDataV4Exchange(hash);
+        
         if (ECDSAUpgradeable.recover(hashV4, sig.v, sig.r, sig.s) == order.maker) {
             return true;
         }
@@ -185,6 +186,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         bytes32 s
     ) public view returns (bool) {
         bytes32 hash = LibSignature.getStructHash(order);
+
         return validateOrder(hash, order, Sig(v, r, s));
     }
 

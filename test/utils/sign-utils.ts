@@ -68,7 +68,7 @@ export const getHash = (types: string[], values: any[]): string => {
 };
 
 export const getAssetHash = async (assetClass: string, data: string, value: number): Promise<string> => {
-  const assetTypeHash = getHash(["bytes32", "bytes4", "bytes"], [ASSET_TYPE_TYPEHASH, assetClass, data]);
+  const assetTypeHash = getHash(["bytes32", "bytes4", "bytes32"], [ASSET_TYPE_TYPEHASH, assetClass, data]);
 
   return getHash(["bytes32", "bytes32", "uint256"], [ASSET_TYPEHASH, assetTypeHash, value]);
 };
