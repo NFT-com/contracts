@@ -137,6 +137,14 @@ describe("NFT.com", function () {
         await expect(deployedNftProfile.burnCreatorCoin(c(1), 0, 0, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
       });
 
+      it("should call edge cases", async function () {
+        expect(await deployedCreatorCoin.decimals()).to.be.equal(18);
+        expect(await deployedCreatorCoin.balanceOf(deployedCreatorBondingCurve.address)).to.be.equal(0);
+        expect(await deployedCreatorCoin.allowance(owner.address, deployedCreatorBondingCurve.address)).to.be.equal(0);
+        expect(await deployedCreatorCoin.symbol()).to.be.equal("@george");
+        expect(await deployedCreatorCoin.name()).to.be.equal("george");
+      });
+
       it("should mint and burn along bonding curve for profile and allocate fees, and allow rewards to user who staked", async function () {
         expect(await deployedNftToken.balanceOf(deployedCreatorCoin.address)).to.be.equal(0);
 
@@ -145,6 +153,8 @@ describe("NFT.com", function () {
           .withArgs(deployedCreatorCoin.address, ethers.constants.AddressZero, c(100) * 0.02);
 
         expect(await deployedCreatorCoin.fees(owner.address)).to.be.equal(c(100) * 0.1); // fee is 10%
+
+        await deployedCreatorCoin.transfer(addr1.address, 1);
 
         expect(await deployedNftToken.balanceOf(deployedCreatorCoin.address)).to.be.equal(c(98));
 

@@ -27,8 +27,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     uint256 private constant UINT256_MAX = 2**256 - 1;
 
     // bytes4(keccak256("isValidSignature(bytes32,bytes)")
-    bytes4 constant internal MAGICVALUE = 0x1626ba7e;
-
+    bytes4 internal constant MAGICVALUE = 0x1626ba7e;
 
     address public owner;
     address public stakingContract;
@@ -92,14 +91,45 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         emit ProtocolFeeChange(_fee);
     }
 
-    function concatVRS(uint8 v, bytes32 r, bytes32 s) pure internal returns (bytes memory) {
+    function concatVRS(
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public pure returns (bytes memory) {
         bytes memory result = new bytes(65);
+        bytes1 v1 = bytes1(v);
+
         assembly {
-            mstore(add(result, 1), bytes1(v))
-            mstore(add(result, 33), r)
-            mstore(add(result, 65), s)
+            mstore(add(result, 0x20), r)
+            mstore(add(result, 0x40), s)
+            mstore(add(result, 0x60), v1)
         }
+
         return result;
+    }
+
+    function recoverVRS(bytes memory signature)
+        public
+        pure
+        returns (
+            uint8,
+            bytes32,
+            bytes32
+        )
+    {
+        require(signature.length == 65, "NFT.COM: !65 length");
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+        }
+
+        return (v, r, s);
     }
 
     /**
@@ -131,10 +161,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         // EIP 1271 Contract Validation
         if (order.maker.isContract()) {
             require(
-                IERC1271(order.maker).isValidSignature(
-                    _hashTypedDataV4(hash),
-                    concatVRS(sig.v, sig.r, sig.s)
-                ) == MAGICVALUE,
+                IERC1271(order.maker).isValidSignature(hashV4, concatVRS(sig.v, sig.r, sig.s)) == MAGICVALUE,
                 "contract order signature verification error"
             );
 
@@ -194,7 +221,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     function validateBuyNow(LibSignature.Order memory sellOrder, address buyer) internal pure returns (bool) {
         return
             (sellOrder.takeAsset.value != 0) &&
-            (sellOrder.taker == 0x0000000000000000000000000000000000000000 || sellOrder.taker == buyer);
+            (sellOrder.taker == address(0) || sellOrder.taker == buyer);
     }
 
     /**

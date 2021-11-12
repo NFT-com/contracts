@@ -194,13 +194,40 @@ describe("NFT Gasless Auction V2", function () {
 
       await deployedProfileAuction.setOwner(owner.address);
 
-      expect(await deployedProfileAuction.validateBid(0, "test", owner.address, 28, "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9", "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe")).to.be.false;
+      expect(
+        await deployedProfileAuction.validateBid(
+          0,
+          "test",
+          owner.address,
+          28,
+          "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9",
+          "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe",
+        ),
+      ).to.be.false;
 
       await deployedProfileAuction.approveBid(1, "test", owner.address);
 
-      expect(await deployedProfileAuction.validateBid(1, "test", owner.address, 28, "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9", "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe")).to.be.true;;
+      expect(
+        await deployedProfileAuction.validateBid(
+          1,
+          "test",
+          owner.address,
+          28,
+          "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9",
+          "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe",
+        ),
+      ).to.be.true;
 
-      expect(await deployedProfileAuction.validateBid(1, "test2", owner.address, 28, "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9", "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe")).to.be.false;
+      expect(
+        await deployedProfileAuction.validateBid(
+          1,
+          "test2",
+          owner.address,
+          28,
+          "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9",
+          "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe",
+        ),
+      ).to.be.false;
     });
 
     it("should allow a user to cancel existing bid for a profile", async function () {
@@ -288,15 +315,15 @@ describe("NFT Gasless Auction V2", function () {
       const { v: v0, r: r0, s: s0 } = sign(nftProfileBid, ownerSigner);
 
       await deployedProfileAuction
-          .connect(owner)
-          .mintProfileFor(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS);
+        .connect(owner)
+        .mintProfileFor(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS);
 
       expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
       // make sure profile cannot be claimed
       await deployedProfileAuction
-          .connect(owner)
-          .claimProfile(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, { value: profileFeeWei });
+        .connect(owner)
+        .claimProfile(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, { value: profileFeeWei });
 
       expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
 
@@ -317,7 +344,7 @@ describe("NFT Gasless Auction V2", function () {
 
       // make sure new owner of "satoshi" is addr1
       expect(await deployedNftProfile.ownerOf(0)).to.be.equal(addr1.address);
-      
+
       let previousSupply = await deployedNftToken.totalSupply();
 
       // approve token spend by redeem
