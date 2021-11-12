@@ -7,49 +7,49 @@ async function advanceBlock() {
 
 async function advanceBlockTo(blockNumber: number) {
   for (let i = await ethers.provider.getBlockNumber(); i < blockNumber; i++) {
-    await advanceBlock()
+    await advanceBlock();
   }
 }
 
 async function increase(value: number) {
-  await ethers.provider.send("evm_increaseTime", [value])
-  await advanceBlock()
+  await ethers.provider.send("evm_increaseTime", [value]);
+  await advanceBlock();
 }
 
 async function latest() {
-  const block = await ethers.provider.getBlock("latest")
-  return BigNumber.from(block.timestamp)
+  const block = await ethers.provider.getBlock("latest");
+  return BigNumber.from(block.timestamp);
 }
 
 async function advanceTimeAndBlock(time: number) {
-  await advanceTime(time)
-  await advanceBlock()
+  await advanceTime(time);
+  await advanceBlock();
 }
 
 async function advanceTime(time: number) {
-  await ethers.provider.send("evm_increaseTime", [time])
+  await ethers.provider.send("evm_increaseTime", [time]);
 }
 
 const duration = {
   seconds: function (val: string) {
-    return BigNumber.from(val)
+    return BigNumber.from(val);
   },
   minutes: function (val: string) {
-    return BigNumber.from(val).mul(this.seconds("60"))
+    return BigNumber.from(val).mul(this.seconds("60"));
   },
   hours: function (val: string) {
-    return BigNumber.from(val).mul(this.minutes("60"))
+    return BigNumber.from(val).mul(this.minutes("60"));
   },
   days: function (val: string) {
-    return BigNumber.from(val).mul(this.hours("24"))
+    return BigNumber.from(val).mul(this.hours("24"));
   },
   weeks: function (val: string) {
-    return BigNumber.from(val).mul(this.days("7"))
+    return BigNumber.from(val).mul(this.days("7"));
   },
   years: function (val: string) {
-    return BigNumber.from(val).mul(this.days("365"))
+    return BigNumber.from(val).mul(this.days("365"));
   },
-}
+};
 
 module.exports = {
   advanceBlockTo,
@@ -59,4 +59,4 @@ module.exports = {
   advanceTimeAndBlock,
   advanceTime,
   duration,
-}
+};
