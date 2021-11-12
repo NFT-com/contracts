@@ -5,7 +5,7 @@ import "./roles/OperatorRole.sol";
 import "./interfaces/IERC20TransferProxy.sol";
 
 contract ERC20TransferProxy is IERC20TransferProxy, Initializable, UUPSUpgradeable, OperatorRole {
-    function __ERC20TransferProxy_init() external initializer {
+    function initialize() external initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
     }

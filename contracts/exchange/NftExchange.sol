@@ -40,6 +40,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
     //events
     event ProtocolFeeChange(uint256 fee);
+    event WhitelistChange(address token, bool value);
     event ProxyChange(bytes4 indexed assetType, address proxy);
     event Cancel(bytes32 hash, address maker, LibAsset.AssetType makeAssetType, LibAsset.AssetType takeAssetType);
     event Approval(bytes32 hash, address maker, LibAsset.AssetType makeAssetType, LibAsset.AssetType takeAssetType);
@@ -60,13 +61,18 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         _;
     }
 
-    function initialize(INftTransferProxy _transferProxy, IERC20TransferProxy _erc20TransferProxy) public initializer {
+    function initialize(
+        INftTransferProxy _transferProxy,
+        IERC20TransferProxy _erc20TransferProxy,
+        address _stakingContract
+    ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
         proxies[LibAsset.ERC20_ASSET_CLASS] = address(_erc20TransferProxy);
         proxies[LibAsset.ERC721_ASSET_CLASS] = address(_transferProxy);
         proxies[LibAsset.ERC1155_ASSET_CLASS] = address(_transferProxy);
+        stakingContract = _stakingContract;
 
         owner = msg.sender;
         protocolFee = 250; // initial fee = 2.5%
@@ -89,6 +95,12 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         require(_fee < 2000, "NFT.COM: 20% MAX");
         protocolFee = _fee;
         emit ProtocolFeeChange(_fee);
+    }
+
+    function modifyWhitelist(address _token, bool _val) external onlyOwner {
+        require(whitelistERC20[_token] != _val, "NFT.COM: !SAME");
+        whitelistERC20[_token] = _val;
+        emit WhitelistChange(_token, _val);
     }
 
     function concatVRS(
@@ -154,7 +166,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         }
 
         bytes32 hashV4 = LibSignature._hashTypedDataV4Exchange(hash);
-        
+
         if (ECDSAUpgradeable.recover(hashV4, sig.v, sig.r, sig.s) == order.maker) {
             return true;
         }
@@ -221,9 +233,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param buyer potential executor of sellOrder
      */
     function validateBuyNow(LibSignature.Order memory sellOrder, address buyer) internal pure returns (bool) {
-        return
-            (sellOrder.takeAsset.value != 0) &&
-            (sellOrder.taker == address(0) || sellOrder.taker == buyer);
+        return (sellOrder.takeAsset.value != 0) && (sellOrder.taker == address(0) || sellOrder.taker == buyer);
     }
 
     /**
@@ -370,6 +380,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         address from,
         address to
     ) internal {
+        require(stakingContract != address(0), "NFT.COM: UNINITIALIZED");
         if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
             transferEth(to, asset.value);
         } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {

@@ -28,7 +28,7 @@ export const ASSET_TYPEHASH = convertToHash(
 
 export const makeSalt = (length: number = 16): BigNumber => {
   return BigNumber.from(Math.floor(10 ** length + Math.random() * 9 * 10 ** length).toString());
-}
+};
 
 export const ETH_ASSET_CLASS = convertToHash("ETH").substring(0, 10);
 export const ERC20_ASSET_CLASS = convertToHash("ERC20").substring(0, 10);
