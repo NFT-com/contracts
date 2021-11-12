@@ -5,7 +5,7 @@ import "./roles/OperatorRole.sol";
 import "./interfaces/INftTransferProxy.sol";
 
 contract TransferProxy is INftTransferProxy, Initializable, UUPSUpgradeable, OperatorRole {
-    function __TransferProxy_init() external initializer {
+    function initialize() external initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
     }
