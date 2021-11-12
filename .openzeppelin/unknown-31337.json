@@ -3053,12 +3053,12 @@
     },
     {
       "address": "0xAb1c6734140C122c6B5A13763c4356E32DD30B55",
-      "txHash": "0xbb78275a06ee611f06cac5d15b31581bba47cbba03d2470a91f007edd7b482a7",
+      "txHash": "0xd5205697817be37c3c2c44d3f4bc5ec44e39b2aab93b324eb17a0268c4748606",
       "kind": "uups"
     },
     {
       "address": "0xF9cCD84F805fd053b914009629B309CA3E81cC08",
-      "txHash": "0x1e256b34c0da6176159cbcae4401d0b82f5f2cb046be66bcd58249cbad06ebc4",
+      "txHash": "0x736029272e0aa9a16a49af55dfd912d942e6c8b79330fb446097d484919ab253",
       "kind": "uups"
     },
     {
@@ -8412,7 +8412,7 @@
     },
     "20145a6f7d8306e857633b7737eb4ba5901b116e08e6c64892c061eb94229727": {
       "address": "0xe7D3871cf38ce3148a462F2d182BCD56cd21288e",
-      "txHash": "0x286a8647fafb0b2c48e53e8f428319fa67b1402c456c7b0c04690828e9e64fb2",
+      "txHash": "0x5a2968f9e86c405b99c514d9520c3aab1cdbadf4c96bcbc6103c158ebd41eb77",
       "layout": {
         "storage": [
           {
@@ -8488,7 +8488,7 @@
     },
     "22caa53c83bbf0927a5d080ee0ed51077e2dfb5200f1239b8d0e54f723f59dce": {
       "address": "0x00992C8451429cae9C0036f24eFF9B65Cf76b8aD",
-      "txHash": "0x3df4b99d9f24738314863f9a239765ebe2aeba58c5277495c08b771d895c8005",
+      "txHash": "0x28be4acefad08d8a834c7d987ab5b133943db2cc6648ea1f4067623b81c335eb",
       "layout": {
         "storage": [
           {
@@ -8558,124 +8558,6 @@
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
-          }
-        }
-      }
-    },
-    "946974eb316045a562e1c4f1e98b1338b333bb6608bce6d00c35be71e021fed9": {
-      "address": "0x1f9277E9bd76ba43FdCe49fEf8360b5C6Ec1e0C7",
-      "txHash": "0x8683cf80fd2cbc77e8e006c958be901603889b9685bb7bdbf01187b0fda93102",
-      "layout": {
-        "storage": [
-          {
-            "contract": "Initializable",
-            "label": "_initialized",
-            "type": "t_bool",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
-          },
-          {
-            "contract": "Initializable",
-            "label": "_initializing",
-            "type": "t_bool",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
-          },
-          {
-            "contract": "ReentrancyGuardUpgradeable",
-            "label": "_status",
-            "type": "t_uint256",
-            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
-          },
-          {
-            "contract": "ReentrancyGuardUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)49_storage",
-            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
-          },
-          {
-            "contract": "ERC1967UpgradeUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
-          },
-          {
-            "contract": "UUPSUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
-          },
-          {
-            "contract": "NftExchange",
-            "label": "owner",
-            "type": "t_address",
-            "src": "contracts/exchange/NftExchange.sol:32"
-          },
-          {
-            "contract": "NftExchange",
-            "label": "stakingContract",
-            "type": "t_address",
-            "src": "contracts/exchange/NftExchange.sol:33"
-          },
-          {
-            "contract": "NftExchange",
-            "label": "protocolFee",
-            "type": "t_uint256",
-            "src": "contracts/exchange/NftExchange.sol:34"
-          },
-          {
-            "contract": "NftExchange",
-            "label": "proxies",
-            "type": "t_mapping(t_bytes4,t_address)",
-            "src": "contracts/exchange/NftExchange.sol:36"
-          },
-          {
-            "contract": "NftExchange",
-            "label": "whitelistERC20",
-            "type": "t_mapping(t_address,t_bool)",
-            "src": "contracts/exchange/NftExchange.sol:37"
-          },
-          {
-            "contract": "NftExchange",
-            "label": "cancelledOrFinalized",
-            "type": "t_mapping(t_bytes32,t_bool)",
-            "src": "contracts/exchange/NftExchange.sol:38"
-          },
-          {
-            "contract": "NftExchange",
-            "label": "approvedOrders",
-            "type": "t_mapping(t_bytes32,t_bool)",
-            "src": "contracts/exchange/NftExchange.sol:39"
-          }
-        ],
-        "types": {
-          "t_address": {
-            "label": "address"
-          },
-          "t_uint256": {
-            "label": "uint256"
-          },
-          "t_mapping(t_bytes4,t_address)": {
-            "label": "mapping(bytes4 => address)"
-          },
-          "t_bytes4": {
-            "label": "bytes4"
-          },
-          "t_mapping(t_address,t_bool)": {
-            "label": "mapping(address => bool)"
-          },
-          "t_bool": {
-            "label": "bool"
-          },
-          "t_mapping(t_bytes32,t_bool)": {
-            "label": "mapping(bytes32 => bool)"
-          },
-          "t_bytes32": {
-            "label": "bytes32"
-          },
-          "t_array(t_uint256)50_storage": {
-            "label": "uint256[50]"
-          },
-          "t_array(t_uint256)49_storage": {
-            "label": "uint256[49]"
           }
         }
       }
@@ -9126,6 +9008,124 @@
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "946974eb316045a562e1c4f1e98b1338b333bb6608bce6d00c35be71e021fed9": {
+      "address": "0x1f9277E9bd76ba43FdCe49fEf8360b5C6Ec1e0C7",
+      "txHash": "0x8683cf80fd2cbc77e8e006c958be901603889b9685bb7bdbf01187b0fda93102",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "NftExchange",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts/exchange/NftExchange.sol:32"
+          },
+          {
+            "contract": "NftExchange",
+            "label": "stakingContract",
+            "type": "t_address",
+            "src": "contracts/exchange/NftExchange.sol:33"
+          },
+          {
+            "contract": "NftExchange",
+            "label": "protocolFee",
+            "type": "t_uint256",
+            "src": "contracts/exchange/NftExchange.sol:34"
+          },
+          {
+            "contract": "NftExchange",
+            "label": "proxies",
+            "type": "t_mapping(t_bytes4,t_address)",
+            "src": "contracts/exchange/NftExchange.sol:36"
+          },
+          {
+            "contract": "NftExchange",
+            "label": "whitelistERC20",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/exchange/NftExchange.sol:37"
+          },
+          {
+            "contract": "NftExchange",
+            "label": "cancelledOrFinalized",
+            "type": "t_mapping(t_bytes32,t_bool)",
+            "src": "contracts/exchange/NftExchange.sol:38"
+          },
+          {
+            "contract": "NftExchange",
+            "label": "approvedOrders",
+            "type": "t_mapping(t_bytes32,t_bool)",
+            "src": "contracts/exchange/NftExchange.sol:39"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_bytes4,t_address)": {
+            "label": "mapping(bytes4 => address)"
+          },
+          "t_bytes4": {
+            "label": "bytes4"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_bytes32,t_bool)": {
+            "label": "mapping(bytes32 => bool)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
           }
         }
       }
