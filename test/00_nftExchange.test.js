@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const { advanceBlock } = require("../../utils/time");
+const { advanceBlock } = require("./utils/time");
 const {
   sign,
   getDigest,
@@ -17,7 +17,7 @@ const {
   makeSalt,
   encode,
   EXCHANGE_ORDER_TYPEHASH,
-} = require("../../utils/sign-utils");
+} = require("./utils/sign-utils");
 
 describe("NFT.com Exchange", function () {
   try {
@@ -51,9 +51,11 @@ describe("NFT.com Exchange", function () {
       NftProfile = await ethers.getContractFactory("NftProfileV1");
       deployedNftProfile = await NftProfile.attach(NFT_PROFILE_RINKEBY);
 
-      [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+      [owner, buyer, addr2, ...addrs] = await ethers.getSigners();
       ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
-      buyerSigner = new ethers.Wallet(process.env.BUYER_KEY, ethers.provider);
+      buyerSigner = ethers.Wallet.fromMnemonic(
+        process.env.MNEMONIC,
+        "m/44'/60'/0'/0/1");
 
       deployedNftStake = await NftStake.deploy(deployedNftToken.address, RINKEBY_WETH);
 
@@ -87,93 +89,99 @@ describe("NFT.com Exchange", function () {
       });
     });
 
-    describe("Allow Atomic Swaps", function () {
-      // it("should allow EOA users to make valid bid orders using sigV4, and execute buy nows", async function () {
-      //   let minimumBidValue = BigNumber.from(5).mul(BigNumber.from(10).pow(BigNumber.from(18))); // 5 NFT tokens
+    describe("Allow Buy Now Swaps", function () {
+      it("should allow EOA users to make valid bid orders using sigV4, and execute buy nows", async function () {
+        let minimumBidValue = BigNumber.from(5).mul(BigNumber.from(10).pow(BigNumber.from(18))); // 5 NFT tokens
 
-      //   let maker = ownerSigner.address;
-      //   let tokenId = 0;
+        let maker = ownerSigner.address;
+        let tokenId = 0;
 
-      //   let makeAsset = await getAssetHash(
-      //     ERC721_ASSET_CLASS,
-      //     getHash(["address", "uint256"], [NFT_PROFILE_RINKEBY, tokenId]), // bytes encoding of contract and token id
-      //     1, // 1 quantity of 721
-      //   );
+        let makeAsset = await getAssetHash(
+          ERC721_ASSET_CLASS,
+          getHash(["address", "uint256"], [NFT_PROFILE_RINKEBY, tokenId]), // bytes encoding of contract and token id
+          1, // 1 quantity of 721
+        );
 
-      //   let taker = ethers.constants.AddressZero;
-      //   let takeAsset = await getAssetHash(
-      //     ERC20_ASSET_CLASS,
-      //     getHash(["address"], [NFT_RINKEBY_ADDRESS]), // bytes encoding of contract
-      //     BigNumber.from(100).mul(BigNumber.from(10).pow(BigNumber.from(18))), // 1 NFT token (buy it now)
-      //   );
+        let taker = ethers.constants.AddressZero;
+        let takeAsset = await getAssetHash(
+          ERC20_ASSET_CLASS,
+          getHash(["address"], [NFT_RINKEBY_ADDRESS]), // bytes encoding of contract
+          BigNumber.from(100).mul(BigNumber.from(10).pow(BigNumber.from(18))), // 1 NFT token (buy it now)
+        );
 
-      //   let salt = makeSalt();
-      //   let start = 0;
-      //   let end = 0;
-      //   let keccak256Data = getHash(["uint256"], [minimumBidValue]);
-      //   let regularData = encode(["uint256"], [minimumBidValue]);
+        let salt = makeSalt();
+        let start = 0;
+        let end = 0;
+        let keccak256Data = getHash(["uint256"], [minimumBidValue]);
+        let regularData = encode(["uint256"], [minimumBidValue]);
 
-      //   // domain separator V4
-      //   const exchangeOrderDigest = await getDigest(
-      //     ethers.provider,
-      //     "NFT.com Exchange",
-      //     deployedNftExchange.address,
-      //     getHash(
-      //       ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "bytes32"],
-      //       [EXCHANGE_ORDER_TYPEHASH, maker, makeAsset, taker, takeAsset, salt, start, end, keccak256Data],
-      //     ),
-      //   );
+        // domain separator V4
+        const exchangeOrderDigest = await getDigest(
+          ethers.provider,
+          "NFT.com Exchange",
+          deployedNftExchange.address,
+          getHash(
+            ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "bytes32"],
+            [EXCHANGE_ORDER_TYPEHASH, maker, makeAsset, taker, takeAsset, salt, start, end, keccak256Data],
+          ),
+        );
 
-      //   let { v: v0, r: r0, s: s0 } = sign(exchangeOrderDigest, ownerSigner);
+        let { v: v0, r: r0, s: s0 } = sign(exchangeOrderDigest, ownerSigner);
 
-      //   let sellOrder = [
-      //     maker,
-      //     {
-      //       assetType: {
-      //         assetClass: ERC721_ASSET_CLASS,
-      //         data: encode(["address", "uint256"], [NFT_PROFILE_RINKEBY, 0]),
-      //       },
-      //       value: 1,
-      //     },
-      //     taker,
-      //     {
-      //       assetType: {
-      //         assetClass: ERC20_ASSET_CLASS,
-      //         data: encode(["address"], [NFT_RINKEBY_ADDRESS]),
-      //       },
-      //       value: BigNumber.from(100).mul(BigNumber.from(10).pow(BigNumber.from(18))),
-      //     },
-      //     salt,
-      //     start,
-      //     end,
-      //     regularData,
-      //   ];
+        let sellOrder = [
+          maker,
+          {
+            assetType: {
+              assetClass: ERC721_ASSET_CLASS,
+              data: encode(["address", "uint256"], [NFT_PROFILE_RINKEBY, 0]),
+            },
+            value: 1,
+          },
+          taker,
+          {
+            assetType: {
+              assetClass: ERC20_ASSET_CLASS,
+              data: encode(["address"], [NFT_RINKEBY_ADDRESS]),
+            },
+            value: BigNumber.from(100).mul(BigNumber.from(10).pow(BigNumber.from(18))),
+          },
+          salt,
+          start,
+          end,
+          regularData,
+        ];
 
-      //   expect(await deployedNftExchange.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+        expect(await deployedNftExchange.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
 
-      //   // send 1000 tokens to addr1
-      //   await deployedNftToken
-      //     .connect(owner)
-      //     .transfer(addr1.address, BigNumber.from(1000).mul(BigNumber.from(10).pow(BigNumber.from(18))));
+        // send 1000 tokens to buyer
+        await deployedNftToken
+          .connect(owner)
+          .transfer(buyer.address, BigNumber.from(1000).mul(BigNumber.from(10).pow(BigNumber.from(18))));
 
-      //   await deployedNftExchange.modifyWhitelist(NFT_RINKEBY_ADDRESS, true);
+        await deployedNftExchange.modifyWhitelist(NFT_RINKEBY_ADDRESS, true);
 
-      //   // add approvals
-      //   await deployedNftToken.connect(addr1).approve(deployedERC20TransferProxy.address, MAX_UINT);
-      //   await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, tokenId);
+        // add approvals
+        await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, tokenId);
 
-      //   await expect(deployedNftExchange.connect(addr1).buyNow(sellOrder, v0, r0, s0))
-      //     .to.emit(deployedNftToken, "Transfer")
-      //     .withArgs(
-      //       addr1.address,
-      //       ownerSigner.address,
-      //       BigNumber.from(100).mul(BigNumber.from(10).pow(BigNumber.from(18))),
-      //     );
+        await expect(deployedNftExchange.connect(buyer).buyNow(sellOrder, v0, r0, s0))
+          .to.emit(deployedNftToken, "Transfer")
+          .withArgs(
+            buyer.address,
+            ownerSigner.address,
+            BigNumber.from(100).mul(BigNumber.from(10).pow(BigNumber.from(18))),
+          );
 
-      //   expect(await deployedNftProfile.ownerOf(0)).to.be.equal(addr1.address);
-      //   expect(await deployedNftToken.balanceOf(addr1.address)).to.be.equal(BigNumber.from(8975).mul(BigNumber.from(10).pow(BigNumber.from(17))));
-      //   expect(await deployedNftToken.balanceOf(deployedNftStake.address)).to.be.equal(BigNumber.from(25).mul(BigNumber.from(10).pow(BigNumber.from(17))));
-      // });
+        expect(await deployedNftProfile.ownerOf(0)).to.be.equal(buyer.address);
+        expect(await deployedNftToken.balanceOf(buyer.address)).to.be.equal(
+          BigNumber.from(8975).mul(BigNumber.from(10).pow(BigNumber.from(17))),
+        );
+        expect(await deployedNftToken.balanceOf(deployedNftStake.address)).to.be.equal(
+          BigNumber.from(25).mul(BigNumber.from(10).pow(BigNumber.from(17))),
+        );
+
+        await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
+      });
 
       it("should allow EOA users to make valid bid orders using sigV4, and execute swaps using buy / sell orders", async function () {
         let minimumBidValue = BigNumber.from(5).mul(BigNumber.from(10).pow(BigNumber.from(18))); // 5 NFT tokens
@@ -308,13 +316,13 @@ describe("NFT.com Exchange", function () {
 
         await deployedNftExchange.modifyWhitelist(NFT_RINKEBY_ADDRESS, true);
 
-        // add approvals
-        await deployedNftToken.connect(buyerSigner).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, tokenId);
+        expect(await deployedNftProfile.ownerOf(0)).to.be.equal(owner.address);
 
-        await expect(
-          deployedNftExchange.connect(buyerSigner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
-        )
+        // add approvals
+        await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 0);
+
+        await expect(deployedNftExchange.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]))
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(
             buyerSigner.address,
