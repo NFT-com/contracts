@@ -403,6 +403,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             );
         } else if (asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
             (address token, uint256 tokenId) = abi.decode(asset.assetType.data, (address, uint256));
+
             require(asset.value == 1, "erc721 value error");
             INftTransferProxy(proxies[LibAsset.ERC721_ASSET_CLASS]).erc721safeTransferFrom(
                 IERC721Upgradeable(token),
