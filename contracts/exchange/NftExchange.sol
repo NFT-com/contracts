@@ -202,7 +202,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         return validateOrder(hash, order, Sig(v, r, s));
     }
 
-    function cancel(LibSignature.Order memory order) external {
+    function cancel(LibSignature.Order memory order) external nonReentrant {
         require(msg.sender == order.maker, "not a maker");
         require(order.salt != 0, "0 salt can't be used");
         bytes32 hash = LibSignature.getStructHash(order);
@@ -214,7 +214,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev Approve an order
      * @param order the order (buy or sell) in question
      */
-    function approveOrder_(LibSignature.Order memory order) internal {
+    function approveOrder_(LibSignature.Order memory order) external nonReentrant {
         // checks
         require(msg.sender == order.maker, "not a maker");
         require(order.salt != 0, "0 salt can't be used");
@@ -291,7 +291,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external payable {
+    ) external payable nonReentrant {
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s));
 
@@ -321,7 +321,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         uint8[2] calldata v,
         bytes32[2] calldata r,
         bytes32[2] calldata s
-    ) external payable {
+    ) external payable nonReentrant {
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v[0], r[0], s[0]));
 
@@ -421,7 +421,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
                 ""
             );
         } else {
-            // non standard NFTs
+            // non standard assets
             ITransferProxy(proxies[asset.assetType.assetClass]).transfer(asset, from, to);
         }
         emit Transfer(asset, from, to);
