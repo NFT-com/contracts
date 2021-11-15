@@ -91,6 +91,13 @@ describe("NFT.com Exchange", function () {
         expect(decoded[1]).to.be.equal(r);
         expect(decoded[2]).to.be.equal(s);
       });
+
+      it("should test adding and removing operators", async function () {
+        // add and remove
+        await deployedERC20TransferProxy.addOperator(owner.address);
+
+        await deployedERC20TransferProxy.removeOperator(owner.address);
+      });
     });
 
     describe("Allow Buy Now Swaps", function () {

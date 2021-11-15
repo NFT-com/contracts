@@ -33,7 +33,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     address public stakingContract;
     uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
-    mapping(bytes4 => address) proxies;
+    mapping(bytes4 => address) public proxies;
     mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
     mapping(bytes32 => bool) public approvedOrders; // order verified by on-chain approval (optional)
