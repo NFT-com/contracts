@@ -73,6 +73,85 @@ export const getAssetHash = async (assetClass: string, data: string, value: numb
   return getHash(["bytes32", "bytes32", "uint256"], [ASSET_TYPEHASH, assetTypeHash, value]);
 };
 
+// simply function to abstract the signing of exchange orders on testing
+// returns back signed digest
+export const signExchangeOrder = async (
+  signer: any,
+  makeAsset: any,
+  taker: string,
+  takeAsset: any,
+  start: number,
+  end: number,
+  minimumBidValue: number,
+  provider: any,
+  deployedNftExchangeAddress: string,
+): Promise<any> => {
+  const salt = makeSalt();
+
+  const makeAssetHash = await getAssetHash(
+    makeAsset[0],
+    getHash(makeAsset[1], makeAsset[2]), // bytes encoding of contract
+    makeAsset[3],
+  );
+
+  const takeAssetHash = await getAssetHash(
+    takeAsset[0],
+    getHash(takeAsset[1], takeAsset[2]), // bytes encoding of contract
+    takeAsset[3],
+  );
+
+  // domain separator V4
+  const orderDigest = await getDigest(
+    provider,
+    "NFT.com Exchange",
+    deployedNftExchangeAddress,
+    getHash(
+      ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "bytes32"],
+      [
+        EXCHANGE_ORDER_TYPEHASH,
+        signer.address,
+        makeAssetHash,
+        taker,
+        takeAssetHash,
+        salt,
+        start,
+        end,
+        getHash(["uint256"], [minimumBidValue]),
+      ],
+    ),
+  );
+
+  const { v, r, s } = sign(orderDigest, signer);
+
+  return {
+    v,
+    r,
+    s,
+    order: [
+      signer.address,
+      {
+        assetType: {
+          assetClass: makeAsset[0],
+          data: encode(makeAsset[1], makeAsset[2]),
+        },
+        value: makeAsset[3],
+      },
+      taker,
+      {
+        assetType: {
+          assetClass: takeAsset[0],
+          data: encode(takeAsset[1], takeAsset[2]),
+        },
+        value: takeAsset[3],
+      },
+      salt,
+      start,
+      end,
+      encode(["uint256"], [minimumBidValue]),
+    ],
+  };
+};
+
 export const getDigest = async (
   provider: any,
   name: string, // name is deprecated
