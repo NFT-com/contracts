@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "../ProfileAuctionV2.sol";
+import "../domain/ProfileAuctionV2.sol";
 
 contract ProfileAuctionV3 is ProfileAuctionV2 {
     string private constant testVariable = "hello";

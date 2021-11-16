@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "./interface/ICreatorCoin.sol";
-import "./interface/ICreatorBondingCurve.sol";
-import "./CreatorCoin.sol";
-import "./interface/INftProfile.sol";
-import "./oz_modified/ERC721EnumerableUpgradeable.sol";
-import "./royalties/IERC2981Royalties.sol";
+import "../interface/ICreatorCoin.sol";
+import "../interface/ICreatorBondingCurve.sol";
+import "./creatorCoin/CreatorCoin.sol";
+import "../interface/INftProfile.sol";
+import "../oz_modified/ERC721EnumerableUpgradeable.sol";
+import "../royalties/IERC2981Royalties.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";

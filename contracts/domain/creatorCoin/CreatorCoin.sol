@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "./oz_modified/ERC20.sol";
-import "./interface/ICreatorCoin.sol";
+import "../../oz_modified/ERC20.sol";
+import "../../interface/ICreatorCoin.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 interface INftToken {
