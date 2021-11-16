@@ -14,6 +14,8 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com exchan
 
 ## Usage
 
+ZERO_BYTES = `0x0000000000000000000000000000000000000000000000000000000000000000`
+
 ### Pre Requisites
 
 Before running any command, you need to create a `.env` file and set a BIP-39 compatible mnemonic as an environment
