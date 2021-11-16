@@ -27,13 +27,14 @@ const convertNftToken = tokens => {
 
 describe("NFT.com Exchange", function () {
   try {
-    let NftExchange, TransferProxy, ERC20TransferProxy, NftToken, NftProfile, NftStake;
+    let NftExchange, TransferProxy, ERC20TransferProxy, NftToken, NftProfile, NftStake, LibSignature;
     let deployedNftExchange,
       deployedTransferProxy,
       deployedERC20TransferProxy,
       deployedNftToken,
       deployedNftProfile,
-      deployedNftStake;
+      deployedNftStake,
+      deployedLibSignature;
     let ownerSigner, buyerSigner;
 
     const NFT_RINKEBY_ADDRESS = "0x4DE2fE09Bc8F2145fE12e278641d2c93B9D4393A";
@@ -47,6 +48,7 @@ describe("NFT.com Exchange", function () {
     beforeEach(async function () {
       // Get the ContractFactory and Signers here.
       NftExchange = await ethers.getContractFactory("NftExchange");
+
       NftStake = await ethers.getContractFactory("NftStake");
       TransferProxy = await ethers.getContractFactory("TransferProxy");
       ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");

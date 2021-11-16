@@ -3,9 +3,9 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "./interfaces/INftTransferProxy.sol";
+import "../interfaces/IERC20TransferProxy.sol";
 
-contract TransferProxy is INftTransferProxy, Initializable, UUPSUpgradeable, OwnableUpgradeable {
+contract ERC20TransferProxy is IERC20TransferProxy, Initializable, UUPSUpgradeable, OwnableUpgradeable {
     mapping(address => bool) operators;
 
     function initialize() external initializer {
@@ -14,24 +14,13 @@ contract TransferProxy is INftTransferProxy, Initializable, UUPSUpgradeable, Own
         __Ownable_init_unchained();
     }
 
-    function erc721safeTransferFrom(
-        IERC721Upgradeable token,
+    function erc20safeTransferFrom(
+        IERC20Upgradeable token,
         address from,
         address to,
-        uint256 tokenId
+        uint256 value
     ) external override onlyOperator {
-        token.safeTransferFrom(from, to, tokenId);
-    }
-
-    function erc1155safeTransferFrom(
-        IERC1155Upgradeable token,
-        address from,
-        address to,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
-    ) external override onlyOperator {
-        token.safeTransferFrom(from, to, id, value, data);
+        require(token.transferFrom(from, to, value), "failure while transferring");
     }
 
     function addOperator(address operator) external onlyOwner {

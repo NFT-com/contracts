@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "./interface/INftProfileHelper.sol";
+import "../interface/INftProfileHelper.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract NftProfileHelper is INftProfileHelper, Ownable {

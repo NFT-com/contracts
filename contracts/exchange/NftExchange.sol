@@ -1,20 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "./lib/LibSignature.sol";
-import "./interfaces/IERC20TransferProxy.sol";
-import "./interfaces/INftTransferProxy.sol";
-import "./interfaces/ITransferProxy.sol";
-import "./interfaces/IERC1271.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
-contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using SafeMathUpgradeable for uint256;
+import "./lib/LibSignature.sol";
+import "./interfaces/IERC1271.sol";
+import "./helpers/TransferExecutor.sol";
+
+contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, TransferExecutor {
     using AddressUpgradeable for address;
 
     /* An ECDSA signature. */
@@ -25,26 +22,14 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     uint256 private constant UINT256_MAX = 2**256 - 1;
-
-    // bytes4(keccak256("isValidSignature(bytes32,bytes)")
-    bytes4 internal constant MAGICVALUE = 0x1626ba7e;
-
-    address public owner;
-    address public stakingContract;
-    uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
+    bytes4 internal constant MAGICVALUE = 0x1626ba7e; // bytes4(keccak256("isValidSignature(bytes32,bytes)")
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
-    mapping(bytes4 => address) public proxies;
-    mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
     mapping(bytes32 => bool) public approvedOrders; // order verified by on-chain approval (optional)
 
     //events
-    event ProtocolFeeChange(uint256 fee);
-    event WhitelistChange(address token, bool value);
-    event ProxyChange(bytes4 indexed assetType, address proxy);
     event Cancel(bytes32 hash, address maker, LibAsset.AssetType makeAssetType, LibAsset.AssetType takeAssetType);
     event Approval(bytes32 hash, address maker, LibAsset.AssetType makeAssetType, LibAsset.AssetType takeAssetType);
-    event Transfer(LibAsset.Asset asset, address from, address to);
     event Match(
         bytes32 leftHash,
         bytes32 rightHash,
@@ -56,11 +41,6 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         LibAsset.AssetType rightAsset
     );
 
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-
     function initialize(
         INftTransferProxy _transferProxy,
         IERC20TransferProxy _erc20TransferProxy,
@@ -68,14 +48,8 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
-
-        proxies[LibAsset.ERC20_ASSET_CLASS] = address(_erc20TransferProxy);
-        proxies[LibAsset.ERC721_ASSET_CLASS] = address(_transferProxy);
-        proxies[LibAsset.ERC1155_ASSET_CLASS] = address(_transferProxy);
-        stakingContract = _stakingContract;
-
-        owner = msg.sender;
-        protocolFee = 250; // initial fee = 2.5%
+        __TransferExecutor_init_unchained(_transferProxy, _erc20TransferProxy, _stakingContract, 250);
+        __Ownable_init();
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -91,35 +65,20 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         return hash;
     }
 
-    function changeProtocolFee(uint256 _fee) external onlyOwner {
-        require(_fee < 2000, "NFT.COM: 20% MAX");
-        protocolFee = _fee;
-        emit ProtocolFeeChange(_fee);
-    }
-
-    function modifyWhitelist(address _token, bool _val) external onlyOwner {
-        require(whitelistERC20[_token] != _val, "NFT.COM: !SAME");
-        whitelistERC20[_token] = _val;
-        emit WhitelistChange(_token, _val);
-    }
-
+    /**
+     * @dev function converting v r s into bytes32 signature via concat method
+     */
     function concatVRS(
         uint8 v,
         bytes32 r,
         bytes32 s
     ) public pure returns (bytes memory) {
-        bytes memory result = new bytes(65);
-        bytes1 v1 = bytes1(v);
-
-        assembly {
-            mstore(add(result, 0x20), r)
-            mstore(add(result, 0x40), s)
-            mstore(add(result, 0x60), v1)
-        }
-
-        return result;
+        return LibSignature.concatVRS(v, r, s);
     }
 
+    /**
+     * @dev function converting v r s into bytes32 signature via concat method
+     */
     function recoverVRS(bytes memory signature)
         public
         pure
@@ -129,19 +88,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             bytes32
         )
     {
-        require(signature.length == 65, "NFT.COM: !65 length");
-
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-
-        assembly {
-            r := mload(add(signature, 0x20))
-            s := mload(add(signature, 0x40))
-            v := byte(0, mload(add(signature, 0x60)))
-        }
-
-        return (v, r, s);
+        return LibSignature.recoverVRS(signature);
     }
 
     /**
@@ -349,82 +296,5 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         // these two functions also transfer fees AND royalties
         transfer(buyOrder.makeAsset, buyOrder.maker, sellOrder.maker); // send denominated asset to seller from buyer
         transfer(sellOrder.makeAsset, sellOrder.maker, buyOrder.maker); // send listed asset to buyer from seller
-    }
-
-    function setTransferProxy(bytes4 assetType, address proxy) external onlyOwner {
-        proxies[assetType] = proxy;
-        emit ProxyChange(assetType, proxy);
-    }
-
-    /**
-     * @dev internal function for transferring ETH w/ fees
-     * @notice fees are being sent in addition to base ETH price
-     * @param to counterparty receiving ETH for transaction
-     * @param value base value of ETH in wei
-     */
-    function transferEth(address to, uint256 value) internal {
-        // ETH Fee
-        (bool success1, ) = stakingContract.call{ value: value.mul(protocolFee).div(10000) }("");
-        (bool success2, ) = to.call{ value: value }("");
-        require(success1 && success2, "NFT.COM: transfer failed");
-    }
-
-    /**
-     * @dev multi-asset transfer function
-     * @param asset the asset being transferred
-     * @param from address where asset is being sent from
-     * @param to address receiving said asset
-     */
-    function transfer(
-        LibAsset.Asset memory asset,
-        address from,
-        address to
-    ) internal {
-        require(stakingContract != address(0), "NFT.COM: UNINITIALIZED");
-        if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
-            transferEth(to, asset.value);
-        } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
-            address token = abi.decode(asset.assetType.data, (address));
-            require(whitelistERC20[token], "NFT.COM: ERC20 NOT SUPPORTED");
-
-            // ERC20 Fee
-            IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
-                IERC20Upgradeable(token),
-                from,
-                stakingContract,
-                asset.value.mul(protocolFee).div(10000)
-            );
-
-            IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
-                IERC20Upgradeable(token),
-                from,
-                to,
-                asset.value
-            );
-        } else if (asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
-            (address token, uint256 tokenId) = abi.decode(asset.assetType.data, (address, uint256));
-
-            require(asset.value == 1, "erc721 value error");
-            INftTransferProxy(proxies[LibAsset.ERC721_ASSET_CLASS]).erc721safeTransferFrom(
-                IERC721Upgradeable(token),
-                from,
-                to,
-                tokenId
-            );
-        } else if (asset.assetType.assetClass == LibAsset.ERC1155_ASSET_CLASS) {
-            (address token, uint256 tokenId) = abi.decode(asset.assetType.data, (address, uint256));
-            INftTransferProxy(proxies[LibAsset.ERC1155_ASSET_CLASS]).erc1155safeTransferFrom(
-                IERC1155Upgradeable(token),
-                from,
-                to,
-                tokenId,
-                asset.value,
-                ""
-            );
-        } else {
-            // non standard assets
-            ITransferProxy(proxies[asset.assetType.assetClass]).transfer(asset, from, to);
-        }
-        emit Transfer(asset, from, to);
     }
 }
