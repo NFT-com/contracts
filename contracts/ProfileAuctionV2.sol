@@ -128,7 +128,8 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         Sig memory sig
     ) internal view returns (bytes32) {
         bytes32 hash = getStructHash(_nftTokens, _profileURI, _owner);
-        require(validateBid_(hash, _nftTokens, _owner, sig));
+
+        require(validateBid_(hash, _nftTokens, _owner, sig), "NFT.COM: INVALID SIG");
         return hash;
     }
 
@@ -215,6 +216,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
 
         /* or (b) ECDSA-signed by owner. */
         bytes32 hashV4 = _hashTypedDataV4ProfileAuction(hash);
+
         if (ECDSAUpgradeable.recover(hashV4, sig.v, sig.r, sig.s) == _owner) {
             return true;
         }
@@ -240,6 +242,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         bytes32 _TYPE_HASH = keccak256(
             "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
         );
+
         return
             keccak256(
                 abi.encode(
@@ -263,22 +266,8 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         address _owner
     ) public pure returns (bytes32) {
         bytes32 _PERMIT_TYPEHASH = keccak256("Bid(uint256 _nftTokens,string _profileURI,address _owner)");
-        return keccak256(abi.encode(_PERMIT_TYPEHASH, _nftTokens, keccak256(bytes(_profileURI)), _owner));
-    }
 
-    function returnOwner(
-        uint256 _nftTokens,
-        string memory _profileURI,
-        address _owner,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public view returns (address) {
-        bytes32 structHash = getStructHash(_nftTokens, _profileURI, _owner);
-
-        bytes32 hash = _hashTypedDataV4ProfileAuction(structHash);
-
-        return ECDSAUpgradeable.recover(hash, v, r, s);
+        return keccak256(abi.encode(_PERMIT_TYPEHASH, _nftTokens, _profileURI, _owner));
     }
 
     function approveBid(
@@ -345,7 +334,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         bytes32 nftS
     ) external nonReentrant validAndUnusedURI(_profileURI) {
         // checks
-        require(msg.sender == minter);
+        require(msg.sender == minter, "NFT.COM: UNAUTHORIZED");
         bytes32 hash = requireValidBid_(_nftTokens, _profileURI, _owner, Sig(v, r, s));
         require(!cancelledOrFinalized[hash]);
         require(claimableBlock[hash] == 0);

@@ -17,21 +17,21 @@ describe("NFT Profile Helper", function () {
     });
 
     it("should allow the owner to add and rmeove @ as a valid char", async function () {
-        expect(await deployedNftProfileHelper._validURI("@")).to.be.false;
-        await deployedNftProfileHelper.changeAllowedChar("@", true);
-        expect(await deployedNftProfileHelper._validURI("@")).to.be.true;
+      expect(await deployedNftProfileHelper._validURI("@")).to.be.false;
+      await deployedNftProfileHelper.changeAllowedChar("@", true);
+      expect(await deployedNftProfileHelper._validURI("@")).to.be.true;
 
-        await deployedNftProfileHelper.changeAllowedChar("@", false);
-        expect(await deployedNftProfileHelper._validURI("@")).to.be.false;
+      await deployedNftProfileHelper.changeAllowedChar("@", false);
+      expect(await deployedNftProfileHelper._validURI("@")).to.be.false;
 
-        expect(await deployedNftProfileHelper._validURI("a")).to.be.true;
-        await deployedNftProfileHelper.changeAllowedChar("a", false);
-        expect(await deployedNftProfileHelper._validURI("a")).to.be.false;
+      expect(await deployedNftProfileHelper._validURI("a")).to.be.true;
+      await deployedNftProfileHelper.changeAllowedChar("a", false);
+      expect(await deployedNftProfileHelper._validURI("a")).to.be.false;
     });
 
     it("should not the owner to add 🚀 as a valid char", async function () {
-        expect(await deployedNftProfileHelper._validURI("🚀")).to.be.false;
-        await expect(deployedNftProfileHelper.changeAllowedChar("🚀", true)).to.be.reverted;
+      expect(await deployedNftProfileHelper._validURI("🚀")).to.be.false;
+      await expect(deployedNftProfileHelper.changeAllowedChar("🚀", true)).to.be.reverted;
     });
   } catch (err) {
     console.log("error: ", err);

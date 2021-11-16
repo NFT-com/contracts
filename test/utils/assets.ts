@@ -1,14 +1,15 @@
-const ethUtil = require("ethereumjs-util");
+const { keccak256, toUtf8Bytes } = require("ethers/lib/utils");
+import { defaultAbiCoder } from "ethers/lib/utils";
 
-function id(str) {
-  return `0x${ethUtil.keccak256(str).toString("hex").substring(0, 8)}`;
+function id(str: string) {
+  return `0x${keccak256(toUtf8Bytes(str)).toString("hex").substring(0, 8)}`;
 }
 
-function enc(token, tokenId) {
+function enc(token: string, tokenId: number) {
   if (tokenId) {
-    return web3.eth.abi.encodeParameters(["address", "uint256"], [token, tokenId]);
+    return defaultAbiCoder.encode(["address", "uint256"], [token, tokenId]);
   } else {
-    return web3.eth.abi.encodeParameter("address", token);
+    return defaultAbiCoder.encode(["address"], [token]);
   }
 }
 

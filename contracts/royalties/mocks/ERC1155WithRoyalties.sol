@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import '@openzeppelin/contracts/token/ERC1155/ERC1155.sol';
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
-import '../ERC2981PerTokenRoyalties.sol';
+import "../ERC2981PerTokenRoyalties.sol";
 
 /// @title Example of ERC1155 contract with ERC2981
 /// @author Simon Fremaux (@dievardump)
@@ -12,13 +12,7 @@ contract ERC1155WithRoyalties is ERC1155, ERC2981PerTokenRoyalties {
     constructor(string memory uri_) ERC1155(uri_) {}
 
     /// @inheritdoc	ERC165
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC1155, ERC2981Base)
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, ERC2981Base) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
@@ -35,7 +29,7 @@ contract ERC1155WithRoyalties is ERC1155, ERC2981PerTokenRoyalties {
         address royaltyRecipient,
         uint256 royaltyValue
     ) external {
-        _mint(to, id, amount, '');
+        _mint(to, id, amount, "");
 
         if (royaltyValue > 0) {
             _setTokenRoyalty(id, royaltyRecipient, royaltyValue);
@@ -56,20 +50,15 @@ contract ERC1155WithRoyalties is ERC1155, ERC2981PerTokenRoyalties {
         uint256[] memory royaltyValues
     ) external {
         require(
-            ids.length == royaltyRecipients.length &&
-                ids.length == royaltyValues.length,
-            'ERC1155: Arrays length mismatch'
+            ids.length == royaltyRecipients.length && ids.length == royaltyValues.length,
+            "ERC1155: Arrays length mismatch"
         );
 
-        _mintBatch(to, ids, amounts, '');
+        _mintBatch(to, ids, amounts, "");
 
         for (uint256 i; i < ids.length; i++) {
             if (royaltyValues[i] > 0) {
-                _setTokenRoyalty(
-                    ids[i],
-                    royaltyRecipients[i],
-                    royaltyValues[i]
-                );
+                _setTokenRoyalty(ids[i], royaltyRecipients[i], royaltyValues[i]);
             }
         }
     }

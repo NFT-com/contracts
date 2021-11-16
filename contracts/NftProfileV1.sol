@@ -8,7 +8,6 @@ import "./interface/INftProfile.sol";
 import "./oz_modified/ERC721EnumerableUpgradeable.sol";
 import "./royalties/IERC2981Royalties.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -29,7 +28,6 @@ contract NftProfileV1 is
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable,
     INftProfile,
-    ERC165Upgradeable,
     IERC2981Royalties
 {
     using SafeMath for uint256;
@@ -121,8 +119,7 @@ contract NftProfileV1 is
         override(ERC721EnumerableUpgradeable)
         returns (bool)
     {
-        return interfaceId == type(IERC2981Royalties).interfaceId ||
-            super.supportsInterface(interfaceId);
+        return interfaceId == type(IERC2981Royalties).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**
