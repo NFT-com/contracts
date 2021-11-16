@@ -27,14 +27,15 @@ const convertNftToken = tokens => {
 
 describe("NFT.com Exchange", function () {
   try {
-    let NftExchange, TransferProxy, ERC20TransferProxy, NftToken, NftProfile, NftStake, LibSignature;
+    let NftExchange, TransferProxy, CryptoKittyTransferProxy, PunkProxy, ERC20TransferProxy, NftToken, NftProfile, NftStake;
     let deployedNftExchange,
       deployedTransferProxy,
       deployedERC20TransferProxy,
       deployedNftToken,
       deployedNftProfile,
       deployedNftStake,
-      deployedLibSignature;
+      deployedCryptoKittyTransferProxy,
+      deployedPunkProxy;
     let ownerSigner, buyerSigner;
 
     const NFT_RINKEBY_ADDRESS = "0x4DE2fE09Bc8F2145fE12e278641d2c93B9D4393A";
@@ -52,6 +53,8 @@ describe("NFT.com Exchange", function () {
       NftStake = await ethers.getContractFactory("NftStake");
       TransferProxy = await ethers.getContractFactory("TransferProxy");
       ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");
+      CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
+      PunkProxy = await ethers.getContractFactory("PunkProxy");
 
       NftToken = await ethers.getContractFactory("NftToken");
       deployedNftToken = await NftToken.attach(NFT_RINKEBY_ADDRESS);
@@ -66,8 +69,9 @@ describe("NFT.com Exchange", function () {
       deployedNftStake = await NftStake.deploy(deployedNftToken.address, RINKEBY_WETH);
 
       deployedTransferProxy = await upgrades.deployProxy(TransferProxy, { kind: "uups" });
-
       deployedERC20TransferProxy = await upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
+      deployedCryptoKittyTransferProxy = await upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
+      deployedPunkProxy = await upgrades.deployProxy(PunkProxy, { kind: "uups" });
 
       deployedNftExchange = await upgrades.deployProxy(
         NftExchange,
@@ -97,8 +101,16 @@ describe("NFT.com Exchange", function () {
       it("should test adding and removing operators", async function () {
         // add and remove
         await deployedERC20TransferProxy.addOperator(owner.address);
-
         await deployedERC20TransferProxy.removeOperator(owner.address);
+
+        await deployedNftProxy.addOperator(owner.address);
+        await deployedNftProxy.removeOperator(owner.address);
+
+        await deployedCryptoKittyTransferProxy.addOperator(owner.address);
+        await deployedCryptoKittyTransferProxy.removeOperator(owner.address);
+
+        await deployedPunkProxy.addOperator(owner.address);
+        await deployedPunkProxy.removeOperator(owner.address);
       });
     });
 
