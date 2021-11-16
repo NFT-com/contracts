@@ -25,11 +25,11 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
     // rinkeby: 0xc778417E063141139Fce010982780140Aa0cD5Ab
     address public WETH9;
 
-    constructor(
-        address _nftToken,
-        address _weth
+    constructor(address _nftToken, address _weth)
         // INftExchange _nftExchange
-    ) ERC20Permit("xNFT.com") ERC20("xNFT.com", "xNFT") {
+        ERC20Permit("xNFT.com")
+        ERC20("xNFT.com", "xNFT")
+    {
         nftToken = _nftToken;
         WETH9 = _weth;
         // nftExchange = _nftExchange;
@@ -63,7 +63,7 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
         uint256 amountIn = address(this).balance;
         uint256 amountOutMinimum = 1;
         uint160 sqrtPriceLimitX96 = 0;
-        
+
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             tokenIn,
             tokenOut,
@@ -74,7 +74,7 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
             amountOutMinimum,
             sqrtPriceLimitX96
         );
-        
+
         uniswapRouter.exactInputSingle{ value: address(this).balance }(params);
         uniswapRouter.refundETH();
     }
@@ -90,7 +90,7 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
         uint256 amountIn = IERC20(tokenIn).balanceOf(address(this));
         uint256 amountOutMinimum = 1;
         uint160 sqrtPriceLimitX96 = 0;
-        
+
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
             tokenIn,
             tokenOut,
@@ -101,12 +101,12 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
             amountOutMinimum,
             sqrtPriceLimitX96
         );
-        
+
         uniswapRouter.exactInputSingle(params);
     }
-  
+
     // important to receive ETH
-    receive() payable external {}
+    receive() external payable {}
 
     /**
      @notice internal helper function to call allowance for a token

@@ -1,7 +1,11 @@
 {
   "name": "nft-com",
-  "description": "NFT.com",
+  "description": "NFT.com smart contracts",
   "version": "1.0.0",
+  "author": "NFT.com (https://nft.com)",
+  "contributors": [
+    "Gavin Mai (https://github.com/gmaijoe)"
+  ],
   "devDependencies": {
     "@codechecks/client": "^0.1.11",
     "@commitlint/cli": "^13.1.0",
