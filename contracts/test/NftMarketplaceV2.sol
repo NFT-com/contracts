@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "../exchange/NftExchange.sol";
+import "../marketplace/NftMarketplace.sol";
 
-contract NftExchangeV2 is NftExchange {
+contract NftMarketplaceV2 is NftMarketplace {
     string private constant testVariable = "hello";
 
     function getVariable() public pure returns (string memory) {
