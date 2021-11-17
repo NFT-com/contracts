@@ -73,9 +73,9 @@ export const getAssetHash = async (assetClass: string, data: string, value: numb
   return getHash(["bytes32", "bytes32", "uint256"], [ASSET_TYPEHASH, assetTypeHash, value]);
 };
 
-// simply function to abstract the signing of exchange orders on testing
+// simply function to abstract the signing of marketplace orders on testing
 // returns back signed digest
-export const signExchangeOrder = async (
+export const signMarketplaceOrder = async (
   signer: any,
   makeAsset: any,
   taker: string,
@@ -84,7 +84,7 @@ export const signExchangeOrder = async (
   end: number,
   minimumBidValue: number,
   provider: any,
-  deployedNftExchangeAddress: string,
+  deployedNftMarketplaceAddress: string,
 ): Promise<any> => {
   const salt = makeSalt();
 
@@ -103,8 +103,8 @@ export const signExchangeOrder = async (
   // domain separator V4
   const orderDigest = await getDigest(
     provider,
-    "NFT.com Exchange",
-    deployedNftExchangeAddress,
+    "NFT.com Marketplace",
+    deployedNftMarketplaceAddress,
     getHash(
       ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "bytes32"],
       [

@@ -11,7 +11,7 @@ import "./lib/LibSignature.sol";
 import "./interfaces/IERC1271.sol";
 import "./helpers/TransferExecutor.sol";
 
-contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, TransferExecutor {
+contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, TransferExecutor {
     using AddressUpgradeable for address;
 
     /* An ECDSA signature. */
@@ -112,7 +112,7 @@ contract NftExchange is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             return true;
         }
 
-        bytes32 hashV4 = LibSignature._hashTypedDataV4Exchange(hash);
+        bytes32 hashV4 = LibSignature._hashTypedDataV4Marketplace(hash);
 
         if (ECDSAUpgradeable.recover(hashV4, sig.v, sig.r, sig.s) == order.maker) {
             return true;

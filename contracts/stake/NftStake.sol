@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "../interface/INftExchange.sol";
+import "../interface/INftMarketplace.sol";
 
 interface IUniswapRouter is ISwapRouter {
     function refundETH() external payable;
@@ -17,7 +17,7 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
     using SafeMath for uint256;
 
     address public nftToken;
-    INftExchange public nftExchange;
+    INftMarketplace public nftMarketplace;
 
     IUniswapRouter public constant uniswapRouter = IUniswapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
 
@@ -26,13 +26,13 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
     address public WETH9;
 
     constructor(address _nftToken, address _weth)
-        // INftExchange _nftExchange
+        // INftMarketplace _nftMarketplace
         ERC20Permit("xNFT.com")
         ERC20("xNFT.com", "xNFT")
     {
         nftToken = _nftToken;
         WETH9 = _weth;
-        // nftExchange = _nftExchange;
+        // nftMarketplace = _nftMarketplace;
     }
 
     function isContract(address account) internal view returns (bool) {
@@ -48,7 +48,7 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
     }
 
     function approveToken(address token) external {
-        // require(nftExchange.whitelistERC20(token), "NFT.COM: !ERC20");
+        // require(nftMarketplace.whitelistERC20(token), "NFT.COM: !ERC20");
         IERC20(token).approve(address(uniswapRouter), 2**256 - 1);
     }
 
@@ -81,7 +81,7 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
 
     function convertERC20ToNFT(address tokenIn) external nonReentrant {
         require(!isContract(msg.sender), "NFT.COM: !CONTRACT");
-        // require(nftExchange.whitelistERC20(tokenIn), "NFT.COM: !ERC20");
+        // require(nftMarketplace.whitelistERC20(tokenIn), "NFT.COM: !ERC20");
 
         uint256 deadline = block.timestamp + 7;
         address tokenOut = nftToken;

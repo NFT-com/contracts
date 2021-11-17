@@ -1,6 +1,6 @@
 # NFT.com contracts
 
-This repository covers logic for NFT.com profile bidding, and the NFT.com exchange itself. Further developments will be added here in the future.
+This repository covers logic for NFT.com profile bidding, and the NFT.com marketplace itself. Further developments will be added here in the future.
 
 ### Tools Used
 
