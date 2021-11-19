@@ -28,8 +28,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     mapping(bytes32 => bool) public approvedOrders; // order verified by on-chain approval (optional)
 
     //events
-    event Cancel(bytes32 hash, address maker, LibAsset.AssetType makeAssetType, LibAsset.AssetType takeAssetType);
-    event Approval(bytes32 hash, address maker, LibAsset.AssetType makeAssetType, LibAsset.AssetType takeAssetType);
+    event Cancel(bytes32 hash, address maker, address taker);
+    event Approval(bytes32 hash, address maker, address taker);
     event Match(
         bytes32 leftHash,
         bytes32 rightHash,
@@ -59,7 +59,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param order the order itself
      * @param sig the struct sig (contains VRS)
      */
-    function requireValidOrder(LibSignature.Order memory order, Sig memory sig) internal view returns (bytes32) {
+    function requireValidOrder(LibSignature.Order calldata order, Sig memory sig) internal view returns (bytes32) {
         bytes32 hash = LibSignature.getStructHash(order);
         require(validateOrder(hash, order, sig));
         return hash;
@@ -79,7 +79,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     /**
      * @dev function converting v r s into bytes32 signature via concat method
      */
-    function recoverVRS(bytes memory signature)
+    function recoverVRS(bytes calldata signature)
         public
         pure
         returns (
@@ -99,7 +99,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      */
     function validateOrder(
         bytes32 hash,
-        LibSignature.Order memory order,
+        LibSignature.Order calldata order,
         Sig memory sig
     ) internal view returns (bool) {
         LibSignature.validate(order); // validates start and end time
@@ -139,29 +139,28 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param s sigS
      */
     function validateOrder_(
-        LibSignature.Order memory order,
+        LibSignature.Order calldata order,
         uint8 v,
         bytes32 r,
         bytes32 s
     ) public view returns (bool) {
         bytes32 hash = LibSignature.getStructHash(order);
-
         return validateOrder(hash, order, Sig(v, r, s));
     }
 
-    function cancel(LibSignature.Order memory order) external nonReentrant {
+    function cancel(LibSignature.Order calldata order) external nonReentrant {
         require(msg.sender == order.maker, "not a maker");
         require(order.salt != 0, "0 salt can't be used");
         bytes32 hash = LibSignature.getStructHash(order);
         cancelledOrFinalized[hash] = true;
-        emit Cancel(hash, order.maker, order.makeAsset.assetType, order.takeAsset.assetType);
+        emit Cancel(hash, order.maker, order.taker);
     }
 
     /**
      * @dev Approve an order
      * @param order the order (buy or sell) in question
      */
-    function approveOrder_(LibSignature.Order memory order) external nonReentrant {
+    function approveOrder_(LibSignature.Order calldata order) external nonReentrant {
         // checks
         require(msg.sender == order.maker, "not a maker");
         require(order.salt != 0, "0 salt can't be used");
@@ -171,7 +170,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // effects
         approvedOrders[hash] = true; // Mark bid as approved.
 
-        emit Approval(hash, order.maker, order.makeAsset.assetType, order.takeAsset.assetType);
+        emit Approval(hash, order.maker, order.taker);
     }
 
     /**
@@ -179,8 +178,111 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param sellOrder the listing
      * @param buyer potential executor of sellOrder
      */
-    function validateBuyNow(LibSignature.Order memory sellOrder, address buyer) internal pure returns (bool) {
-        return (sellOrder.takeAsset.value != 0) && (sellOrder.taker == address(0) || sellOrder.taker == buyer);
+    function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) internal pure returns (bool) {
+        for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
+            (uint256 value, ) = abi.decode(sellOrder.takeAssets[i].data, (uint256, uint256));
+
+            // value == 0 means item is free => no need to hold auction
+            // TODO: may re-consider this over time to allow free items?
+            // or invalid if taker is not 0x0 (public sale) and not equal to buyer
+            if (value == 0 || (sellOrder.taker != address(0) && sellOrder.taker != buyer)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     *  @dev validateSingleAssetMatch1 makes sure two assets can be matched (same index in LibSignature array)
+     *  @param buyTakeAsset what the buyer is hoping to take
+     *  @param sellMakeAsset what the seller is hoping to make
+     */
+    function validateSingleAssetMatch1(LibAsset.Asset calldata buyTakeAsset, LibAsset.Asset calldata sellMakeAsset)
+        internal
+        pure
+        returns (bool)
+    {
+        (uint256 sellMakeValue, ) = abi.decode(sellMakeAsset.data, (uint256, uint256));
+        (uint256 buyTakeValue, ) = abi.decode(buyTakeAsset.data, (uint256, uint256));
+
+        return
+            // asset being sold
+            (sellMakeAsset.assetType.assetClass == buyTakeAsset.assetType.assetClass) &&
+            // sell value == buy take
+            sellMakeValue == buyTakeValue;
+    }
+
+    /**
+     * @dev validAssetTypeData checks if tokenIds are the same (only for NFTs)
+     *  @param sellTakeAssetClass (bytes4 of type in LibAsset)
+     *  @param buyMakeAssetTypeData assetTypeData for makeAsset on buyOrder
+     *  @param sellTakeAssetTypeData assetTypeData for takeAsset on sellOrder
+     */
+    function validAssetTypeData(
+        bytes4 sellTakeAssetClass,
+        bytes memory buyMakeAssetTypeData,
+        bytes memory sellTakeAssetTypeData
+    ) internal pure returns (bool) {
+        if (
+            sellTakeAssetClass == LibAsset.ERC721_ASSET_CLASS ||
+            sellTakeAssetClass == LibAsset.ERC1155_ASSET_CLASS ||
+            sellTakeAssetClass == LibAsset.CRYPTO_PUNK ||
+            sellTakeAssetClass == LibAsset.CRYPTO_KITTY
+        ) {
+            (address buyMakeAddress, uint256 buyMakeTokenId, ) = abi.decode(
+                buyMakeAssetTypeData,
+                (address, uint256, bool)
+            );
+
+            (address sellTakeAddress, uint256 sellTakeTokenId, bool sellTakeAllowAll) = abi.decode(
+                sellTakeAssetTypeData,
+                (address, uint256, bool)
+            );
+
+            require(buyMakeAddress == sellTakeAddress, "NFT.COM: contracts must match");
+
+            if (sellTakeAllowAll) {
+                return true;
+            } else {
+                return buyMakeTokenId == sellTakeTokenId;
+            }
+        } else if (sellTakeAssetClass == LibAsset.ERC20_ASSET_CLASS) {
+            return abi.decode(buyMakeAssetTypeData, (address)) == abi.decode(sellTakeAssetTypeData, (address));
+        } else {
+            // ETH has no contract so no need to verify
+            // TODO: handle COLLECTION...
+            return true;
+        }
+    }
+
+    /**
+     * @dev validateSingleAssetMatch2 makes sure two assets can be matched (same index in LibSignature array)
+     *  @param sellTakeAsset what the seller is hoping to take
+     *  @param buyMakeAsset what the buyer is hoping to make
+     */
+    function validateSingleAssetMatch2(LibAsset.Asset calldata sellTakeAsset, LibAsset.Asset calldata buyMakeAsset)
+        internal
+        pure
+        returns (bool)
+    {
+        (uint256 buyMakeValue, ) = abi.decode(buyMakeAsset.data, (uint256, uint256));
+        (, uint256 sellTakeMinValue) = abi.decode(sellTakeAsset.data, (uint256, uint256));
+
+        return
+            // token denominating sell order listing
+            (sellTakeAsset.assetType.assetClass == buyMakeAsset.assetType.assetClass) &&
+            // make sure tokenIds match if NFT AND contract address matches
+            validAssetTypeData(
+                sellTakeAsset.assetType.assetClass,
+                buyMakeAsset.assetType.data,
+                sellTakeAsset.assetType.data
+            ) &&
+            // buyOrder must be within bounds
+            buyMakeValue >= sellTakeMinValue;
+
+        // NOTE: sellTakeMin could be 0 and buyer could offer 0;
+        // NOTE: (in case seller wants to make a list of optional assets to select from)
     }
 
     /**
@@ -188,24 +290,45 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param sellOrder the listing
      * @param buyOrder bid for a listing
      */
-    function validateMatch(LibSignature.Order memory sellOrder, LibSignature.Order memory buyOrder)
+    function validateMatch(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder)
         internal
         pure
         returns (bool)
     {
-        uint256 minimumBidValue = abi.decode(sellOrder.data, (uint256));
-
-        return
-            // token denominating sell order listing
-            (sellOrder.takeAsset.assetType.assetClass == buyOrder.makeAsset.assetType.assetClass) &&
-            // asset being sold
-            (sellOrder.makeAsset.assetType.assetClass == buyOrder.takeAsset.assetType.assetClass) &&
-            // sellOrder taker must be valid
+        // sellOrder taker must be valid
+        require(
             (sellOrder.taker == address(0) || sellOrder.taker == buyOrder.maker) &&
-            // buyOrder taker must be valid
-            (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker) &&
-            // buyOrder must be within bounds
-            (buyOrder.makeAsset.value >= minimumBidValue);
+                // buyOrder taker must be valid
+                (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker),
+            "NFT.COM: maker taker must match"
+        );
+
+        // must be selling something and make and take must match
+        require(
+            sellOrder.makeAssets.length != 0 && buyOrder.takeAssets.length == sellOrder.makeAssets.length,
+            "NFT.COM: sell maker must > 0"
+        );
+
+        // check if seller maker and buyer take match on every corresponding index
+        for (uint256 i = 0; i < sellOrder.makeAssets.length; i++) {
+            if (!validateSingleAssetMatch1(buyOrder.takeAssets[i], sellOrder.makeAssets[i])) {
+                return false;
+            }
+        }
+
+        // if seller's takeAssets = 0, that means seller doesn't make what buyer's makeAssets are, so ignore
+        // if seller's takeAssets > 0, seller has a specified list
+        if (sellOrder.takeAssets.length != 0) {
+            require(sellOrder.takeAssets.length == buyOrder.makeAssets.length, "NFT.COM: sellTake must match buyMake");
+            // check if seller maker and buyer take match on every corresponding index
+            for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
+                if (!validateSingleAssetMatch2(sellOrder.takeAssets[i], buyOrder.makeAssets[i])) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -213,7 +336,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param sellOrder the listing
      * @param buyOrder bid for a listing
      */
-    function validateMatch_(LibSignature.Order memory sellOrder, LibSignature.Order memory buyOrder)
+    function validateMatch_(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder)
         public
         pure
         returns (bool)
@@ -233,26 +356,61 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param r rSig
      * @param s sSig
      */
-    function buyNow(
-        LibSignature.Order memory sellOrder,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external payable nonReentrant {
-        // checks
-        bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s));
+    // function buyNow(
+    //     LibSignature.Order calldata sellOrder,
+    //     uint8 v,
+    //     bytes32 r,
+    //     bytes32 s
+    // ) external payable nonReentrant {
+    //     // checks
+    //     bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s));
 
-        require(validateBuyNow(sellOrder, msg.sender));
+    //     require(validateBuyNow(sellOrder, msg.sender));
 
-        if (msg.sender != sellOrder.maker) {
-            cancelledOrFinalized[sellHash] = true;
-        }
+    //     if (msg.sender != sellOrder.maker) {
+    //         cancelledOrFinalized[sellHash] = true;
+    //     }
 
-        // interactions (i.e. perform swap)
-        // these two functions also transfer fees AND royalties
-        transfer(sellOrder.takeAsset, msg.sender, sellOrder.maker); // send denominated asset to seller from buyer
-        transfer(sellOrder.makeAsset, sellOrder.maker, msg.sender); // send listed asset to buyer from seller
-    }
+    //     // interactions (i.e. perform swap)
+    //     // these two functions also transfer fees AND royalties
+    //     transfer(sellOrder.takeAsset, msg.sender, sellOrder.maker); // send denominated asset to seller from buyer
+    //     transfer(sellOrder.makeAsset, sellOrder.maker, msg.sender); // send listed asset to buyer from seller
+    // }
+
+    // TODO: make sure buyNow works
+    // if takeAssets are > 0, then make sure buyer has sufficient funds / approvals to transfer the buyNow value
+
+    // /**
+    //  * @dev lazyMint function that mints a NFT and immedietly exchanges it
+    //  * @param sellOrder the listing
+    //  * @param buyOrder bids for a listing
+    //  * @param v array of v sig, index 0 = nftPermit for lister, index 1 = sellOrder, index 2 = buyOrder
+    //  * @param r array of r sig, index 0 = nftPermit for lister, index 1 = sellOrder, index 2 = buyOrder
+    //  * @param s array of s sig, index 0 = nftPermit for lister, index 1 = sellOrder, index 2 = buyOrder
+    //  */
+    // function lazyMint(
+    //     LibSignature.Order calldata sellOrder,
+    //     LibSignature.Order calldata buyOrder,
+    //     uint8[3] calldata v,
+    //     bytes32[3] calldata r,
+    //     bytes32[3] calldata s
+    // ) external payable nonReentrant {
+    //     if (sellOrder.asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
+    //         // mint 721 to buyer
+    //     } else if (sellOrder.asset.assetType.assetClass == LibAsset.ERC1155_ASSET_CLASS) {
+    //         // mint 1155 to buyer
+    //     } else {
+    //         require(false, "NFT.COM: UNSUPPORTED ASSET");
+    //     }
+
+    //     executeSwap(
+    //         sellOrder,
+    //         buyOrder,
+    //         [v[1], v[2]],
+    //         [r[1], r[2]],
+    //         [s[1], s[2]]
+    //     )
+    // }
 
     /**
      * @dev executeSwap takes two orders and executes them together
@@ -263,12 +421,12 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param s array of s sig, index 0 = sellOrder, index 1 = buyOrder
      */
     function executeSwap(
-        LibSignature.Order memory sellOrder,
-        LibSignature.Order memory buyOrder,
+        LibSignature.Order calldata sellOrder,
+        LibSignature.Order calldata buyOrder,
         uint8[2] calldata v,
         bytes32[2] calldata r,
         bytes32[2] calldata s
-    ) external payable nonReentrant {
+    ) public payable nonReentrant {
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v[0], r[0], s[0]));
 
@@ -277,14 +435,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         require(validateMatch(sellOrder, buyOrder));
 
         // effects
-
-        // reasoning is that anyone can match orders together
-        // case 1: if buyer executes, sellOrder is used
-        // case 2: if seller executes, buyOrder is used
-        // case 3: if 3rd party executes, both orders are used
-        // in both case 1 and 2:
-        //  the other order is not set "used" as it cannot match with any other order in the system
-        //  this is mainly done to save on gas costs
         if (msg.sender != buyOrder.maker) {
             cancelledOrFinalized[buyHash] = true;
         }
@@ -292,9 +442,15 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             cancelledOrFinalized[sellHash] = true;
         }
 
-        // interactions (i.e. perform swap)
-        // these two functions also transfer fees AND royalties
-        transfer(buyOrder.makeAsset, buyOrder.maker, sellOrder.maker); // send denominated asset to seller from buyer
-        transfer(sellOrder.makeAsset, sellOrder.maker, buyOrder.maker); // send listed asset to buyer from seller
+        // interactions (i.e. perform swap, fees and royalties)
+        for (uint256 i = 0; i < buyOrder.makeAssets.length; i++) {
+            // send assets from buyer to seller (payment for goods)
+            transfer(buyOrder.makeAssets[i], buyOrder.maker, sellOrder.maker);
+        }
+
+        for (uint256 j = 0; j < sellOrder.makeAssets.length; j++) {
+            // send assets from seller to buyer (goods)
+            transfer(sellOrder.makeAssets[j], sellOrder.maker, buyOrder.maker);
+        }
     }
 }
