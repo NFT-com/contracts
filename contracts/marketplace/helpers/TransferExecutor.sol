@@ -78,8 +78,10 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         address to
     ) internal override {
         require(stakingContract != address(0), "NFT.COM: UNINITIALIZED");
+        (uint256 value, ) = abi.decode(asset.data, (uint256, uint256));
+
         if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
-            transferEth(to, asset.value);
+            transferEth(to, value);
         } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
             address token = abi.decode(asset.assetType.data, (address));
             require(whitelistERC20[token], "NFT.COM: ERC20 NOT SUPPORTED");
@@ -89,19 +91,22 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 IERC20Upgradeable(token),
                 from,
                 stakingContract,
-                asset.value.mul(protocolFee).div(10000)
+                value.mul(protocolFee).div(10000)
             );
 
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
                 IERC20Upgradeable(token),
                 from,
                 to,
-                asset.value
+                value
             );
         } else if (asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
-            (address token, uint256 tokenId) = abi.decode(asset.assetType.data, (address, uint256));
+            (address token, uint256 tokenId,) = abi.decode(
+                asset.assetType.data,
+                (address, uint256, bool)
+            );
 
-            require(asset.value == 1, "erc721 value error");
+            require(value == 1, "erc721 value error");
             INftTransferProxy(proxies[LibAsset.ERC721_ASSET_CLASS]).erc721safeTransferFrom(
                 IERC721Upgradeable(token),
                 from,
@@ -109,13 +114,16 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 tokenId
             );
         } else if (asset.assetType.assetClass == LibAsset.ERC1155_ASSET_CLASS) {
-            (address token, uint256 tokenId) = abi.decode(asset.assetType.data, (address, uint256));
+            (address token, uint256 tokenId,) = abi.decode(
+                asset.assetType.data,
+                (address, uint256, bool)
+            );
             INftTransferProxy(proxies[LibAsset.ERC1155_ASSET_CLASS]).erc1155safeTransferFrom(
                 IERC1155Upgradeable(token),
                 from,
                 to,
                 tokenId,
-                asset.value,
+                value,
                 ""
             );
         } else {

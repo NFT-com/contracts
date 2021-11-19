@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "../interfaces/ITransferProxy.sol";
 
-contract CKTransferProxy is ITransferProxy, Initializable, UUPSUpgradeable, OwnableUpgradeable {
+contract CryptoKittyTransferProxy is ITransferProxy, Initializable, UUPSUpgradeable, OwnableUpgradeable {
     mapping(address => bool) operators;
 
     function initialize() external initializer {
@@ -20,7 +20,8 @@ contract CKTransferProxy is ITransferProxy, Initializable, UUPSUpgradeable, Owna
         address from,
         address to
     ) external override onlyOperator {
-        require(asset.value == 1, "erc721 value error");
+        (uint256 value, ) = abi.decode(asset.data, (uint256, uint256));
+        require(value == 1, "erc721 value error");
         (address token, uint256 tokenId) = abi.decode(asset.assetType.data, (address, uint256));
         IERC721Upgradeable(token).transferFrom(from, to, tokenId);
     }

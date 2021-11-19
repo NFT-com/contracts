@@ -16,14 +16,14 @@ export const ERC20_PERMIT_TYPEHASH = convertToHash(
 
 export const BID_TYPEHASH = convertToHash("Bid(uint256 _nftTokens,string _profileURI,address _owner)");
 
-export const EXCHANGE_ORDER_TYPEHASH = convertToHash(
-  "Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end,bytes data)Asset(AssetType assetType,uint256 value)AssetType(bytes4 assetClass,bytes data)",
+export const MARKETPLACE_ORDER_TYPEHASH = convertToHash(
+  "Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end)Asset(AssetType assetType,uint256 value)AssetType(bytes4 assetClass,bytes data)",
 );
 
 export const ASSET_TYPE_TYPEHASH = convertToHash("AssetType(bytes4 assetClass,bytes data)");
 
 export const ASSET_TYPEHASH = convertToHash(
-  "Asset(AssetType assetType,uint256 value)AssetType(bytes4 assetClass,bytes data)",
+  "Assets[](AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
 );
 
 export const makeSalt = (length: number = 16): BigNumber => {
@@ -67,38 +67,56 @@ export const getHash = (types: string[], values: any[]): string => {
   return keccak256(defaultAbiCoder.encode(types, values));
 };
 
-export const getAssetHash = async (assetClass: string, data: string, value: number): Promise<string> => {
-  const assetTypeHash = getHash(["bytes32", "bytes4", "bytes32"], [ASSET_TYPE_TYPEHASH, assetClass, data]);
+export const getAssetTypeHash = async (assetClass: string, assetTypeData: string): Promise<string> => {
+  return getHash(["bytes32", "bytes4", "bytes32"], [ASSET_TYPE_TYPEHASH, assetClass, assetTypeData]);
+};
 
-  return getHash(["bytes32", "bytes32", "uint256"], [ASSET_TYPEHASH, assetTypeHash, value]);
+export const getAssetHash = async (assets: any): Promise<string> => {
+  let data32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+  for (let i = 0; i < assets.length; i++) {
+    const asset = assets[i];
+
+    const assetTypeHash = await getAssetTypeHash(asset[0], getHash(asset[1], asset[2]));
+
+    data32 = getHash(
+      ["bytes32", "bytes32", "bytes32"],
+      [data32, assetTypeHash, getHash(["uint256", "uint256"], asset[3])],
+    );
+  }
+
+  return getHash(["bytes32", "bytes32"], [ASSET_TYPEHASH, data32]);
+};
+
+const getAssetList = (assets: any) => {
+  return assets.map((asset: any) => {
+    return {
+      assetType: {
+        assetClass: asset[0],
+        data: encode(asset[1], asset[2]),
+      },
+      data: encode(["uint256", "uint256"], asset[3]),
+    };
+  });
 };
 
 // simply function to abstract the signing of marketplace orders on testing
 // returns back signed digest
 export const signMarketplaceOrder = async (
   signer: any,
-  makeAsset: any,
+  makeAssets: any,
   taker: string,
-  takeAsset: any,
+  takeAssets: any,
   start: number,
   end: number,
-  minimumBidValue: number,
   provider: any,
   deployedNftMarketplaceAddress: string,
 ): Promise<any> => {
-  const salt = makeSalt();
+  const salt = 1 || makeSalt();
 
-  const makeAssetHash = await getAssetHash(
-    makeAsset[0],
-    getHash(makeAsset[1], makeAsset[2]), // bytes encoding of contract
-    makeAsset[3],
-  );
+  const makeAssetHash = await getAssetHash(makeAssets);
 
-  const takeAssetHash = await getAssetHash(
-    takeAsset[0],
-    getHash(takeAsset[1], takeAsset[2]), // bytes encoding of contract
-    takeAsset[3],
-  );
+  const takeAssetHash = await getAssetHash(takeAssets);
 
   // domain separator V4
   const orderDigest = await getDigest(
@@ -106,18 +124,8 @@ export const signMarketplaceOrder = async (
     "NFT.com Marketplace",
     deployedNftMarketplaceAddress,
     getHash(
-      ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "bytes32"],
-      [
-        EXCHANGE_ORDER_TYPEHASH,
-        signer.address,
-        makeAssetHash,
-        taker,
-        takeAssetHash,
-        salt,
-        start,
-        end,
-        getHash(["uint256"], [minimumBidValue]),
-      ],
+      ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256"],
+      [MARKETPLACE_ORDER_TYPEHASH, signer.address, makeAssetHash, taker, takeAssetHash, salt, start, end],
     ),
   );
 
@@ -127,28 +135,7 @@ export const signMarketplaceOrder = async (
     v,
     r,
     s,
-    order: [
-      signer.address,
-      {
-        assetType: {
-          assetClass: makeAsset[0],
-          data: encode(makeAsset[1], makeAsset[2]),
-        },
-        value: makeAsset[3],
-      },
-      taker,
-      {
-        assetType: {
-          assetClass: takeAsset[0],
-          data: encode(takeAsset[1], takeAsset[2]),
-        },
-        value: takeAsset[3],
-      },
-      salt,
-      start,
-      end,
-      encode(["uint256"], [minimumBidValue]),
-    ],
+    order: [signer.address, getAssetList(makeAssets), taker, getAssetList(takeAssets), salt, start, end],
   };
 };
 
