@@ -179,15 +179,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param buyer potential executor of sellOrder
      */
     function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) internal pure returns (bool) {
-        require(
-            (sellOrder.taker == address(0) || sellOrder.taker == buyer),
-            "NFT.com: buyer must be taker"
-        );
+        require((sellOrder.taker == address(0) || sellOrder.taker == buyer), "NFT.com: buyer must be taker");
 
-        require(
-            sellOrder.makeAssets.length != 0,
-            "NFT.com: seller make must > 0"
-        );
+        require(sellOrder.makeAssets.length != 0, "NFT.com: seller make must > 0");
 
         return true;
     }
