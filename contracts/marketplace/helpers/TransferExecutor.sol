@@ -35,7 +35,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     }
 
     function changeProtocolFee(uint256 _fee) external onlyOwner {
-        require(_fee < 2000, "NFT.com: 20% MAX");
+        require(_fee <= 2000, "NFT.com: 20% MAX");
         protocolFee = _fee;
         emit ProtocolFeeChange(_fee);
     }
@@ -101,10 +101,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 value
             );
         } else if (asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
-            (address token, uint256 tokenId,) = abi.decode(
-                asset.assetType.data,
-                (address, uint256, bool)
-            );
+            (address token, uint256 tokenId, ) = abi.decode(asset.assetType.data, (address, uint256, bool));
 
             require(value == 1, "erc721 value error");
             INftTransferProxy(proxies[LibAsset.ERC721_ASSET_CLASS]).erc721safeTransferFrom(
@@ -114,10 +111,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 tokenId
             );
         } else if (asset.assetType.assetClass == LibAsset.ERC1155_ASSET_CLASS) {
-            (address token, uint256 tokenId,) = abi.decode(
-                asset.assetType.data,
-                (address, uint256, bool)
-            );
+            (address token, uint256 tokenId, ) = abi.decode(asset.assetType.data, (address, uint256, bool));
             INftTransferProxy(proxies[LibAsset.ERC1155_ASSET_CLASS]).erc1155safeTransferFrom(
                 IERC1155Upgradeable(token),
                 from,

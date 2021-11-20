@@ -121,8 +121,8 @@ describe("NFT.com Marketplace", function () {
       });
     });
 
-    describe("Allow Multi-Asset Swaps", function () {
-      it("should allow EOA users to make valid bid orders using sigV4, and execute buy nows", async function () {
+    describe("Allow Multi-Asset Swaps via EOA users using sigV4", function () {
+      it("should execute buy nows", async function () {
         const {
           v: v0,
           r: r0,
@@ -161,11 +161,7 @@ describe("NFT.com Marketplace", function () {
 
         await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
-          .withArgs(
-            buyer.address,
-            ownerSigner.address,
-            convertNftToken(100),
-          );
+          .withArgs(buyer.address, ownerSigner.address, convertNftToken(100));
 
         expect(await deployedNftProfile.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedNftToken.balanceOf(buyer.address)).to.be.equal(
@@ -178,7 +174,7 @@ describe("NFT.com Marketplace", function () {
         await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
       });
 
-      it("should allow EOA users to make valid bid orders using sigV4, and execute swaps using buy / sell orders", async function () {
+      it("should execute matched swaps using buy / sell orders", async function () {
         const {
           v: v0,
           r: r0,
@@ -259,8 +255,171 @@ describe("NFT.com Marketplace", function () {
           BigNumber.from(125).mul(BigNumber.from(10).pow(BigNumber.from(17))),
         );
 
-        // reverts due to >= 2000
-        await expect(deployedNftMarketplace.connect(owner).changeProtocolFee(2000)).to.be.reverted;
+        // reverts due to > 2000
+        await expect(deployedNftMarketplace.connect(owner).changeProtocolFee(2001)).to.be.reverted;
+
+        await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
+      });
+
+      it("should allow multi-asset swaps", async function () {
+        await deployedNftMarketplace.modifyWhitelist(NFT_RINKEBY_ADDRESS, true);
+        await deployedNftMarketplace.modifyWhitelist(RINKEBY_WETH, true);
+
+        // sell NFT profile NFT token 0 and 1
+        // wants NFT token and WETH
+        const {
+          v: v0,
+          r: r0,
+          s: s0,
+          order: sellOrder,
+        } = await signMarketplaceOrder(
+          ownerSigner,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 0, true], // values
+              [1, 0], // data to be encoded
+            ],
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 1, true], // values
+              [1, 0], // data to be encoded
+            ],
+          ],
+          ethers.constants.AddressZero,
+          [[ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(100), convertNftToken(10)]]],
+          0,
+          0,
+          ethers.provider,
+          deployedNftMarketplace.address,
+        );
+
+        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+
+        const {
+          v: v1,
+          r: r1,
+          s: s1,
+          order: buyOrder,
+        } = await signMarketplaceOrder(
+          buyerSigner,
+          [[ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(500), 0]]],
+          owner.address,
+          [
+            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [NFT_PROFILE_RINKEBY, 0, true], [1, 0]],
+            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [NFT_PROFILE_RINKEBY, 1, true], [1, 0]],
+          ],
+          0,
+          0,
+          ethers.provider,
+          deployedNftMarketplace.address,
+        );
+
+        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+
+        // add approvals
+        await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 0);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 1);
+
+        // match is valid
+        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+
+        // balances before
+        expect(await deployedNftProfile.ownerOf(0)).to.be.equal(owner.address);
+        expect(await deployedNftProfile.ownerOf(1)).to.be.equal(owner.address);
+
+        // swap
+        await expect(
+          deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
+        )
+          .to.emit(deployedNftToken, "Transfer")
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
+
+        // balances after
+        expect(await deployedNftProfile.ownerOf(0)).to.be.equal(buyer.address);
+        expect(await deployedNftProfile.ownerOf(1)).to.be.equal(buyer.address);
+
+        await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
+        await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 1);
+      });
+
+      it("should not allow swaps with insufficient nft token", async function () {
+        await deployedNftMarketplace.modifyWhitelist(NFT_RINKEBY_ADDRESS, true);
+        await deployedNftMarketplace.modifyWhitelist(RINKEBY_WETH, true);
+
+        // sell NFT profile NFT token 0 and 1
+        // wants NFT token and WETH
+        const {
+          v: v0,
+          r: r0,
+          s: s0,
+          order: sellOrder,
+        } = await signMarketplaceOrder(
+          ownerSigner,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 0, true], // values
+              [1, 0], // data to be encoded
+            ],
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 1, true], // values
+              [1, 0], // data to be encoded
+            ],
+          ],
+          ethers.constants.AddressZero,
+          [[ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(100), convertNftToken(10)]]],
+          0,
+          0,
+          ethers.provider,
+          deployedNftMarketplace.address,
+        );
+
+        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+
+        const {
+          v: v1,
+          r: r1,
+          s: s1,
+          order: buyOrder,
+        } = await signMarketplaceOrder(
+          buyerSigner,
+          [[ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(9), 0]]],
+          owner.address,
+          [
+            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [NFT_PROFILE_RINKEBY, 0, true], [1, 0]],
+            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [NFT_PROFILE_RINKEBY, 1, true], [1, 0]],
+          ],
+          0,
+          0,
+          ethers.provider,
+          deployedNftMarketplace.address,
+        );
+
+        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+
+        // add approvals
+        await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 0);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 1);
+
+        // match is invalid since NFT token bid doesn't meet minimum desired
+        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.false;
+
+        // balances before
+        expect(await deployedNftProfile.ownerOf(0)).to.be.equal(owner.address);
+        expect(await deployedNftProfile.ownerOf(1)).to.be.equal(owner.address);
+
+        // swap should fail
+        await expect(
+          deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
+        ).to.be.reverted;
       });
     });
 
