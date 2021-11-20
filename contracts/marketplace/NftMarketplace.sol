@@ -179,16 +179,15 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param buyer potential executor of sellOrder
      */
     function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) internal pure returns (bool) {
-        for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
-            (uint256 value, ) = abi.decode(sellOrder.takeAssets[i].data, (uint256, uint256));
+        require(
+            (sellOrder.taker == address(0) || sellOrder.taker == buyer),
+            "NFT.com: buyer must be taker"
+        );
 
-            // value == 0 means item is free => no need to hold auction
-            // TODO: may re-consider this over time to allow free items?
-            // or invalid if taker is not 0x0 (public sale) and not equal to buyer
-            if (value == 0 || (sellOrder.taker != address(0) && sellOrder.taker != buyer)) {
-                return false;
-            }
-        }
+        require(
+            sellOrder.makeAssets.length != 0,
+            "NFT.com: seller make must > 0"
+        );
 
         return true;
     }
@@ -240,7 +239,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 (address, uint256, bool)
             );
 
-            require(buyMakeAddress == sellTakeAddress, "NFT.COM: contracts must match");
+            require(buyMakeAddress == sellTakeAddress, "NFT.com: contracts must match");
 
             if (sellTakeAllowAll) {
                 return true;
@@ -300,13 +299,13 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             (sellOrder.taker == address(0) || sellOrder.taker == buyOrder.maker) &&
                 // buyOrder taker must be valid
                 (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker),
-            "NFT.COM: maker taker must match"
+            "NFT.com: maker taker must match"
         );
 
         // must be selling something and make and take must match
         require(
             sellOrder.makeAssets.length != 0 && buyOrder.takeAssets.length == sellOrder.makeAssets.length,
-            "NFT.COM: sell maker must > 0"
+            "NFT.com: sell maker must > 0"
         );
 
         // check if seller maker and buyer take match on every corresponding index
@@ -319,7 +318,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // if seller's takeAssets = 0, that means seller doesn't make what buyer's makeAssets are, so ignore
         // if seller's takeAssets > 0, seller has a specified list
         if (sellOrder.takeAssets.length != 0) {
-            require(sellOrder.takeAssets.length == buyOrder.makeAssets.length, "NFT.COM: sellTake must match buyMake");
+            require(sellOrder.takeAssets.length == buyOrder.makeAssets.length, "NFT.com: sellTake must match buyMake");
             // check if seller maker and buyer take match on every corresponding index
             for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
                 if (!validateSingleAssetMatch2(sellOrder.takeAssets[i], buyOrder.makeAssets[i])) {
@@ -356,29 +355,32 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param r rSig
      * @param s sSig
      */
-    // function buyNow(
-    //     LibSignature.Order calldata sellOrder,
-    //     uint8 v,
-    //     bytes32 r,
-    //     bytes32 s
-    // ) external payable nonReentrant {
-    //     // checks
-    //     bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s));
+    function buyNow(
+        LibSignature.Order calldata sellOrder,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external payable nonReentrant {
+        // checks
+        bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s));
 
-    //     require(validateBuyNow(sellOrder, msg.sender));
+        require(validateBuyNow(sellOrder, msg.sender));
 
-    //     if (msg.sender != sellOrder.maker) {
-    //         cancelledOrFinalized[sellHash] = true;
-    //     }
+        if (msg.sender != sellOrder.maker) {
+            cancelledOrFinalized[sellHash] = true;
+        }
 
-    //     // interactions (i.e. perform swap)
-    //     // these two functions also transfer fees AND royalties
-    //     transfer(sellOrder.takeAsset, msg.sender, sellOrder.maker); // send denominated asset to seller from buyer
-    //     transfer(sellOrder.makeAsset, sellOrder.maker, msg.sender); // send listed asset to buyer from seller
-    // }
+        // interactions (i.e. perform swap, fees and royalties)
+        for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
+            // send assets from buyer to seller (payment for goods)
+            transfer(sellOrder.takeAssets[i], msg.sender, sellOrder.maker);
+        }
 
-    // TODO: make sure buyNow works
-    // if takeAssets are > 0, then make sure buyer has sufficient funds / approvals to transfer the buyNow value
+        for (uint256 j = 0; j < sellOrder.makeAssets.length; j++) {
+            // send assets from seller to buyer (goods)
+            transfer(sellOrder.makeAssets[j], sellOrder.maker, msg.sender);
+        }
+    }
 
     // /**
     //  * @dev lazyMint function that mints a NFT and immedietly exchanges it
@@ -400,7 +402,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     //     } else if (sellOrder.asset.assetType.assetClass == LibAsset.ERC1155_ASSET_CLASS) {
     //         // mint 1155 to buyer
     //     } else {
-    //         require(false, "NFT.COM: UNSUPPORTED ASSET");
+    //         require(false, "NFT.com: UNSUPPORTED ASSET");
     //     }
 
     //     executeSwap(

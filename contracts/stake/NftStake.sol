@@ -48,12 +48,12 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
     }
 
     function approveToken(address token) external {
-        // require(nftMarketplace.whitelistERC20(token), "NFT.COM: !ERC20");
+        // require(nftMarketplace.whitelistERC20(token), "NFT.com: !ERC20");
         IERC20(token).approve(address(uniswapRouter), 2**256 - 1);
     }
 
     function convertEthToNFT() external nonReentrant {
-        require(!isContract(msg.sender), "NFT.COM: !CONTRACT");
+        require(!isContract(msg.sender), "NFT.com: !CONTRACT");
 
         uint256 deadline = block.timestamp + 7;
         address tokenIn = WETH9;
@@ -80,8 +80,8 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
     }
 
     function convertERC20ToNFT(address tokenIn) external nonReentrant {
-        require(!isContract(msg.sender), "NFT.COM: !CONTRACT");
-        // require(nftMarketplace.whitelistERC20(tokenIn), "NFT.COM: !ERC20");
+        require(!isContract(msg.sender), "NFT.com: !CONTRACT");
+        // require(nftMarketplace.whitelistERC20(tokenIn), "NFT.com: !ERC20");
 
         uint256 deadline = block.timestamp + 7;
         address tokenOut = nftToken;

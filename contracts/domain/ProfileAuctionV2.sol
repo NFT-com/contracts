@@ -129,7 +129,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     ) internal view returns (bytes32) {
         bytes32 hash = getStructHash(_nftTokens, _profileURI, _owner);
 
-        require(validateBid_(hash, _nftTokens, _owner, sig), "NFT.COM: INVALID SIG");
+        require(validateBid_(hash, _nftTokens, _owner, sig), "NFT.com: INVALID SIG");
         return hash;
     }
 
@@ -334,7 +334,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         bytes32 nftS
     ) external nonReentrant validAndUnusedURI(_profileURI) {
         // checks
-        require(msg.sender == minter, "NFT.COM: UNAUTHORIZED");
+        require(msg.sender == minter, "NFT.com: UNAUTHORIZED");
         bytes32 hash = requireValidBid_(_nftTokens, _profileURI, _owner, Sig(v, r, s));
         require(!cancelledOrFinalized[hash]);
         require(claimableBlock[hash] == 0);
