@@ -95,7 +95,7 @@ contract NftProfileV1 is
      @param value percentage (using 2 decimals - 10000 = 100, 0 = 0)
     */
     function _setRoyalties(address recipient, uint256 value) internal {
-        require(value <= 10000, "NFT.COM: ERC-2981 Royalty Too High");
+        require(value <= 10000, "NFT.com: ERC-2981 Royalty Too High");
         _royalties = RoyaltyInfo(recipient, uint24(value));
     }
 

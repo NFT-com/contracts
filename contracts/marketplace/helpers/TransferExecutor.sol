@@ -35,13 +35,13 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     }
 
     function changeProtocolFee(uint256 _fee) external onlyOwner {
-        require(_fee < 2000, "NFT.COM: 20% MAX");
+        require(_fee < 2000, "NFT.com: 20% MAX");
         protocolFee = _fee;
         emit ProtocolFeeChange(_fee);
     }
 
     function modifyWhitelist(address _token, bool _val) external onlyOwner {
-        require(whitelistERC20[_token] != _val, "NFT.COM: !SAME");
+        require(whitelistERC20[_token] != _val, "NFT.com: !SAME");
         whitelistERC20[_token] = _val;
         emit WhitelistChange(_token, _val);
     }
@@ -61,7 +61,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         // ETH Fee
         (bool success1, ) = stakingContract.call{ value: value.mul(protocolFee).div(10000) }("");
         (bool success2, ) = to.call{ value: value }("");
-        require(success1 && success2, "NFT.COM: transfer failed");
+        require(success1 && success2, "NFT.com: transfer failed");
     }
 
     /**
@@ -77,14 +77,14 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         address from,
         address to
     ) internal override {
-        require(stakingContract != address(0), "NFT.COM: UNINITIALIZED");
+        require(stakingContract != address(0), "NFT.com: UNINITIALIZED");
         (uint256 value, ) = abi.decode(asset.data, (uint256, uint256));
 
         if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
             transferEth(to, value);
         } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
             address token = abi.decode(asset.assetType.data, (address));
-            require(whitelistERC20[token], "NFT.COM: ERC20 NOT SUPPORTED");
+            require(whitelistERC20[token], "NFT.com: ERC20 NOT SUPPORTED");
 
             // ERC20 Fee
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
