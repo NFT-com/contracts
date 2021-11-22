@@ -42,12 +42,14 @@ describe("NFT.com Marketplace", function () {
       deployedNftProfile,
       deployedNftStake,
       deployedCryptoKittyTransferProxy,
-      deployedPunkTransferProxy;
+      deployedPunkTransferProxy,
+      deployedXEENUS;
     let ownerSigner, buyerSigner;
 
     const NFT_RINKEBY_ADDRESS = "0x4DE2fE09Bc8F2145fE12e278641d2c93B9D4393A";
     const NFT_PROFILE_RINKEBY = "0xb1D65B1a259bEA89a5A790db9a4Be5B2FFF97319";
     const RINKEBY_WETH = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
+    const RINEKBY_XEENUS = "0x022E292b44B5a146F2e8ee36Ff44D3dd863C915c";
     const ZERO_BYTES = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
 
@@ -62,6 +64,12 @@ describe("NFT.com Marketplace", function () {
       ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");
       CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
       PunkTransferProxy = await ethers.getContractFactory("PunkTransferProxy");
+
+      deployedXEENUS = new ethers.Contract(
+        RINEKBY_XEENUS,
+        `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"spender","type":"address"},{"name":"tokens","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"from","type":"address"},{"name":"to","type":"address"},{"name":"tokens","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"tokenOwner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"acceptOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"drip","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"to","type":"address"},{"name":"tokens","type":"uint256"}],"name":"transfer","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"spender","type":"address"},{"name":"tokens","type":"uint256"},{"name":"data","type":"bytes"}],"name":"approveAndCall","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"newOwner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"tokenAddress","type":"address"},{"name":"tokens","type":"uint256"}],"name":"transferAnyERC20Token","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"tokenOwner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_from","type":"address"},{"indexed":true,"name":"_to","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"tokens","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"tokenOwner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"tokens","type":"uint256"}],"name":"Approval","type":"event"}]`,
+        ethers.provider,
+      );
 
       NftToken = await ethers.getContractFactory("NftToken");
       deployedNftToken = await NftToken.attach(NFT_RINKEBY_ADDRESS);
@@ -344,6 +352,203 @@ describe("NFT.com Marketplace", function () {
 
         await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
         await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 1);
+      });
+
+      it("should allow more complicated multi-asset swaps", async function () {
+        await deployedNftMarketplace.modifyWhitelist(NFT_RINKEBY_ADDRESS, true);
+        await deployedNftMarketplace.modifyWhitelist(RINEKBY_XEENUS, true);
+
+        // sell NFT profile NFT token 0 and 1
+        // wants NFT token and WETH
+        const {
+          v: v0,
+          r: r0,
+          s: s0,
+          order: sellOrder,
+        } = await signMarketplaceOrder(
+          ownerSigner,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 0, true], // values
+              [1, 0], // data to be encoded
+            ],
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 1, true], // values
+              [1, 0], // data to be encoded
+            ],
+          ],
+          ethers.constants.AddressZero,
+          [
+            [ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(100), convertNftToken(10)]],
+            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
+          ],
+          0,
+          0,
+          ethers.provider,
+          deployedNftMarketplace.address,
+        );
+
+        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+
+        const {
+          v: v1,
+          r: r1,
+          s: s1,
+          order: buyOrder,
+        } = await signMarketplaceOrder(
+          buyerSigner,
+          [
+            [ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(500), 0]],
+            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(250), 0]],
+          ],
+          owner.address,
+          [
+            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [NFT_PROFILE_RINKEBY, 0, true], [1, 0]],
+            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [NFT_PROFILE_RINKEBY, 1, true], [1, 0]],
+          ],
+          0,
+          0,
+          ethers.provider,
+          deployedNftMarketplace.address,
+        );
+
+        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+
+        // add approvals
+        await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedXEENUS.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 0);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 1);
+
+        // match is valid
+        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+
+        // balances before
+        expect(await deployedNftProfile.ownerOf(0)).to.be.equal(owner.address);
+        expect(await deployedNftProfile.ownerOf(1)).to.be.equal(owner.address);
+        await deployedXEENUS.connect(owner).transfer(buyer.address, convertNftToken(500));
+        const beforeXeenusBalance = await deployedXEENUS.balanceOf(owner.address);
+
+        // swap
+        await expect(
+          deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
+        )
+          .to.emit(deployedNftToken, "Transfer")
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
+
+        // balances after
+        expect(await deployedNftProfile.ownerOf(0)).to.be.equal(buyer.address);
+        expect(await deployedNftProfile.ownerOf(1)).to.be.equal(buyer.address);
+        expect(await deployedXEENUS.balanceOf(owner.address)).to.be.equal(
+          beforeXeenusBalance.add(convertNftToken(250)),
+        );
+
+        await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
+        await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 1);
+      });
+
+      it("should allow more mixed multi-asset swaps (ERC20 + 721) <=> (721 + ERC20 + ETH)", async function () {
+        // transfer profile back to buyer for this exchange
+        await deployedNftProfile.connect(owner).transferFrom(owner.address, buyer.address, 1);
+        await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1000));
+
+        await deployedNftMarketplace.modifyWhitelist(NFT_RINKEBY_ADDRESS, true);
+        await deployedNftMarketplace.modifyWhitelist(RINEKBY_XEENUS, true);
+
+        // sell NFT profile NFT token 0 and 1
+        // wants NFT token and WETH
+        const {
+          v: v0,
+          r: r0,
+          s: s0,
+          order: sellOrder,
+        } = await signMarketplaceOrder(
+          ownerSigner,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 0, true], // values
+              [1, 0], // data to be encoded
+            ],
+            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), 0]],
+          ],
+          ethers.constants.AddressZero,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 1, true], // values
+              [1, 1], // data to be encoded
+            ],
+            [ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(100), convertNftToken(10)]],
+          ],
+          0,
+          0,
+          ethers.provider,
+          deployedNftMarketplace.address,
+        );
+
+        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+
+        const {
+          v: v1,
+          r: r1,
+          s: s1,
+          order: buyOrder,
+        } = await signMarketplaceOrder(
+          buyerSigner,
+          [
+            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [NFT_PROFILE_RINKEBY, 1, true], [1, 0]],
+            [ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(500), 0]],
+          ],
+          owner.address,
+          [
+            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [NFT_PROFILE_RINKEBY, 0, true], [1, 0]],
+            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), 0]],
+          ],
+          0,
+          0,
+          ethers.provider,
+          deployedNftMarketplace.address,
+        );
+
+        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+
+        // add approvals
+        await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedXEENUS.connect(owner).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 0);
+        await deployedNftProfile.connect(buyer).approve(deployedTransferProxy.address, 1);
+
+        // match is valid
+        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+
+        // balances before
+        expect(await deployedNftProfile.ownerOf(0)).to.be.equal(owner.address);
+        expect(await deployedNftProfile.ownerOf(1)).to.be.equal(buyer.address);
+        await deployedXEENUS.connect(owner).transfer(buyer.address, convertNftToken(500));
+        const beforeXeenusBalance = await deployedXEENUS.balanceOf(buyer.address);
+
+        // swap
+        await expect(
+          deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
+        )
+          .to.emit(deployedNftToken, "Transfer")
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
+
+        // balances after
+        expect(await deployedNftProfile.ownerOf(0)).to.be.equal(buyer.address);
+        expect(await deployedNftProfile.ownerOf(1)).to.be.equal(owner.address);
+        expect(await deployedXEENUS.balanceOf(buyer.address)).to.be.equal(
+          beforeXeenusBalance.add(convertNftToken(500)),
+        );
+
+        await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
       });
 
       it("should not allow swaps with insufficient nft token", async function () {
