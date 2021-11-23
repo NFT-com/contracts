@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 import "./lib/LibSignature.sol";
 import "./interfaces/IERC1271.sol";
@@ -13,6 +14,7 @@ import "./helpers/TransferExecutor.sol";
 
 contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, TransferExecutor {
     using AddressUpgradeable for address;
+    using SafeMathUpgradeable for uint256;
 
     /* An ECDSA signature. */
     struct Sig {
@@ -211,12 +213,15 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      *  @param sellTakeAssetClass (bytes4 of type in LibAsset)
      *  @param buyMakeAssetTypeData assetTypeData for makeAsset on buyOrder
      *  @param sellTakeAssetTypeData assetTypeData for takeAsset on sellOrder
+     *  @param viewOnly is true when just not checking msg.value in the view function
      */
     function validAssetTypeData(
         bytes4 sellTakeAssetClass,
         bytes memory buyMakeAssetTypeData,
-        bytes memory sellTakeAssetTypeData
-    ) internal pure returns (bool) {
+        bytes memory sellTakeAssetTypeData,
+        uint256 buyMakeValue,
+        bool viewOnly
+    ) internal view returns (bool) {
         if (
             sellTakeAssetClass == LibAsset.ERC721_ASSET_CLASS ||
             sellTakeAssetClass == LibAsset.ERC1155_ASSET_CLASS ||
@@ -242,10 +247,16 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             }
         } else if (sellTakeAssetClass == LibAsset.ERC20_ASSET_CLASS) {
             return abi.decode(buyMakeAssetTypeData, (address)) == abi.decode(sellTakeAssetTypeData, (address));
-        } else {
-            // ETH has no contract so no need to verify
-            // TODO: handle COLLECTION...
+        } else if (sellTakeAssetClass == LibAsset.ETH_ASSET_CLASS) {
+            // require sender
+            require(
+                viewOnly || msg.value >= buyMakeValue.add(buyMakeValue.mul(protocolFee).div(10000)),
+                "NFT.com: insufficient ETH"
+            );
             return true;
+        } else {
+            // should not come here
+            return false;
         }
     }
 
@@ -254,25 +265,27 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      *  @param sellTakeAsset what the seller is hoping to take
      *  @param buyMakeAsset what the buyer is hoping to make
      */
-    function validateSingleAssetMatch2(LibAsset.Asset calldata sellTakeAsset, LibAsset.Asset calldata buyMakeAsset)
-        internal
-        pure
-        returns (bool)
-    {
+    function validateSingleAssetMatch2(
+        LibAsset.Asset calldata sellTakeAsset,
+        LibAsset.Asset calldata buyMakeAsset,
+        bool viewOnly
+    ) internal view returns (bool) {
         (uint256 buyMakeValue, ) = abi.decode(buyMakeAsset.data, (uint256, uint256));
         (, uint256 sellTakeMinValue) = abi.decode(sellTakeAsset.data, (uint256, uint256));
 
         return
             // token denominating sell order listing
             (sellTakeAsset.assetType.assetClass == buyMakeAsset.assetType.assetClass) &&
+            // buyOrder must be within bounds
+            buyMakeValue >= sellTakeMinValue &&
             // make sure tokenIds match if NFT AND contract address matches
             validAssetTypeData(
                 sellTakeAsset.assetType.assetClass,
                 buyMakeAsset.assetType.data,
-                sellTakeAsset.assetType.data
-            ) &&
-            // buyOrder must be within bounds
-            buyMakeValue >= sellTakeMinValue;
+                sellTakeAsset.assetType.data,
+                buyMakeValue,
+                viewOnly
+            );
 
         // NOTE: sellTakeMin could be 0 and buyer could offer 0;
         // NOTE: (in case seller wants to make a list of optional assets to select from)
@@ -283,11 +296,14 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param sellOrder the listing
      * @param buyOrder bid for a listing
      */
-    function validateMatch(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder)
-        internal
-        pure
-        returns (bool)
-    {
+    function validateMatch(
+        LibSignature.Order calldata sellOrder,
+        LibSignature.Order calldata buyOrder,
+        bool viewOnly
+    ) internal view returns (bool) {
+        // flag to ensuree ETH is not used multiple timese
+        bool ETH_ASSET_USED = false;
+
         // sellOrder taker must be valid
         require(
             (sellOrder.taker == address(0) || sellOrder.taker == buyOrder.maker) &&
@@ -307,6 +323,13 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             if (!validateSingleAssetMatch1(buyOrder.takeAssets[i], sellOrder.makeAssets[i])) {
                 return false;
             }
+
+            // if ETH, seller must be sending ETH / calling
+            if (sellOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
+                require(!ETH_ASSET_USED, "NFT.com: ETH already used");
+                require(viewOnly || msg.sender == sellOrder.maker, "NFT.com: seller must send ETH");
+                ETH_ASSET_USED = true;
+            }
         }
 
         // if seller's takeAssets = 0, that means seller doesn't make what buyer's makeAssets are, so ignore
@@ -315,8 +338,15 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             require(sellOrder.takeAssets.length == buyOrder.makeAssets.length, "NFT.com: sellTake must match buyMake");
             // check if seller maker and buyer take match on every corresponding index
             for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
-                if (!validateSingleAssetMatch2(sellOrder.takeAssets[i], buyOrder.makeAssets[i])) {
+                if (!validateSingleAssetMatch2(sellOrder.takeAssets[i], buyOrder.makeAssets[i], viewOnly)) {
                     return false;
+                }
+
+                // if ETH, buyer must be sending ETH / calling
+                if (buyOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
+                    require(!ETH_ASSET_USED, "NFT.com: ETH already used");
+                    require(viewOnly || msg.sender == buyOrder.maker, "NFT.com: buyer must send ETH");
+                    ETH_ASSET_USED = true;
                 }
             }
         }
@@ -331,10 +361,10 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      */
     function validateMatch_(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder)
         public
-        pure
+        view
         returns (bool)
     {
-        return validateMatch(sellOrder, buyOrder);
+        return validateMatch(sellOrder, buyOrder, true);
     }
 
     function checkRoyalties(address _contract) internal view returns (bool) {
@@ -428,7 +458,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]));
 
-        require(validateMatch(sellOrder, buyOrder));
+        require(validateMatch(sellOrder, buyOrder, false));
 
         // effects
         if (msg.sender != buyOrder.maker) {
@@ -448,5 +478,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             // send assets from seller to buyer (goods)
             transfer(sellOrder.makeAssets[j], sellOrder.maker, buyOrder.maker);
         }
+
+        // refund leftover eth in contract
+        (bool success, ) = msg.sender.call{ value: address(this).balance }("");
+        require(success);
     }
 }

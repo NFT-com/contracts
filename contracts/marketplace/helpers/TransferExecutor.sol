@@ -61,6 +61,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         // ETH Fee
         (bool success1, ) = stakingContract.call{ value: value.mul(protocolFee).div(10000) }("");
         (bool success2, ) = to.call{ value: value }("");
+
         require(success1 && success2, "NFT.com: transfer failed");
     }
 
