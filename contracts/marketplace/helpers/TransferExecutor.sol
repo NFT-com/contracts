@@ -25,7 +25,6 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         INftTransferProxy _transferProxy,
         IERC20TransferProxy _erc20TransferProxy,
         address _cryptoKittyProxy,
-        address _cryptoPunkProxy,
         address _stakingContract,
         uint256 _protocolFee
     ) internal {
@@ -33,7 +32,6 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         proxies[LibAsset.ERC721_ASSET_CLASS] = address(_transferProxy);
         proxies[LibAsset.ERC1155_ASSET_CLASS] = address(_transferProxy);
         proxies[LibAsset.CRYPTO_KITTY] = _cryptoKittyProxy;
-        proxies[LibAsset.CRYPTO_PUNK] = _cryptoPunkProxy;
         stakingContract = address(_stakingContract);
         protocolFee = _protocolFee;
     }

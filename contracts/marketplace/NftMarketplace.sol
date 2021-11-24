@@ -47,7 +47,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         INftTransferProxy _transferProxy,
         IERC20TransferProxy _erc20TransferProxy,
         address _cryptoKittyProxy,
-        address _cryptoPunkProxy,
         address _stakingContract
     ) public initializer {
         __ReentrancyGuard_init();
@@ -56,7 +55,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             _transferProxy,
             _erc20TransferProxy,
             _cryptoKittyProxy,
-            _cryptoPunkProxy,
             _stakingContract,
             250
         );
@@ -234,7 +232,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         if (
             sellTakeAssetClass == LibAsset.ERC721_ASSET_CLASS ||
             sellTakeAssetClass == LibAsset.ERC1155_ASSET_CLASS ||
-            sellTakeAssetClass == LibAsset.CRYPTO_PUNK ||
             sellTakeAssetClass == LibAsset.CRYPTO_KITTY
         ) {
             (address buyMakeAddress, uint256 buyMakeTokenId, ) = abi.decode(
