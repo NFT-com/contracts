@@ -1,6 +1,5 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const { advanceBlock } = require("./utils/time");
 const {
   sign,
   getDigest,
@@ -19,7 +18,6 @@ const {
   encode,
   MARKETPLACE_ORDER_TYPEHASH,
 } = require("./utils/sign-utils");
-const { getEmitHelpers } = require("typescript");
 
 // whole number
 const convertNftToken = tokens => {
@@ -117,7 +115,7 @@ describe("NFT.com Marketplace", function () {
         let decoded = await deployedNftMarketplace.recoverVRS(sig);
 
         // revert due to size of sig != 65
-        await expect(deployedNftMarketplace.recoverVRS(`${sig}111`)).to.be.reverted;
+        await expect(deployedNftMarketplace.recoverVRS(getHash(['uint256', 1000]))).to.be.reverted;
 
         expect(decoded[0]).to.be.equal(v);
         expect(decoded[1]).to.be.equal(r);
@@ -157,7 +155,7 @@ describe("NFT.com Marketplace", function () {
           ethers.constants.AddressZero,
           [[ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(100), convertNftToken(10)]]],
           1,
-          2,
+          0,
           ethers.provider,
           deployedNftMarketplace.address,
         );
