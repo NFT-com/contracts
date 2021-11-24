@@ -35,6 +35,7 @@ export const ERC20_ASSET_CLASS = convertToHash("ERC20").substring(0, 10);
 export const ERC721_ASSET_CLASS = convertToHash("ERC721").substring(0, 10);
 export const ERC1155_ASSET_CLASS = convertToHash("ERC1155").substring(0, 10);
 export const COLLECTION = convertToHash("COLLECTION").substring(0, 10);
+export const CRYPTO_KITTY = convertToHash("CRYPTO_KITTY").substring(0, 10);
 export const CRYPTO_PUNK = convertToHash("CRYPTO_PUNK").substring(0, 10);
 interface Domain {
   name: string;
