@@ -116,6 +116,9 @@ describe("NFT.com Marketplace", function () {
         let sig = await deployedNftMarketplace.concatVRS(v, r, s);
         let decoded = await deployedNftMarketplace.recoverVRS(sig);
 
+        // revert due to size of sig != 65
+        await expect(deployedNftMarketplace.recoverVRS(`${sig}111`)).to.be.reverted;
+
         expect(decoded[0]).to.be.equal(v);
         expect(decoded[1]).to.be.equal(r);
         expect(decoded[2]).to.be.equal(s);
@@ -135,6 +138,60 @@ describe("NFT.com Marketplace", function () {
     });
 
     describe("Allow Multi-Asset Swaps via EOA users using sigV4", function () {
+      it("should catch edge cases for start and end times", async function () {
+        const {
+          v: v0,
+          r: r0,
+          s: s0,
+          order: sellOrder,
+        } = await signMarketplaceOrder(
+          ownerSigner,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 0, true], // values
+              [1, 0], // data to be encoded
+            ],
+          ],
+          ethers.constants.AddressZero,
+          [[ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(100), convertNftToken(10)]]],
+          1,
+          2,
+          ethers.provider,
+          deployedNftMarketplace.address,
+        );
+
+        // should be false since order.start < now
+        await expect(deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.reverted;
+
+        const {
+          v: v1,
+          r: r1,
+          s: s1,
+          order: sellOrder2,
+        } = await signMarketplaceOrder(
+          ownerSigner,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 0, true], // values
+              [1, 0], // data to be encoded
+            ],
+          ],
+          ethers.constants.AddressZero,
+          [[ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(100), convertNftToken(10)]]],
+          0,
+          3,
+          ethers.provider,
+          deployedNftMarketplace.address,
+        );
+
+        // should be false since order.end > now
+        await expect(deployedNftMarketplace.validateOrder_(sellOrder2, v1, r1, s1)).to.be.reverted;
+      });
+
       it("should execute buy nows", async function () {
         const {
           v: v0,
