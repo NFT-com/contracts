@@ -3,8 +3,12 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "../interfaces/ICryptoPunksMarket.sol";
-import "../interfaces/ITransferProxy.sol";
+import "./ICryptoPunksMarket.sol";
+import "../marketplace/interfaces/ITransferProxy.sol";
+
+// DEPRECATED FILE
+// THIS IS JUST A HELPER CONTRACT
+// TO INTERFACE WITH LIVE CRYPTOPUNK MARKET
 
 contract PunkTransferProxy is ITransferProxy, Initializable, UUPSUpgradeable, OwnableUpgradeable {
     mapping(address => bool) operators;
