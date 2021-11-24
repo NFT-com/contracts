@@ -13,13 +13,13 @@ const {
   ERC721_ASSET_CLASS,
   ERC1155_ASSET_CLASS,
   COLLECTION,
-  CRYPTO_PUNK,
   CRYPTO_KITTY,
   getAssetHash,
   makeSalt,
   encode,
   MARKETPLACE_ORDER_TYPEHASH,
 } = require("./utils/sign-utils");
+const { getEmitHelpers } = require("typescript");
 
 // whole number
 const convertNftToken = tokens => {
@@ -31,11 +31,11 @@ describe("NFT.com Marketplace", function () {
     let NftMarketplace,
       TransferProxy,
       CryptoKittyTransferProxy,
-      PunkTransferProxy,
       ERC20TransferProxy,
       NftToken,
       NftProfile,
-      NftStake;
+      NftStake,
+      ERC1155Factory;
     let deployedNftMarketplace,
       deployedTransferProxy,
       deployedERC20TransferProxy,
@@ -43,8 +43,8 @@ describe("NFT.com Marketplace", function () {
       deployedNftProfile,
       deployedNftStake,
       deployedCryptoKittyTransferProxy,
-      deployedPunkTransferProxy,
-      deployedXEENUS;
+      deployedXEENUS,
+      deployedERC1155Factory;
     let ownerSigner, buyerSigner;
 
     const NFT_RINKEBY_ADDRESS = "0x4DE2fE09Bc8F2145fE12e278641d2c93B9D4393A";
@@ -64,7 +64,7 @@ describe("NFT.com Marketplace", function () {
       TransferProxy = await ethers.getContractFactory("TransferProxy");
       ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");
       CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
-      PunkTransferProxy = await ethers.getContractFactory("PunkTransferProxy");
+      ERC1155Factory = await ethers.getContractFactory("TestERC1155");
 
       deployedXEENUS = new ethers.Contract(
         RINEKBY_XEENUS,
@@ -78,6 +78,8 @@ describe("NFT.com Marketplace", function () {
       NftProfile = await ethers.getContractFactory("NftProfileV1");
       deployedNftProfile = await NftProfile.attach(NFT_PROFILE_RINKEBY);
 
+      deployedERC1155Factory = await ERC1155Factory.deploy();
+
       [owner, buyer, addr2, ...addrs] = await ethers.getSigners();
       ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
       buyerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
@@ -87,7 +89,6 @@ describe("NFT.com Marketplace", function () {
       deployedTransferProxy = await upgrades.deployProxy(TransferProxy, { kind: "uups" });
       deployedERC20TransferProxy = await upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
       deployedCryptoKittyTransferProxy = await upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
-      deployedPunkTransferProxy = await upgrades.deployProxy(PunkTransferProxy, { kind: "uups" });
 
       deployedNftMarketplace = await upgrades.deployProxy(
         NftMarketplace,
@@ -95,7 +96,6 @@ describe("NFT.com Marketplace", function () {
           deployedTransferProxy.address,
           deployedERC20TransferProxy.address,
           deployedCryptoKittyTransferProxy.address,
-          deployedPunkTransferProxy.address,
           deployedNftStake.address,
         ],
         { kind: "uups" },
@@ -105,7 +105,6 @@ describe("NFT.com Marketplace", function () {
       await deployedTransferProxy.addOperator(deployedNftMarketplace.address);
       await deployedERC20TransferProxy.addOperator(deployedNftMarketplace.address);
       await deployedCryptoKittyTransferProxy.addOperator(deployedNftMarketplace.address);
-      await deployedPunkTransferProxy.addOperator(deployedNftMarketplace.address);
     });
 
     describe("Initialize Marketplace", function () {
@@ -132,9 +131,6 @@ describe("NFT.com Marketplace", function () {
 
         await deployedCryptoKittyTransferProxy.addOperator(owner.address);
         await deployedCryptoKittyTransferProxy.removeOperator(owner.address);
-
-        await deployedPunkTransferProxy.addOperator(owner.address);
-        await deployedPunkTransferProxy.removeOperator(owner.address);
       });
     });
 
@@ -682,11 +678,20 @@ describe("NFT.com Marketplace", function () {
         await deployedXEENUS.connect(buyer).transfer(owner.address, convertNftToken(400)); // return some funds
       });
 
-      it("should allow cryptokitties and cryptopunks to be traded", async function () {
+      it("should allow cryptokitties and 1155s to be traded", async function () {
         const KittyCore = await ethers.getContractFactory("KittyCore");
         const deployedKittyCore = await KittyCore.deploy();
 
         await deployedKittyCore.createPromoKitty(1, owner.address);
+
+        await deployedERC1155Factory.mint(buyer.address, 0, 100, "hello");
+        await deployedERC1155Factory.mint(owner.address, 1, 150, "hello");
+
+        // sanity check to make sure balances are correct
+        expect(await deployedERC1155Factory.balanceOf(buyer.address, 0)).to.be.equal(100);
+        expect(await deployedERC1155Factory.balanceOf(buyer.address, 1)).to.be.equal(0);
+        expect(await deployedERC1155Factory.balanceOf(owner.address, 1)).to.be.equal(150);
+        expect(await deployedERC1155Factory.balanceOf(owner.address, 0)).to.be.equal(0);
 
         // only two kitties shold exist
         // since first one is minted during constructor for kittyCore
@@ -725,12 +730,24 @@ describe("NFT.com Marketplace", function () {
               [deployedKittyCore.address, 1, true], // values
               [1, 0], // data to be encoded
             ],
+            [
+              ERC1155_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [deployedERC1155Factory.address, 1, true], // values
+              [150, 0], // would like to sell 150 tokens with id 0
+            ],
           ],
           ethers.constants.AddressZero,
           [
             [ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(100), convertNftToken(10)]],
             [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
             [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(2), convertNftToken(1)]],
+            [
+              ERC1155_ASSET_CLASS,
+              ["address", "uint256", "bool"],
+              [deployedERC1155Factory.address, 0, false],
+              [100, 75],
+            ],
           ],
           0,
           0,
@@ -751,12 +768,14 @@ describe("NFT.com Marketplace", function () {
             [ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(500), 0]],
             [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(250), 0]],
             [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(1), 0]],
+            [ERC1155_ASSET_CLASS, ["address", "uint256", "bool"], [deployedERC1155Factory.address, 0, false], [80, 0]],
           ],
           owner.address,
           [
             [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [NFT_PROFILE_RINKEBY, 0, true], [1, 0]],
             [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [NFT_PROFILE_RINKEBY, 1, true], [1, 0]],
             [CRYPTO_KITTY, ["address", "uint256", "bool"], [deployedKittyCore.address, 1, true], [1, 0]],
+            [ERC1155_ASSET_CLASS, ["address", "uint256", "bool"], [deployedERC1155Factory.address, 1, true], [150, 0]],
           ],
           0,
           0,
@@ -771,7 +790,12 @@ describe("NFT.com Marketplace", function () {
         await deployedXEENUS.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 0);
         await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 1);
-        // approve crypto kitty to be transferre
+
+        // approve 1155
+        await deployedERC1155Factory.connect(owner).setApprovalForAll(deployedTransferProxy.address, true);
+        await deployedERC1155Factory.connect(buyer).setApprovalForAll(deployedTransferProxy.address, true);
+
+        // approve crypto kitty to be transfer
         await deployedKittyCore.connect(owner).approve(deployedCryptoKittyTransferProxy.address, 1);
 
         // match is valid
@@ -804,6 +828,12 @@ describe("NFT.com Marketplace", function () {
         // new owner of kitty 1 should be buyer
         expect(await deployedKittyCore.kittyIndexToOwner(1)).to.be.equal(buyer.address);
 
+        // sanity check to make sure balances are correct for test 1155
+        expect(await deployedERC1155Factory.balanceOf(buyer.address, 0)).to.be.equal(20);
+        expect(await deployedERC1155Factory.balanceOf(buyer.address, 1)).to.be.equal(150);
+        expect(await deployedERC1155Factory.balanceOf(owner.address, 1)).to.be.equal(0);
+        expect(await deployedERC1155Factory.balanceOf(owner.address, 0)).to.be.equal(80);
+
         // balances after
         expect(await deployedNftProfile.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedNftProfile.ownerOf(1)).to.be.equal(buyer.address);
@@ -822,6 +852,10 @@ describe("NFT.com Marketplace", function () {
 
         await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
         await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 1);
+      });
+
+      it("should allow optional assets and arbitrary tokenIds for NFTs", async function () {
+        console.log("TBD");
       });
 
       it("should not allow swaps with insufficient nft token", async function () {
