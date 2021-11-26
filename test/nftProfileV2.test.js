@@ -99,6 +99,14 @@ describe("NFT Gasless Auction V2", function () {
         expect(await deployedNftProfile.totalSupply()).to.equal(0);
       });
 
+      it("should call view functions in the nft profile", async function () {
+        expect(await deployedNftProfile.name()).to.be.equal("NFT.com");
+        expect(await deployedNftProfile.symbol()).to.be.equal("NFT.com");
+
+        // reverts since no profile exists
+        await expect(deployedNftProfile.tokenURI(0)).to.be.reverted;
+      });
+
       it("profile url should be limited to a-z and 0-9", async function () {
         expect(await deployedNftProfileHelper._validURI("abc123")).to.be.true;
         expect(await deployedNftProfileHelper._validURI("abc")).to.be.true;
@@ -186,6 +194,14 @@ describe("NFT Gasless Auction V2", function () {
           .claimProfile(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, { value: profileFeeWei });
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
+
+        expect(await deployedNftProfile.tokenURI(0)).to.be.equal("https://api.nft.com/uri/satoshi");
+
+        // reverts bc ownerSigner == msg.sender
+        await expect(deployedNftProfile.setApprovalForAll(ownerSigner.address, true)).to.be.reverted;
+
+        // just testing
+        await deployedNftProfile.setApprovalForAll(deployedNftProfile.address, true);
       });
     });
 
