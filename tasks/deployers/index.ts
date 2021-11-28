@@ -25,7 +25,7 @@ task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
 
   const deployedTransferProxy = await hre.upgrades.deployProxy(TransferProxy, { kind: "uups" });
   console.log(chalk.green('nftTransferProxy: ', deployedTransferProxy.address));
-  
+
   const deployedERC20TransferProxy = await hre.upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
   console.log(chalk.green('deployedERC20TransferProxy: ', deployedERC20TransferProxy.address));
 
