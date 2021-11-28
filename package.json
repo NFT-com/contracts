@@ -42,7 +42,7 @@
     "ethers": "^5.4.4",
     "fs": "^0.0.1-security",
     "fs-extra": "^10.0.0",
-    "hardhat": "^2.6.0",
+    "hardhat": "^2.7.0",
     "hardhat-contract-sizer": "^2.0.3",
     "hardhat-gas-reporter": "^1.0.4",
     "husky": "^7.0.1",

@@ -7,6 +7,52 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, { ethers
   await upgrades.upgradeProxy("0x7d4dDE9418f2c2d2D895C09e81155E1AB08aE236", ProfileAuction1);
 });
 
+task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green('deploying the marketplace contacts...'));
+
+  const rinkebyNFT = "0x4DE2fE09Bc8F2145fE12e278641d2c93B9D4393A";
+  const rinnkebyWETH = "0xc778417e063141139fce010982780140aa0cd5ab";
+
+  const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
+  const NftStake = await hre.ethers.getContractFactory("NftStake");
+  const TransferProxy = await hre.ethers.getContractFactory("TransferProxy");
+  const ERC20TransferProxy = await hre.ethers.getContractFactory("ERC20TransferProxy");
+  const CryptoKittyTransferProxy = await hre.ethers.getContractFactory("CryptoKittyTransferProxy");
+
+  const deployedNftStake = await NftStake.deploy(rinkebyNFT, rinnkebyWETH);
+
+  console.log(chalk.green('deployedNftStake: ', deployedNftStake.address));
+
+  const deployedTransferProxy = await hre.upgrades.deployProxy(TransferProxy, { kind: "uups" });
+  console.log(chalk.green('nftTransferProxy: ', deployedTransferProxy.address));
+  
+  const deployedERC20TransferProxy = await hre.upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
+  console.log(chalk.green('deployedERC20TransferProxy: ', deployedERC20TransferProxy.address));
+
+  const deployedCryptoKittyTransferProxy = await hre.upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
+  console.log(chalk.green('deployedCryptoKittyTransferProxy: ', deployedCryptoKittyTransferProxy.address));
+
+  const deployedNftMarketplace = await hre.upgrades.deployProxy(
+    NftMarketplace,
+    [
+      deployedTransferProxy.address,
+      deployedERC20TransferProxy.address,
+      deployedCryptoKittyTransferProxy.address,
+      deployedNftStake.address,
+    ],
+    { kind: "uups" },
+  );
+
+  console.log(chalk.green('deployedNftMarketplace: ', deployedNftMarketplace.address));
+
+  // add operator being the marketplace
+  await deployedTransferProxy.addOperator(deployedNftMarketplace.address);
+  await deployedERC20TransferProxy.addOperator(deployedNftMarketplace.address);
+  await deployedCryptoKittyTransferProxy.addOperator(deployedNftMarketplace.address);
+
+  console.log(chalk.green('finished deploying nft marketplace contracts!'));
+});
+
 task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`initializing...`));
 
