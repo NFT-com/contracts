@@ -17,15 +17,15 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
 ZERO_BYTES = `0x0000000000000000000000000000000000000000000000000000000000000000`
 
 ## Rinkeby Address
-[deployedNftStake](https://rinkeby.etherscan.io/address/0xAcde72B0959D0c7c56d133B30850FE227BE71845)
-[nftTransferProxy](https://rinkeby.etherscan.io/address/0x9170DF8C1B8220854970B4d878497b23DeCc8e03)
-* implementation => 0xdfa0914e53b3c222fcbf67cd3cd89474e7b63bef
-[deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/0x95E064204B5663711f659d1CeF8e60F14Ba1197c)
-* implementation => 0xfecf248854c3a4e36a37ce04e7f025f718873509
-[deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/0xbf5dAEC8DecD24e6e32B4123ce5aB708E2667316)
-* implementation => 0x67a59654e2ec02f12fbbcb6a2a758c7ab7c2c8e5
-[deployedNftMarketplace](https://rinkeby.etherscan.io/address/0x6F5E3F2283c21953CB8cdba0e077f30F7C4Bc681)
-* implementation => 0xcdceb00d9d72390edf03404110ef05c65b547cb9
+* [deployedNftStake](https://rinkeby.etherscan.io/address/0xAcde72B0959D0c7c56d133B30850FE227BE71845)
+* [nftTransferProxy](https://rinkeby.etherscan.io/address/0x9170DF8C1B8220854970B4d878497b23DeCc8e03)
+  * implementation => 0xdfa0914e53b3c222fcbf67cd3cd89474e7b63bef
+* [deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/0x95E064204B5663711f659d1CeF8e60F14Ba1197c)
+  * implementation => 0xfecf248854c3a4e36a37ce04e7f025f718873509
+* [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/0xbf5dAEC8DecD24e6e32B4123ce5aB708E2667316)
+  * implementation => 0x67a59654e2ec02f12fbbcb6a2a758c7ab7c2c8e5
+* [deployedNftMarketplace](https://rinkeby.etherscan.io/address/0x6F5E3F2283c21953CB8cdba0e077f30F7C4Bc681)
+  * implementation => 0xcdceb00d9d72390edf03404110ef05c65b547cb9
 
 ### Pre Requisites
 
