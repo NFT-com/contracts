@@ -14,6 +14,8 @@ export const ERC20_PERMIT_TYPEHASH = convertToHash(
   "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)",
 );
 
+export const GENESIS_KEY_TYPEHASH = convertToHash("GenesisBid(uint256 _wethTokens,address _owner)");
+
 export const BID_TYPEHASH = convertToHash("Bid(uint256 _nftTokens,string _profileURI,address _owner)");
 
 export const MARKETPLACE_ORDER_TYPEHASH = convertToHash(

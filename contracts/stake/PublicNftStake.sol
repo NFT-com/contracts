@@ -7,32 +7,39 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "../interface/INftMarketplace.sol";
 
 interface IUniswapRouter is ISwapRouter {
     function refundETH() external payable;
 }
 
-contract NftStake is ERC20Permit, ReentrancyGuard {
+contract PublicNftStake is ERC20Permit, ReentrancyGuard {
     using SafeMath for uint256;
 
     address public nftToken;
-    INftMarketplace public nftMarketplace;
+    mapping(address => bool) public whitelistERC20;
 
     IUniswapRouter public constant uniswapRouter = IUniswapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
 
     // mainnet: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
     // rinkeby: 0xc778417E063141139Fce010982780140Aa0cD5Ab
     address public WETH9;
+    address public DAO;
+
+    event WhiteListChange(address indexed token, bool val);
+    event NewDao(address indexed dao);
+
+    modifier onlyDAO() {
+        require(msg.sender == DAO, "!DAO");
+        _;
+    }
 
     constructor(address _nftToken, address _weth)
-        // INftMarketplace _nftMarketplace
-        ERC20Permit("xNFT.com")
-        ERC20("xNFT.com", "xNFT")
+        ERC20Permit("Staked NFT.com Genesis Key")
+        ERC20("Staked NFT.com Genesis Key", "xNFTKEY")
     {
         nftToken = _nftToken;
         WETH9 = _weth;
-        // nftMarketplace = _nftMarketplace;
+        DAO = msg.sender;
     }
 
     function isContract(address account) internal view returns (bool) {
@@ -47,8 +54,19 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
         return size > 0;
     }
 
+    function changeDAO(address newDAO) external onlyDAO {
+        DAO = newDAO;
+        emit NewDao(newDAO);
+    }
+
+    // important to restrict random addresses for key input functions into the staking contract
+    function modifyWhitelist(address token, bool val) external onlyDAO {
+        whitelistERC20[token] = val;
+        emit WhiteListChange(token, val);
+    }
+
     function approveToken(address token) external {
-        // require(nftMarketplace.whitelistERC20(token), "NFT.com: !ERC20");
+        require(whitelistERC20[token], "NFT.com: !ERC20");
         IERC20(token).approve(address(uniswapRouter), 2**256 - 1);
     }
 
@@ -81,7 +99,7 @@ contract NftStake is ERC20Permit, ReentrancyGuard {
 
     function convertERC20ToNFT(address tokenIn) external nonReentrant {
         require(!isContract(msg.sender), "NFT.com: !CONTRACT");
-        // require(nftMarketplace.whitelistERC20(tokenIn), "NFT.com: !ERC20");
+        require(whitelistERC20[tokenIn], "NFT.com: !ERC20");
 
         uint256 deadline = block.timestamp + 7;
         address tokenOut = nftToken;

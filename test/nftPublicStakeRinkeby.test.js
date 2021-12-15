@@ -25,7 +25,7 @@ describe("NFT Token Staking (Rinkeby)", function () {
       );
 
       // deploy staking contract with the correct rinkeby testnet address
-      NftStake = await ethers.getContractFactory("NftStake");
+      NftStake = await ethers.getContractFactory("PublicNftStake");
       deployedNftStake = await NftStake.deploy(NFT_RINKEBY_ADDRESS, RINKEBY_WETH);
     });
 
@@ -57,6 +57,7 @@ describe("NFT Token Staking (Rinkeby)", function () {
       );
 
       // approve XEENUS
+      await deployedNftStake.modifyWhitelist(RINEKBY_XEENUS, true);
       await deployedNftStake.approveToken(RINEKBY_XEENUS);
 
       // no NFT tokens before trading
