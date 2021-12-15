@@ -58,7 +58,7 @@ describe("NFT.com Marketplace", function () {
       // Get the ContractFactory and Signers here.
       NftMarketplace = await ethers.getContractFactory("NftMarketplace");
 
-      NftStake = await ethers.getContractFactory("NftStake");
+      NftStake = await ethers.getContractFactory("PublicNftStake");
       TransferProxy = await ethers.getContractFactory("TransferProxy");
       ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");
       CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
