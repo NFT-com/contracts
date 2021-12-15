@@ -76,10 +76,17 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
         owner = _owner;
     }
 
+    function setMultiSig(address _newMS) external onlyOwner {
+        multiSig = _newMS;
+    }
+
     function setPublicSaleDuration(uint256 _seconds) external onlyOwner {
         publicSaleDurationSeconds = _seconds;
     }
 
+    // initial weth price is the high price (starting point)
+    // final weth price is the lowest floor price we allow
+    // num keys for sale is total keys allowed to mint
     function initializePublicSale(
         uint256 _initialWethPrice,
         uint256 _finalWethPrice,
@@ -281,15 +288,39 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
         emit ClaimedGenesisKey(_owner, _wethTokens, claimableBlock[hash], true);
     }
 
+    /// @notice Transfers ETH to the recipient address
+    /// @dev Fails with `STE`
+    /// @param to The destination of the transfer
+    /// @param value The value to be transferred
+    function safeTransferETH(address to, uint256 value) internal {
+        (bool success, ) = to.call{ value: value }(new bytes(0));
+        require(success, "STE");
+    }
+
+    // helper function for transferring eth from the public auction to MS
+    function transferETH() external onlyOwner {
+        safeTransferETH(multiSig, address(this).balance);
+    }
+
     // ========= DUTCH AUCTION =================================================================
-    // public function for public execution (buying via dutch auction)
-    function publicExecuteBid() external nonReentrant {
+    // external function for public execution (buying via dutch auction)
+    function publicExecuteBid() external payable nonReentrant {
         // checks
         require(startPublicSale, "GEN_KEY: invalid time");
-        require(numKeysPublicPurchased < numKeysForSale.sub(1), "GEN_KEY: no more keys left for sale");
+        require(numKeysPublicPurchased < numKeysForSale, "GEN_KEY: no more keys left for sale");
 
         uint256 currentWethPrice = getCurrentPrice();
-        require(transferWethTokens(msg.sender, currentWethPrice), "GEN_KEY: !weth");
+
+        // if ETH is sent, we use it
+        if (msg.value >= currentWethPrice) {
+            // send extra ETH back to user
+            if (msg.value > currentWethPrice) {
+                safeTransferETH(msg.sender, msg.value.sub(currentWethPrice));
+            }
+        } else {
+            // otherwise, take WETH
+            require(transferWethTokens(msg.sender, currentWethPrice), "GEN_KEY: !weth");
+        }
 
         // interactions
         uint256 preSupply = totalSupply();
@@ -300,7 +331,8 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
         emit ClaimedGenesisKey(msg.sender, currentWethPrice, block.number, false);
     }
 
-    function getCurrentPrice() internal view returns (uint256) {
+    // public function for returning the current price
+    function getCurrentPrice() public view returns (uint256) {
         require(startPublicSale, "GEN_KEY: invalid time");
         uint256 secondsPassed = 0;
 
