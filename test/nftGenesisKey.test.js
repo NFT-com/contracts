@@ -145,7 +145,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       });
     });
 
-    describe("Blind Auction for Genesis Keys", async function () {
+    describe("Blind Auction and Dutch Auction for Genesis Keys", async function () {
       it("should allow users to submit a signed signature for a genesis key", async function () {
         const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
         const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
@@ -225,6 +225,98 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         // just testing
         await deployedGenesisKey.setApprovalForAll(deployedGenesisKey.address, true);
+      });
+
+      // start public auction
+      it("should allow users to cancel bids", async function () {
+        const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+
+        // approve WETH
+        await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
+
+        // domain separator V4
+        const genesisKeyBid = await getDigest(
+          ethers.provider,
+          "NFT.com Genesis Key",
+          deployedGenesisKey.address,
+          getHash(
+            ["bytes32", "uint256", "address"],
+            [GENESIS_KEY_TYPEHASH, convertBigNumber(1), ownerSigner.address], // 1 WETH
+          ),
+        );
+
+        const { v: v0, r: r0, s: s0 } = sign(genesisKeyBid, ownerSigner);
+
+        await deployedGenesisKey.connect(owner).cancelBid(convertBigNumber(1), ownerSigner.address, v0, r0, s0);
+
+        // reverts because the bid was cancelled
+        await expect(
+          deployedGenesisKey
+            .connect(owner)
+            .whitelistExecuteBid([convertBigNumber(1)], [ownerSigner.address], [v0], [r0], [s0]),
+        ).to.be.reverted;
+      });
+
+      // start public auction
+      it("should allow a public auction to start, and not allow new blind auction bids", async function () {
+        const initialWethPrice = convertBigNumber(3); // 3 eth starting price
+        const finalWethPrice = convertSmallNumber(1); // 0.1 eth floor
+        const numKeysForSale = 2;
+
+        // initialized public auction
+        await deployedGenesisKey.initializePublicSale(initialWethPrice, finalWethPrice, numKeysForSale);
+
+        const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+
+        // approve WETH
+        await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
+
+        // domain separator V4
+        const genesisKeyBid = await getDigest(
+          ethers.provider,
+          "NFT.com Genesis Key",
+          deployedGenesisKey.address,
+          getHash(
+            ["bytes32", "uint256", "address"],
+            [GENESIS_KEY_TYPEHASH, convertBigNumber(1), ownerSigner.address], // 1 WETH
+          ),
+        );
+
+        const { v: v0, r: r0, s: s0 } = sign(genesisKeyBid, ownerSigner);
+
+        // reverts because the whitelist blind auction is over now...
+        await expect(
+          deployedGenesisKey
+            .connect(owner)
+            .whitelistExecuteBid([convertBigNumber(1)], [ownerSigner.address], [v0], [r0], [s0]),
+        ).to.be.reverted;
+
+        const currentPrice = await deployedGenesisKey.getCurrentPrice();
+
+        expect(await deployedGenesisKey.totalSupply()).to.eq(0);
+        expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(0);
+        expect(await deployedGenesisKey.numKeysForSale()).to.eq(2);
+
+        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertBigNumber(3) });
+
+        expect(await deployedGenesisKey.totalSupply()).to.eq(1);
+        expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(1);
+        expect(await deployedGenesisKey.numKeysForSale()).to.eq(2);
+
+        // recycle ETH to re use for Testing
+        await deployedGenesisKey.setMultiSig(ownerSigner.address); // send to self
+        await deployedGenesisKey.connect(owner).transferETH();
+
+        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertBigNumber(3) });
+
+        expect(await deployedGenesisKey.totalSupply()).to.eq(2);
+        expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(2);
+        expect(await deployedGenesisKey.numKeysForSale()).to.eq(2);
+
+        await deployedGenesisKey.connect(owner).transferETH();
+
+        // reverts because no more NFTs left
+        await expect(deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertBigNumber(3) })).to.be.reverted;
       });
     });
 
