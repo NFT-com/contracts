@@ -207,7 +207,7 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
 
     // simply collects NFT tokens without withdrawing Gen Key
     function collectTokens(uint256 _xNftAmount, uint256 _tokenId) public nonReentrant {
-        require(IGenesisKey(nftKeyGenesis).ownerOf(_tokenId) == msg.sender, "!GEN_KEY");
+        require(stakedKeys[_tokenId] == msg.sender, "!GEN_KEY");
         uint256 totalSupply = totalSupply();
 
         uint256 nftAmount = _xNftAmount.mul(IERC20(nftToken).balanceOf(address(this))).div(totalSupply);
@@ -216,7 +216,7 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
     }
 
     function leave(uint256 _xNftAmount, uint256 _tokenId) public nonReentrant {
-        require(IGenesisKey(nftKeyGenesis).ownerOf(_tokenId) == msg.sender, "!GEN_KEY");
+        require(stakedKeys[_tokenId] == msg.sender, "!GEN_KEY");
         require(stakedAddress[msg.sender] != 0, "GEN_KEY != 0");
 
         // reset assignment
