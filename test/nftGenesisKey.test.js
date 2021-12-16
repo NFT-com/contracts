@@ -1,14 +1,6 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const {
-  sign,
-  getDigest,
-  getHash,
-  convertToHash,
-  ERC20_PERMIT_TYPEHASH,
-  BID_TYPEHASH,
-  GENESIS_KEY_TYPEHASH,
-} = require("./utils/sign-utils");
+const { sign, getDigest, getHash, GENESIS_KEY_TYPEHASH } = require("./utils/sign-utils");
 
 const DECIMALS = 18;
 
@@ -292,7 +284,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         ).to.be.reverted;
 
         const currentPrice = await deployedGenesisKey.getCurrentPrice();
-
+        console.log("current eth price: ", Number(currentPrice) / 10 ** 18);
         expect(await deployedGenesisKey.totalSupply()).to.eq(0);
         expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(0);
         expect(await deployedGenesisKey.numKeysForSale()).to.eq(2);
