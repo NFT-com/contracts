@@ -1,16 +1,15 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const { sign, getDigest, getHash, GENESIS_KEY_TYPEHASH } = require("./utils/sign-utils");
+const {
+  convertBigNumber,
+  convertSmallNumber,
+  sign,
+  getDigest,
+  getHash,
+  GENESIS_KEY_TYPEHASH,
+} = require("./utils/sign-utils");
 
 const DECIMALS = 18;
-
-const convertBigNumber = tokens => {
-  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(18)));
-};
-
-const convertSmallNumber = tokens => {
-  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(17)));
-};
 
 describe("Genesis Key Testing + Auction Mechanics", function () {
   try {
@@ -22,13 +21,13 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
     let deployedNftProfile;
     let ProfileAuction;
     let deployedProfileAuction;
-    let CreatorBondingCurve;
     let deployedWETH;
-    let deployedCreatorBondingCurve;
-    let _numerator = 1;
-    let _denominator = 1000000;
     let NftProfileHelper;
     let deployedNftProfileHelper;
+    let GenesisStake;
+    let deployedNftGenesisStake;
+    let NftStake;
+    let deployedNftStake;
     const ZERO_BYTES = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
     const auctionSeconds = "604800"; // seconds in 1 week
@@ -46,9 +45,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       const multiSig = addr1.address;
 
       let coldWallet = owner.address;
-
-      CreatorBondingCurve = await ethers.getContractFactory("CreatorBondingCurve");
-      deployedCreatorBondingCurve = await CreatorBondingCurve.deploy(_numerator, _denominator);
 
       NftProfileHelper = await ethers.getContractFactory("NftProfileHelper");
       deployedNftProfileHelper = await NftProfileHelper.deploy();
@@ -76,10 +72,19 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           "NFT.com", // string memory name,
           "NFT.com", // string memory symbol,
           deployedNftToken.address, // address _nftCashAddress,
-          deployedCreatorBondingCurve.address, // deployedCreatorBondingCurve address
         ],
         { kind: "uups" },
       );
+
+      GenesisStake = await ethers.getContractFactory("GenesisNftStake");
+      deployedNftGenesisStake = await GenesisStake.deploy(
+        deployedNftToken.address,
+        wethAddress,
+        deployedGenesisKey.address,
+      );
+
+      NftStake = await ethers.getContractFactory("PublicNftStake");
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address, wethAddress);
 
       ProfileAuction = await ethers.getContractFactory("ProfileAuctionV2");
       deployedProfileAuction = await upgrades.deployProxy(
@@ -91,6 +96,9 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           owner.address,
           deployedNftProfileHelper.address,
           coldWallet,
+          deployedGenesisKey.address,
+          deployedNftGenesisStake.address,
+          deployedNftStake.address,
         ],
         { kind: "uups" },
       );

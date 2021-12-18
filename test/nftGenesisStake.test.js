@@ -1,14 +1,14 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const { sign, getDigest, getHash, ERC20_PERMIT_TYPEHASH, GENESIS_KEY_TYPEHASH } = require("./utils/sign-utils");
-
-const convertBigNumber = tokens => {
-  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(18)));
-};
-
-const convertSmallNumber = tokens => {
-  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(17)));
-};
+const {
+  convertBigNumber,
+  convertSmallNumber,
+  sign,
+  getDigest,
+  getHash,
+  ERC20_PERMIT_TYPEHASH,
+  GENESIS_KEY_TYPEHASH,
+} = require("./utils/sign-utils");
 
 describe("NFT Token Genesis Staking (Localnet)", function () {
   try {
@@ -31,8 +31,6 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
       // Get the ContractFactory and Signers here.
       [owner, second, addr1, ...addrs] = await ethers.getSigners();
 
-      console.log("1");
-
       NftToken = await ethers.getContractFactory("NftToken");
       deployedNftToken = await NftToken.deploy(); // mint 10B tokens
 
@@ -45,8 +43,6 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
         { kind: "uups" },
       );
 
-      console.log("2");
-
       const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
       const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
 
@@ -56,13 +52,9 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
         ethers.provider,
       );
 
-      console.log("3");
-
       // approve WETH
       await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
       await deployedWETH.connect(second).approve(deployedGenesisKey.address, MAX_UINT);
-
-      console.log("4");
 
       // domain separator V4
       const genesisKeyBid = await getDigest(
@@ -77,8 +69,6 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
       await deployedWETH.connect(owner).transfer(second.address, convertSmallNumber(2));
 
-      console.log("5");
-
       const genesisKeyBid2 = await getDigest(
         ethers.provider,
         "NFT.com Genesis Key",
@@ -88,9 +78,6 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
           [GENESIS_KEY_TYPEHASH, convertSmallNumber(2), secondSigner.address], // 1 WETH
         ),
       );
-
-      console.log("owner WETH: ", Number(await deployedWETH.balanceOf(owner.address)) / 10 ** 18);
-      console.log("second WETH: ", Number(await deployedWETH.balanceOf(second.address)) / 10 ** 18);
 
       const { v: v0, r: r0, s: s0 } = sign(genesisKeyBid, ownerSigner);
       const { v: v1, r: r1, s: s1 } = sign(genesisKeyBid2, secondSigner);
@@ -109,17 +96,11 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
         .to.emit(deployedWETH, "Transfer")
         .withArgs(ownerSigner.address, addr1.address, convertSmallNumber(10));
 
-      console.log("6");
-
       // owner now has 1 genesis key
       await deployedGenesisKey.connect(owner).claimKey(convertBigNumber(1), ownerSigner.address, v0, r0, s0);
 
-      console.log("7");
-
       // second now has 1 genesis key
       await deployedGenesisKey.connect(second).claimKey(convertSmallNumber(2), secondSigner.address, v1, r1, s1);
-
-      console.log("8");
 
       NftStake = await ethers.getContractFactory("GenesisNftStake");
       deployedNftGenesisStake = await NftStake.deploy(

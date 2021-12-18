@@ -7,19 +7,10 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 interface IUniswapRouter is ISwapRouter {
     function refundETH() external payable;
-}
-
-interface IGenesisKey {
-    function ownerOf(uint256 tokenId) external view returns (address);
-
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) external;
 }
 
 contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
@@ -177,9 +168,9 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
 
         // no stake yet
         if (stakedKeys[_tokenId] != msg.sender) {
-            require(IGenesisKey(nftKeyGenesis).ownerOf(_tokenId) == msg.sender, "!GEN_KEY");
+            require(IERC721Upgradeable(nftKeyGenesis).ownerOf(_tokenId) == msg.sender, "!GEN_KEY");
 
-            IGenesisKey(nftKeyGenesis).transferFrom(msg.sender, address(this), _tokenId);
+            IERC721Upgradeable(nftKeyGenesis).transferFrom(msg.sender, address(this), _tokenId);
 
             // assigned key to msg.sender
             stakedKeys[_tokenId] = msg.sender;
@@ -227,6 +218,6 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
         uint256 nftAmount = _xNftAmount.mul(IERC20(nftToken).balanceOf(address(this))).div(totalSupply);
         _burn(msg.sender, _xNftAmount);
         IERC20(nftToken).transfer(msg.sender, nftAmount);
-        IGenesisKey(nftKeyGenesis).transferFrom(address(this), msg.sender, _tokenId);
+        IERC721Upgradeable(nftKeyGenesis).transferFrom(address(this), msg.sender, _tokenId);
     }
 }
