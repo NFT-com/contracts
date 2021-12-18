@@ -165,10 +165,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         Sig memory sig
     ) internal view returns (bytes32) {
         bytes32 hash = getStructHash(_nftTokens, _genKey, _profileURI, _owner);
-
-        if (_genKey) {
-            require(genKeyOwner_(msg.sender), "NFT.com: !GEN_KEY");
-        }
+        require(genKeyOwner_(_owner) == _genKey, "NFT.com: !GEN_KEY");
 
         require(validateBid_(hash, _nftTokens, _owner, sig), "NFT.com: INVALID SIG");
         return hash;
@@ -383,10 +380,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         require(_nftTokens >= minimumBid, "NFT.com: bid < minimumBid");
         require(!cancelledOrFinalized[hash]);
         require(claimableBlock[hash] == 0);
-
-        if (_genKey) {
-            require(genKeyOwner_(msg.sender), "NFT.com: !GEN_KEY");
-        }
+        require(genKeyOwner_(_owner) == _genKey, "NFT.com: !GEN_KEY");
 
         // effects
         claimableBlock[hash] = block.number;
@@ -419,10 +413,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         bytes32 hash = requireValidBid_(_nftTokens, _genKey, _profileURI, _owner, Sig(v, r, s));
         require(!cancelledOrFinalized[hash]);
         require(claimableBlock[hash] != 0);
-
-        if (_genKey) {
-            require(genKeyOwner_(msg.sender), "NFT.com: !GEN_KEY");
-        }
+        require(genKeyOwner_(_owner) == _genKey, "NFT.com: !GEN_KEY");
 
         // effects
         cancelledOrFinalized[hash] = true;

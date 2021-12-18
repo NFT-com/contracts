@@ -193,7 +193,6 @@ describe("NFT Gasless Auction V2", function () {
           .withArgs(await owner.getAddress(), ethers.constants.AddressZero, burnAmount);
       });
 
-
       it("profiles should have a initial supply of 0", async function () {
         expect(await deployedNftProfile.totalSupply()).to.equal(0);
       });
@@ -257,7 +256,7 @@ describe("NFT Gasless Auction V2", function () {
           deployedProfileAuction.address,
           getHash(
             ["bytes32", "uint256", "bool", "string", "address"],
-            [BID_TYPEHASH, BigNumber.from(10000), false, "satoshi", ownerSigner.address],
+            [BID_TYPEHASH, BigNumber.from(10000), true, "satoshi", ownerSigner.address],
           ),
         );
 
@@ -270,7 +269,7 @@ describe("NFT Gasless Auction V2", function () {
         await expect(
           deployedProfileAuction
             .connect(owner)
-            .mintProfileFor(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS),
+            .mintProfileFor(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS),
         )
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(ownerSigner.address, deployedProfileAuction.address, 10000);
@@ -280,7 +279,7 @@ describe("NFT Gasless Auction V2", function () {
         // make sure profile can be claimed
         await deployedProfileAuction
           .connect(owner)
-          .claimProfile(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0);
+          .claimProfile(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
 
@@ -299,7 +298,7 @@ describe("NFT Gasless Auction V2", function () {
         expect(
           await deployedProfileAuction.validateBid(
             0,
-            false,
+            true,
             "test",
             owner.address,
             28,
@@ -308,12 +307,12 @@ describe("NFT Gasless Auction V2", function () {
           ),
         ).to.be.false;
 
-        await deployedProfileAuction.approveBid(1, false, "test", owner.address);
+        await deployedProfileAuction.approveBid(1, true, "test", owner.address);
 
         expect(
           await deployedProfileAuction.validateBid(
             1,
-            false,
+            true,
             "test",
             owner.address,
             28,
@@ -325,7 +324,7 @@ describe("NFT Gasless Auction V2", function () {
         expect(
           await deployedProfileAuction.validateBid(
             1,
-            false,
+            true,
             "test2",
             owner.address,
             28,
@@ -333,6 +332,71 @@ describe("NFT Gasless Auction V2", function () {
             "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe",
           ),
         ).to.be.false;
+      });
+
+      it("should allow genesis key holders to make a bid", async function () {
+        const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+
+        // permit NFT tokens
+        const nftTokenPermitDigest = await getDigest(
+          ethers.provider,
+          "NFT.com",
+          deployedNftToken.address,
+          getHash(
+            ["bytes32", "address", "address", "uint256", "uint256", "uint256"],
+            [ERC20_PERMIT_TYPEHASH, ownerSigner.address, deployedProfileAuction.address, MAX_UINT, 0, MAX_UINT],
+          ),
+        );
+
+        // domain separator V4
+        const nftProfileBid = await getDigest(
+          ethers.provider,
+          "NFT.com Domain Auction",
+          deployedProfileAuction.address,
+          getHash(
+            ["bytes32", "uint256", "bool", "string", "address"],
+            [BID_TYPEHASH, BigNumber.from(10000), true, "satoshi", ownerSigner.address],
+          ),
+        );
+
+        expect(await deployedNftToken.balanceOf(ownerSigner.address)).to.be.equal("10000000000000000000000000000");
+        expect(await deployedNftToken.allowance(ownerSigner.address, deployedProfileAuction.address)).to.be.equal(0);
+
+        const { v: nftV, r: nftR, s: nftS } = sign(nftTokenPermitDigest, ownerSigner);
+        const { v: v0, r: r0, s: s0 } = sign(nftProfileBid, ownerSigner);
+
+        // reverts due to gen_key not matching
+        await expect(
+          deployedProfileAuction
+            .connect(owner)
+            .mintProfileFor(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS),
+        ).to.be.reverted;
+
+        await expect(
+          deployedProfileAuction
+            .connect(owner)
+            .mintProfileFor(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS),
+        )
+          .to.emit(deployedNftToken, "Transfer")
+          .withArgs(ownerSigner.address, deployedProfileAuction.address, 10000);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
+
+        // reverts due to genKey status not matching
+        await expect(
+          deployedProfileAuction
+            .connect(owner)
+            .claimProfile(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0),
+        ).to.be.reverted;
+
+        // make sure profile can be claimed
+        await deployedProfileAuction
+          .connect(owner)
+          .claimProfile(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
+
+        expect(await deployedNftProfile.tokenURI(0)).to.be.equal("https://api.nft.com/uri/satoshi");
       });
 
       it("should allow a user to cancel existing bid for a profile", async function () {
@@ -356,7 +420,7 @@ describe("NFT Gasless Auction V2", function () {
           deployedProfileAuction.address,
           getHash(
             ["bytes32", "uint256", "bool", "string", "address"],
-            [BID_TYPEHASH, BigNumber.from(10000), false, "satoshi", ownerSigner.address],
+            [BID_TYPEHASH, BigNumber.from(10000), true, "satoshi", ownerSigner.address],
           ),
         );
 
@@ -368,12 +432,12 @@ describe("NFT Gasless Auction V2", function () {
 
         await deployedProfileAuction
           .connect(owner)
-          .cancelBid(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0);
+          .cancelBid(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0);
 
         await expect(
           deployedProfileAuction
             .connect(owner)
-            .mintProfileFor(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS),
+            .mintProfileFor(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS),
         ).to.be.reverted;
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
@@ -382,7 +446,7 @@ describe("NFT Gasless Auction V2", function () {
         await expect(
           deployedProfileAuction
             .connect(owner)
-            .claimProfile(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0),
+            .claimProfile(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0),
         ).to.be.reverted;
       });
 
