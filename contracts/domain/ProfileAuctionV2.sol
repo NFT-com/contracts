@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import "../interface/INftProfileHelper.sol";
 import "../interface/INftProfile.sol";
+import "../interface/IGenesisKeyStake.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -11,6 +12,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721Enume
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 interface INftToken {
     function burn(uint256 _amount) external;
@@ -28,14 +30,21 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     address public owner;
     address public nftErc20Contract;
     address public nftProfile;
-    uint256 public profileFee;
-    uint256 public blockWait;
+    address public genesisStakingContract;
+    address public publicStakingContract;
     address public nftProfileHelperAddress;
     address public coldWallet;
+    address public genesisKeyContract;
 
-    event NewBid(address _user, string _val, uint256 _amount);
+    // fees, whatever is left goes to coldWallet (for ops)
+    // e.g. genesisKeyPercent = 8000 (80%), publicPoolPercent = 1800 (18%), remaining 2% => coldWallet
+    uint256 public genesisKeyPercent; // 10000 = 100%
+    uint256 public publicPoolPercent; // 10000 = 100%
+    uint256 public minimumBid; // Minimum bid for any profile
+
+    event NewBid(address _user, bool _genKey, string _val, uint256 _amount);
     event BidCancelled(bytes32 indexed hash);
-    event NewClaimableProfile(address _user, string _val, uint256 _amount, uint256 _blockNum);
+    event NewClaimableProfile(address _user, bool _genKey, string _val, uint256 _amount, uint256 _blockNum);
     event MintedProfile(address _user, string _val, uint256 _amount, uint256 _blockNum);
     event RedeemProfile(address _user, string _val, uint256 _block, uint256 _amount, uint256 _tokenId);
 
@@ -68,21 +77,28 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         address _nftProfile,
         address _governor,
         address _nftProfileHelperAddress,
-        address _coldWallet
+        address _coldWallet,
+        address _genesisKeyContract,
+        address _genesisStakingContract,
+        address _publicStakingContract
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
         nftErc20Contract = _nftErc20Contract;
         nftProfile = _nftProfile;
-        blockWait = 1228540;
-        profileFee = 10**17; // 0.1 ETH
         nftProfileHelperAddress = _nftProfileHelperAddress;
         coldWallet = _coldWallet;
 
         owner = msg.sender;
         governor = _governor;
         minter = _minter;
+        genesisKeyContract = _genesisKeyContract;
+        genesisKeyPercent = 8000;
+        publicPoolPercent = 1800;
+        minimumBid = 10000 * 10**18; // 10,000 NFT tokens
+        genesisStakingContract = _genesisStakingContract;
+        publicStakingContract = _publicStakingContract;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -95,6 +111,26 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     function transferNftTokens(address _user, uint256 _amount) private returns (bool) {
         require(_amount != 0);
         return IERC20Upgradeable(nftErc20Contract).transferFrom(_user, address(this), _amount);
+    }
+
+    // single external function to group transactions together (gas saving)
+    function payOutNftTokens() external {
+        uint256 nftBalance = IERC20Upgradeable(nftErc20Contract).balanceOf(address(this));
+
+        require(nftBalance != 0, "NFT.com: !TOKENS");
+
+        IERC20Upgradeable(nftErc20Contract).transfer(
+            genesisStakingContract,
+            nftBalance.mul(genesisKeyPercent).div(10000)
+        );
+        IERC20Upgradeable(nftErc20Contract).transfer(
+            publicStakingContract,
+            nftBalance.mul(publicPoolPercent).div(10000)
+        );
+        IERC20Upgradeable(nftErc20Contract).transfer(
+            coldWallet,
+            nftBalance.mul(uint256(10000).sub(genesisKeyPercent.add(publicPoolPercent)).div(10000))
+        );
     }
 
     /**
@@ -123,11 +159,16 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
      */
     function requireValidBid_(
         uint256 _nftTokens,
+        bool _genKey,
         string memory _profileURI,
         address _owner,
         Sig memory sig
     ) internal view returns (bytes32) {
-        bytes32 hash = getStructHash(_nftTokens, _profileURI, _owner);
+        bytes32 hash = getStructHash(_nftTokens, _genKey, _profileURI, _owner);
+
+        if (_genKey) {
+            require(genKeyOwner_(msg.sender), "NFT.com: !GEN_KEY");
+        }
 
         require(validateBid_(hash, _nftTokens, _owner, sig), "NFT.com: INVALID SIG");
         return hash;
@@ -142,6 +183,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
      */
     function cancelBid_(
         uint256 _nftTokens,
+        bool _genKey,
         string memory _profileURI,
         address _owner,
         Sig memory sig
@@ -149,7 +191,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         /* CHECKS */
 
         /* Calculate bid hash. */
-        bytes32 hash = requireValidBid_(_nftTokens, _profileURI, _owner, sig);
+        bytes32 hash = requireValidBid_(_nftTokens, _genKey, _profileURI, _owner, sig);
 
         require(msg.sender == _owner); // must be owner
         require(claimableBlock[hash] == 0); // must not be claimable
@@ -166,23 +208,25 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     /**
      * @dev Approve an bid. Must be called by the _owner of the bid
      * @param _nftTokens nft tokens for bid
+     * @param _genKey whether bid was created by a gen key holder
      * @param _profileURI uri to bid for
      * @param _owner user who is making bid
      */
     function approveBid_(
         uint256 _nftTokens,
+        bool _genKey,
         string memory _profileURI,
         address _owner
     ) internal validAndUnusedURI(_profileURI) {
         // checks
         require(msg.sender == _owner);
-        bytes32 hash = getStructHash(_nftTokens, _profileURI, _owner);
+        bytes32 hash = getStructHash(_nftTokens, _genKey, _profileURI, _owner);
         require(!approvedBids[hash]); // Assert bid has not already been approved.
 
         // effects
         approvedBids[hash] = true; // Mark bid as approved.
 
-        emit NewBid(_owner, _profileURI, _nftTokens);
+        emit NewBid(_owner, _genKey, _profileURI, _nftTokens);
     }
 
     /**
@@ -227,13 +271,14 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     /* EXTERNAL FUNCTIONS */
     function validateBid(
         uint256 _nftTokens,
+        bool _genKey,
         string memory _profileURI,
         address _owner,
         uint8 v,
         bytes32 r,
         bytes32 s
     ) external view returns (bool) {
-        bytes32 hash = getStructHash(_nftTokens, _profileURI, _owner);
+        bytes32 hash = getStructHash(_nftTokens, _genKey, _profileURI, _owner);
 
         return validateBid_(hash, _nftTokens, _owner, Sig(v, r, s));
     }
@@ -262,51 +307,49 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     // primarily used to query
     function getStructHash(
         uint256 _nftTokens,
+        bool _genKey,
         string memory _profileURI,
         address _owner
     ) public pure returns (bytes32) {
-        bytes32 _PERMIT_TYPEHASH = keccak256("Bid(uint256 _nftTokens,string _profileURI,address _owner)");
+        bytes32 _PERMIT_TYPEHASH = keccak256("Bid(uint256 _nftTokens,bool _genKey,string _profileURI,address _owner)");
 
-        return keccak256(abi.encode(_PERMIT_TYPEHASH, _nftTokens, _profileURI, _owner));
+        return keccak256(abi.encode(_PERMIT_TYPEHASH, _nftTokens, _genKey, _profileURI, _owner));
     }
 
     function approveBid(
         uint256 _nftTokens,
+        bool _genKey,
         string memory _profileURI,
         address _owner
     ) external {
-        return approveBid_(_nftTokens, _profileURI, _owner);
+        return approveBid_(_nftTokens, _genKey, _profileURI, _owner);
     }
 
     function cancelBid(
         uint256 _nftTokens,
+        bool _genKey,
         string memory _profileURI,
         address _owner,
         uint8 v,
         bytes32 r,
         bytes32 s
     ) external {
-        return cancelBid_(_nftTokens, _profileURI, _owner, Sig(v, r, s));
-    }
-
-    /**
-     @notice sets ETH fee for buying a profile
-     @param _fee denominated in wei
-    */
-    function setProfileFee(uint256 _fee) external onlyGovernor {
-        profileFee = _fee;
-    }
-
-    /**
-     @notice sets global minimum block wait time to redeem a profile from minting
-     @param _wait block number
-    */
-    function setBlockWait(uint256 _wait) external onlyGovernor {
-        blockWait = _wait;
+        return cancelBid_(_nftTokens, _genKey, _profileURI, _owner, Sig(v, r, s));
     }
 
     function setOwner(address _new) external onlyOwner {
         owner = _new;
+    }
+
+    function setMinimumBid(uint256 _newBid) external onlyGovernor {
+        minimumBid = _newBid;
+    }
+
+    // private function used to determine if _user is a genesis key holder or has staked their key
+    function genKeyOwner_(address _user) private view returns (bool) {
+        return
+            IERC721Upgradeable(genesisKeyContract).balanceOf(_user) != 0 ||
+            IGenesisKeyStake(genesisKeyContract).stakedAddress(_user) != 0;
     }
 
     /**
@@ -324,6 +367,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     */
     function mintProfileFor(
         uint256 _nftTokens,
+        bool _genKey,
         string memory _profileURI,
         address _owner,
         uint8 v,
@@ -335,9 +379,14 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     ) external nonReentrant validAndUnusedURI(_profileURI) {
         // checks
         require(msg.sender == minter, "NFT.com: UNAUTHORIZED");
-        bytes32 hash = requireValidBid_(_nftTokens, _profileURI, _owner, Sig(v, r, s));
+        bytes32 hash = requireValidBid_(_nftTokens, _genKey, _profileURI, _owner, Sig(v, r, s));
+        require(_nftTokens >= minimumBid, "NFT.com: bid < minimumBid");
         require(!cancelledOrFinalized[hash]);
         require(claimableBlock[hash] == 0);
+
+        if (_genKey) {
+            require(genKeyOwner_(msg.sender), "NFT.com: !GEN_KEY");
+        }
 
         // effects
         claimableBlock[hash] = block.number;
@@ -350,7 +399,7 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
 
         require(transferNftTokens(_owner, _nftTokens)); // transfer NFT token
 
-        emit NewClaimableProfile(_owner, _profileURI, _nftTokens, block.number);
+        emit NewClaimableProfile(_owner, _genKey, _profileURI, _nftTokens, block.number);
     }
 
     /**
@@ -358,51 +407,29 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     */
     function claimProfile(
         uint256 _nftTokens,
+        bool _genKey,
         string memory _profileURI,
         address _owner,
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external payable nonReentrant {
+    ) external nonReentrant {
         // checks
-        require(msg.value == profileFee, "!ETH"); // only required on claim
         require(msg.sender == _owner);
-        bytes32 hash = requireValidBid_(_nftTokens, _profileURI, _owner, Sig(v, r, s));
+        bytes32 hash = requireValidBid_(_nftTokens, _genKey, _profileURI, _owner, Sig(v, r, s));
         require(!cancelledOrFinalized[hash]);
         require(claimableBlock[hash] != 0);
+
+        if (_genKey) {
+            require(genKeyOwner_(msg.sender), "NFT.com: !GEN_KEY");
+        }
 
         // effects
         cancelledOrFinalized[hash] = true;
 
         // interactions
-        INftProfile(nftProfile).createProfile(_owner, _nftTokens, _profileURI, blockWait, claimableBlock[hash]);
+        INftProfile(nftProfile).createProfile(_owner, _nftTokens, _profileURI, claimableBlock[hash]);
 
         emit MintedProfile(_owner, _profileURI, _nftTokens, claimableBlock[hash]);
-        (bool success, ) = payable(coldWallet).call{ value: profileFee }("");
-        require(success);
-    }
-
-    /**
-     @notice client facing function to allow profile redemptions for underlying nft tokens
-             user will send NFT.com profile to the protocol governor
-             user will receive NFT.com collateral with a 0.5% burn fee attached
-     @param _tokenId the ID of the NFT.com profile
-    */
-    function redeemProfile(uint256 _tokenId) external {
-        Bid memory details = INftProfile(nftProfile).profileDetails(_tokenId);
-
-        require(details._blockMinted != 0, "invalid or unclaimed profile");
-
-        require(block.number >= details._blockMinted.add(details._blockWait), "block wait not met");
-
-        IERC721EnumerableUpgradeable(nftProfile).transferFrom(msg.sender, governor, _tokenId);
-
-        uint256 amount = details._nftTokens.mul(9950).div(10000);
-
-        require(IERC20Upgradeable(nftErc20Contract).transfer(msg.sender, amount));
-
-        INftToken(nftErc20Contract).burn(details._nftTokens.mul(50).div(10000));
-
-        emit RedeemProfile(msg.sender, details._profileURI, block.number, amount, _tokenId);
     }
 }

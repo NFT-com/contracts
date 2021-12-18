@@ -84,11 +84,6 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
   // const deployedNftTokenProxy = await hre.upgrades.deployProxy(NftToken, { kind: 'uups' });
   // console.log(chalk.green(`deployedNftTokenProxy: ${deployedNftTokenProxy.address}`));
 
-  // const CreatorBondingCurve = await hre.ethers.getContractFactory("CreatorBondingCurve");
-  // const deployedCreatorBondingCurve = await CreatorBondingCurve.deploy(_numerator, _denominator);
-
-  // console.log(chalk.green(`deployedCreatorBondingCurve: ${deployedCreatorBondingCurve.address}`));
-
   // const NftProfileHelper = await hre.ethers.getContractFactory("NftProfileHelper");
   // const deployedNftProfileHelper = await NftProfileHelper.deploy();
 
@@ -101,7 +96,6 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
       "NFT.com", // string memory name,
       "NFT.com", // string memory symbol,
       "0x38E5F095e1a4Bb02c87cb56E2b204E00f3bE5f8d", //deployedNftTokenProxy.address,      // address _nftCashAddress,
-      "0x2DF26b51fFCc50419e0538ccB5fD903F0cC67846", // deployedCreatorBondingCurve address
     ],
     { kind: "uups" },
   );

@@ -16,11 +16,19 @@ export const ERC20_PERMIT_TYPEHASH = convertToHash(
 
 export const GENESIS_KEY_TYPEHASH = convertToHash("GenesisBid(uint256 _wethTokens,address _owner)");
 
-export const BID_TYPEHASH = convertToHash("Bid(uint256 _nftTokens,string _profileURI,address _owner)");
+export const BID_TYPEHASH = convertToHash("Bid(uint256 _nftTokens,bool _genKey,string _profileURI,address _owner)");
 
 export const MARKETPLACE_ORDER_TYPEHASH = convertToHash(
   "Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end)Asset(AssetType assetType,uint256 value)AssetType(bytes4 assetClass,bytes data)",
 );
+
+export const convertBigNumber = (tokens: number): BigNumberish => {
+  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(18)));
+};
+
+export const convertSmallNumber = (tokens: number): BigNumberish => {
+  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(17)));
+};
 
 export const ASSET_TYPE_TYPEHASH = convertToHash("AssetType(bytes4 assetClass,bytes data)");
 

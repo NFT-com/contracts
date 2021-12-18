@@ -1,7 +1,16 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const { advanceBlock } = require("./utils/time");
-const { sign, getDigest, getHash, convertToHash, ERC20_PERMIT_TYPEHASH, BID_TYPEHASH } = require("./utils/sign-utils");
+const {
+  convertBigNumber,
+  convertSmallNumber,
+  sign,
+  getDigest,
+  getHash,
+  convertToHash,
+  ERC20_PERMIT_TYPEHASH,
+  BID_TYPEHASH,
+  GENESIS_KEY_TYPEHASH,
+} = require("./utils/sign-utils");
 
 const DECIMALS = 18;
 
@@ -13,46 +22,131 @@ describe("NFT Gasless Auction V2", function () {
     let deployedNftProfile;
     let ProfileAuction;
     let deployedProfileAuction;
-    let CreatorBondingCurve;
-    let deployedCreatorBondingCurve;
-    let _numerator = 1;
-    let _denominator = 1000000;
     let NftProfileHelper;
     let deployedNftProfileHelper;
-    let profileFeeWei = "100000000000000000"; // 0.1 ETH
     const ZERO_BYTES = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
+
+    let GenesisKey;
+    let deployedGenesisKey;
+    let deployedWETH;
+    let GenesisStake;
+    let deployedNftGenesisStake;
+    let NftStake;
+    let deployedNftStake;
+    const name = "NFT.com Genesis Key";
+    const symbol = "NFTKEY";
+    const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
+    const auctionSeconds = "604800"; // seconds in 1 week
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
     beforeEach(async function () {
       // Get the ContractFactory and Signers here.
-      NftToken = await ethers.getContractFactory("NftToken");
-      [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+      NftToken = await hre.ethers.getContractFactory("NftToken");
+      NftProfileHelper = await hre.ethers.getContractFactory("NftProfileHelper");
+      GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+      GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
+      NftStake = await hre.ethers.getContractFactory("PublicNftStake");
+      NftProfile = await hre.ethers.getContractFactory("NftProfileV1");
+      ProfileAuction = await hre.ethers.getContractFactory("ProfileAuctionV2");
 
+      [owner, second, addr1, ...addrs] = await ethers.getSigners();
       let coldWallet = owner.address;
 
-      CreatorBondingCurve = await ethers.getContractFactory("CreatorBondingCurve");
-      deployedCreatorBondingCurve = await CreatorBondingCurve.deploy(_numerator, _denominator);
-
-      NftProfileHelper = await ethers.getContractFactory("NftProfileHelper");
       deployedNftProfileHelper = await NftProfileHelper.deploy();
 
       deployedNftToken = await NftToken.deploy();
 
-      NftProfile = await ethers.getContractFactory("NftProfileV1");
+      // genesis key setup ===============================================================
+      const multiSig = addr1.address;
+      const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+      const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
+
+      deployedWETH = new ethers.Contract(
+        wethAddress,
+        `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"guy","type":"address"},{"name":"wad","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"src","type":"address"},{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"wad","type":"uint256"}],"name":"withdraw","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"guy","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Withdrawal","type":"event"}]`,
+        ethers.provider,
+      );
+
+      deployedGenesisKey = await hre.upgrades.deployProxy(
+        GenesisKey,
+        [name, symbol, wethAddress, multiSig, auctionSeconds],
+        { kind: "uups" },
+      );
+
+      // approve WETH
+      await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
+      await deployedWETH.connect(second).approve(deployedGenesisKey.address, MAX_UINT);
+
+      // domain separator V4
+      const genesisKeyBid = await getDigest(
+        ethers.provider,
+        "NFT.com Genesis Key",
+        deployedGenesisKey.address,
+        getHash(
+          ["bytes32", "uint256", "address"],
+          [GENESIS_KEY_TYPEHASH, convertBigNumber(1), ownerSigner.address], // 1 WETH
+        ),
+      );
+
+      await deployedWETH.connect(owner).transfer(second.address, convertSmallNumber(2));
+
+      const genesisKeyBid2 = await getDigest(
+        ethers.provider,
+        "NFT.com Genesis Key",
+        deployedGenesisKey.address,
+        getHash(
+          ["bytes32", "uint256", "address"],
+          [GENESIS_KEY_TYPEHASH, convertSmallNumber(2), secondSigner.address], // 1 WETH
+        ),
+      );
+
+      const { v: v0, r: r0, s: s0 } = sign(genesisKeyBid, ownerSigner);
+      const { v: v1, r: r1, s: s1 } = sign(genesisKeyBid2, secondSigner);
+
+      await expect(
+        deployedGenesisKey
+          .connect(owner)
+          .whitelistExecuteBid(
+            [convertBigNumber(1), convertSmallNumber(2)],
+            [ownerSigner.address, secondSigner.address],
+            [v0, v1],
+            [r0, r1],
+            [s0, s1],
+          ),
+      )
+        .to.emit(deployedWETH, "Transfer")
+        .withArgs(ownerSigner.address, addr1.address, convertSmallNumber(10));
+
+      // owner now has 1 genesis key
+      await deployedGenesisKey.connect(owner).claimKey(convertBigNumber(1), ownerSigner.address, v0, r0, s0);
+
+      // second now has 1 genesis key
+      await deployedGenesisKey.connect(second).claimKey(convertSmallNumber(2), secondSigner.address, v1, r1, s1);
+
+      deployedNftGenesisStake = await GenesisStake.deploy(
+        deployedNftToken.address,
+        wethAddress,
+        deployedGenesisKey.address,
+      );
+
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address, wethAddress);
+
+      await owner.sendTransaction({ to: addr1.address, value: convertSmallNumber(1) });
+      await deployedWETH.connect(addr1).transfer(ownerSigner.address, await deployedWETH.balanceOf(addr1.address));
+      // genesis key setup end ===============================================================
+
       deployedNftProfile = await upgrades.deployProxy(
         NftProfile,
         [
           "NFT.com", // string memory name,
           "NFT.com", // string memory symbol,
           deployedNftToken.address, // address _nftCashAddress,
-          deployedCreatorBondingCurve.address, // deployedCreatorBondingCurve address
         ],
         { kind: "uups" },
       );
 
-      ProfileAuction = await ethers.getContractFactory("ProfileAuctionV2");
       deployedProfileAuction = await upgrades.deployProxy(
         ProfileAuction,
         [
@@ -62,14 +156,20 @@ describe("NFT Gasless Auction V2", function () {
           owner.address,
           deployedNftProfileHelper.address,
           coldWallet,
+          deployedGenesisKey.address,
+          deployedNftGenesisStake.address,
+          deployedNftStake.address,
         ],
         { kind: "uups" },
       );
 
+      // set minimum public minting of a profile to be 100 NFT tokens (100 / 10 ** 18) for testing purposes
+      await deployedProfileAuction.setMinimumBid(100);
+
       deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
     });
 
-    describe("Deployment", function () {
+    describe("NFT Profiles Tests", function () {
       it("deployment should assign the total supply of tokens to the owner", async function () {
         const ownerBalance = await deployedNftToken.balanceOf(owner.address);
         expect(await deployedNftToken.totalSupply()).to.equal(ownerBalance);
@@ -92,9 +192,8 @@ describe("NFT Gasless Auction V2", function () {
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(await owner.getAddress(), ethers.constants.AddressZero, burnAmount);
       });
-    });
 
-    describe("NFT Profiles", function () {
+
       it("profiles should have a initial supply of 0", async function () {
         expect(await deployedNftProfile.totalSupply()).to.equal(0);
       });
@@ -131,20 +230,10 @@ describe("NFT Gasless Auction V2", function () {
         ).to.be.reverted;
       });
 
-      it("minting creator coins should not work without a valid profile", async function () {
-        await expect(deployedNftProfile.mintCreatorCoin(1000000, 0, 0, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
-      });
-
-      it("burning creator coins should not work without a valid profile", async function () {
-        await expect(deployedNftProfile.burnCreatorCoin(1000000, 0, 0, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
-      });
-    });
-
-    describe("Gasless Bids", async function () {
       it("should allow bid approvals", async function () {
-        await expect(deployedProfileAuction.connect(owner).approveBid("10000", "helloworld", owner.address))
+        await expect(deployedProfileAuction.connect(owner).approveBid("10000", false, "helloworld", owner.address))
           .to.emit(deployedProfileAuction, "NewBid")
-          .withArgs(await owner.getAddress(), "helloworld", "10000");
+          .withArgs(await owner.getAddress(), false, "helloworld", "10000");
       });
 
       it("should allow users to submit a signed signature for a bid", async function () {
@@ -167,8 +256,8 @@ describe("NFT Gasless Auction V2", function () {
           "NFT.com Domain Auction",
           deployedProfileAuction.address,
           getHash(
-            ["bytes32", "uint256", "string", "address"],
-            [BID_TYPEHASH, BigNumber.from(10000), "satoshi", ownerSigner.address],
+            ["bytes32", "uint256", "bool", "string", "address"],
+            [BID_TYPEHASH, BigNumber.from(10000), false, "satoshi", ownerSigner.address],
           ),
         );
 
@@ -181,7 +270,7 @@ describe("NFT Gasless Auction V2", function () {
         await expect(
           deployedProfileAuction
             .connect(owner)
-            .mintProfileFor(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS),
+            .mintProfileFor(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS),
         )
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(ownerSigner.address, deployedProfileAuction.address, 10000);
@@ -191,7 +280,7 @@ describe("NFT Gasless Auction V2", function () {
         // make sure profile can be claimed
         await deployedProfileAuction
           .connect(owner)
-          .claimProfile(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, { value: profileFeeWei });
+          .claimProfile(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
 
@@ -203,182 +292,100 @@ describe("NFT Gasless Auction V2", function () {
         // just testing
         await deployedNftProfile.setApprovalForAll(deployedNftProfile.address, true);
       });
-    });
 
-    it("should hit edge functions", async function () {
-      await deployedProfileAuction.setProfileFee(0);
+      it("should hit edge functions", async function () {
+        await deployedProfileAuction.setOwner(owner.address);
 
-      await deployedProfileAuction.setOwner(owner.address);
+        expect(
+          await deployedProfileAuction.validateBid(
+            0,
+            false,
+            "test",
+            owner.address,
+            28,
+            "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9",
+            "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe",
+          ),
+        ).to.be.false;
 
-      expect(
-        await deployedProfileAuction.validateBid(
-          0,
-          "test",
-          owner.address,
-          28,
-          "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9",
-          "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe",
-        ),
-      ).to.be.false;
+        await deployedProfileAuction.approveBid(1, false, "test", owner.address);
 
-      await deployedProfileAuction.approveBid(1, "test", owner.address);
+        expect(
+          await deployedProfileAuction.validateBid(
+            1,
+            false,
+            "test",
+            owner.address,
+            28,
+            "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9",
+            "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe",
+          ),
+        ).to.be.true;
 
-      expect(
-        await deployedProfileAuction.validateBid(
-          1,
-          "test",
-          owner.address,
-          28,
-          "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9",
-          "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe",
-        ),
-      ).to.be.true;
+        expect(
+          await deployedProfileAuction.validateBid(
+            1,
+            false,
+            "test2",
+            owner.address,
+            28,
+            "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9",
+            "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe",
+          ),
+        ).to.be.false;
+      });
 
-      expect(
-        await deployedProfileAuction.validateBid(
-          1,
-          "test2",
-          owner.address,
-          28,
-          "0x8fbf2bcdc98d8ceea20e2c9e6c3237ff9d8536a813a7166b5a5ce4411eee9fb9",
-          "0x2a6cb9a6e2a74fd3b3689b34e004c8b6bb65a83f79ce617af2d4befbe26ac6fe",
-        ),
-      ).to.be.false;
-    });
+      it("should allow a user to cancel existing bid for a profile", async function () {
+        const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
 
-    it("should allow a user to cancel existing bid for a profile", async function () {
-      const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+        // permit NFT tokens
+        const nftTokenPermitDigest = await getDigest(
+          ethers.provider,
+          "NFT.com",
+          deployedNftToken.address,
+          getHash(
+            ["bytes32", "address", "address", "uint256", "uint256", "uint256"],
+            [ERC20_PERMIT_TYPEHASH, ownerSigner.address, deployedProfileAuction.address, MAX_UINT, 0, MAX_UINT],
+          ),
+        );
 
-      // permit NFT tokens
-      const nftTokenPermitDigest = await getDigest(
-        ethers.provider,
-        "NFT.com",
-        deployedNftToken.address,
-        getHash(
-          ["bytes32", "address", "address", "uint256", "uint256", "uint256"],
-          [ERC20_PERMIT_TYPEHASH, ownerSigner.address, deployedProfileAuction.address, MAX_UINT, 0, MAX_UINT],
-        ),
-      );
+        // domain separator V4
+        const nftProfileBid = await getDigest(
+          ethers.provider,
+          "NFT.com Domain Auction",
+          deployedProfileAuction.address,
+          getHash(
+            ["bytes32", "uint256", "bool", "string", "address"],
+            [BID_TYPEHASH, BigNumber.from(10000), false, "satoshi", ownerSigner.address],
+          ),
+        );
 
-      // domain separator V4
-      const nftProfileBid = await getDigest(
-        ethers.provider,
-        "NFT.com Domain Auction",
-        deployedProfileAuction.address,
-        getHash(
-          ["bytes32", "uint256", "string", "address"],
-          [BID_TYPEHASH, BigNumber.from(10000), "satoshi", ownerSigner.address],
-        ),
-      );
+        expect(await deployedNftToken.balanceOf(ownerSigner.address)).to.be.equal("10000000000000000000000000000");
+        expect(await deployedNftToken.allowance(ownerSigner.address, deployedProfileAuction.address)).to.be.equal(0);
 
-      expect(await deployedNftToken.balanceOf(ownerSigner.address)).to.be.equal("10000000000000000000000000000");
-      expect(await deployedNftToken.allowance(ownerSigner.address, deployedProfileAuction.address)).to.be.equal(0);
+        const { v: nftV, r: nftR, s: nftS } = sign(nftTokenPermitDigest, ownerSigner);
+        const { v: v0, r: r0, s: s0 } = sign(nftProfileBid, ownerSigner);
 
-      const { v: nftV, r: nftR, s: nftS } = sign(nftTokenPermitDigest, ownerSigner);
-      const { v: v0, r: r0, s: s0 } = sign(nftProfileBid, ownerSigner);
-
-      await deployedProfileAuction
-        .connect(owner)
-        .cancelBid(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0);
-
-      await expect(
-        deployedProfileAuction
+        await deployedProfileAuction
           .connect(owner)
-          .mintProfileFor(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS),
-      ).to.be.reverted;
+          .cancelBid(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0);
 
-      expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
+        await expect(
+          deployedProfileAuction
+            .connect(owner)
+            .mintProfileFor(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS),
+        ).to.be.reverted;
 
-      // make sure profile cannot be claimed
-      await expect(
-        deployedProfileAuction
-          .connect(owner)
-          .claimProfile(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, { value: profileFeeWei }),
-      ).to.be.reverted;
-    });
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
-    it("should allow the governor to set a shorter block wait and then redeem profile", async function () {
-      const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+        // make sure profile cannot be claimed
+        await expect(
+          deployedProfileAuction
+            .connect(owner)
+            .claimProfile(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0),
+        ).to.be.reverted;
+      });
 
-      await deployedProfileAuction.setBlockWait(1);
-
-      // permit NFT tokens
-      const nftTokenPermitDigest = await getDigest(
-        ethers.provider,
-        "NFT.com",
-        deployedNftToken.address,
-        getHash(
-          ["bytes32", "address", "address", "uint256", "uint256", "uint256"],
-          [ERC20_PERMIT_TYPEHASH, ownerSigner.address, deployedProfileAuction.address, MAX_UINT, 0, MAX_UINT],
-        ),
-      );
-
-      // domain separator V4
-      const nftProfileBid = await getDigest(
-        ethers.provider,
-        "NFT.com Domain Auction",
-        deployedProfileAuction.address,
-        getHash(
-          ["bytes32", "uint256", "string", "address"],
-          [BID_TYPEHASH, BigNumber.from(10000), "satoshi", ownerSigner.address],
-        ),
-      );
-
-      expect(await deployedNftToken.balanceOf(ownerSigner.address)).to.be.equal("10000000000000000000000000000");
-      expect(await deployedNftToken.allowance(ownerSigner.address, deployedProfileAuction.address)).to.be.equal(0);
-
-      const { v: nftV, r: nftR, s: nftS } = sign(nftTokenPermitDigest, ownerSigner);
-      const { v: v0, r: r0, s: s0 } = sign(nftProfileBid, ownerSigner);
-
-      await deployedProfileAuction
-        .connect(owner)
-        .mintProfileFor(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS);
-
-      expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
-
-      // make sure profile cannot be claimed
-      await deployedProfileAuction
-        .connect(owner)
-        .claimProfile(BigNumber.from(10000), "satoshi", ownerSigner.address, v0, r0, s0, { value: profileFeeWei });
-
-      expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
-
-      await expect(deployedProfileAuction.connect(addr1).redeemProfile(0)).to.be.reverted; // revert because addr1 doesn't own "satoshi"
-      await expect(deployedProfileAuction.connect(addr1).redeemProfile(1)).to.be.reverted; // rvert because there is no profile with tokenId 1
-      await expect(deployedProfileAuction.connect(owner).redeemProfile(1)).to.be.reverted; // rvert because there is no profile with tokenId 1
-
-      // revert because minimum block time hasn't been met
-      await expect(deployedProfileAuction.connect(owner).redeemProfile(0)).to.be.reverted;
-
-      await advanceBlock(); // + 1 block
-
-      // make sure owner of "satoshi" matches
-      expect(await deployedNftProfile.ownerOf(0)).to.be.equal(owner.address);
-
-      // transfer NFT to new user to make sure it comes back to governance wallet after redeeming
-      await deployedNftProfile.connect(owner).transferFrom(owner.address, addr1.address, 0);
-
-      // make sure new owner of "satoshi" is addr1
-      expect(await deployedNftProfile.ownerOf(0)).to.be.equal(addr1.address);
-
-      let previousSupply = await deployedNftToken.totalSupply();
-
-      // approve token spend by redeem
-      await deployedNftProfile.connect(addr1).approve(deployedProfileAuction.address, 0);
-
-      await expect(deployedProfileAuction.connect(addr1).redeemProfile(0))
-        .to.emit(deployedNftToken, "Transfer")
-        .withArgs(deployedProfileAuction.address, addr1.address, BigNumber.from(9950)); // receive 99.5% of the staked amount
-
-      expect(await deployedNftToken.totalSupply()).to.be.equal(BigNumber.from(previousSupply).sub(BigNumber.from(50))); // 50 less tokens in the suppply
-
-      expect(await deployedNftToken.balanceOf(addr1.address)).to.be.equal(BigNumber.from(9950));
-
-      // token comes back to user
-      expect(await deployedNftProfile.ownerOf(0)).to.be.equal(owner.address);
-    });
-
-    describe("Protocol Upgrades", function () {
       it("should upgrade profile contract to V3", async function () {
         const ProfileAuctionV3 = await ethers.getContractFactory("ProfileAuctionV3");
 
