@@ -81,7 +81,7 @@
     "precommit": "prettier --write --tab-width 2 \"test/*.js\"",
     "compile": "hardhat compile && yarn typechain && hardhat size-contracts",
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.js\"",
-    "deploy": "hardhat deploy:NFTV2.com --network rinkeby",
+    "deploy": "hardhat deploy:NFT.com --network rinkeby",
     "verify": "hardhat verify --network <network> <contract>",
     "deploy-debug": "hardhat deploy:NFT.com --show-stack-traces",
     "lint": "yarn run lint:sol && yarn run lint:ts && yarn run prettier:check",
