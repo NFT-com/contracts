@@ -18,15 +18,15 @@ ZERO_BYTES = `0x0000000000000000000000000000000000000000000000000000000000000000
 
 ## Rinkeby Address
 
-- [deployedNftStake](https://rinkeby.etherscan.io/address/0xAcde72B0959D0c7c56d133B30850FE227BE71845)
-- [nftTransferProxy](https://rinkeby.etherscan.io/address/0x9170DF8C1B8220854970B4d878497b23DeCc8e03)
-  - implementation => 0xdfa0914e53b3c222fcbf67cd3cd89474e7b63bef
-- [deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/0x95E064204B5663711f659d1CeF8e60F14Ba1197c)
-  - implementation => 0xfecf248854c3a4e36a37ce04e7f025f718873509
-- [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/0xbf5dAEC8DecD24e6e32B4123ce5aB708E2667316)
-  - implementation => 0x67a59654e2ec02f12fbbcb6a2a758c7ab7c2c8e5
-- [deployedNftMarketplace](https://rinkeby.etherscan.io/address/0x6F5E3F2283c21953CB8cdba0e077f30F7C4Bc681)
-  - implementation => 0xcdceb00d9d72390edf03404110ef05c65b547cb9
+- [deployedGenesisKey](https://rinkeby.etherscan.io/address/0x9F6ED3d90D48573245d6a0c0742db4eCf27B6a56)
+  - implementation => 0x21339300db87e1be4ac9ee2a5f9efc36a3f51bc7
+- [deployedNftToken](https://rinkeby.etherscan.io/address/0xa75F995f252ba5F7C17f834b314201271d32eC35)
+- [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0x1eCF99bB796fC05b6E409CE5d4682353A166852b)
+- [deployedNftStake](https://rinkeby.etherscan.io/address/0xB1f851f3a250Fc1FFdd4eDdFB3529BfFe379924B)
+- [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0xED98f77010891884A63da7605c6B7DE6E4eD91F1)
+- [deployedNftProfileProxy](https://rinkeby.etherscan.io/address/0xc5782D87B3d353edbf1B03dEB001949Afd2e25E8)
+  - implementation => 0x0f78239245b45044d0f475a04c5caa41e266c4ee
+- [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/0x2295828BBB9270cF92D29ed79bA0260d64fdF23f)
 
 ### Pre Requisites
 
