@@ -70,6 +70,14 @@ task("deploy:GenKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deployedGenKey: ", deployedGenKey.address));
 });
 
+task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green('starting to upgrade...'));
+  const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuctionV2");
+
+  const upgradedProfileAuction = await hre.upgrades.upgradeProxy("0x2295828BBB9270cF92D29ed79bA0260d64fdF23f", ProfileAuction);
+  console.log(chalk.green('upgraded profile auction: ', upgradedProfileAuction.address));
+});
+
 task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`initializing...`));
 
@@ -122,7 +130,7 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
     [
       "NFT.com", // string memory name,
       "NFT.com", // string memory symbol,
-      deployedNftToken.address,      // address _nftCashAddress,
+      deployedNftToken.address, // address _nftCashAddress,
     ],
     { kind: "uups" },
   );
