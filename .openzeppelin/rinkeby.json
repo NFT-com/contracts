@@ -3875,6 +3875,172 @@
             "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
           },
           {
+            "contract": "ProfileAuctionV1",
+            "label": "cancelledOrFinalized",
+            "type": "t_mapping(t_bytes32,t_bool)",
+            "src": "contracts/domain/ProfileAuctionV1.sol:24"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "claimableBlock",
+            "type": "t_mapping(t_bytes32,t_uint256)",
+            "src": "contracts/domain/ProfileAuctionV1.sol:25"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "approvedBids",
+            "type": "t_mapping(t_bytes32,t_bool)",
+            "src": "contracts/domain/ProfileAuctionV1.sol:26"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "governor",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV1.sol:28"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "minter",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV1.sol:29"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV1.sol:30"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "nftErc20Contract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV1.sol:31"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "nftProfile",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV1.sol:32"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "genesisStakingContract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV1.sol:33"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "publicStakingContract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV1.sol:34"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "nftProfileHelperAddress",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV1.sol:35"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "coldWallet",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV1.sol:36"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "genesisKeyContract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV1.sol:37"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "genesisKeyPercent",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV1.sol:41"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "publicPoolPercent",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV1.sol:42"
+          },
+          {
+            "contract": "ProfileAuctionV1",
+            "label": "minimumBid",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV1.sol:43"
+          }
+        ],
+        "types": {
+          "t_mapping(t_bytes32,t_bool)": {
+            "label": "mapping(bytes32 => bool)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "a14a8aaba6a5268a8f2616b2434cab4d00234e4c9f00b0b615e5a3da2a4c1507": {
+      "address": "0x0c82A8a9e93101C5Bee4bece3771EE5c21e28837",
+      "txHash": "0x252ee7a7e9b021727925a8e3cd92b55ade354da9539869684035412197a78526",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
             "contract": "ProfileAuctionV2",
             "label": "cancelledOrFinalized",
             "type": "t_mapping(t_bytes32,t_bool)",
@@ -3969,6 +4135,12 @@
             "label": "minimumBid",
             "type": "t_uint256",
             "src": "contracts/domain/ProfileAuctionV2.sol:43"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "profilesToMint",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV2.sol:45"
           }
         ],
         "types": {

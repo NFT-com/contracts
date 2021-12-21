@@ -14,7 +14,7 @@ const {
 
 const DECIMALS = 18;
 
-describe("NFT Gasless Auction V2", function () {
+describe("NFT Gasless Auction V1", function () {
   try {
     let NftToken;
     let deployedNftToken;
@@ -49,7 +49,7 @@ describe("NFT Gasless Auction V2", function () {
       GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
       NftStake = await hre.ethers.getContractFactory("PublicNftStake");
       NftProfile = await hre.ethers.getContractFactory("NftProfileV1");
-      ProfileAuction = await hre.ethers.getContractFactory("ProfileAuctionV2");
+      ProfileAuction = await hre.ethers.getContractFactory("ProfileAuctionV1");
 
       [owner, second, addr1, ...addrs] = await ethers.getSigners();
       let coldWallet = owner.address;

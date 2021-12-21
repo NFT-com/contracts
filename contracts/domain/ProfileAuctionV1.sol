@@ -18,7 +18,7 @@ interface INftToken {
     function burn(uint256 _amount) external;
 }
 
-contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
+contract ProfileAuctionV1 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized bid, by hash
@@ -42,8 +42,6 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     uint256 public publicPoolPercent; // 10000 = 100%
     uint256 public minimumBid; // Minimum bid for any profile
 
-    uint256 public profilesToMint; // how often profiles can be minted
-
     event NewBid(address _user, bool _genKey, string _val, uint256 _amount);
     event BidCancelled(bytes32 indexed hash);
     event NewClaimableProfile(address _user, bool _genKey, string _val, uint256 _amount, uint256 _blockNum);
@@ -55,19 +53,6 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         uint8 v;
         bytes32 r;
         bytes32 s;
-    }
-
-    struct MintArgs {
-        uint256 _nftTokens;
-        bool _genKey;
-        string _profileURI;
-        address _owner;
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-        uint8 nftV;
-        bytes32 nftR;
-        bytes32 nftS;
     }
 
     modifier validAndUnusedURI(string memory _profileURI) {
@@ -111,7 +96,6 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         genesisKeyContract = _genesisKeyContract;
         genesisKeyPercent = 8000;
         publicPoolPercent = 1800;
-        profilesToMint = 10000;
         minimumBid = 10000 * 10**18; // 10,000 NFT tokens
         genesisStakingContract = _genesisStakingContract;
         publicStakingContract = _publicStakingContract;
@@ -358,10 +342,6 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
         minimumBid = _newBid;
     }
 
-    function addProfilesToMint(uint256 _profilesToMint) external onlyGovernor {
-        profilesToMint = profilesToMint.add(_profilesToMint);
-    }
-
     // private function used to determine if _user is a genesis key holder or has staked their key
     function genKeyOwner_(address _user) private view returns (bool) {
         return
@@ -371,51 +351,49 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
 
     /**
      @notice centralized mint function for auction profiles, restricted to minter and approved bids
-     * @param mintArgs MintArgs[] array
+     * @param _nftTokens nft tokens for bid
+     * @param _profileURI uri to bid for
+     * @param _owner user who is making bid
+     * @param v sig for bid
+     * @param r sig for bid
+     * @param s sig for bid
+     * @param nftV sig for nftToken approval (optional / only required on when allowance = 0)
+     * @param nftR sig for nftToken approval (optional / only required on when allowance = 0)
+     * @param nftS sig for nftToken approval (optional / only required on when allowance = 0)
 
     */
-    function mintProfileFor(MintArgs[] calldata mintArgs) external nonReentrant {
+    function mintProfileFor(
+        uint256 _nftTokens,
+        bool _genKey,
+        string memory _profileURI,
+        address _owner,
+        uint8 v,
+        bytes32 r,
+        bytes32 s,
+        uint8 nftV,
+        bytes32 nftR,
+        bytes32 nftS
+    ) external nonReentrant validAndUnusedURI(_profileURI) {
         // checks
         require(msg.sender == minter, "NFT.com: UNAUTHORIZED");
+        bytes32 hash = requireValidBid_(_nftTokens, _genKey, _profileURI, _owner, Sig(v, r, s));
+        require(_nftTokens >= minimumBid, "NFT.com: bid < minimumBid");
+        require(!cancelledOrFinalized[hash]);
+        require(claimableBlock[hash] == 0);
+        require(genKeyOwner_(_owner) == _genKey, "NFT.com: !GEN_KEY");
 
-        // substract profiles to mint
-        profilesToMint = profilesToMint.sub(mintArgs.length);
+        // effects
+        claimableBlock[hash] = block.number;
 
-        for (uint256 i = 0; i < mintArgs.length; i++) {
-            require(validURI(mintArgs[i]._profileURI));
-            require(!INftProfile(nftProfile).tokenUsed(mintArgs[i]._profileURI));
-
-            bytes32 hash = requireValidBid_(
-                mintArgs[i]._nftTokens,
-                mintArgs[i]._genKey,
-                mintArgs[i]._profileURI,
-                mintArgs[i]._owner,
-                Sig(mintArgs[i].v, mintArgs[i].r, mintArgs[i].s)
-            );
-            require(mintArgs[i]._nftTokens >= minimumBid, "NFT.com: bid < minimumBid");
-            require(!cancelledOrFinalized[hash]);
-            require(claimableBlock[hash] == 0);
-            require(genKeyOwner_(mintArgs[i]._owner) == mintArgs[i]._genKey, "NFT.com: !GEN_KEY");
-
-            // effects
-            claimableBlock[hash] = block.number;
-
-            // interactions
-            // only apply approve permit for first time
-            if (IERC20Upgradeable(nftErc20Contract).allowance(mintArgs[i]._owner, address(this)) == 0) {
-                permitNFT(mintArgs[i]._owner, address(this), mintArgs[i].nftV, mintArgs[i].nftR, mintArgs[i].nftS); // approve NFT token
-            }
-
-            require(transferNftTokens(mintArgs[i]._owner, mintArgs[i]._nftTokens)); // transfer NFT token
-
-            emit NewClaimableProfile(
-                mintArgs[i]._owner,
-                mintArgs[i]._genKey,
-                mintArgs[i]._profileURI,
-                mintArgs[i]._nftTokens,
-                block.number
-            );
+        // interactions
+        // only apply approve permit for first time
+        if (IERC20Upgradeable(nftErc20Contract).allowance(_owner, address(this)) == 0) {
+            permitNFT(_owner, address(this), nftV, nftR, nftS); // approve NFT token
         }
+
+        require(transferNftTokens(_owner, _nftTokens)); // transfer NFT token
+
+        emit NewClaimableProfile(_owner, _genKey, _profileURI, _nftTokens, block.number);
     }
 
     /**
