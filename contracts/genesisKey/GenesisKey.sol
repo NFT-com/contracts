@@ -320,6 +320,11 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
         } else {
             // otherwise, take WETH
             require(transferWethTokens(msg.sender, currentWethPrice), "GEN_KEY: !weth");
+
+            // send extra ETH back to user
+            if (msg.value > 0) {
+                safeTransferETH(msg.sender, msg.value);
+            }
         }
 
         // interactions

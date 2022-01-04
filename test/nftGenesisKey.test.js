@@ -37,7 +37,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
     beforeEach(async function () {
       // Get the ContractFactory and Signers here.
       NftToken = await ethers.getContractFactory("NftToken");
-      [owner, second, addr1, ...addrs] = await ethers.getSigners();
+      [owner, second, addr1, addr2,...addrs] = await ethers.getSigners();
 
       const name = "NFT.com Genesis Key";
       const symbol = "NFTKEY";
@@ -261,7 +261,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       it("should allow a public auction to start, and not allow new blind auction bids", async function () {
         const initialWethPrice = convertBigNumber(3); // 3 eth starting price
         const finalWethPrice = convertSmallNumber(1); // 0.1 eth floor
-        const numKeysForSale = 2;
+        const numKeysForSale = 3;
 
         // initialized public auction
         await deployedGenesisKey.initializePublicSale(initialWethPrice, finalWethPrice, numKeysForSale);
@@ -295,13 +295,13 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         console.log("current eth price: ", Number(currentPrice) / 10 ** 18);
         expect(await deployedGenesisKey.totalSupply()).to.eq(0);
         expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(0);
-        expect(await deployedGenesisKey.numKeysForSale()).to.eq(2);
+        expect(await deployedGenesisKey.numKeysForSale()).to.eq(3);
 
         await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertBigNumber(3) });
 
         expect(await deployedGenesisKey.totalSupply()).to.eq(1);
         expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(1);
-        expect(await deployedGenesisKey.numKeysForSale()).to.eq(2);
+        expect(await deployedGenesisKey.numKeysForSale()).to.eq(3);
 
         // recycle ETH to re use for Testing
         await deployedGenesisKey.setMultiSig(ownerSigner.address); // send to self
@@ -311,9 +311,29 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         expect(await deployedGenesisKey.totalSupply()).to.eq(2);
         expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(2);
-        expect(await deployedGenesisKey.numKeysForSale()).to.eq(2);
+        expect(await deployedGenesisKey.numKeysForSale()).to.eq(3);
 
         await deployedGenesisKey.connect(owner).transferETH();
+
+        // should have enough WETH initially
+        const beforeBalance = await web3.eth.getBalance(owner.address);
+        expect(await deployedWETH.balanceOf(owner.address)).to.be.gt(convertBigNumber(3));
+
+        expect(await deployedWETH.balanceOf(addr2.address)).to.eq(0);
+
+        // not enough ETH, so should use WETH and refund ETH
+        await deployedGenesisKey.setMultiSig(addr2.address); // send to third party
+        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertBigNumber(1) });
+
+        const afterBalance = await web3.eth.getBalance(owner.address);
+
+        expect(Number(beforeBalance) - Number(afterBalance)).to.be.lt(10 ** 15); // small difference due to gas
+        expect(await deployedWETH.balanceOf(addr2.address)).to.gt(convertBigNumber(2));
+        expect(await deployedWETH.balanceOf(addr2.address)).to.lt(convertBigNumber(3));
+
+        expect(await deployedGenesisKey.totalSupply()).to.eq(3);
+        expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(3);
+        expect(await deployedGenesisKey.numKeysForSale()).to.eq(3);
 
         // reverts because no more NFTs left
         await expect(deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertBigNumber(3) })).to.be.reverted;
