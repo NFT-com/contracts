@@ -71,19 +71,22 @@ task("deploy:GenKey").setAction(async function (taskArguments, hre) {
 });
 
 task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
-  console.log(chalk.green('starting to upgrade...'));
+  console.log(chalk.green("starting to upgrade..."));
   const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuctionV2");
 
-  const upgradedProfileAuction = await hre.upgrades.upgradeProxy("0x2295828BBB9270cF92D29ed79bA0260d64fdF23f", ProfileAuction);
-  console.log(chalk.green('upgraded profile auction: ', upgradedProfileAuction.address));
+  const upgradedProfileAuction = await hre.upgrades.upgradeProxy(
+    "0x2295828BBB9270cF92D29ed79bA0260d64fdF23f",
+    ProfileAuction,
+  );
+  console.log(chalk.green("upgraded profile auction: ", upgradedProfileAuction.address));
 });
 
 task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
-  console.log(chalk.green('starting to upgrade...'));
+  console.log(chalk.green("starting to upgrade..."));
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
   const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0x9F6ED3d90D48573245d6a0c0742db4eCf27B6a56", GenesisKey);
-  console.log(chalk.green('upgraded profile auction: ', upgradedGenesisKey.address));
+  console.log(chalk.green("upgraded profile auction: ", upgradedGenesisKey.address));
 });
 
 task("deploy:GenesisKey").setAction(async function (taskArguments, hre) {
@@ -103,7 +106,6 @@ task("deploy:GenesisKey").setAction(async function (taskArguments, hre) {
   );
 
   console.log(chalk.green(`deployedGenesisKey: ${deployedGenesisKey.address}`));
-
 });
 
 task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
@@ -114,12 +116,10 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
   const minter = process.env.MINTER_ADDRESS;
   const coldWallet = process.env.COLD_WALLET_ADDRESS;
   const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
-  const deployedGenesisKeyAddress = ''; // TODO: fill in after genesis key is done
+  const deployedGenesisKeyAddress = ""; // TODO: fill in after genesis key is done
 
   const GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
   const NftStake = await hre.ethers.getContractFactory("PublicNftStake");
-
-
 
   const deployedNftToken = await NftToken.deploy();
   console.log(chalk.green(`deployedNftToken: ${deployedNftToken.address}`));

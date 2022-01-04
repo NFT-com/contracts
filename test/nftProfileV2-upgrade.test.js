@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const chalk = require('chalk');
+const chalk = require("chalk");
 const {
   convertBigNumber,
   convertSmallNumber,
@@ -170,9 +170,9 @@ describe("NFT Gasless Auction V2", function () {
 
       deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
 
-      console.log(chalk.green('starting to upgrade...'));
+      console.log(chalk.green("starting to upgrade..."));
       const upgradedProfileAuction = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2);
-      console.log(chalk.green('upgraded profile auction: ', upgradedProfileAuction.address));
+      console.log(chalk.green("upgraded profile auction: ", upgradedProfileAuction.address));
 
       await upgradedProfileAuction.addProfilesToMint(10000);
 

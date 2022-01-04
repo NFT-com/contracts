@@ -37,7 +37,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
     beforeEach(async function () {
       // Get the ContractFactory and Signers here.
       NftToken = await ethers.getContractFactory("NftToken");
-      [owner, second, addr1, addr2,...addrs] = await ethers.getSigners();
+      [owner, second, addr1, addr2, ...addrs] = await ethers.getSigners();
 
       const name = "NFT.com Genesis Key";
       const symbol = "NFTKEY";
