@@ -78,17 +78,17 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
   console.log(chalk.green('upgraded profile auction: ', upgradedProfileAuction.address));
 });
 
-task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
-  console.log(chalk.green(`initializing...`));
-
-  const NftToken = await hre.ethers.getContractFactory("NftToken");
-  const governor = process.env.GOVERNOR_ADDRESS;
-  const minter = process.env.MINTER_ADDRESS;
-  const coldWallet = process.env.COLD_WALLET_ADDRESS;
-
+task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green('starting to upgrade...'));
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
-  const GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
-  const NftStake = await hre.ethers.getContractFactory("PublicNftStake");
+
+  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0x9F6ED3d90D48573245d6a0c0742db4eCf27B6a56", GenesisKey);
+  console.log(chalk.green('upgraded profile auction: ', upgradedGenesisKey.address));
+});
+
+task("deploy:GenesisKey").setAction(async function (taskArguments, hre) {
+  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+  const governor = process.env.GOVERNOR_ADDRESS;
 
   const name = "NFT.com Genesis Key";
   const symbol = "NFTKEY";
@@ -104,13 +104,30 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
 
   console.log(chalk.green(`deployedGenesisKey: ${deployedGenesisKey.address}`));
 
+});
+
+task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green(`initializing...`));
+
+  const NftToken = await hre.ethers.getContractFactory("NftToken");
+  const governor = process.env.GOVERNOR_ADDRESS;
+  const minter = process.env.MINTER_ADDRESS;
+  const coldWallet = process.env.COLD_WALLET_ADDRESS;
+  const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
+  const deployedGenesisKeyAddress = ''; // TODO: fill in after genesis key is done
+
+  const GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
+  const NftStake = await hre.ethers.getContractFactory("PublicNftStake");
+
+
+
   const deployedNftToken = await NftToken.deploy();
   console.log(chalk.green(`deployedNftToken: ${deployedNftToken.address}`));
 
   const deployedNftGenesisStake = await GenesisStake.deploy(
     deployedNftToken.address,
     wethAddress,
-    deployedGenesisKey.address,
+    deployedGenesisKeyAddress,
   );
 
   console.log(chalk.green(`deployedNftGenesisStake: ${deployedNftGenesisStake.address}`));
@@ -147,7 +164,7 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
       governor,
       deployedNftProfileHelper.address,
       coldWallet,
-      deployedGenesisKey.address,
+      deployedGenesisKeyAddress,
       deployedNftGenesisStake.address,
       deployedNftStake.address,
     ],

@@ -73,6 +73,7 @@ describe("NFT.com Marketplace", function () {
       NftToken = await ethers.getContractFactory("NftToken");
       deployedNftToken = await NftToken.attach(NFT_RINKEBY_ADDRESS);
 
+      // the NFT profile is used for testing purposes as a random NFT being traded
       NftProfile = await ethers.getContractFactory("NftProfileV1");
       deployedNftProfile = await NftProfile.attach(NFT_PROFILE_RINKEBY);
 
