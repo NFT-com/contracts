@@ -101,6 +101,17 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
         numKeysPublicPurchased = 0;
     }
 
+    // TODO: delete for PROD!!!
+    function resetPublicSale() external {
+        require(startPublicSale, "GEN_KEY: sale must have started already");
+        initialWethPrice = 0;
+        finalWethPrice = 0;
+        publicSaleStartSecond = 0;
+        startPublicSale = false;
+        numKeysForSale = 0;
+        numKeysPublicPurchased = 0;
+    }
+
     // ======================================================================================
     function _domainSeparatorV4() internal view returns (bytes32) {
         bytes32 _TYPE_HASH = keccak256(

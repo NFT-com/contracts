@@ -19,7 +19,7 @@ ZERO_BYTES = `0x0000000000000000000000000000000000000000000000000000000000000000
 ## Rinkeby Address
 
 - [deployedGenesisKey](https://rinkeby.etherscan.io/address/0x9F6ED3d90D48573245d6a0c0742db4eCf27B6a56)
-  - implementation => 0x21339300db87e1be4ac9ee2a5f9efc36a3f51bc7
+  - implementation => 0xD011F0fD7A843403165Bc9cBeb2343064a1A34d1
 - [deployedNftToken](https://rinkeby.etherscan.io/address/0xa75F995f252ba5F7C17f834b314201271d32eC35)
 - [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0x1eCF99bB796fC05b6E409CE5d4682353A166852b)
 - [deployedNftStake](https://rinkeby.etherscan.io/address/0xB1f851f3a250Fc1FFdd4eDdFB3529BfFe379924B)
