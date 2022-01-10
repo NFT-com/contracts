@@ -191,6 +191,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
               [v0, v1],
               [r0, r1],
               [s0, s1],
+              [0, 1],
             ),
         )
           .to.emit(deployedWETH, "Transfer")
@@ -253,7 +254,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await expect(
           deployedGenesisKey
             .connect(owner)
-            .whitelistExecuteBid([convertBigNumber(1)], [ownerSigner.address], [v0], [r0], [s0]),
+            .whitelistExecuteBid([convertBigNumber(1)], [ownerSigner.address], [v0], [r0], [s0], [0]),
         ).to.be.reverted;
       });
 
@@ -288,7 +289,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await expect(
           deployedGenesisKey
             .connect(owner)
-            .whitelistExecuteBid([convertBigNumber(1)], [ownerSigner.address], [v0], [r0], [s0]),
+            .whitelistExecuteBid([convertBigNumber(1)], [ownerSigner.address], [v0], [r0], [s0], [0]),
         ).to.be.reverted;
 
         const currentPrice = await deployedGenesisKey.getCurrentPrice();
