@@ -4308,12 +4308,12 @@
     },
     {
       "address": "0xD18F43ec1ef2e59Cc1A3A4875118882A9B99bA5F",
-      "txHash": "0x844f46d7b3b9914df30a75011ea5604a0017a86a8f91e169369a79b0513b622f",
+      "txHash": "0xd4c72545df542d28ec10eaf6f755a18d214af1c3615ed21ef92de6aed7045a3a",
       "kind": "uups"
     },
     {
       "address": "0xf750384A480a9a0961d85877926a8080dB4570cA",
-      "txHash": "0x0b2db61228337efa643ecae5ab43e89c52d95d93d524b604aa7f5fa37b018de3",
+      "txHash": "0x25306d42b38b121f4ac079c048d0cc0a2ed1ae15571880c955905f09782cb182",
       "kind": "uups"
     },
     {
@@ -17138,7 +17138,7 @@
     },
     "f8c6aadc3ec45b8b3998ae071e702d623ed2f9e7e5b2acff975e9a98b6d8d7a3": {
       "address": "0xE73B373C251C8177D87758c2DfC7d10be8fFE553",
-      "txHash": "0x31cde18821b5935bb7b8b53938cfdac85d65dcc0ff3617f625b035f7e1a7998b",
+      "txHash": "0x621a3e0aec06f16219a56f01cb42bc7aa8d7eac50b5c32d78523c54a9fa29dee",
       "layout": {
         "storage": [
           {
@@ -17214,7 +17214,7 @@
     },
     "681a36ca0cbd3ac10b0f7f7b4b3f6b00eeb699f19c981b1967eca28163b1e4b8": {
       "address": "0x4076882Ea4710A68ccE3cDc087A1a0DCc0C982D9",
-      "txHash": "0xa9a66f62a2e700db67cf997445d0e30a4c571104c86226ae877d39b86eba25cb",
+      "txHash": "0x100394272305ca32eda24e36cd5be3fc3aeed9d005552211b82ef30bb8da3df3",
       "layout": {
         "storage": [
           {
@@ -17290,7 +17290,7 @@
     },
     "77584bbeab597ac519ad18aee70240da945c483d0d37813960ef31b8ba705505": {
       "address": "0x15a55Ef34469cd39a4f5bd897d3812E2a47F9268",
-      "txHash": "0xf8b881719c303c23c2b373aec10279fda9ca077d49dfcbb0d704af22b48f9987",
+      "txHash": "0x2639e5d43c34fab32e20208120db42acdb56035fdd24fc125b1413b8bd4c9e48",
       "layout": {
         "storage": [
           {
@@ -17640,7 +17640,7 @@
           {
             "contract": "NftProfileV1",
             "label": "_profileDetails",
-            "type": "t_mapping(t_uint256,t_struct(Bid)14272_storage)",
+            "type": "t_mapping(t_uint256,t_struct(Bid)14287_storage)",
             "src": "contracts/domain/NftProfileV1.sol:32"
           },
           {
@@ -17700,10 +17700,10 @@
           "t_mapping(t_string_memory_ptr,t_uint256)": {
             "label": "mapping(string => uint256)"
           },
-          "t_mapping(t_uint256,t_struct(Bid)14272_storage)": {
+          "t_mapping(t_uint256,t_struct(Bid)14287_storage)": {
             "label": "mapping(uint256 => struct Bid)"
           },
-          "t_struct(Bid)14272_storage": {
+          "t_struct(Bid)14287_storage": {
             "label": "struct Bid",
             "members": [
               {
@@ -18027,404 +18027,6 @@
         }
       }
     },
-    "20cbad2900359865a011e40eec243440bc9430343bc99b514b1cb25d8abaa6f8": {
-      "address": "0xBF216D9B80b3B07cD1B8233574644e68680fc3C0",
-      "txHash": "0x0bcbadafd4e450b12c529d2736f617ec14eeb025280fbeaec380b0a895c4f720",
-      "layout": {
-        "storage": [
-          {
-            "contract": "Initializable",
-            "label": "_initialized",
-            "type": "t_bool",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
-          },
-          {
-            "contract": "Initializable",
-            "label": "_initializing",
-            "type": "t_bool",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
-          },
-          {
-            "contract": "ERC1967UpgradeUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
-          },
-          {
-            "contract": "UUPSUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
-          },
-          {
-            "contract": "ReentrancyGuardUpgradeable",
-            "label": "_status",
-            "type": "t_uint256",
-            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
-          },
-          {
-            "contract": "ReentrancyGuardUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)49_storage",
-            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "cancelledOrFinalized",
-            "type": "t_mapping(t_bytes32,t_bool)",
-            "src": "contracts/domain/ProfileAuctionV2.sol:23"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "claimableBlock",
-            "type": "t_mapping(t_bytes32,t_uint256)",
-            "src": "contracts/domain/ProfileAuctionV2.sol:24"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "approvedBids",
-            "type": "t_mapping(t_bytes32,t_bool)",
-            "src": "contracts/domain/ProfileAuctionV2.sol:25"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "governor",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:27"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "minter",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:28"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "owner",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:29"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "nftErc20Contract",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:30"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "nftProfile",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:31"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "genesisStakingContract",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:32"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "publicStakingContract",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:33"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "nftProfileHelperAddress",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:34"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "coldWallet",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:35"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "genesisKeyContract",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:36"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "genesisKeyPercent",
-            "type": "t_uint256",
-            "src": "contracts/domain/ProfileAuctionV2.sol:40"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "publicPoolPercent",
-            "type": "t_uint256",
-            "src": "contracts/domain/ProfileAuctionV2.sol:41"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "minimumBid",
-            "type": "t_uint256",
-            "src": "contracts/domain/ProfileAuctionV2.sol:42"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "profilesToMint",
-            "type": "t_uint256",
-            "src": "contracts/domain/ProfileAuctionV2.sol:43"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "oneTimeGenesisKeyMint",
-            "type": "t_bool",
-            "src": "contracts/domain/ProfileAuctionV2.sol:44"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "genesisKeyClaim",
-            "type": "t_mapping(t_string_memory_ptr,t_address)",
-            "src": "contracts/domain/ProfileAuctionV2.sol:46"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "genesisKeyClaimNumber",
-            "type": "t_mapping(t_uint256,t_uint256)",
-            "src": "contracts/domain/ProfileAuctionV2.sol:47"
-          }
-        ],
-        "types": {
-          "t_mapping(t_bytes32,t_bool)": {
-            "label": "mapping(bytes32 => bool)"
-          },
-          "t_bytes32": {
-            "label": "bytes32"
-          },
-          "t_bool": {
-            "label": "bool"
-          },
-          "t_mapping(t_bytes32,t_uint256)": {
-            "label": "mapping(bytes32 => uint256)"
-          },
-          "t_uint256": {
-            "label": "uint256"
-          },
-          "t_address": {
-            "label": "address"
-          },
-          "t_mapping(t_string_memory_ptr,t_address)": {
-            "label": "mapping(string => address)"
-          },
-          "t_string_storage": {
-            "label": "string"
-          },
-          "t_mapping(t_uint256,t_uint256)": {
-            "label": "mapping(uint256 => uint256)"
-          },
-          "t_array(t_uint256)49_storage": {
-            "label": "uint256[49]"
-          },
-          "t_array(t_uint256)50_storage": {
-            "label": "uint256[50]"
-          }
-        }
-      }
-    },
-    "7af943f6502e71633e9e596a113a4c2bc0fffb5fb7d2946e37a9a53b3cc7c72c": {
-      "address": "0x1121Dcb87352f1DEe7db431F4dAf9D3380eFe932",
-      "txHash": "0x7b731f3a06972d58d73a8cfa530d665f195b8e9b8b4149fc1521c84230464c59",
-      "layout": {
-        "storage": [
-          {
-            "contract": "Initializable",
-            "label": "_initialized",
-            "type": "t_bool",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
-          },
-          {
-            "contract": "Initializable",
-            "label": "_initializing",
-            "type": "t_bool",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
-          },
-          {
-            "contract": "ERC1967UpgradeUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
-          },
-          {
-            "contract": "UUPSUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
-          },
-          {
-            "contract": "ReentrancyGuardUpgradeable",
-            "label": "_status",
-            "type": "t_uint256",
-            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
-          },
-          {
-            "contract": "ReentrancyGuardUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)49_storage",
-            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "cancelledOrFinalized",
-            "type": "t_mapping(t_bytes32,t_bool)",
-            "src": "contracts/domain/ProfileAuctionV2.sol:23"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "claimableBlock",
-            "type": "t_mapping(t_bytes32,t_uint256)",
-            "src": "contracts/domain/ProfileAuctionV2.sol:24"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "approvedBids",
-            "type": "t_mapping(t_bytes32,t_bool)",
-            "src": "contracts/domain/ProfileAuctionV2.sol:25"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "governor",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:27"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "minter",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:28"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "owner",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:29"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "nftErc20Contract",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:30"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "nftProfile",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:31"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "genesisStakingContract",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:32"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "publicStakingContract",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:33"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "nftProfileHelperAddress",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:34"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "coldWallet",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:35"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "genesisKeyContract",
-            "type": "t_address",
-            "src": "contracts/domain/ProfileAuctionV2.sol:36"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "genesisKeyPercent",
-            "type": "t_uint256",
-            "src": "contracts/domain/ProfileAuctionV2.sol:40"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "publicPoolPercent",
-            "type": "t_uint256",
-            "src": "contracts/domain/ProfileAuctionV2.sol:41"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "minimumBid",
-            "type": "t_uint256",
-            "src": "contracts/domain/ProfileAuctionV2.sol:42"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "profilesToMint",
-            "type": "t_uint256",
-            "src": "contracts/domain/ProfileAuctionV2.sol:43"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "oneTimeGenesisKeyMint",
-            "type": "t_bool",
-            "src": "contracts/domain/ProfileAuctionV2.sol:44"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "genesisKeyClaim",
-            "type": "t_mapping(t_string_memory_ptr,t_address)",
-            "src": "contracts/domain/ProfileAuctionV2.sol:46"
-          },
-          {
-            "contract": "ProfileAuctionV2",
-            "label": "genesisKeyClaimNumber",
-            "type": "t_mapping(t_uint256,t_uint256)",
-            "src": "contracts/domain/ProfileAuctionV2.sol:47"
-          }
-        ],
-        "types": {
-          "t_mapping(t_bytes32,t_bool)": {
-            "label": "mapping(bytes32 => bool)"
-          },
-          "t_bytes32": {
-            "label": "bytes32"
-          },
-          "t_bool": {
-            "label": "bool"
-          },
-          "t_mapping(t_bytes32,t_uint256)": {
-            "label": "mapping(bytes32 => uint256)"
-          },
-          "t_uint256": {
-            "label": "uint256"
-          },
-          "t_address": {
-            "label": "address"
-          },
-          "t_mapping(t_string_memory_ptr,t_address)": {
-            "label": "mapping(string => address)"
-          },
-          "t_string_storage": {
-            "label": "string"
-          },
-          "t_mapping(t_uint256,t_uint256)": {
-            "label": "mapping(uint256 => uint256)"
-          },
-          "t_array(t_uint256)49_storage": {
-            "label": "uint256[49]"
-          },
-          "t_array(t_uint256)50_storage": {
-            "label": "uint256[50]"
-          }
-        }
-      }
-    },
     "5d5ab0e1bc66fe6ff684225a783cc7a75a8189915807d7ce6e4fb795872b97a9": {
       "address": "0xf10CBC4BCc317360484CBe164B349e27F8d1c063",
       "txHash": "0x76888755f14e27123c7839c5859ae15b16dde0fb83daf5b5ca863760738612d3",
@@ -18689,6 +18291,404 @@
           },
           "t_array(t_uint256)44_storage": {
             "label": "uint256[44]"
+          }
+        }
+      }
+    },
+    "d2bbe8eeaf3f4a50db4ec9720ce60a9cdb91457b754f89646f806fd01b1df944": {
+      "address": "0xBF216D9B80b3B07cD1B8233574644e68680fc3C0",
+      "txHash": "0xc36edb3c734987e385d4f1debfd5c5ea336728f2798ea03ba6cda5005ec590be",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "cancelledOrFinalized",
+            "type": "t_mapping(t_bytes32,t_bool)",
+            "src": "contracts/domain/ProfileAuctionV2.sol:23"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "claimableBlock",
+            "type": "t_mapping(t_bytes32,t_uint256)",
+            "src": "contracts/domain/ProfileAuctionV2.sol:24"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "approvedBids",
+            "type": "t_mapping(t_bytes32,t_bool)",
+            "src": "contracts/domain/ProfileAuctionV2.sol:25"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "governor",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:27"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "minter",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:28"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:29"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "nftErc20Contract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:30"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "nftProfile",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:31"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "genesisStakingContract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:32"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "publicStakingContract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:33"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "nftProfileHelperAddress",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:34"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "coldWallet",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:35"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "genesisKeyContract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:36"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "genesisKeyPercent",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV2.sol:40"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "publicPoolPercent",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV2.sol:41"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "minimumBid",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV2.sol:42"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "profilesToMint",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV2.sol:43"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "oneTimeGenesisKeyMint",
+            "type": "t_bool",
+            "src": "contracts/domain/ProfileAuctionV2.sol:44"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "genesisKeyClaim",
+            "type": "t_mapping(t_string_memory_ptr,t_address)",
+            "src": "contracts/domain/ProfileAuctionV2.sol:46"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "genesisKeyClaimNumber",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "contracts/domain/ProfileAuctionV2.sol:47"
+          }
+        ],
+        "types": {
+          "t_mapping(t_bytes32,t_bool)": {
+            "label": "mapping(bytes32 => bool)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_string_memory_ptr,t_address)": {
+            "label": "mapping(string => address)"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "0a64611b3256cbb26b8f8587593559f8e3da131f9e4fc3db5eca376b178479a4": {
+      "address": "0x1121Dcb87352f1DEe7db431F4dAf9D3380eFe932",
+      "txHash": "0xb6eb70d70e1c8d5597f79334ddaaaa892d768c9abed549e0b97e625555aa8bcc",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "cancelledOrFinalized",
+            "type": "t_mapping(t_bytes32,t_bool)",
+            "src": "contracts/domain/ProfileAuctionV2.sol:23"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "claimableBlock",
+            "type": "t_mapping(t_bytes32,t_uint256)",
+            "src": "contracts/domain/ProfileAuctionV2.sol:24"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "approvedBids",
+            "type": "t_mapping(t_bytes32,t_bool)",
+            "src": "contracts/domain/ProfileAuctionV2.sol:25"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "governor",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:27"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "minter",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:28"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:29"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "nftErc20Contract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:30"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "nftProfile",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:31"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "genesisStakingContract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:32"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "publicStakingContract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:33"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "nftProfileHelperAddress",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:34"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "coldWallet",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:35"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "genesisKeyContract",
+            "type": "t_address",
+            "src": "contracts/domain/ProfileAuctionV2.sol:36"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "genesisKeyPercent",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV2.sol:40"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "publicPoolPercent",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV2.sol:41"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "minimumBid",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV2.sol:42"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "profilesToMint",
+            "type": "t_uint256",
+            "src": "contracts/domain/ProfileAuctionV2.sol:43"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "oneTimeGenesisKeyMint",
+            "type": "t_bool",
+            "src": "contracts/domain/ProfileAuctionV2.sol:44"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "genesisKeyClaim",
+            "type": "t_mapping(t_string_memory_ptr,t_address)",
+            "src": "contracts/domain/ProfileAuctionV2.sol:46"
+          },
+          {
+            "contract": "ProfileAuctionV2",
+            "label": "genesisKeyClaimNumber",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "src": "contracts/domain/ProfileAuctionV2.sol:47"
+          }
+        ],
+        "types": {
+          "t_mapping(t_bytes32,t_bool)": {
+            "label": "mapping(bytes32 => bool)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_string_memory_ptr,t_address)": {
+            "label": "mapping(string => address)"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
           }
         }
       }
