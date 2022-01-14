@@ -1,13 +1,6 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const {
-  convertBigNumber,
-  convertSmallNumber,
-  sign,
-  getDigest,
-  getHash,
-  GENESIS_KEY_TYPEHASH,
-} = require("./utils/sign-utils");
+const { convertTinyNumber, sign, getDigest, getHash, GENESIS_KEY_TYPEHASH } = require("./utils/sign-utils");
 
 const DECIMALS = 18;
 
@@ -161,11 +154,11 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           deployedGenesisKey.address,
           getHash(
             ["bytes32", "uint256", "address"],
-            [GENESIS_KEY_TYPEHASH, convertBigNumber(1), ownerSigner.address], // 1 WETH
+            [GENESIS_KEY_TYPEHASH, convertTinyNumber(1), ownerSigner.address], // 1 WETH
           ),
         );
 
-        await deployedWETH.connect(owner).transfer(second.address, convertSmallNumber(2));
+        await deployedWETH.connect(owner).transfer(second.address, convertTinyNumber(2));
 
         const genesisKeyBid2 = await getDigest(
           ethers.provider,
@@ -173,7 +166,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           deployedGenesisKey.address,
           getHash(
             ["bytes32", "uint256", "address"],
-            [GENESIS_KEY_TYPEHASH, convertSmallNumber(2), secondSigner.address], // 1 WETH
+            [GENESIS_KEY_TYPEHASH, convertTinyNumber(2), secondSigner.address], // 1 WETH
           ),
         );
 
@@ -186,7 +179,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           deployedGenesisKey
             .connect(owner)
             .whitelistExecuteBid(
-              [convertBigNumber(1), convertSmallNumber(2)],
+              [convertTinyNumber(1), convertTinyNumber(2)],
               [ownerSigner.address, secondSigner.address],
               [v0, v1],
               [r0, r1],
@@ -195,27 +188,26 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
             ),
         )
           .to.emit(deployedWETH, "Transfer")
-          .withArgs(ownerSigner.address, addr1.address, convertSmallNumber(10));
+          .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
 
         expect(await deployedWETH.balanceOf(addr1.address)).to.eq(
-          BigNumber.from(beforeWethAddr1).add(convertSmallNumber(12)),
+          BigNumber.from(beforeWethAddr1).add(convertTinyNumber(3)),
         );
 
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(0);
 
         // make sure genesis key can be claimed
-        await deployedGenesisKey.connect(owner).claimKey(convertBigNumber(1), ownerSigner.address, v0, r0, s0);
+        await deployedGenesisKey.connect(owner).claimKey(convertTinyNumber(1), ownerSigner.address, v0, r0, s0);
 
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(1);
 
         expect(await deployedGenesisKey.tokenURI(0)).to.be.equal("https://api.nft.com/genesis-key/0");
 
         // fail because owner != secondSigner, who is the only one who can claim
-        await expect(
-          deployedGenesisKey.connect(owner).claimKey(convertSmallNumber(2), secondSigner.address, v1, r1, s1),
-        ).to.be.reverted;
+        await expect(deployedGenesisKey.connect(owner).claimKey(convertTinyNumber(2), secondSigner.address, v1, r1, s1))
+          .to.be.reverted;
 
-        await deployedGenesisKey.connect(second).claimKey(convertSmallNumber(2), secondSigner.address, v1, r1, s1);
+        await deployedGenesisKey.connect(second).claimKey(convertTinyNumber(2), secondSigner.address, v1, r1, s1);
 
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(2);
 
@@ -242,26 +234,26 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           deployedGenesisKey.address,
           getHash(
             ["bytes32", "uint256", "address"],
-            [GENESIS_KEY_TYPEHASH, convertBigNumber(1), ownerSigner.address], // 1 WETH
+            [GENESIS_KEY_TYPEHASH, convertTinyNumber(1), ownerSigner.address], // 1 WETH
           ),
         );
 
         const { v: v0, r: r0, s: s0 } = sign(genesisKeyBid, ownerSigner);
 
-        await deployedGenesisKey.connect(owner).cancelBid(convertBigNumber(1), ownerSigner.address, v0, r0, s0);
+        await deployedGenesisKey.connect(owner).cancelBid(convertTinyNumber(1), ownerSigner.address, v0, r0, s0);
 
         // reverts because the bid was cancelled
         await expect(
           deployedGenesisKey
             .connect(owner)
-            .whitelistExecuteBid([convertBigNumber(1)], [ownerSigner.address], [v0], [r0], [s0], [0]),
+            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0], [0]),
         ).to.be.reverted;
       });
 
       // start public auction
       it("should allow a public auction to start, and not allow new blind auction bids", async function () {
-        const initialWethPrice = convertBigNumber(3); // 3 eth starting price
-        const finalWethPrice = convertSmallNumber(1); // 0.1 eth floor
+        const initialWethPrice = convertTinyNumber(3); // 0.03 eth starting price
+        const finalWethPrice = convertTinyNumber(1); // 0.01 eth floor
         const numKeysForSale = 3;
 
         // initialized public auction
@@ -279,7 +271,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           deployedGenesisKey.address,
           getHash(
             ["bytes32", "uint256", "address"],
-            [GENESIS_KEY_TYPEHASH, convertBigNumber(1), ownerSigner.address], // 1 WETH
+            [GENESIS_KEY_TYPEHASH, convertTinyNumber(1), ownerSigner.address], // 0.01 WETH
           ),
         );
 
@@ -289,7 +281,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await expect(
           deployedGenesisKey
             .connect(owner)
-            .whitelistExecuteBid([convertBigNumber(1)], [ownerSigner.address], [v0], [r0], [s0], [0]),
+            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0], [0]),
         ).to.be.reverted;
 
         const currentPrice = await deployedGenesisKey.getCurrentPrice();
@@ -298,7 +290,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(0);
         expect(await deployedGenesisKey.numKeysForSale()).to.eq(3);
 
-        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertBigNumber(3) });
+        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertTinyNumber(3) });
 
         expect(await deployedGenesisKey.totalSupply()).to.eq(1);
         expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(1);
@@ -308,7 +300,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await deployedGenesisKey.setMultiSig(ownerSigner.address); // send to self
         await deployedGenesisKey.connect(owner).transferETH();
 
-        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertBigNumber(3) });
+        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertTinyNumber(3) });
 
         expect(await deployedGenesisKey.totalSupply()).to.eq(2);
         expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(2);
@@ -318,26 +310,27 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         // should have enough WETH initially
         const beforeBalance = await web3.eth.getBalance(owner.address);
-        expect(await deployedWETH.balanceOf(owner.address)).to.be.gt(convertBigNumber(3));
+        expect(await deployedWETH.balanceOf(owner.address)).to.be.gt(convertTinyNumber(3));
 
         expect(await deployedWETH.balanceOf(addr2.address)).to.eq(0);
 
         // not enough ETH, so should use WETH and refund ETH
         await deployedGenesisKey.setMultiSig(addr2.address); // send to third party
-        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertBigNumber(1) });
+        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertTinyNumber(1) });
 
         const afterBalance = await web3.eth.getBalance(owner.address);
 
         expect(Number(beforeBalance) - Number(afterBalance)).to.be.lt(10 ** 15); // small difference due to gas
-        expect(await deployedWETH.balanceOf(addr2.address)).to.gt(convertBigNumber(2));
-        expect(await deployedWETH.balanceOf(addr2.address)).to.lt(convertBigNumber(3));
+        expect(await deployedWETH.balanceOf(addr2.address)).to.gt(convertTinyNumber(2));
+        expect(await deployedWETH.balanceOf(addr2.address)).to.lt(convertTinyNumber(3));
 
         expect(await deployedGenesisKey.totalSupply()).to.eq(3);
         expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(3);
         expect(await deployedGenesisKey.numKeysForSale()).to.eq(3);
 
         // reverts because no more NFTs left
-        await expect(deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertBigNumber(3) })).to.be.reverted;
+        await expect(deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertTinyNumber(3) })).to.be
+          .reverted;
       });
     });
 

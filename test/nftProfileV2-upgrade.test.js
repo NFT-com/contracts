@@ -116,6 +116,7 @@ describe("NFT Gasless Auction V2", function () {
             [v0, v1],
             [r0, r1],
             [s0, s1],
+            [0, 1],
           ),
       )
         .to.emit(deployedWETH, "Transfer")
@@ -466,6 +467,140 @@ describe("NFT Gasless Auction V2", function () {
             .connect(owner)
             .claimProfile(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0),
         ).to.be.reverted;
+      });
+
+      it("should allow a non-genesis key bid to correctly win after receiving a genesis key", async function () {
+        const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+
+        // permit NFT tokens
+        const nftTokenPermitDigest = await getDigest(
+          ethers.provider,
+          "NFT.com",
+          deployedNftToken.address,
+          getHash(
+            ["bytes32", "address", "address", "uint256", "uint256", "uint256"],
+            [ERC20_PERMIT_TYPEHASH, ownerSigner.address, deployedProfileAuction.address, MAX_UINT, 0, MAX_UINT],
+          ),
+        );
+
+        // domain separator V4
+        const nftProfileBid = await getDigest(
+          ethers.provider,
+          "NFT.com Domain Auction",
+          deployedProfileAuction.address,
+          getHash(
+            ["bytes32", "uint256", "bool", "string", "address"],
+            [BID_TYPEHASH, BigNumber.from(10000), false, "satoshi", ownerSigner.address],
+          ),
+        );
+
+        expect(await deployedNftToken.balanceOf(ownerSigner.address)).to.be.equal("10000000000000000000000000000");
+        expect(await deployedNftToken.allowance(ownerSigner.address, deployedProfileAuction.address)).to.be.equal(0);
+
+        const { v: nftV, r: nftR, s: nftS } = sign(nftTokenPermitDigest, ownerSigner);
+        const { v: v0, r: r0, s: s0 } = sign(nftProfileBid, ownerSigner);
+
+        await expect(
+          deployedProfileAuction
+            .connect(owner)
+            .mintProfileFor([
+              [BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS],
+            ]),
+        )
+          .to.emit(deployedNftToken, "Transfer")
+          .withArgs(ownerSigner.address, deployedProfileAuction.address, 10000);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
+
+        // make sure profile can be claimed
+        await deployedProfileAuction
+          .connect(owner)
+          .claimProfile(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
+
+        expect(await deployedNftProfile.tokenURI(0)).to.be.equal("https://api.nft.com/uri/satoshi");
+      });
+
+      it("should NOT allow a genesis key bid to win after sending away genesis key", async function () {
+        const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+        const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
+
+        // permit NFT tokens
+        const nftTokenPermitDigest = await getDigest(
+          ethers.provider,
+          "NFT.com",
+          deployedNftToken.address,
+          getHash(
+            ["bytes32", "address", "address", "uint256", "uint256", "uint256"],
+            [ERC20_PERMIT_TYPEHASH, ownerSigner.address, deployedProfileAuction.address, MAX_UINT, 0, MAX_UINT],
+          ),
+        );
+
+        // domain separator V4
+        const nftProfileBid = await getDigest(
+          ethers.provider,
+          "NFT.com Domain Auction",
+          deployedProfileAuction.address,
+          getHash(
+            ["bytes32", "uint256", "bool", "string", "address"],
+            [BID_TYPEHASH, BigNumber.from(10000), true, "satoshi", ownerSigner.address],
+          ),
+        );
+
+        expect(await deployedNftToken.balanceOf(ownerSigner.address)).to.be.equal("10000000000000000000000000000");
+        expect(await deployedNftToken.allowance(ownerSigner.address, deployedProfileAuction.address)).to.be.equal(0);
+
+        const { v: nftV, r: nftR, s: nftS } = sign(nftTokenPermitDigest, ownerSigner);
+        const { v: v0, r: r0, s: s0 } = sign(nftProfileBid, ownerSigner);
+
+        expect(await deployedGenesisKey.balanceOf(ownerSigner.address)).to.eq(1);
+        expect(await deployedGenesisKey.balanceOf(secondSigner.address)).to.eq(1);
+
+        // send away genesis key
+        await deployedGenesisKey.connect(owner).transferFrom(ownerSigner.address, secondSigner.address, 0);
+
+        expect(await deployedGenesisKey.balanceOf(ownerSigner.address)).to.eq(0);
+        expect(await deployedGenesisKey.balanceOf(secondSigner.address)).to.eq(2);
+
+        await expect(
+          deployedProfileAuction
+            .connect(owner)
+            .mintProfileFor([
+              [BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS],
+            ]),
+        ).to.be.reverted;
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
+      });
+
+      it("should allow us to whitelist a genesis key owner to win 2 profiles", async function () {
+        const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+        const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
+
+        // allow minting
+        await deployedProfileAuction.connect(owner).setGenesisMint(true);
+
+        // test public function
+        expect(await deployedProfileAuction.genKeyOwner(ownerSigner.address)).to.be.equal(true);
+        expect(await deployedProfileAuction.genKeyOwner(secondSigner.address)).to.be.equal(true);
+
+        await deployedProfileAuction.connect(owner).whitelistGenesisMint([
+          ["hello", ownerSigner.address],
+          ["hello2", secondSigner.address],
+        ]);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
+
+        await deployedProfileAuction.connect(owner).whitelistGenesisClaim("hello", 0);
+        await expect(deployedProfileAuction.connect(second).whitelistGenesisClaim("hello2", 0)).to.be.reverted;
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
+
+        await expect(deployedProfileAuction.connect(owner).whitelistGenesisClaim("hello2", 0)).to.be.reverted;
+        await deployedProfileAuction.connect(second).whitelistGenesisClaim("hello2", 1);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
       });
 
       it("should upgrade profile contract to V3", async function () {

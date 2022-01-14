@@ -30,6 +30,10 @@ export const convertSmallNumber = (tokens: number): BigNumberish => {
   return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(17)));
 };
 
+export const convertTinyNumber = (tokens: number): BigNumberish => {
+  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(16)));
+};
+
 export const ASSET_TYPE_TYPEHASH = convertToHash("AssetType(bytes4 assetClass,bytes data)");
 
 export const ASSET_TYPEHASH = convertToHash(

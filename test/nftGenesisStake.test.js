@@ -1,8 +1,7 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const {
-  convertBigNumber,
-  convertSmallNumber,
+  convertTinyNumber,
   sign,
   getDigest,
   getHash,
@@ -63,11 +62,11 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
         deployedGenesisKey.address,
         getHash(
           ["bytes32", "uint256", "address"],
-          [GENESIS_KEY_TYPEHASH, convertBigNumber(1), ownerSigner.address], // 1 WETH
+          [GENESIS_KEY_TYPEHASH, convertTinyNumber(1), ownerSigner.address], // 1 WETH
         ),
       );
 
-      await deployedWETH.connect(owner).transfer(second.address, convertSmallNumber(2));
+      await deployedWETH.connect(owner).transfer(second.address, convertTinyNumber(2));
 
       const genesisKeyBid2 = await getDigest(
         ethers.provider,
@@ -75,7 +74,7 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
         deployedGenesisKey.address,
         getHash(
           ["bytes32", "uint256", "address"],
-          [GENESIS_KEY_TYPEHASH, convertSmallNumber(2), secondSigner.address], // 1 WETH
+          [GENESIS_KEY_TYPEHASH, convertTinyNumber(2), secondSigner.address], // 1 WETH
         ),
       );
 
@@ -86,21 +85,22 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
         deployedGenesisKey
           .connect(owner)
           .whitelistExecuteBid(
-            [convertBigNumber(1), convertSmallNumber(2)],
+            [convertTinyNumber(1), convertTinyNumber(2)],
             [ownerSigner.address, secondSigner.address],
             [v0, v1],
             [r0, r1],
             [s0, s1],
+            [0, 1],
           ),
       )
         .to.emit(deployedWETH, "Transfer")
-        .withArgs(ownerSigner.address, addr1.address, convertSmallNumber(10));
+        .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
 
       // owner now has 1 genesis key
-      await deployedGenesisKey.connect(owner).claimKey(convertBigNumber(1), ownerSigner.address, v0, r0, s0);
+      await deployedGenesisKey.connect(owner).claimKey(convertTinyNumber(1), ownerSigner.address, v0, r0, s0);
 
       // second now has 1 genesis key
-      await deployedGenesisKey.connect(second).claimKey(convertSmallNumber(2), secondSigner.address, v1, r1, s1);
+      await deployedGenesisKey.connect(second).claimKey(convertTinyNumber(2), secondSigner.address, v1, r1, s1);
 
       NftStake = await ethers.getContractFactory("GenesisNftStake");
       deployedNftGenesisStake = await NftStake.deploy(
@@ -109,7 +109,8 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
         deployedGenesisKey.address,
       );
 
-      await owner.sendTransaction({ to: addr1.address, value: convertSmallNumber(1) });
+      await owner.sendTransaction({ to: addr1.address, value: convertTinyNumber(1) });
+
       await deployedWETH.connect(addr1).transfer(ownerSigner.address, await deployedWETH.balanceOf(addr1.address));
     });
 

@@ -114,6 +114,7 @@ describe("NFT Gasless Auction V1", function () {
             [v0, v1],
             [r0, r1],
             [s0, s1],
+            [0, 1],
           ),
       )
         .to.emit(deployedWETH, "Transfer")
