@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
-contract NftProfileV1 is
+contract NftProfile is
     Initializable,
     ERC721EnumerableUpgradeable,
     ReentrancyGuardUpgradeable,

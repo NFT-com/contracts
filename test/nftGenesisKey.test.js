@@ -58,7 +58,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
       deployedNftToken = await NftToken.deploy();
 
-      NftProfile = await ethers.getContractFactory("NftProfileV1");
+      NftProfile = await ethers.getContractFactory("NftProfile");
       deployedNftProfile = await upgrades.deployProxy(
         NftProfile,
         [
