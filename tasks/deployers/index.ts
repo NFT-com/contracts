@@ -2,9 +2,9 @@ import { task } from "hardhat/config";
 import chalk from "chalk";
 
 task("upgrade:ProfileAuction").setAction(async function (taskArguments, { ethers, upgrades }) {
-  const ProfileAuction1 = await ethers.getContractFactory("ProfileAuctionV1");
+  const ProfileAuction = await ethers.getContractFactory("ProfileAuction");
 
-  await upgrades.upgradeProxy("0x7d4dDE9418f2c2d2D895C09e81155E1AB08aE236", ProfileAuction1);
+  await upgrades.upgradeProxy("0x7d4dDE9418f2c2d2D895C09e81155E1AB08aE236", ProfileAuction);
 });
 
 task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
@@ -141,7 +141,7 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
 
   console.log(chalk.green(`deployedNftProfileHelper: ${deployedNftProfileHelper.address}`));
 
-  const NftProfile = await hre.ethers.getContractFactory("NftProfileV1");
+  const NftProfile = await hre.ethers.getContractFactory("NftProfile");
   const deployedNftProfileProxy = await hre.upgrades.deployProxy(
     NftProfile,
     [

@@ -49,8 +49,8 @@ describe("NFT Gasless Auction V2", function () {
       GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
       GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
       NftStake = await hre.ethers.getContractFactory("PublicNftStake");
-      NftProfile = await hre.ethers.getContractFactory("NftProfileV1");
-      ProfileAuction = await hre.ethers.getContractFactory("ProfileAuctionV1");
+      NftProfile = await hre.ethers.getContractFactory("NftProfile");
+      ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
       ProfileAuctionV2 = await hre.ethers.getContractFactory("ProfileAuctionV2");
 
       [owner, second, addr1, ...addrs] = await ethers.getSigners();
@@ -596,14 +596,14 @@ describe("NFT Gasless Auction V2", function () {
         expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
       });
 
-      it("should upgrade profile contract to V3", async function () {
-        const ProfileAuctionV3 = await ethers.getContractFactory("ProfileAuctionV3");
+      it("should upgrade profile contract to V2", async function () {
+        const ProfileAuctionV2 = await ethers.getContractFactory("ProfileAuctionV2");
 
-        let deployedProfileAuctionV3 = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV3);
+        let deployedProfileAuctionV2 = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2);
 
-        expect(await deployedProfileAuctionV3.getVariable()).to.be.equal("hello");
+        expect(await deployedProfileAuctionV2.getVariable()).to.be.equal("hello");
 
-        expect(await deployedProfileAuctionV3.testFunction()).to.be.equal(12345);
+        expect(await deployedProfileAuctionV2.testFunction()).to.be.equal(12345);
       });
     });
   } catch (err) {
