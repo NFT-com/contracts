@@ -402,14 +402,11 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
 
     function whitelistGenesisClaim(string memory _profileURI, uint256 _tokenId) external nonReentrant {
         require(oneTimeGenesisKeyMint && genesisKeyClaim[_profileURI] == msg.sender, "NFT.com: UNAUTHORIZED");
-        require(validGenKey(msg.sender, true), "NFT.com: !GEN_KEY");
-
-        // msg.sender must have genesis key
         require(
-            IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(_tokenId) == msg.sender &&
-                genesisKeyClaimNumber[_tokenId] != 2,
+            IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(_tokenId) == msg.sender && // msg.sender must have genesis key
+                genesisKeyClaimNumber[_tokenId] != 2, // no more than 2 free claims
             "NFT.com: token ID"
-        ); // no more than 2 free claims
+        );
 
         genesisKeyClaimNumber[_tokenId] = genesisKeyClaimNumber[_tokenId].add(1);
 
@@ -448,16 +445,6 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
             // effects
             claimableBlock[hash] = block.number;
 
-            // interactions
-            // only apply if nftTokens > 0 OR approve permit for first time
-            if (mintArgs[i]._nftTokens != 0) {
-                if (IERC20Upgradeable(nftErc20Contract).allowance(mintArgs[i]._owner, address(this)) == 0) {
-                    permitNFT(mintArgs[i]._owner, address(this), mintArgs[i].nftV, mintArgs[i].nftR, mintArgs[i].nftS); // approve NFT token
-                }
-
-                require(transferNftTokens(mintArgs[i]._owner, mintArgs[i]._nftTokens)); // transfer NFT token
-            }
-
             emit NewClaimableProfile(
                 mintArgs[i]._owner,
                 mintArgs[i]._genKey,
@@ -471,28 +458,37 @@ contract ProfileAuctionV2 is Initializable, UUPSUpgradeable, ReentrancyGuardUpgr
     /**
      @notice allows winning profiles (from mintProfileFor) to claim the profile and mint
     */
-    function claimProfile(
-        uint256 _nftTokens,
-        bool _genKey,
-        string memory _profileURI,
-        address _owner,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external nonReentrant {
+    function claimProfile(MintArgs calldata mintArgs) external nonReentrant {
         // checks
-        require(msg.sender == _owner);
-        bytes32 hash = requireValidBid_(_nftTokens, _genKey, _profileURI, _owner, Sig(v, r, s));
+        require(msg.sender == mintArgs._owner);
+        bytes32 hash = requireValidBid_(
+            mintArgs._nftTokens,
+            mintArgs._genKey,
+            mintArgs._profileURI,
+            mintArgs._owner,
+            Sig(mintArgs.v, mintArgs.r, mintArgs.s)
+        );
         require(!cancelledOrFinalized[hash]);
         require(claimableBlock[hash] != 0);
-        require(validGenKey(_owner, _genKey), "NFT.com: !GEN_KEY");
+        require(validGenKey(mintArgs._owner, mintArgs._genKey), "NFT.com: !GEN_KEY");
 
         // effects
         cancelledOrFinalized[hash] = true;
 
         // interactions
-        INftProfile(nftProfile).createProfile(_owner, _nftTokens, _profileURI, claimableBlock[hash]);
+        if (IERC20Upgradeable(nftErc20Contract).allowance(mintArgs._owner, address(this)) == 0) {
+            permitNFT(mintArgs._owner, address(this), mintArgs.nftV, mintArgs.nftR, mintArgs.nftS); // approve NFT token
+        }
 
-        emit MintedProfile(_owner, _profileURI, _nftTokens, claimableBlock[hash]);
+        require(transferNftTokens(mintArgs._owner, mintArgs._nftTokens)); // transfer NFT token
+
+        INftProfile(nftProfile).createProfile(
+            mintArgs._owner,
+            mintArgs._nftTokens,
+            mintArgs._profileURI,
+            claimableBlock[hash]
+        );
+
+        emit MintedProfile(mintArgs._owner, mintArgs._profileURI, mintArgs._nftTokens, claimableBlock[hash]);
     }
 }

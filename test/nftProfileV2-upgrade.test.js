@@ -115,8 +115,7 @@ describe("NFT Gasless Auction V2", function () {
             [ownerSigner.address, secondSigner.address],
             [v0, v1],
             [r0, r1],
-            [s0, s1],
-            [0, 1],
+            [s0, s1]
           ),
       )
         .to.emit(deployedWETH, "Transfer")
@@ -283,16 +282,14 @@ describe("NFT Gasless Auction V2", function () {
             .mintProfileFor([
               [BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS],
             ]),
-        )
-          .to.emit(deployedNftToken, "Transfer")
-          .withArgs(ownerSigner.address, deployedProfileAuction.address, 10000);
+        );
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
         // make sure profile can be claimed
         await deployedProfileAuction
           .connect(owner)
-          .claimProfile(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0);
+          .claimProfile([BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS]);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
 
@@ -393,9 +390,7 @@ describe("NFT Gasless Auction V2", function () {
             .mintProfileFor([
               [BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS],
             ]),
-        )
-          .to.emit(deployedNftToken, "Transfer")
-          .withArgs(ownerSigner.address, deployedProfileAuction.address, 10000);
+        );
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
@@ -403,13 +398,13 @@ describe("NFT Gasless Auction V2", function () {
         await expect(
           deployedProfileAuction
             .connect(owner)
-            .claimProfile(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0),
+            .claimProfile([BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS]),
         ).to.be.reverted;
 
         // make sure profile can be claimed
         await deployedProfileAuction
           .connect(owner)
-          .claimProfile(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0);
+          .claimProfile([BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS]);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
 
@@ -465,7 +460,7 @@ describe("NFT Gasless Auction V2", function () {
         await expect(
           deployedProfileAuction
             .connect(owner)
-            .claimProfile(BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0),
+            .claimProfile([BigNumber.from(10000), true, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS]),
         ).to.be.reverted;
       });
 
@@ -506,16 +501,14 @@ describe("NFT Gasless Auction V2", function () {
             .mintProfileFor([
               [BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS],
             ]),
-        )
-          .to.emit(deployedNftToken, "Transfer")
-          .withArgs(ownerSigner.address, deployedProfileAuction.address, 10000);
+        );
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
         // make sure profile can be claimed
         await deployedProfileAuction
           .connect(owner)
-          .claimProfile(BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0);
+          .claimProfile([BigNumber.from(10000), false, "satoshi", ownerSigner.address, v0, r0, s0, nftV, nftR, nftS]);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
 

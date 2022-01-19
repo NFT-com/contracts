@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "./ERC721EnumerableUpgradeable.sol";
+import "./modERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -17,7 +17,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 // depending on auction participation, there may be less
 // assumes we use WETH as the token of denomination
 
-contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     address public wethAddress;
@@ -44,8 +44,8 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
 
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized bid, by hash
     mapping(bytes32 => uint256) public claimableBlock; // Claimable bid (0 = not claimable, > 0 = claimable), by hash
-    mapping(bytes32 => uint256) public claimId; // optional tokenId reservation for a whitelist mint (default is 0 if not set, everything else is tokenId + 1), so tokenId 0 = 0 + 1 = 1
-    uint256 public remainingWhitelistClaims; // remaining number of whitelist keys to claim (mostly used for public sale tokenId)
+    mapping(bytes32 => uint256) public todoDeleteProd; // TODO: DELETE FROM PROD!!!!!
+    uint256 public remainingWhitelistClaims; // TODO: DELETE FROM PROD!!!!
 
     modifier onlyOwner() {
         require(msg.sender == owner, "GEN_KEY: !AUTH");
@@ -60,7 +60,6 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
         uint256 _auctionSeconds
     ) public initializer {
         __ReentrancyGuard_init();
-        __ERC721Enumerable_init();
         __ERC721_init(name, symbol);
         __UUPSUpgradeable_init();
 
@@ -129,19 +128,6 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
     function _hashTypedDataV4ProfileAuction(bytes32 structHash) internal view virtual returns (bytes32) {
         return ECDSAUpgradeable.toTypedDataHash(_domainSeparatorV4(), structHash);
     }
-
-    // // allocates advisors / early presales
-    // function advisorPrivateSetup(
-    //     address[] advisors,
-    //     uint256[] wethRequired
-    // ) external onlyOwner {
-
-    // }
-
-    // // allows advisors / early presales to claim assuming enough WETH
-    // function advisorPrivateClaim() external {
-
-    // }
 
     /**
      * @dev Validate a provided previously signed bid, hash, and signature.
@@ -260,8 +246,7 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
         address[] calldata _owners,
         uint8[] calldata v,
         bytes32[] calldata r,
-        bytes32[] calldata s,
-        uint256[] calldata _tokenId
+        bytes32[] calldata s
     ) external nonReentrant onlyOwner {
         require(!startPublicSale, "GEN_KEY: before dutch auction");
         // checks
@@ -269,8 +254,7 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
             _wethTokens.length == _owners.length &&
                 _owners.length == v.length &&
                 v.length == r.length &&
-                r.length == s.length &&
-                s.length == _tokenId.length,
+                r.length == s.length,
             "GEN_KEY: Invalid Array"
         );
 
@@ -281,8 +265,6 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
 
             // effects
             claimableBlock[hash] = block.number;
-            claimId[hash] = _tokenId[i].add(1); // setTokenId
-            remainingWhitelistClaims = remainingWhitelistClaims.add(1);
 
             // interactions
             require(transferWethTokens(_owners[i], _wethTokens[i])); // transfer WETH token
@@ -310,11 +292,10 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
 
         // effects
         cancelledOrFinalized[hash] = true;
-        remainingWhitelistClaims = remainingWhitelistClaims.sub(1);
 
         // interactions
-        uint256 reservedTokenId = claimId[hash].sub(1);
-        _mint(_owner, reservedTokenId);
+        uint256 preSupply = totalSupply();
+        _mint(_owner, preSupply);
 
         emit ClaimedGenesisKey(_owner, _wethTokens, claimableBlock[hash], true);
     }
@@ -360,7 +341,7 @@ contract GenesisKey is Initializable, ERC721EnumerableUpgradeable, ReentrancyGua
 
         // interactions
         uint256 preSupply = totalSupply();
-        _mint(msg.sender, preSupply.add(remainingWhitelistClaims));
+        _mint(msg.sender, preSupply);
 
         numKeysPublicPurchased = numKeysPublicPurchased.add(1);
 
