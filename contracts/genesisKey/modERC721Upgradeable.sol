@@ -2,13 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import "./interface/modIERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import "./modERC165Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /**
@@ -16,12 +14,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  * the Metadata extension, but not including the Enumerable extension, which is available separately as
  * {ERC721Enumerable}.
  */
-contract ERC721Upgradeable is
+abstract contract ERC721Upgradeable is
     Initializable,
     ContextUpgradeable,
     ERC165Upgradeable,
-    IERC721Upgradeable,
-    IERC721MetadataUpgradeable
+    IERC721Upgradeable
 {
     using AddressUpgradeable for address;
     using StringsUpgradeable for uint256;
@@ -31,6 +28,8 @@ contract ERC721Upgradeable is
 
     // Token symbol
     string private _symbol;
+
+    uint256 private _totalSupply;
 
     // Mapping from token ID to owner address
     mapping(uint256 => address) private _owners;
@@ -70,7 +69,6 @@ contract ERC721Upgradeable is
     {
         return
             interfaceId == type(IERC721Upgradeable).interfaceId ||
-            interfaceId == type(IERC721MetadataUpgradeable).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
@@ -94,21 +92,25 @@ contract ERC721Upgradeable is
     /**
      * @dev See {IERC721Metadata-name}.
      */
-    function name() public view virtual override returns (string memory) {
+    function name() public view virtual returns (string memory) {
         return _name;
     }
 
     /**
      * @dev See {IERC721Metadata-symbol}.
      */
-    function symbol() public view virtual override returns (string memory) {
+    function symbol() public view virtual returns (string memory) {
         return _symbol;
+    }
+
+    function totalSupply() public view virtual returns (uint256) {
+        return _totalSupply;
     }
 
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+    function tokenURI(uint256 tokenId) public view virtual returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
 
         string memory baseURI = _baseURI();
@@ -180,58 +182,6 @@ contract ERC721Upgradeable is
     }
 
     /**
-     * @dev See {IERC721-safeTransferFrom}.
-     */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public virtual override {
-        safeTransferFrom(from, to, tokenId, "");
-    }
-
-    /**
-     * @dev See {IERC721-safeTransferFrom}.
-     */
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory _data
-    ) public virtual override {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
-        _safeTransfer(from, to, tokenId, _data);
-    }
-
-    /**
-     * @dev Safely transfers `tokenId` token from `from` to `to`, checking first that contract recipients
-     * are aware of the ERC721 protocol to prevent tokens from being forever locked.
-     *
-     * `_data` is additional data, it has no specified format and it is sent in call to `to`.
-     *
-     * This internal function is equivalent to {safeTransferFrom}, and can be used to e.g.
-     * implement alternative mechanisms to perform token transfer, such as signature-based.
-     *
-     * Requirements:
-     *
-     * - `from` cannot be the zero address.
-     * - `to` cannot be the zero address.
-     * - `tokenId` token must exist and be owned by `from`.
-     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
-     *
-     * Emits a {Transfer} event.
-     */
-    function _safeTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory _data
-    ) internal virtual {
-        _transfer(from, to, tokenId);
-        require(_checkOnERC721Received(from, to, tokenId, _data), "ERC721: transfer to non ERC721Receiver implementer");
-    }
-
-    /**
      * @dev Returns whether `tokenId` exists.
      *
      * Tokens can be managed by their owner or approved accounts via {approve} or {setApprovalForAll}.
@@ -258,36 +208,6 @@ contract ERC721Upgradeable is
     }
 
     /**
-     * @dev Safely mints `tokenId` and transfers it to `to`.
-     *
-     * Requirements:
-     *
-     * - `tokenId` must not exist.
-     * - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon a safe transfer.
-     *
-     * Emits a {Transfer} event.
-     */
-    function _safeMint(address to, uint256 tokenId) internal virtual {
-        _safeMint(to, tokenId, "");
-    }
-
-    /**
-     * @dev Same as {xref-ERC721-_safeMint-address-uint256-}[`_safeMint`], with an additional `data` parameter which is
-     * forwarded in {IERC721Receiver-onERC721Received} to contract recipients.
-     */
-    function _safeMint(
-        address to,
-        uint256 tokenId,
-        bytes memory _data
-    ) internal virtual {
-        _mint(to, tokenId);
-        require(
-            _checkOnERC721Received(address(0), to, tokenId, _data),
-            "ERC721: transfer to non ERC721Receiver implementer"
-        );
-    }
-
-    /**
      * @dev Mints `tokenId` and transfers it to `to`.
      *
      * WARNING: Usage of this method is discouraged, use {_safeMint} whenever possible
@@ -303,36 +223,11 @@ contract ERC721Upgradeable is
         require(to != address(0), "ERC721: mint to the zero address");
         require(!_exists(tokenId), "ERC721: token already minted");
 
-        _beforeTokenTransfer(address(0), to, tokenId);
-
         _balances[to] += 1;
         _owners[tokenId] = to;
+        _totalSupply += 1;
 
         emit Transfer(address(0), to, tokenId);
-    }
-
-    /**
-     * @dev Destroys `tokenId`.
-     * The approval is cleared when the token is burned.
-     *
-     * Requirements:
-     *
-     * - `tokenId` must exist.
-     *
-     * Emits a {Transfer} event.
-     */
-    function _burn(uint256 tokenId) internal virtual {
-        address owner = ERC721Upgradeable.ownerOf(tokenId);
-
-        _beforeTokenTransfer(owner, address(0), tokenId);
-
-        // Clear approvals
-        _approve(address(0), tokenId);
-
-        _balances[owner] -= 1;
-        delete _owners[tokenId];
-
-        emit Transfer(owner, address(0), tokenId);
     }
 
     /**
@@ -354,8 +249,6 @@ contract ERC721Upgradeable is
         require(ERC721Upgradeable.ownerOf(tokenId) == from, "ERC721: transfer of token that is not own");
         require(to != address(0), "ERC721: transfer to the zero address");
 
-        _beforeTokenTransfer(from, to, tokenId);
-
         // Clear approvals from the previous owner
         _approve(address(0), tokenId);
 
@@ -375,61 +268,6 @@ contract ERC721Upgradeable is
         _tokenApprovals[tokenId] = to;
         emit Approval(ERC721Upgradeable.ownerOf(tokenId), to, tokenId);
     }
-
-    /**
-     * @dev Internal function to invoke {IERC721Receiver-onERC721Received} on a target address.
-     * The call is not executed if the target address is not a contract.
-     *
-     * @param from address representing the previous owner of the given token ID
-     * @param to target address that will receive the tokens
-     * @param tokenId uint256 ID of the token to be transferred
-     * @param _data bytes optional data to send along with the call
-     * @return bool whether the call correctly returned the expected magic value
-     */
-    function _checkOnERC721Received(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory _data
-    ) private returns (bool) {
-        if (to.isContract()) {
-            try IERC721ReceiverUpgradeable(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (
-                bytes4 retval
-            ) {
-                return retval == IERC721ReceiverUpgradeable.onERC721Received.selector;
-            } catch (bytes memory reason) {
-                if (reason.length == 0) {
-                    revert("ERC721: transfer to non ERC721Receiver implementer");
-                } else {
-                    assembly {
-                        revert(add(32, reason), mload(reason))
-                    }
-                }
-            }
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * @dev Hook that is called before any token transfer. This includes minting
-     * and burning.
-     *
-     * Calling conditions:
-     *
-     * - When `from` and `to` are both non-zero, ``from``'s `tokenId` will be
-     * transferred to `to`.
-     * - When `from` is zero, `tokenId` will be minted for `to`.
-     * - When `to` is zero, ``from``'s `tokenId` will be burned.
-     * - `from` and `to` are never both zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-     */
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual {}
 
     uint256[44] private __gap;
 }
