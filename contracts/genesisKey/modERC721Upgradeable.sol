@@ -14,12 +14,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  * the Metadata extension, but not including the Enumerable extension, which is available separately as
  * {ERC721Enumerable}.
  */
-abstract contract ERC721Upgradeable is
-    Initializable,
-    ContextUpgradeable,
-    ERC165Upgradeable,
-    IERC721Upgradeable
-{
+contract ERC721Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradeable, IERC721Upgradeable {
     using AddressUpgradeable for address;
     using StringsUpgradeable for uint256;
 
@@ -67,9 +62,7 @@ abstract contract ERC721Upgradeable is
         override(ERC165Upgradeable, IERC165Upgradeable)
         returns (bool)
     {
-        return
-            interfaceId == type(IERC721Upgradeable).interfaceId ||
-            super.supportsInterface(interfaceId);
+        return interfaceId == type(IERC721Upgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**
@@ -103,7 +96,7 @@ abstract contract ERC721Upgradeable is
         return _symbol;
     }
 
-    function totalSupply() public view virtual returns (uint256) {
+    function totalSupply() public view virtual override returns (uint256) {
         return _totalSupply;
     }
 
@@ -123,7 +116,7 @@ abstract contract ERC721Upgradeable is
      * by default, can be overriden in child contracts.
      */
     function _baseURI() internal view virtual returns (string memory) {
-        return "https://api.nft.com/genesis-key/";
+        return "ipfs://"; // TODO: insert CID before deployment!
     }
 
     /**

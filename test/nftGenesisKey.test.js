@@ -183,7 +183,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
               [ownerSigner.address, secondSigner.address],
               [v0, v1],
               [r0, r1],
-              [s0, s1]
+              [s0, s1],
             ),
         )
           .to.emit(deployedWETH, "Transfer")
@@ -200,7 +200,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(1);
 
-        expect(await deployedGenesisKey.tokenURI(0)).to.be.equal("https://api.nft.com/genesis-key/0");
+        expect(await deployedGenesisKey.tokenURI(0)).to.be.equal("ipfs://0");
 
         // fail because owner != secondSigner, who is the only one who can claim
         await expect(deployedGenesisKey.connect(owner).claimKey(convertTinyNumber(2), secondSigner.address, v1, r1, s1))
@@ -210,7 +210,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(2);
 
-        expect(await deployedGenesisKey.tokenURI(1)).to.be.equal("https://api.nft.com/genesis-key/1");
+        expect(await deployedGenesisKey.tokenURI(1)).to.be.equal("ipfs://1");
 
         // reverts bc ownerSigner == msg.sender
         await expect(deployedGenesisKey.setApprovalForAll(ownerSigner.address, true)).to.be.reverted;
@@ -247,6 +247,19 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
             .connect(owner)
             .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0]),
         ).to.be.reverted;
+      });
+
+      it("should allow the multisig to allocate team and advisor grants for genesis keys", async function () {
+        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(0);
+        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(0);
+        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(0);
+
+        // addr1.address = multisig
+        await deployedGenesisKey.connect(addr1).claimGrantKey([owner.address, second.address, addr1.address]);
+
+        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
+        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
+        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(1);
       });
 
       // start public auction
