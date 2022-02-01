@@ -33,10 +33,7 @@ contract PublicNftStake is ERC20Permit, ReentrancyGuard {
         _;
     }
 
-    constructor(address _nftToken, address _weth)
-        ERC20Permit("Staked NFT.com Genesis Key")
-        ERC20("Staked NFT.com Genesis Key", "xNFTKEY")
-    {
+    constructor(address _nftToken, address _weth) ERC20Permit("Staked NFT.com") ERC20("Staked NFT.com", "xNFT") {
         nftToken = _nftToken;
         WETH9 = _weth;
         DAO = msg.sender;
@@ -134,7 +131,7 @@ contract PublicNftStake is ERC20Permit, ReentrancyGuard {
      @param r rSig
      @param s sSig
     */
-    function permitXNFT(
+    function permitNFT(
         address _owner,
         address spender,
         uint8 v,
@@ -159,7 +156,7 @@ contract PublicNftStake is ERC20Permit, ReentrancyGuard {
     ) public nonReentrant {
         // only apply approve permit for first time
         if (IERC20(address(this)).allowance(msg.sender, address(this)) < _amount) {
-            permitXNFT(msg.sender, address(this), v, r, s); // approve xNFT token
+            permitNFT(msg.sender, address(this), v, r, s); // approve xNFT token
         }
 
         IERC20(nftToken).transferFrom(msg.sender, address(this), _amount);
