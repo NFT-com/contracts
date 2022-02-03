@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.0;
 
+import "./TokenIdentifiers.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/IERC1155MetadataURIUpgradeable.sol";
@@ -17,16 +18,26 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  *
  * _Available since v3.1._
  */
-contract ERC1155Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradeable, IERC1155Upgradeable, IERC1155MetadataURIUpgradeable {
+contract ERC1155Upgradeable is
+    Initializable,
+    ContextUpgradeable,
+    ERC165Upgradeable,
+    IERC1155Upgradeable,
+    IERC1155MetadataURIUpgradeable
+{
     using AddressUpgradeable for address;
+    using TokenIdentifiers for uint256;
 
     // Mapping from token ID to account balances
     mapping(uint256 => mapping(address => uint256)) private _balances;
 
+    // Mapping from bitpacked tokenId => supply
+    // Primarily used to determine remaining NFTs left for minting per tokenId
+    // (as each bitpacked tokenId contains a supply cap)
+    mapping(uint256 => uint256) private _supply;
+
     // Mapping from account to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
-
-    mapping(uint256 => string) private customUri;
 
     // Used as the URI for all token types by relying on ID substitution, e.g. https://token-cdn-domain/{id}.json
     string private _uri;
@@ -47,7 +58,13 @@ contract ERC1155Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradea
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC165Upgradeable, IERC165Upgradeable)
+        returns (bool)
+    {
         return
             interfaceId == type(IERC1155Upgradeable).interfaceId ||
             interfaceId == type(IERC1155MetadataURIUpgradeable).interfaceId ||
@@ -68,9 +85,34 @@ contract ERC1155Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradea
         return _uri;
     }
 
-    function setUri(uint256 id, string calldata uri) public {
-        require()
-        customUri[id] = uri;
+    /**
+     * @dev Returns the total quantity for a token ID
+     * @param id uint256 ID of the token to query
+     * @return amount of token in existence
+     */
+    function totalSupply(uint256 id) public view returns (uint256) {
+        return _supply[id];
+    }
+
+    /**
+     * @dev Returns whether the specified token is minted
+     * @param id uint256 ID of the token to query the existence of
+     * @return bool whether the token exists
+     */
+    function exists(uint256 id) public view returns (bool) {
+        return _supply[id] > 0;
+    }
+
+    function _origin(uint256 id) internal pure returns (address) {
+        return id.tokenCreator();
+    }
+
+    function _tokenMaxSupply(uint256 id) internal pure returns (uint256) {
+        return id.tokenMaxSupply();
+    }
+
+    function _tokenIndex(uint256 id) internal pure returns (uint256) {
+        return id.tokenIndex();
     }
 
     /**
@@ -286,9 +328,14 @@ contract ERC1155Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradea
         _beforeTokenTransfer(operator, address(0), account, _asSingletonArray(id), _asSingletonArray(amount), data);
 
         _balances[id][account] += amount;
-        emit TransferSingle(operator, address(0), account, id, amount);
+        _supply[id] += amount;
 
-        _doSafeTransferAcceptanceCheck(operator, address(0), account, id, amount, data);
+        // Origin of token will be the _from parameter
+        address origin = _origin(id);
+
+        emit TransferSingle(operator, origin, account, id, amount);
+
+        _doSafeTransferAcceptanceCheck(operator, origin, account, id, amount, data);
     }
 
     /**
@@ -309,12 +356,17 @@ contract ERC1155Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradea
         require(to != address(0), "ERC1155: mint to the zero address");
         require(ids.length == amounts.length, "ERC1155: ids and amounts length mismatch");
 
+        // Origin of tokens will be the _from parameter
+        address origin = _origin(ids[0]);
+
         address operator = _msgSender();
 
         _beforeTokenTransfer(operator, address(0), to, ids, amounts, data);
 
         for (uint256 i = 0; i < ids.length; i++) {
+            require(_origin(ids[i]) == origin, "ERC1155Tradable#batchMint: MULTIPLE_ORIGINS_NOT_ALLOWED");
             _balances[ids[i]][to] += amounts[i];
+            _supply[ids[i]] += amounts[i];
         }
 
         emit TransferBatch(operator, address(0), to, ids, amounts);
@@ -378,6 +430,7 @@ contract ERC1155Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradea
             unchecked {
                 _balances[id][account] = accountBalance - amount;
             }
+            _supply[id] -= amount;
         }
 
         emit TransferBatch(operator, account, address(0), ids, amounts);
@@ -421,7 +474,9 @@ contract ERC1155Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradea
         bytes memory data
     ) private {
         if (to.isContract()) {
-            try IERC1155ReceiverUpgradeable(to).onERC1155Received(operator, from, id, amount, data) returns (bytes4 response) {
+            try IERC1155ReceiverUpgradeable(to).onERC1155Received(operator, from, id, amount, data) returns (
+                bytes4 response
+            ) {
                 if (response != IERC1155ReceiverUpgradeable.onERC1155Received.selector) {
                     revert("ERC1155: ERC1155Receiver rejected tokens");
                 }
@@ -462,5 +517,6 @@ contract ERC1155Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradea
 
         return array;
     }
+
     uint256[47] private __gap;
 }
