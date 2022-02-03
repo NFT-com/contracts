@@ -2,7 +2,6 @@
 pragma solidity >=0.8.4;
 
 import "./modERC1155Upgradeable.sol";
-import "./IOrigination.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -11,7 +10,6 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 // contract for minting custom NFTs
 contract Origination is
     Initializable,
-    IOrigination,
     ERC1155Upgradeable,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
@@ -129,11 +127,21 @@ contract Origination is
         templateURI = _uri;
     }
 
-    function setURI(uint256 _id, string memory _uri) public virtual onlyOwner onlyImpermanentURI(_id) {
+    function setURI(uint256 _id, string memory _uri)
+        public
+        creatorOnly(_id)
+        onlyImpermanentURI(_id)
+        onlyFullTokenOwner(_id)
+    {
         _setURI(_id, _uri);
     }
 
-    function setPermanentURI(uint256 _id, string memory _uri) public virtual onlyOwner onlyImpermanentURI(_id) {
+    function setPermanentURI(uint256 _id, string memory _uri)
+        public
+        creatorOnly(_id)
+        onlyImpermanentURI(_id)
+        onlyFullTokenOwner(_id)
+    {
         _setPermanentURI(_id, _uri);
     }
 
@@ -151,7 +159,9 @@ contract Origination is
 
     function balanceOf(address _owner, uint256 _id) public view virtual override returns (uint256) {
         uint256 balance = super.balanceOf(_owner, _id);
-        return owner() == _msgSender() ? balance + _remainingSupply(_id) : balance;
+
+        // if you are owner of token, get full balance
+        return creator(_id) == _owner ? balance + _remainingSupply(_id) : balance;
     }
 
     function safeTransferFrom(
