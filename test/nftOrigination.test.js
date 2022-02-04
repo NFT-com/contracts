@@ -23,6 +23,7 @@ describe("Origination Testing", function () {
     const id3 = "85439735993382124668751690732986760340636919666515172646697212361110659792906";
 
     const ids = [id1, id2, id3];
+    const debug = false;
 
     const calculatedTokenMaxSupply = id => BigNumber.from(id).and(SUPPLY_MASK);
     const calculatedTokenIndex = id => BigNumber.from(id).and(INDEX_MASK).shr(SUPPLY_BITS);
@@ -43,15 +44,54 @@ describe("Origination Testing", function () {
     });
 
     describe("Origination Testing", async function () {
-      it("Basic Bitwise Validation", async function () {
+      it("should correctly validate basic bitwise operations", async function () {
         for (let i = 0; i < ids.length; i++) {
           let id = ids[i];
 
           expect(await deployedOrigination.tokenMaxSupply(id)).to.be.equal(calculatedTokenMaxSupply(id));
+          if (debug) console.log(`id #${i} maxSupply: ${Number(calculatedTokenMaxSupply(id))}`);
+
           expect(await deployedOrigination.tokenIndex(id)).to.be.equal(calculatedTokenIndex(id));
+          if (debug) console.log(`id #${i} tokenIndex: ${Number(calculatedTokenIndex(id))}`);
+
           expect(BigNumber.from(await deployedOrigination.origin(id)).shl(160)).to.be.equal(
             calculatedOriginUint256(id),
           );
+          if (debug) console.log(`id #${i} origin: ${await deployedOrigination.origin(id)}`);
+        }
+      });
+
+      it("should be able to recreate the bitpacked tokenIds from scratch", async function () {
+        const rawInputs = [
+          {
+            maxSupply: 1,
+            tokenIndex: 1,
+            origin: "0x674913D21D70a9e1Ace0B94662ef297170483237",
+          },
+          {
+            maxSupply: 1000,
+            tokenIndex: 1,
+            origin: "0xbCe52D4698fdE9484901121A7Feb0741BA6d4dF3",
+          },
+          {
+            maxSupply: 10,
+            tokenIndex: 2,
+            origin: "0xbCe52D4698fdE9484901121A7Feb0741BA6d4dF3",
+          },
+        ];
+
+        // this is the code for encoding a bitpacked tokenid
+        // important for client / server to have this logic when we are minting new NFTs
+        for (let i = 0; i < rawInputs.length; i++) {
+          let input = rawInputs[i];
+          let addressBit = BigNumber.from(input.origin);
+          let indexBit = BigNumber.from(input.tokenIndex);
+          let supplyBit = BigNumber.from(input.maxSupply);
+
+          let bitpackedId = addressBit.shl(56).xor(indexBit).shl(40).xor(supplyBit);
+
+          // double check ids match
+          expect(BigNumber.from(ids[i])).to.be.equal(bitpackedId);
         }
       });
     });
