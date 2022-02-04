@@ -60,18 +60,18 @@ contract Origination is
      */
     modifier onlyFullTokenOwner(uint256 _id) {
         require(
-            _ownsTokenAmount(_msgSender(), _id, _tokenMaxSupply(_id)),
+            _ownsTokenAmount(_msgSender(), _id, tokenMaxSupply(_id)),
             "Origination#onlyFullTokenOwner: ONLY_FULL_TOKEN_OWNER_ALLOWED"
         );
         _;
     }
 
     // DEFAULT = "https://api.nft.com/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/{_id}"
-    function initialize(string memory _templateURI) public initializer {
+    function initialize() public initializer {
         // boilerplate base URI
         __Ownable_init();
         __ReentrancyGuard_init();
-        __ERC1155_init(_templateURI);
+        __ERC1155_init("");
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -99,7 +99,7 @@ contract Origination is
         if (_creatorOverride[_id] != address(0)) {
             return _creatorOverride[_id];
         } else {
-            return _origin(_id);
+            return origin(_id);
         }
     }
 
@@ -235,7 +235,7 @@ contract Origination is
     }
 
     function _remainingSupply(uint256 _id) internal view returns (uint256) {
-        return _tokenMaxSupply(_id) - totalSupply(_id);
+        return tokenMaxSupply(_id) - totalSupply(_id);
     }
 
     function batchMint(

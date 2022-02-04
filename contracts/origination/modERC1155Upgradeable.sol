@@ -103,16 +103,24 @@ contract ERC1155Upgradeable is
         return _supply[id] > 0;
     }
 
-    function _origin(uint256 id) internal pure returns (address) {
+    function origin(uint256 id) public pure returns (address) {
         return id.tokenCreator();
     }
 
-    function _tokenMaxSupply(uint256 id) internal pure returns (uint256) {
+    function tokenMaxSupply(uint256 id) public pure returns (uint256) {
         return id.tokenMaxSupply();
     }
 
-    function _tokenIndex(uint256 id) internal pure returns (uint256) {
+    function tokenIndex(uint256 id) public pure returns (uint256) {
         return id.tokenIndex();
+    }
+
+    function supplyMask() public pure returns (uint256) {
+        return (uint256(1) << 40) - 1;
+    }
+
+    function indexMask() public pure returns (uint256) {
+        return ((uint256(1) << 56) - 1) ^ ((uint256(1) << 40) - 1);
     }
 
     /**
@@ -331,11 +339,11 @@ contract ERC1155Upgradeable is
         _supply[id] += amount;
 
         // Origin of token will be the _from parameter
-        address origin = _origin(id);
+        address originAddress = origin(id);
 
-        emit TransferSingle(operator, origin, account, id, amount);
+        emit TransferSingle(operator, originAddress, account, id, amount);
 
-        _doSafeTransferAcceptanceCheck(operator, origin, account, id, amount, data);
+        _doSafeTransferAcceptanceCheck(operator, originAddress, account, id, amount, data);
     }
 
     /**
@@ -357,14 +365,14 @@ contract ERC1155Upgradeable is
         require(ids.length == amounts.length, "ERC1155: ids and amounts length mismatch");
 
         // Origin of tokens will be the _from parameter
-        address origin = _origin(ids[0]);
+        address originAddress = origin(ids[0]);
 
         address operator = _msgSender();
 
         _beforeTokenTransfer(operator, address(0), to, ids, amounts, data);
 
         for (uint256 i = 0; i < ids.length; i++) {
-            require(_origin(ids[i]) == origin, "ERC1155Tradable#batchMint: MULTIPLE_ORIGINS_NOT_ALLOWED");
+            require(origin(ids[i]) == originAddress, "ERC1155Tradable#batchMint: MULTIPLEoriginS_NOT_ALLOWED");
             _balances[ids[i]][to] += amounts[i];
             _supply[ids[i]] += amounts[i];
         }
