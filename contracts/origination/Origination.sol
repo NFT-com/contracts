@@ -66,7 +66,6 @@ contract Origination is
         _;
     }
 
-    // DEFAULT = "https://api.nft.com/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/{_id}"
     function initialize() public initializer {
         // boilerplate base URI
         __Ownable_init();
