@@ -29,6 +29,15 @@ describe("Origination Testing", function () {
     const calculatedTokenIndex = id => BigNumber.from(id).and(INDEX_MASK).shr(SUPPLY_BITS);
     const calculatedOriginUint256 = id => BigNumber.from(BigNumber.from(id).shr(INDEX_BITS + SUPPLY_BITS)).shl(160);
 
+    // helper function for encoding packed tokenId
+    const createTokenId = (address, index, maxSupply) => {
+      let addressBit = BigNumber.from(address);
+      let indexBit = BigNumber.from(index);
+      let supplyBit = BigNumber.from(maxSupply);
+
+      return addressBit.shl(56).xor(indexBit).shl(40).xor(supplyBit).toString();
+    };
+
     let Origination, deployedOrigination;
 
     beforeEach(async function () {
@@ -41,6 +50,10 @@ describe("Origination Testing", function () {
         [], // no arguments
         { kind: "uups" },
       );
+
+      await deployedOrigination
+        .connect(owner)
+        .setTemplateURI(`https://api.nft.com/v1/metadata/${deployedOrigination.address}/0x{_id}`);
     });
 
     describe("Origination Testing", async function () {
@@ -93,6 +106,23 @@ describe("Origination Testing", function () {
           // double check ids match
           expect(BigNumber.from(ids[i])).to.be.equal(bitpackedId);
         }
+      });
+
+      it("should be able to create new NFT upon safeTransferFrom", async function () {
+        let tokenId = createTokenId(owner.address, 1, 10);
+
+        let uri = await deployedOrigination.uri(tokenId);
+
+        // sanity check
+        expect(uri).to.be.equal(`https://api.nft.com/v1/metadata/${deployedOrigination.address}/0x{_id}`);
+
+        // current supply 0 + remaining supply 10
+        expect(await deployedOrigination.balanceOf(owner.address, tokenId)).to.be.equal(10);
+
+        // other person has 0
+        expect(await deployedOrigination.balanceOf(second.address, tokenId)).to.be.equal(0);
+
+        // TODO: safeTransferFrom
       });
     });
   } catch (err) {
