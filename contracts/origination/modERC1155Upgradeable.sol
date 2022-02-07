@@ -313,6 +313,13 @@ contract ERC1155Upgradeable is
     }
 
     /**
+     * @dev Hook to be called right before minting
+     * @param _id          Token ID to mint
+     * @param _quantity    Amount of tokens to mint
+     */
+    function _beforeMint(uint256 _id, uint256 _quantity) internal virtual {}
+
+    /**
      * @dev Creates `amount` tokens of token type `id`, and assigns them to `account`.
      *
      * Emits a {TransferSingle} event.
@@ -334,6 +341,8 @@ contract ERC1155Upgradeable is
         address operator = _msgSender();
 
         _beforeTokenTransfer(operator, address(0), account, _asSingletonArray(id), _asSingletonArray(amount), data);
+
+        _beforeMint(id, amount);
 
         _balances[id][account] += amount;
         _supply[id] += amount;
@@ -372,7 +381,9 @@ contract ERC1155Upgradeable is
         _beforeTokenTransfer(operator, address(0), to, ids, amounts, data);
 
         for (uint256 i = 0; i < ids.length; i++) {
+            _beforeMint(ids[i], amounts[i]);
             require(origin(ids[i]) == originAddress, "ERC1155Tradable#batchMint: MULTIPLEoriginS_NOT_ALLOWED");
+
             _balances[ids[i]][to] += amounts[i];
             _supply[ids[i]] += amounts[i];
         }
