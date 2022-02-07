@@ -135,12 +135,13 @@ describe("Origination Testing", function () {
             .safeTransferFrom(owner.address, second.address, tokenId, 10, NULL_BYTES),
         )
           .to.emit(deployedOrigination, "TransferSingle")
-          .withArgs(owner.address, owner.address, second.address, tokenId, 10);
+          .withArgs(owner.address, owner.address, second.address, tokenId, 4);
 
-        expect(await deployedOrigination.balanceOf(owner.address, tokenId)).to.be.equal(0);
+        // 6 left from 10 max
+        expect(await deployedOrigination.balanceOf(owner.address, tokenId)).to.be.equal(6);
 
-        // balance of second is now 10
-        expect(await deployedOrigination.balanceOf(second.address, tokenId)).to.be.equal(10);
+        // balance of second is now 4
+        expect(await deployedOrigination.balanceOf(second.address, tokenId)).to.be.equal(4);
       });
     });
   } catch (err) {
