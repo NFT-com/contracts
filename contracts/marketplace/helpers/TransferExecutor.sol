@@ -123,8 +123,6 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 value,
                 ""
             );
-        } else if (asset.assetType.assetClass == LibAsset.ORIGINATION_CLASS) {
-            // TODO: safeTransferFrom new token with random tokenId
         } else {
             // non standard assets
             ITransferProxy(proxies[asset.assetType.assetClass]).transfer(asset, from, to);
