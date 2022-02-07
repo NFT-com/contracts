@@ -195,10 +195,6 @@ contract Origination is
         }
     }
 
-    function _beforeMint(uint256 _id, uint256 _quantity) internal view {
-        require(_quantity <= _remainingSupply(_id), "Origination#_beforeMint: QUANTITY_EXCEEDS_TOKEN_SUPPLY_CAP");
-    }
-
     function burn(
         address _from,
         uint256 _id,
@@ -219,6 +215,11 @@ contract Origination is
             );
         }
         _burnBatch(_from, _ids, _quantities);
+    }
+
+    // overrides virtual function in modERC1155Upgradeable
+    function _beforeMint(uint256 _id, uint256 _quantity) internal view override {
+        require(_quantity <= _remainingSupply(_id), "Origination#_beforeMint: QUANTITY_EXCEEDS_TOKEN_SUPPLY_CAP");
     }
 
     function mint(
@@ -244,7 +245,7 @@ contract Origination is
         bytes memory _data
     ) public nonReentrant {
         for (uint256 i = 0; i < _ids.length; i++) {
-            require(creator(_ids[i]) == _msgSender(), "Origination#creatorOnly: ONLY_CREATOR_ALLOWED");
+            require(creator(_ids[i]) == _msgSender(), "Origination#batchMint: ONLY_CREATOR_ALLOWED");
         }
         _batchMint(_to, _ids, _quantities, _data);
     }

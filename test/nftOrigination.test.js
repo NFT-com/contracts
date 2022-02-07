@@ -17,6 +17,8 @@ describe("Origination Testing", function () {
     const SUPPLY_MASK = BigNumber.from(1).shl(SUPPLY_BITS).sub(BigNumber.from(1));
     const INDEX_MASK = BigNumber.from(1).shl(INDEX_BITS).sub(BigNumber.from(1)).xor(SUPPLY_MASK);
 
+    const NULL_BYTES = "0x";
+
     // Pre-existing IDs from testing
     const id1 = "46717340037675052755967761757980282179977476415542244249795917787967648694273";
     const id2 = "85439735993382124668751690732986760340636919666515172646697212360011148166120";
@@ -122,7 +124,23 @@ describe("Origination Testing", function () {
         // other person has 0
         expect(await deployedOrigination.balanceOf(second.address, tokenId)).to.be.equal(0);
 
-        // TODO: safeTransferFrom
+        // reverts due to minting more than max supply
+        await expect(deployedOrigination.safeTransferFrom(owner.address, second.address, tokenId, 11, NULL_BYTES)).to.be
+          .reverted;
+
+        // mints
+        expect(
+          await deployedOrigination
+            .connect(owner)
+            .safeTransferFrom(owner.address, second.address, tokenId, 10, NULL_BYTES),
+        )
+          .to.emit(deployedOrigination, "TransferSingle")
+          .withArgs(owner.address, owner.address, second.address, tokenId, 10);
+
+        expect(await deployedOrigination.balanceOf(owner.address, tokenId)).to.be.equal(0);
+
+        // balance of second is now 10
+        expect(await deployedOrigination.balanceOf(second.address, tokenId)).to.be.equal(10);
       });
     });
   } catch (err) {
