@@ -33,14 +33,15 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     event Cancel(bytes32 hash, address maker, address taker);
     event Approval(bytes32 hash, address maker, address taker);
     event Match(
-        bytes32 leftHash,
-        bytes32 rightHash,
-        address leftMaker,
-        address rightMaker,
-        uint256 newLeftFill,
-        uint256 newRightFill,
-        LibAsset.AssetType leftAsset,
-        LibAsset.AssetType rightAsset
+        bytes32 makerHash,
+        bytes32 takerHash,
+        address makerMaker,
+        address takerMaker,
+        uint256 makerSalt,
+        uint256 takerSalt,
+        uint256 makerStart,
+        uint256 makerEnd,
+        bool buyNow
     );
 
     function initialize(
@@ -410,6 +411,18 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             // send assets from seller to buyer (goods)
             transfer(sellOrder.makeAssets[j], sellOrder.maker, msg.sender);
         }
+
+        emit Match(
+            sellHash,
+            0x0000000000000000000000000000000000000000000000000000000000000000,
+            sellOrder.maker,
+            msg.sender,
+            sellOrder.salt,
+            0,
+            sellOrder.start,
+            sellOrder.end,
+            true
+        );
     }
 
     /**
@@ -456,5 +469,17 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // refund leftover eth in contract
         (bool success, ) = msg.sender.call{ value: address(this).balance }("");
         require(success);
+
+        emit Match(
+            sellHash,
+            buyHash,
+            sellOrder.maker,
+            buyOrder.maker,
+            sellOrder.salt,
+            buyOrder.salt,
+            sellOrder.start,
+            sellOrder.end,
+            false
+        );
     }
 }
