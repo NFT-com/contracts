@@ -412,38 +412,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         }
     }
 
-    // /**
-    //  * @dev lazyMint function that mints a NFT and immedietly exchanges it
-    //  * @param sellOrder the listing
-    //  * @param buyOrder bids for a listing
-    //  * @param v array of v sig, index 0 = nftPermit for lister, index 1 = sellOrder, index 2 = buyOrder
-    //  * @param r array of r sig, index 0 = nftPermit for lister, index 1 = sellOrder, index 2 = buyOrder
-    //  * @param s array of s sig, index 0 = nftPermit for lister, index 1 = sellOrder, index 2 = buyOrder
-    //  */
-    // function lazyMint(
-    //     LibSignature.Order calldata sellOrder,
-    //     LibSignature.Order calldata buyOrder,
-    //     uint8[3] calldata v,
-    //     bytes32[3] calldata r,
-    //     bytes32[3] calldata s
-    // ) external payable nonReentrant {
-    //     if (sellOrder.asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
-    //         // mint 721 to buyer
-    //     } else if (sellOrder.asset.assetType.assetClass == LibAsset.ERC1155_ASSET_CLASS) {
-    //         // mint 1155 to buyer
-    //     } else {
-    //         require(false, "NFT.com: UNSUPPORTED ASSET");
-    //     }
-
-    //     executeSwap(
-    //         sellOrder,
-    //         buyOrder,
-    //         [v[1], v[2]],
-    //         [r[1], r[2]],
-    //         [s[1], s[2]]
-    //     )
-    // }
-
     /**
      * @dev executeSwap takes two orders and executes them together
      * @param sellOrder the listing

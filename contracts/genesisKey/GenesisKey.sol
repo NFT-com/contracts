@@ -41,11 +41,12 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
     event BidCancelled(bytes32 indexed hash);
     event NewClaimableGenKey(address indexed _user, uint256 _amount, uint256 _blockNum);
     event ClaimedGenesisKey(address indexed _user, uint256 _amount, uint256 _blockNum, bool _whitelist);
+    event InitMetadata(uint256 _tokenId, string uri);
 
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized bid, by hash
     mapping(bytes32 => uint256) public claimableBlock; // Claimable bid (0 = not claimable, > 0 = claimable), by hash
     mapping(bytes32 => uint256) public todoDeleteProd; // TODO: DELETE FROM PROD!!!!!
-    uint256 public remainingWhitelistClaims; // TODO: DELETE FROM PROD!!!!
+    uint256 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
 
     modifier onlyOwner() {
         require(msg.sender == owner, "GEN_KEY: !AUTH");
@@ -68,6 +69,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
         publicSaleDurationSeconds = _auctionSeconds;
         owner = msg.sender;
         multiSig = _multiSig;
+        remainingTeamAdvisorGrant = 250; // 250 genesis keys allocated
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -234,7 +236,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
     }
 
     /**
-     @notice function to allow multiple users to win whitelist spot
+     @notice function to allow multiple users to win blind whitelist spot
      @param _wethTokens array of weth token amount
      @param _owners array of owner who made signature
      @param v array of v sig
@@ -300,6 +302,23 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
         emit ClaimedGenesisKey(_owner, _wethTokens, claimableBlock[hash], true);
     }
 
+    /**
+     @notice sends grant key to end user for team / advisors / grants
+    */
+    function claimGrantKey(address[] calldata receivers) external {
+        require(msg.sender == multiSig, "GEN_KEY: !AUTH");
+        require(remainingTeamAdvisorGrant >= receivers.length);
+
+        remainingTeamAdvisorGrant = remainingTeamAdvisorGrant.sub(receivers.length);
+
+        for (uint256 i = 0; i < receivers.length; i++) {
+            uint256 preSupply = totalSupply();
+            _mint(receivers[i], preSupply);
+
+            emit ClaimedGenesisKey(receivers[i], 0, block.number, false);
+        }
+    }
+
     /// @notice Transfers ETH to the recipient address
     /// @dev Fails with `STE`
     /// @param to The destination of the transfer
@@ -314,8 +333,8 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
         safeTransferETH(multiSig, address(this).balance);
     }
 
-    // ========= DUTCH AUCTION =================================================================
-    // external function for public execution (buying via dutch auction)
+    // ========= PUBLIC SALE =================================================================
+    // external function for public sale of genesis keys
     function publicExecuteBid() external payable nonReentrant {
         // checks
         require(startPublicSale, "GEN_KEY: invalid time");
