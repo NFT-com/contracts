@@ -37,6 +37,8 @@ interface IERC721Upgradeable is IERC165Upgradeable {
      */
     function ownerOf(uint256 tokenId) external view returns (address owner);
 
+    function totalSupply() external view returns (uint256 totalSupply);
+
     /**
      * @dev Transfers `tokenId` token from `from` to `to`.
      *
