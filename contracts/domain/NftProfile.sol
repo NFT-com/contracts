@@ -74,6 +74,18 @@ contract NftProfile is
     }
 
     /**
+     @dev transfers trademarked profile to recipient
+     @param _profile profile url being transferred
+     @param _to receiver of profile
+    */
+    function tradeMarkTransfer(string memory _profile, address _to) external onlyOwner {
+        require(_tokenUsedURIs[_profile] != 0);
+        uint256 tokenId = _tokenUsedURIs[_profile].sub(1);
+
+        _transfer(ERC721Upgradeable.ownerOf(tokenId), _to, tokenId);
+    }
+
+    /**
      @dev Sets token royalties
      @param recipient recipient of the royalties
      @param value percentage (using 2 decimals - 10000 = 100, 0 = 0)
