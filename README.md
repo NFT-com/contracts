@@ -29,6 +29,18 @@ ZERO_BYTES = `0x0000000000000000000000000000000000000000000000000000000000000000
 - [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/0x2295828BBB9270cF92D29ed79bA0260d64fdF23f)
   - implementation => 0xE73B373C251C8177D87758c2DfC7d10be8fFE553
 
+## Rinkeby Marketplace
+- [deployedNftStake](https://rinkeby.etherscan.io/address/0x026BCDC5a320ac798Fa8e2b12AF6ba4927b9479E)
+- [deployedGenesisStake](https://rinkeby.etherscan.io/address/0xBb8c6b591339844794c9C743E268AbB2b45c336e)
+- [nftTransferProxy](https://rinkeby.etherscan.io/address/0x59998f8085069b72a77E953452E1155797E39149)
+  - implementation => 0xDfA0914E53b3C222fCBf67cD3cD89474e7B63bef
+- [deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/0x93DE38cdF2675972F38d94300c954Ea42E0639d0)
+  - implementation => 0xFecF248854c3A4e36A37CE04e7f025F718873509
+- [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/0x0530a5462D2990953Dd7a7150F325b5fD74ECB30)
+  - implementation => 0x67A59654E2ec02f12fbbcb6A2A758c7aB7c2c8E5
+- [deployedNftMarketplace](https://rinkeby.etherscan.io/address/0xA3509a064A54a7a60Fc4Db0245ef44F812f439f6)
+  - implementation => 0x6caa1ade816acad1adbda4c52e4796c95ad95c47
+
 ### Pre Requisites
 
 Before running any command, you need to create a `.env` file and set a BIP-39 compatible mnemonic as an environment

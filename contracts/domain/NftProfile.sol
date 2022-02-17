@@ -138,6 +138,10 @@ contract NftProfile is
         return _profileDetails[_tokenId];
     }
 
+    function profileOwner(string memory _string) external view returns (address) {
+        return ownerOf(_tokenUsedURIs[_string].sub(1));
+    }
+
     /**
      @notice checks if a profile exists
      @param _string profile URI
