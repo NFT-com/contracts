@@ -217,7 +217,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
         // send 1000 tokens to buyer
         await deployedNftToken
@@ -269,7 +269,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
         const {
           v: v1,
@@ -287,7 +287,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
         // send 1000 tokens to buyerSigner
         await deployedNftToken.connect(owner).transfer(buyerSigner.address, convertNftToken(1000));
@@ -319,7 +319,7 @@ describe("NFT.com Marketplace", function () {
         await deployedNftMarketplace.cancel(sellOrder);
 
         // false because sellOrder already executed and cancelled
-        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v1, r1, s1)).to.be.false;
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v1, r1, s1))[0]).to.be.false;
 
         expect(await deployedNftProfile.ownerOf(0)).to.be.equal(buyerSigner.address);
         expect(await deployedNftToken.balanceOf(deployedNftStake.address)).to.be.equal(
@@ -369,7 +369,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
         const {
           v: v1,
@@ -390,7 +390,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
@@ -457,7 +457,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
         const {
           v: v1,
@@ -481,7 +481,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
@@ -558,7 +558,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
         const {
           v: v1,
@@ -582,7 +582,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
@@ -651,7 +651,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
         const {
           v: v1,
@@ -672,7 +672,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
@@ -746,7 +746,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
         const {
           v: v1,
@@ -807,8 +807,8 @@ describe("NFT.com Marketplace", function () {
         );
 
         expect(
-          await deployedNftMarketplace.validateOrder_(incorrect_sellOrder, incorrect_v2, incorrect_r2, incorrect_s2),
-        ).to.be.true;
+          (await deployedNftMarketplace.validateOrder_(incorrect_sellOrder, incorrect_v2, incorrect_r2, incorrect_s2))
+        [0]).to.be.true;
 
         const {
           v: incorrect_v3,
@@ -835,13 +835,13 @@ describe("NFT.com Marketplace", function () {
         );
 
         expect(
-          await deployedNftMarketplace.validateOrder_(incorrect_buyOrder, incorrect_v3, incorrect_r3, incorrect_s3),
-        ).to.be.true;
+          (await deployedNftMarketplace.validateOrder_(incorrect_buyOrder, incorrect_v3, incorrect_r3, incorrect_s3))
+        [0]).to.be.true;
 
         // should revert because eth is used twice
         await expect(deployedNftMarketplace.validateMatch_(incorrect_sellOrder, incorrect_buyOrder)).to.be.reverted;
 
-        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
@@ -975,7 +975,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
         const {
           v: v1,
@@ -1003,7 +1003,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
@@ -1109,7 +1109,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
         const {
           v: v1,
@@ -1130,7 +1130,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
         );
 
-        expect(await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1)).to.be.true;
+        expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);

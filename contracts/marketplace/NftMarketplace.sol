@@ -39,9 +39,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         address takerMaker,
         uint256 makerSalt,
         uint256 takerSalt,
-        uint256 makerStart,
-        uint256 makerEnd,
-        bool buyNow
+        bool privateSale
     );
 
     function initialize(
@@ -153,9 +151,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) public view returns (bool) {
+    ) public view returns (bool, bytes32) {
         bytes32 hash = LibSignature.getStructHash(order);
-        return validateOrder(hash, order, Sig(v, r, s));
+        return (validateOrder(hash, order, Sig(v, r, s)), hash);
     }
 
     function cancel(LibSignature.Order calldata order) external nonReentrant {
@@ -419,9 +417,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             msg.sender,
             sellOrder.salt,
             0,
-            sellOrder.start,
-            sellOrder.end,
-            true
+            sellOrder.taker != address(0x0)
         );
     }
 
@@ -477,9 +473,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             buyOrder.maker,
             sellOrder.salt,
             buyOrder.salt,
-            sellOrder.start,
-            sellOrder.end,
-            false
+            sellOrder.taker != address(0x0)
         );
     }
 }
