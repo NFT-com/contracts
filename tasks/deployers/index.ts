@@ -10,18 +10,26 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, { ethers
 task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying the marketplace contacts..."));
 
-  const rinkebyNFT = "0x4DE2fE09Bc8F2145fE12e278641d2c93B9D4393A";
-  const rinnkebyWETH = "0xc778417e063141139fce010982780140aa0cd5ab";
+  const rinkebyNFT = "0xa75F995f252ba5F7C17f834b314201271d32eC35";
+  const rinkebyWETH = "0xc778417e063141139fce010982780140aa0cd5ab";
+  const rinkebyGenKey = "0x9F6ED3d90D48573245d6a0c0742db4eCf27B6a56";
 
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
   const NftStake = await hre.ethers.getContractFactory("PublicNftStake");
+  const GenesisNftStake = await hre.ethers.getContractFactory("GenesisNftStake");
   const TransferProxy = await hre.ethers.getContractFactory("TransferProxy");
   const ERC20TransferProxy = await hre.ethers.getContractFactory("ERC20TransferProxy");
   const CryptoKittyTransferProxy = await hre.ethers.getContractFactory("CryptoKittyTransferProxy");
 
-  const deployedNftStake = await NftStake.deploy(rinkebyNFT, rinnkebyWETH);
-
+  const deployedNftStake = await NftStake.deploy(rinkebyNFT, rinkebyWETH);
   console.log(chalk.green("deployedNftStake: ", deployedNftStake.address));
+
+  const deployedGenStake = await GenesisNftStake.deploy(
+    rinkebyNFT,
+    rinkebyWETH,
+    rinkebyGenKey
+  );
+  console.log(chalk.green("deployedGenStake: ", deployedGenStake.address));
 
   const deployedTransferProxy = await hre.upgrades.deployProxy(TransferProxy, { kind: "uups" });
   console.log(chalk.green("nftTransferProxy: ", deployedTransferProxy.address));
@@ -35,10 +43,10 @@ task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
   const deployedNftMarketplace = await hre.upgrades.deployProxy(
     NftMarketplace,
     [
-      deployedTransferProxy.address,
-      deployedERC20TransferProxy.address,
-      deployedCryptoKittyTransferProxy.address,
-      deployedNftStake.address,
+      deployedTransferProxy.address,                  
+      deployedERC20TransferProxy.address,                 
+      deployedCryptoKittyTransferProxy.address,                 
+      deployedNftStake.address,                 
     ],
     { kind: "uups" },
   );
