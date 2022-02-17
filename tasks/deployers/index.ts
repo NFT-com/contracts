@@ -61,6 +61,17 @@ task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("finished deploying nft marketplace contracts!"));
 });
 
+task("upgrade:NFTMarketplace").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("starting to upgrade..."));
+  const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
+
+  const upgradedNftMarketplace = await hre.upgrades.upgradeProxy(
+    "0xA3509a064A54a7a60Fc4Db0245ef44F812f439f6",
+    NftMarketplace,
+  );
+  console.log(chalk.green("upgraded nft marketplace: ", upgradedNftMarketplace.address));
+});
+
 task("deploy:GenKey").setAction(async function (taskArguments, hre) {
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
