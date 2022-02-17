@@ -170,6 +170,16 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
         return keccak256(abi.encode(_PERMIT_TYPEHASH, _wethTokens, _owner));
     }
 
+    function validateBid(
+        uint256 _wethTokens,
+        address _owner,
+        Sig memory sig
+    ) external view returns (bool) {
+        bytes32 hash = getStructHash(_wethTokens, _owner);
+
+        return validateBid_(hash, _wethTokens, _owner, sig);
+    }
+
     /**
      * @dev Assert a whitelist bid is valid
      * @param _wethTokens tokens WETH

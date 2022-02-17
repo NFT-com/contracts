@@ -594,6 +594,16 @@ describe("NFT Gasless Auction V2", function () {
         await deployedProfileAuction.connect(second).whitelistGenesisClaim("hello2", 1);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
+
+        expect(await deployedNftProfile.balanceOf(owner.address)).to.be.equal(1);
+        expect(await deployedNftProfile.balanceOf(second.address)).to.be.equal(1);
+        expect(await deployedNftProfile.ownerOf(1)).to.be.equal(second.address);
+
+        await deployedNftProfile.connect(owner).tradeMarkTransfer("hello2", owner.address);
+
+        expect(await deployedNftProfile.ownerOf(1)).to.be.equal(owner.address);
+        expect(await deployedNftProfile.balanceOf(owner.address)).to.be.equal(2);
+        expect(await deployedNftProfile.balanceOf(second.address)).to.be.equal(0);
       });
 
       it("should upgrade profile contract to V2", async function () {
