@@ -27,11 +27,12 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     bytes4 internal constant MAGICVALUE = 0x1626ba7e; // bytes4(keccak256("isValidSignature(bytes32,bytes)")
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
-    mapping(bytes32 => bool) public approvedOrders; // order verified by on-chain approval (optional)
+    mapping(bytes32 => uint256) private _approvedOrdersByNonce;
+    mapping(address => uint256) public nonces; // nonce for each account
 
     //events
-    event Cancel(bytes32 hash, address maker, address taker);
     event Approval(bytes32 hash, address maker, address taker);
+    event NonceIncremented(address indexed maker, uint newNonce);
     event Match(
         bytes32 makerHash,
         bytes32 takerHash,
@@ -67,8 +68,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param order the order itself
      * @param sig the struct sig (contains VRS)
      */
-    function requireValidOrder(LibSignature.Order calldata order, Sig memory sig) internal view returns (bytes32) {
-        bytes32 hash = LibSignature.getStructHash(order);
+    function requireValidOrder(LibSignature.Order calldata order, Sig memory sig, uint256 nonce) internal view returns (bytes32) {
+        bytes32 hash = LibSignature.getStructHash(order, nonce);
         require(validateOrder(hash, order, sig));
         return hash;
     }
@@ -99,6 +100,16 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         return LibSignature.recoverVRS(signature);
     }
 
+    // invalidate all previous unused nonce orders
+    function incrementNonce() external {
+        uint256 newNonce = ++nonces[msg.sender];
+        emit NonceIncremented(msg.sender, newNonce);
+    }
+
+    function approvedOrders(bytes32 hash) public view returns (bool approved) {
+        return _approvedOrdersByNonce[hash] != 0;
+    }
+
     /**
      * @dev internal function for validating a buy or sell order
      * @param hash the struct hash for a bid
@@ -116,8 +127,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             return false;
         }
 
-        if (approvedOrders[hash]) {
-            return true;
+        uint256 approvedOrderNoncePlusOne = _approvedOrdersByNonce[hash];
+        if (approvedOrderNoncePlusOne != 0) {
+            return approvedOrderNoncePlusOne == nonces[order.maker] + 1;
         }
 
         bytes32 hashV4 = LibSignature._hashTypedDataV4Marketplace(hash);
@@ -152,16 +164,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes32 r,
         bytes32 s
     ) public view returns (bool, bytes32) {
-        bytes32 hash = LibSignature.getStructHash(order);
+        bytes32 hash = LibSignature.getStructHash(order, nonces[order.maker]);
         return (validateOrder(hash, order, Sig(v, r, s)), hash);
-    }
-
-    function cancel(LibSignature.Order calldata order) external nonReentrant {
-        require(msg.sender == order.maker, "not a maker");
-        require(order.salt != 0, "0 salt can't be used");
-        bytes32 hash = LibSignature.getStructHash(order);
-        cancelledOrFinalized[hash] = true;
-        emit Cancel(hash, order.maker, order.taker);
     }
 
     /**
@@ -172,11 +176,15 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // checks
         require(msg.sender == order.maker, "not a maker");
         require(order.salt != 0, "0 salt can't be used");
-        bytes32 hash = LibSignature.getStructHash(order);
-        require(!approvedOrders[hash]); // Assert bid has not already been approved.
+        bytes32 hash = LibSignature.getStructHash(order, nonces[order.maker]);
+
+        /* Assert order has not already been approved. */
+        require(_approvedOrdersByNonce[hash] == 0);
 
         // effects
-        approvedOrders[hash] = true; // Mark bid as approved.
+
+        /* Mark order as approved. */
+        _approvedOrdersByNonce[hash] = nonces[order.maker] + 1;
 
         emit Approval(hash, order.maker, order.taker);
     }
@@ -391,7 +399,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes32 s
     ) external payable nonReentrant {
         // checks
-        bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s));
+        bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s), nonces[sellOrder.maker]);
 
         require(validateBuyNow(sellOrder, msg.sender));
 
@@ -437,9 +445,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes32[2] calldata s
     ) public payable nonReentrant {
         // checks
-        bytes32 sellHash = requireValidOrder(sellOrder, Sig(v[0], r[0], s[0]));
+        bytes32 sellHash = requireValidOrder(sellOrder, Sig(v[0], r[0], s[0]), nonces[sellOrder.maker]);
 
-        bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]));
+        bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]), nonces[buyOrder.maker]);
 
         require(validateMatch(sellOrder, buyOrder, false));
 
