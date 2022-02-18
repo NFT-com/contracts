@@ -13,6 +13,7 @@ library LibSignature {
         uint256 salt;                 // unique salt to eliminate collisons
         uint256 start;                // optional: set = 0 to disregard. start Unix timestamp of when order is valid
         uint256 end;                  // optional: set = 0 to disregard. end Unix timestamp of when order is invalid
+        uint256 nonce;                // nonce for all orders
     }
 
     bytes32 constant private ORDER_TYPEHASH = keccak256(
@@ -34,7 +35,7 @@ library LibSignature {
         return ECDSAUpgradeable.toTypedDataHash(_domainSeparatorV4Marketplace(), structHash);
     }
 
-    function getStructHash(Order calldata order) internal pure returns (bytes32) {
+    function getStructHash(Order calldata order, uint256 nonce) internal pure returns (bytes32) {
         return keccak256(abi.encode(
             ORDER_TYPEHASH,
             order.maker,
@@ -43,7 +44,8 @@ library LibSignature {
             LibAsset.hash(order.takeAssets),
             order.salt,
             order.start,
-            order.end
+            order.end,
+            nonce
         ));
     }
 

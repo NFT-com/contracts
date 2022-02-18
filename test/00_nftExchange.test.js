@@ -316,7 +316,7 @@ describe("NFT.com Marketplace", function () {
           .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
 
         // revert due to sellOrder being used already
-        await deployedNftMarketplace.cancel(sellOrder);
+        await deployedNftMarketplace.cancel([sellOrder]);
 
         // false because sellOrder already executed and cancelled
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v1, r1, s1))[0]).to.be.false;
