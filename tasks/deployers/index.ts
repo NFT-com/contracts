@@ -70,6 +70,7 @@ task("upgrade:NFTMarketplace").setAction(async function (taskArguments, hre) {
     NftMarketplace,
   );
   console.log(chalk.green("upgraded nft marketplace: ", upgradedNftMarketplace.address));
+  console.log(chalk.green("upgradedNftMarketplace: ", upgradedNftMarketplace));
 });
 
 task("deploy:GenKey").setAction(async function (taskArguments, hre) {

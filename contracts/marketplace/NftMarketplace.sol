@@ -27,6 +27,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     bytes4 internal constant MAGICVALUE = 0x1626ba7e; // bytes4(keccak256("isValidSignature(bytes32,bytes)")
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
+    mapping(bytes32 => bool) private approvedOrders; // TODO: delete from mainnet
     mapping(bytes32 => uint256) private _approvedOrdersByNonce;
     mapping(address => uint256) public nonces; // nonce for each account
 
@@ -106,7 +107,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         emit NonceIncremented(msg.sender, newNonce);
     }
 
-    function approvedOrders(bytes32 hash) public view returns (bool approved) {
+    function orderApproved(bytes32 hash) public view returns (bool approved) {
         return _approvedOrdersByNonce[hash] != 0;
     }
 
