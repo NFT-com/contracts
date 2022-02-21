@@ -123,6 +123,7 @@ export const signMarketplaceOrder = async (
   takeAssets: any,
   start: number,
   end: number,
+  nonce: number,
   provider: any,
   deployedNftMarketplaceAddress: string,
 ): Promise<any> => {
@@ -138,8 +139,8 @@ export const signMarketplaceOrder = async (
     "NFT.com Marketplace",
     deployedNftMarketplaceAddress,
     getHash(
-      ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256"],
-      [MARKETPLACE_ORDER_TYPEHASH, signer.address, makeAssetHash, taker, takeAssetHash, salt, start, end],
+      ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "uint256"],
+      [MARKETPLACE_ORDER_TYPEHASH, signer.address, makeAssetHash, taker, takeAssetHash, salt, start, end, nonce],
     ),
   );
 
@@ -149,7 +150,7 @@ export const signMarketplaceOrder = async (
     v,
     r,
     s,
-    order: [signer.address, getAssetList(makeAssets), taker, getAssetList(takeAssets), salt, start, end],
+    order: [signer.address, getAssetList(makeAssets), taker, getAssetList(takeAssets), salt, start, end, nonce],
   };
 };
 
