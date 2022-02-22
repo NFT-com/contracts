@@ -32,8 +32,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     mapping(address => uint256) public nonces; // nonce for each account
 
     //events
-    event Approval(bytes32 hash, address maker, address taker);
-    event NonceIncremented(address indexed maker, uint newNonce);
+    event Cancel(bytes32 structHash, address indexed maker);
+    event Approval(bytes32 structHash, address indexed maker);
+    event NonceIncremented(address indexed maker, uint256 newNonce);
     event Match(
         bytes32 makerHash,
         bytes32 takerHash,
@@ -169,6 +170,14 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         return (validateOrder(hash, order, Sig(v, r, s)), hash);
     }
 
+    function cancel(LibSignature.Order calldata order) external nonReentrant {
+        require(msg.sender == order.maker, "not a maker");
+        require(order.salt != 0, "0 salt can't be used");
+        bytes32 hash = LibSignature.getStructHash(order, nonces[order.maker]);
+        cancelledOrFinalized[hash] = true;
+        emit Cancel(hash, msg.sender);
+    }
+
     /**
      * @dev Approve an order
      * @param order the order (buy or sell) in question
@@ -187,7 +196,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         /* Mark order as approved. */
         _approvedOrdersByNonce[hash] = nonces[order.maker] + 1;
 
-        emit Approval(hash, order.maker, order.taker);
+        emit Approval(hash, msg.sender);
     }
 
     /**
