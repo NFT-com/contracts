@@ -85,11 +85,7 @@ export const getAssetTypeHash = (assetClass: string, assetTypeData: string): str
   return getHash(["bytes32", "bytes4", "bytes32"], [ASSET_TYPE_TYPEHASH, assetClass, assetTypeData]);
 };
 
-// Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)
 export const getAssetHash = (asset: any): string => {
-  // console.log('----> assetHash: ', asset);
-  // console.log('part 1: ', getAssetTypeHash(asset[0], getHash(asset[1], asset[2])));
-  // console.log('part 2: ', getHash(["uint256", "uint256"], asset[3]));
   return getHash(["bytes32", "bytes32", "bytes32"], [ASSET_TYPEHASH, getAssetTypeHash(asset[0], getHash(asset[1], asset[2])), getHash(["uint256", "uint256"], asset[3])]);
 }
 
@@ -104,9 +100,6 @@ export const getAssetHashes = (assets: any): string => {
     assetList.push(assetTypeHash);
     assetTypeList.push("bytes32")
   }
-
-  // console.log('assetTypeList: ', assetTypeList);
-  // console.log('assetList: ', assetList);
 
   return getHash(assetTypeList, assetList);
 };
