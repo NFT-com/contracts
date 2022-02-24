@@ -36,6 +36,7 @@ const Types: any = {
     { name: "salt", type: "uint256" },
     { name: "start", type: "uint256" },
     { name: "end", type: "uint256" },
+    { name: "nonce", type: "uint256" },
     { name: "data", type: "bytes" },
   ],
 };

@@ -19,7 +19,7 @@ export const GENESIS_KEY_TYPEHASH = convertToHash("GenesisBid(uint256 _wethToken
 export const BID_TYPEHASH = convertToHash("Bid(uint256 _nftTokens,bool _genKey,string _profileURI,address _owner)");
 
 export const MARKETPLACE_ORDER_TYPEHASH = convertToHash(
-  "Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
+  "Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end,uint256 nonce)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
 );
 
 export const convertBigNumber = (tokens: number): BigNumberish => {
