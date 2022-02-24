@@ -19,7 +19,7 @@ export const GENESIS_KEY_TYPEHASH = convertToHash("GenesisBid(uint256 _wethToken
 export const BID_TYPEHASH = convertToHash("Bid(uint256 _nftTokens,bool _genKey,string _profileURI,address _owner)");
 
 export const MARKETPLACE_ORDER_TYPEHASH = convertToHash(
-  "Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end,uint256 nonce)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
+  "Order(address maker,Asset[] makeAssets,address taker,Asset[] takeAssets,uint256 salt,uint256 start,uint256 end,uint256 nonce)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
 );
 
 export const convertBigNumber = (tokens: number): BigNumberish => {
@@ -37,7 +37,7 @@ export const convertTinyNumber = (tokens: number): BigNumberish => {
 export const ASSET_TYPE_TYPEHASH = convertToHash("AssetType(bytes4 assetClass,bytes data)");
 
 export const ASSET_TYPEHASH = convertToHash(
-  "Assets[](AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
+  "Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
 );
 
 export const makeSalt = (length: number = 16): BigNumber => {
@@ -81,25 +81,34 @@ export const getHash = (types: string[], values: any[]): string => {
   return keccak256(defaultAbiCoder.encode(types, values));
 };
 
-export const getAssetTypeHash = async (assetClass: string, assetTypeData: string): Promise<string> => {
+export const getAssetTypeHash = (assetClass: string, assetTypeData: string): string => {
   return getHash(["bytes32", "bytes4", "bytes32"], [ASSET_TYPE_TYPEHASH, assetClass, assetTypeData]);
 };
 
-export const getAssetHash = async (assets: any): Promise<string> => {
-  let data32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+// Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)
+export const getAssetHash = (asset: any): string => {
+  // console.log('----> assetHash: ', asset);
+  // console.log('part 1: ', getAssetTypeHash(asset[0], getHash(asset[1], asset[2])));
+  // console.log('part 2: ', getHash(["uint256", "uint256"], asset[3]));
+  return getHash(["bytes32", "bytes32", "bytes32"], [ASSET_TYPEHASH, getAssetTypeHash(asset[0], getHash(asset[1], asset[2])), getHash(["uint256", "uint256"], asset[3])]);
+}
+
+export const getAssetHashes = (assets: any): string => {
+  const assetList = [];
+  const assetTypeList = [];
 
   for (let i = 0; i < assets.length; i++) {
     const asset = assets[i];
+    const assetTypeHash = getAssetHash(asset);
 
-    const assetTypeHash = await getAssetTypeHash(asset[0], getHash(asset[1], asset[2]));
-
-    data32 = getHash(
-      ["bytes32", "bytes32", "bytes32"],
-      [data32, assetTypeHash, getHash(["uint256", "uint256"], asset[3])],
-    );
+    assetList.push(assetTypeHash);
+    assetTypeList.push("bytes32")
   }
 
-  return getHash(["bytes32", "bytes32"], [ASSET_TYPEHASH, data32]);
+  // console.log('assetTypeList: ', assetTypeList);
+  // console.log('assetList: ', assetList);
+
+  return getHash(assetTypeList, assetList);
 };
 
 const getAssetList = (assets: any) => {
@@ -127,11 +136,11 @@ export const signMarketplaceOrder = async (
   provider: any,
   deployedNftMarketplaceAddress: string,
 ): Promise<any> => {
-  const salt = 1 || makeSalt();
+  const salt = 1645721783; // 1 || makeSalt();
 
-  const makeAssetHash = await getAssetHash(makeAssets);
+  const makeAssetHash = getAssetHashes(makeAssets);
 
-  const takeAssetHash = await getAssetHash(takeAssets);
+  const takeAssetHash = getAssetHashes(takeAssets);
 
   // domain separator V4
   const orderDigest = await getDigest(
