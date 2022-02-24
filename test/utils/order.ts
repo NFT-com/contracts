@@ -26,7 +26,7 @@ const Types: any = {
   ],
   Asset: [
     { name: "assetType", type: "AssetType" },
-    { name: "value", type: "uint256" },
+    { name: "data", type: "bytes" },
   ],
   Order: [
     { name: "maker", type: "address" },
