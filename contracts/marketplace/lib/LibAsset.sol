@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
-
 library LibAsset {
     bytes4 constant public ETH_ASSET_CLASS = bytes4(keccak256("ETH"));
     bytes4 constant public ERC20_ASSET_CLASS = bytes4(keccak256("ERC20"));
@@ -9,32 +8,27 @@ library LibAsset {
     bytes4 constant public COLLECTION = bytes4(keccak256("COLLECTION"));
     bytes4 constant public CRYPTO_PUNK = bytes4(keccak256("CRYPTO_PUNK"));
     bytes4 constant public CRYPTO_KITTY = bytes4(keccak256("CRYPTO_KITTY"));
-
     bytes32 constant private ASSET_TYPE_TYPEHASH = keccak256(
         "AssetType(bytes4 assetClass,bytes data)"
     );
-
     bytes32 constant private ASSET_TYPEHASH = keccak256(
-        "Assets[](AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)"
+        "Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)"
     );
-
     struct AssetType {
         bytes4 assetClass;      // asset class (erc20, 721, etc)
         bytes data;             // (address, uint256, bool) = (contract address, tokenId - only NFTs, allow all from collection - only NFTs)
                                 // if allow all = true, ignore tokenId
     }
-
     struct Asset {
         AssetType assetType;
         bytes data;             // (uint256, uint256) = value, minimumBid
                                 //      SELL ORDER:
                                 //          MAKE: (the amount for sale, 0)
                                 //          TAKE: (buy now price, min bid value)
-                                //      BUY  ORDER: 
+                                //      BUY  ORDER:
                                 //          MAKE: (amount offered must >= min bid value, 0)
                                 //          TAKE: (must match sell order make, 0)
     }
-
     function hash(AssetType calldata assetType) internal pure returns (bytes32) {
         return keccak256(abi.encode(
             ASSET_TYPE_TYPEHASH,
@@ -42,17 +36,18 @@ library LibAsset {
             keccak256(assetType.data)
         ));
     }
-
-    function hash(Asset[] calldata assets) internal pure returns (bytes32) {
-        bytes32 data;
-
-        for(uint256 i = 0; i < assets.length; i++) {
-            data = keccak256(abi.encode(data, hash(assets[i].assetType), keccak256(assets[i].data)));
-        }
-
+    function hash(Asset calldata asset) internal pure returns (bytes32) {
         return keccak256(abi.encode(
             ASSET_TYPEHASH,
-            data
+            hash(asset.assetType),
+            keccak256(asset.data)
         ));
+    }
+    function hash(Asset[] calldata assets) internal pure returns (bytes32) {
+        bytes32[] memory assetHashes = new bytes32[](assets.length);
+        for (uint256 i = 0; i < assets.length; i++) {
+            assetHashes[i] = hash(assets[i]);
+        }
+        return keccak256(abi.encodePacked(assetHashes));
     }
 }

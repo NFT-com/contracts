@@ -17,7 +17,7 @@ library LibSignature {
     }
 
     bytes32 constant private ORDER_TYPEHASH = keccak256(
-        "Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end,uint256 nonce)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)"
+        "Order(address maker,Asset[] makeAssets,address taker,Asset[] takeAssets,uint256 salt,uint256 start,uint256 end,uint256 nonce)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)"
     );
 
     function _domainSeparatorV4Marketplace() internal view returns (bytes32) {
