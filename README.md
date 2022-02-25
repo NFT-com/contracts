@@ -30,6 +30,7 @@ ZERO_BYTES = `0x0000000000000000000000000000000000000000000000000000000000000000
   - implementation => 0xE73B373C251C8177D87758c2DfC7d10be8fFE553
 
 ## Rinkeby Marketplace
+
 - [deployedNftStake](https://rinkeby.etherscan.io/address/0x026BCDC5a320ac798Fa8e2b12AF6ba4927b9479E)
 - [deployedGenesisStake](https://rinkeby.etherscan.io/address/0xBb8c6b591339844794c9C743E268AbB2b45c336e)
 - [nftTransferProxy](https://rinkeby.etherscan.io/address/0x59998f8085069b72a77E953452E1155797E39149)
