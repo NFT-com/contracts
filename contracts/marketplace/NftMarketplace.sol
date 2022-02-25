@@ -36,17 +36,17 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     event Approval(bytes32 structHash, address indexed maker);
     event NonceIncremented(address indexed maker, uint256 newNonce);
     event Match(
-        bytes32 makerStructHash,
-        bytes32 takerStructHash,
-        address makerMaker,
+        bytes32 indexed makerStructHash,
+        bytes32 indexed takerStructHash,
+        address indexed makerMaker,
         address takerMaker,
         uint256 makerSalt,
         uint256 takerSalt,
         bool privateSale
     );
     event Match2(
-        bytes32 makerStructHash,
-        bytes32 takerStructHash,
+        bytes32 indexed makerStructHash,
+        bytes32 indexed takerStructHash,
         bytes[] sellerMakerOrderAssetData,
         bytes[] sellerMakerOrderAssetTypeData,
         bytes4[] sellerMakerOrderAssetClass,
@@ -55,8 +55,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes4[] sellerTakerOrderAssetClass
     );
     event Match3(
-        bytes32 makerStructHash,
-        bytes32 takerStructHash,
+        bytes32 indexed makerStructHash,
+        bytes32 indexed takerStructHash,
         bytes[] buyerMakerOrderAssetData,
         bytes[] buyerMakerOrderAssetTypeData,
         bytes4[] buyerMakerOrderAssetClass,
