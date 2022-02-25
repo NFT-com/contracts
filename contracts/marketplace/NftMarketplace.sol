@@ -36,13 +36,33 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     event Approval(bytes32 structHash, address indexed maker);
     event NonceIncremented(address indexed maker, uint256 newNonce);
     event Match(
-        bytes32 makerHash,
-        bytes32 takerHash,
+        bytes32 makerStructHash,
+        bytes32 takerStructHash,
         address makerMaker,
         address takerMaker,
         uint256 makerSalt,
         uint256 takerSalt,
         bool privateSale
+    );
+    event Match2(
+        bytes32 makerStructHash,
+        bytes32 takerStructHash,
+        bytes[] sellerMakerOrderAssetData,
+        bytes[] sellerMakerOrderAssetTypeData,
+        bytes4[] sellerMakerOrderAssetClass,
+        bytes[] sellerTakerOrderAssetData,
+        bytes[] sellerTakerOrderAssetTypeData,
+        bytes4[] sellerTakerOrderAssetClass
+    );
+    event Match3(
+        bytes32 makerStructHash,
+        bytes32 takerStructHash,
+        bytes[] buyerMakerOrderAssetData,
+        bytes[] buyerMakerOrderAssetTypeData,
+        bytes4[] buyerMakerOrderAssetClass,
+        bytes[] buyerTakerOrderAssetData,
+        bytes[] buyerTakerOrderAssetTypeData,
+        bytes4[] buyerTakerOrderAssetClass
     );
 
     function initialize(
@@ -70,7 +90,11 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param order the order itself
      * @param sig the struct sig (contains VRS)
      */
-    function requireValidOrder(LibSignature.Order calldata order, Sig memory sig, uint256 nonce) internal view returns (bytes32) {
+    function requireValidOrder(
+        LibSignature.Order calldata order,
+        Sig memory sig,
+        uint256 nonce
+    ) internal view returns (bytes32) {
         bytes32 hash = LibSignature.getStructHash(order, nonce);
         require(validateOrder(hash, order, sig));
         return hash;
@@ -437,6 +461,90 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             0,
             sellOrder.taker != address(0x0)
         );
+
+        emitMatch2(sellOrder, sellHash, sellOrder, 0x0000000000000000000000000000000000000000000000000000000000000000);
+    }
+
+    function emitMatch2(
+        LibSignature.Order calldata sellOrder,
+        bytes32 sellStructHash,
+        LibSignature.Order calldata buyOrder,
+        bytes32 buyStructHash
+    ) private {
+        // buy order
+        bool buyOnly = buyStructHash == 0x0000000000000000000000000000000000000000000000000000000000000000;
+
+        bytes[] memory sellerMakerOrderAssetData = new bytes[](sellOrder.makeAssets.length);
+        bytes[] memory sellerMakerOrderAssetTypeData = new bytes[](sellOrder.makeAssets.length);
+        bytes4[] memory sellerMakerOrderAssetClass = new bytes4[](sellOrder.makeAssets.length);
+        for (uint256 i = 0; i < sellOrder.makeAssets.length; i++) {
+            sellerMakerOrderAssetData[i] = sellOrder.makeAssets[i].data;
+            sellerMakerOrderAssetTypeData[i] = sellOrder.makeAssets[i].assetType.data;
+            sellerMakerOrderAssetClass[i] = sellOrder.makeAssets[i].assetType.assetClass; 
+        }
+
+        bytes[] memory sellerTakerOrderAssetData = new bytes[](sellOrder.takeAssets.length);
+        bytes[] memory sellerTakerOrderAssetTypeData = new bytes[](sellOrder.takeAssets.length);
+        bytes4[] memory sellerTakerOrderAssetClass = new bytes4[](sellOrder.takeAssets.length);
+        for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
+            sellerTakerOrderAssetData[i] = sellOrder.takeAssets[i].data;
+            sellerTakerOrderAssetTypeData[i] = sellOrder.takeAssets[i].assetType.data;
+            sellerTakerOrderAssetClass[i] = sellOrder.takeAssets[i].assetType.assetClass;
+        }
+
+        emit Match2(
+            sellStructHash,
+            buyStructHash,
+            sellerMakerOrderAssetData,
+            sellerMakerOrderAssetTypeData,
+            sellerMakerOrderAssetClass,
+            sellerTakerOrderAssetData,
+            sellerTakerOrderAssetTypeData,
+            sellerTakerOrderAssetClass
+        );
+
+        if (!buyOnly) {
+            emitMatch3(
+                sellStructHash,
+                buyOrder,
+                buyStructHash
+            );
+        }
+    }
+
+    function emitMatch3(
+        bytes32 sellStructHash,
+        LibSignature.Order calldata buyOrder,
+        bytes32 buyStructHash
+    ) private {
+        bytes[] memory buyerMakerOrderAssetData = new bytes[](buyOrder.makeAssets.length);
+        bytes[] memory buyerMakerOrderAssetTypeData = new bytes[](buyOrder.makeAssets.length);
+        bytes4[] memory buyerMakerOrderAssetClass = new bytes4[](buyOrder.makeAssets.length);
+        for (uint256 i = 0; i < buyOrder.makeAssets.length; i++) {
+            buyerMakerOrderAssetData[i] = buyOrder.makeAssets[i].data;
+            buyerMakerOrderAssetTypeData[i] = buyOrder.makeAssets[i].assetType.data;
+            buyerMakerOrderAssetClass[i] = buyOrder.makeAssets[i].assetType.assetClass; 
+        }
+
+        bytes[] memory buyerTakerOrderAssetData = new bytes[](buyOrder.takeAssets.length);
+        bytes[] memory buyerTakerOrderAssetTypeData = new bytes[](buyOrder.takeAssets.length);
+        bytes4[] memory buyerTakerOrderAssetClass = new bytes4[](buyOrder.takeAssets.length);
+        for (uint256 i = 0; i < buyOrder.takeAssets.length; i++) {
+            buyerTakerOrderAssetData[i] = buyOrder.takeAssets[i].data;
+            buyerTakerOrderAssetTypeData[i] = buyOrder.takeAssets[i].assetType.data;
+            buyerTakerOrderAssetClass[i] = buyOrder.takeAssets[i].assetType.assetClass;
+        }
+
+        emit Match3(
+            sellStructHash,
+            buyStructHash,
+            buyerMakerOrderAssetData,
+            buyerMakerOrderAssetTypeData,
+            buyerMakerOrderAssetClass,
+            buyerTakerOrderAssetData,
+            buyerTakerOrderAssetTypeData,
+            buyerTakerOrderAssetClass
+        );
     }
 
     /**
@@ -493,5 +601,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             buyOrder.salt,
             sellOrder.taker != address(0x0)
         );
+
+        emitMatch2(sellOrder, sellHash, buyOrder, buyHash);
     }
 }
