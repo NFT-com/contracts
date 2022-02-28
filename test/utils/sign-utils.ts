@@ -135,7 +135,7 @@ export const signMarketplaceOrder = async (
   nonce: number,
   provider: any,
   deployedNftMarketplaceAddress: string,
-  auctionType: number
+  auctionType: number,
 ): Promise<any> => {
   const salt = 1645721783; // 1 || makeSalt();
 
@@ -150,7 +150,18 @@ export const signMarketplaceOrder = async (
     deployedNftMarketplaceAddress,
     getHash(
       ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "uint256", "uint256"],
-      [MARKETPLACE_ORDER_TYPEHASH, signer.address, makeAssetHash, taker, takeAssetHash, salt, start, end, nonce, auctionType],
+      [
+        MARKETPLACE_ORDER_TYPEHASH,
+        signer.address,
+        makeAssetHash,
+        taker,
+        takeAssetHash,
+        salt,
+        start,
+        end,
+        nonce,
+        auctionType,
+      ],
     ),
   );
 
@@ -160,7 +171,17 @@ export const signMarketplaceOrder = async (
     v,
     r,
     s,
-    order: [signer.address, getAssetList(makeAssets), taker, getAssetList(takeAssets), salt, start, end, nonce, auctionType],
+    order: [
+      signer.address,
+      getAssetList(makeAssets),
+      taker,
+      getAssetList(takeAssets),
+      salt,
+      start,
+      end,
+      nonce,
+      auctionType,
+    ],
   };
 };
 
