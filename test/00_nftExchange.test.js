@@ -162,6 +162,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         // should be false since order.start < now
@@ -189,6 +190,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         // should be false since order.end > now
@@ -218,6 +220,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -236,6 +239,8 @@ describe("NFT.com Marketplace", function () {
         await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(buyer.address, ownerSigner.address, convertNftToken(100));
+
+        console.log("-------- 4");
 
         expect(await deployedNftProfile.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedNftToken.balanceOf(buyer.address)).to.be.equal(
@@ -271,6 +276,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -290,6 +296,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -361,6 +368,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -380,6 +388,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -448,6 +457,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -470,6 +480,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -538,6 +549,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -563,6 +575,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -641,6 +654,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -666,6 +680,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -736,6 +751,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -758,6 +774,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -833,6 +850,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -859,6 +877,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
         // sell NFT profile NFT token 0 and 1
         // wants NFT token and WETH
@@ -895,6 +914,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect(
@@ -926,6 +946,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect(
@@ -1070,6 +1091,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -1099,6 +1121,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -1206,6 +1229,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -1228,6 +1252,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
+          1,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;

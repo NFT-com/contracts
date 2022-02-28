@@ -5,6 +5,12 @@ import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.
 import "./LibAsset.sol";
 
 library LibSignature {
+    enum AuctionType {
+        FixedPrice,
+        English,
+        Decreasing
+    }
+
     struct Order {
         address maker;                // user making a order (buy or sell)
         LibAsset.Asset[] makeAssets;  // asset(s) being sold or used to buy
@@ -14,10 +20,11 @@ library LibSignature {
         uint256 start;                // optional: set = 0 to disregard. start Unix timestamp of when order is valid
         uint256 end;                  // optional: set = 0 to disregard. end Unix timestamp of when order is invalid
         uint256 nonce;                // nonce for all orders
+        AuctionType auctionType;      // type of auction
     }
 
     bytes32 constant private ORDER_TYPEHASH = keccak256(
-        "Order(address maker,Asset[] makeAssets,address taker,Asset[] takeAssets,uint256 salt,uint256 start,uint256 end,uint256 nonce)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)"
+        "Order(address maker,Asset[] makeAssets,address taker,Asset[] takeAssets,uint256 salt,uint256 start,uint256 end,uint256 nonce,uint256 auctionType)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)"
     );
 
     function _domainSeparatorV4Marketplace() internal view returns (bytes32) {
@@ -45,7 +52,8 @@ library LibSignature {
             order.salt,
             order.start,
             order.end,
-            nonce
+            nonce,
+            order.auctionType
         ));
     }
 
