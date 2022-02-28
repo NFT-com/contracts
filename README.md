@@ -40,7 +40,7 @@ ZERO_BYTES = `0x0000000000000000000000000000000000000000000000000000000000000000
 - [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/0x0530a5462D2990953Dd7a7150F325b5fD74ECB30)
   - implementation => 0x67A59654E2ec02f12fbbcb6A2A758c7aB7c2c8E5
 - [deployedNftMarketplace](https://rinkeby.etherscan.io/address/0xA3509a064A54a7a60Fc4Db0245ef44F812f439f6)
-  - implementation => 0x4FA5F2687043F45D7C3A2947BD563E5D9F60021e
+  - implementation => 0x249dab8e3cae15a839a43154d9093b7100deadfa
 
 ### Pre Requisites
 
