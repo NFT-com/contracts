@@ -45,7 +45,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     );
     event Match2A(
         bytes32 indexed makerStructHash,
-        bytes32 indexed takerStructHash,
         address makerAddress,
         address takerAddress,
         uint256 start,
@@ -55,7 +54,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     );
     event Match2B(
         bytes32 indexed makerStructHash,
-        bytes32 indexed takerStructHash,
         bytes[] sellerMakerOrderAssetData,
         bytes[] sellerMakerOrderAssetTypeData,
         bytes4[] sellerMakerOrderAssetClass,
@@ -65,7 +63,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     );
     event Match3A(
         bytes32 indexed makerStructHash,
-        bytes32 indexed takerStructHash,
         address makerAddress,
         address takerAddress,
         uint256 start,
@@ -75,7 +72,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     );
     event Match3B(
         bytes32 indexed makerStructHash,
-        bytes32 indexed takerStructHash,
         bytes[] buyerMakerOrderAssetData,
         bytes[] buyerMakerOrderAssetTypeData,
         bytes4[] buyerMakerOrderAssetClass,
@@ -535,7 +531,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         emit Match2A(
             sellHash,
-            0x0000000000000000000000000000000000000000000000000000000000000000,
             sellOrder.maker,
             sellOrder.taker,
             sellOrder.start,
@@ -573,7 +568,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         emit Match2B(
             sellStructHash,
-            buyStructHash,
             sellerMakerOrderAssetData,
             sellerMakerOrderAssetTypeData,
             sellerMakerOrderAssetClass,
@@ -584,14 +578,13 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         // buy order
         if (buyStructHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            emitMatch3(sellStructHash, buyOrder, buyStructHash);
+            emitMatch3(sellStructHash, buyOrder);
         }
     }
 
     function emitMatch3(
         bytes32 sellStructHash,
-        LibSignature.Order calldata buyOrder,
-        bytes32 buyStructHash
+        LibSignature.Order calldata buyOrder
     ) private {
         bytes[] memory buyerMakerOrderAssetData = new bytes[](buyOrder.makeAssets.length);
         bytes[] memory buyerMakerOrderAssetTypeData = new bytes[](buyOrder.makeAssets.length);
@@ -613,7 +606,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         emit Match3A(
             sellStructHash,
-            buyStructHash,
             buyOrder.maker,
             buyOrder.taker,
             buyOrder.start,
@@ -624,7 +616,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         emit Match3B(
             sellStructHash,
-            buyStructHash,
             buyerMakerOrderAssetData,
             buyerMakerOrderAssetTypeData,
             buyerMakerOrderAssetClass,
@@ -690,7 +681,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         emit Match2A(
             sellHash,
-            buyHash,
             sellOrder.maker,
             sellOrder.taker,
             sellOrder.start,
