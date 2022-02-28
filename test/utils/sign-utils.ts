@@ -19,7 +19,7 @@ export const GENESIS_KEY_TYPEHASH = convertToHash("GenesisBid(uint256 _wethToken
 export const BID_TYPEHASH = convertToHash("Bid(uint256 _nftTokens,bool _genKey,string _profileURI,address _owner)");
 
 export const MARKETPLACE_ORDER_TYPEHASH = convertToHash(
-  "Order(address maker,Asset[] makeAssets,address taker,Asset[] takeAssets,uint256 salt,uint256 start,uint256 end,uint256 nonce)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
+  "Order(address maker,Asset[] makeAssets,address taker,Asset[] takeAssets,uint256 salt,uint256 start,uint256 end,uint256 nonce,uint256 auctionType)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
 );
 
 export const convertBigNumber = (tokens: number): BigNumberish => {
@@ -135,6 +135,7 @@ export const signMarketplaceOrder = async (
   nonce: number,
   provider: any,
   deployedNftMarketplaceAddress: string,
+  auctionType: number
 ): Promise<any> => {
   const salt = 1645721783; // 1 || makeSalt();
 
@@ -148,8 +149,8 @@ export const signMarketplaceOrder = async (
     "NFT.com Marketplace",
     deployedNftMarketplaceAddress,
     getHash(
-      ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "uint256"],
-      [MARKETPLACE_ORDER_TYPEHASH, signer.address, makeAssetHash, taker, takeAssetHash, salt, start, end, nonce],
+      ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "uint256", "uint256"],
+      [MARKETPLACE_ORDER_TYPEHASH, signer.address, makeAssetHash, taker, takeAssetHash, salt, start, end, nonce, auctionType],
     ),
   );
 
@@ -159,7 +160,7 @@ export const signMarketplaceOrder = async (
     v,
     r,
     s,
-    order: [signer.address, getAssetList(makeAssets), taker, getAssetList(takeAssets), salt, start, end, nonce],
+    order: [signer.address, getAssetList(makeAssets), taker, getAssetList(takeAssets), salt, start, end, nonce, auctionType],
   };
 };
 

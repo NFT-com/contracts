@@ -38,8 +38,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     event Match(
         bytes32 indexed makerStructHash,
         bytes32 indexed takerStructHash,
-        address indexed makerMaker,
-        address takerMaker,
+        LibSignature.AuctionType auctionType,
         uint256 makerSalt,
         uint256 takerSalt,
         bool privateSale
@@ -47,6 +46,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     event Match2(
         bytes32 indexed makerStructHash,
         bytes32 indexed takerStructHash,
+        address makerAddress,
+        address takerAddress,
+        uint256 nonce,
         bytes[] sellerMakerOrderAssetData,
         bytes[] sellerMakerOrderAssetTypeData,
         bytes4[] sellerMakerOrderAssetClass,
@@ -57,6 +59,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     event Match3(
         bytes32 indexed makerStructHash,
         bytes32 indexed takerStructHash,
+        address makerAddress,
+        address takerAddress,
+        uint256 nonce,
         bytes[] buyerMakerOrderAssetData,
         bytes[] buyerMakerOrderAssetTypeData,
         bytes4[] buyerMakerOrderAssetClass,
@@ -230,8 +235,14 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      */
     function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) internal pure returns (bool) {
         require((sellOrder.taker == address(0) || sellOrder.taker == buyer), "NFT.com: buyer must be taker");
-
         require(sellOrder.makeAssets.length != 0, "NFT.com: seller make must > 0");
+
+        if (sellOrder.auctionType == LibSignature.AuctionType.Decreasing) {
+            require(sellOrder.takeAssets.length == 1, "NFT.com: decreasing auction must have 1 take asset");
+            require((sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) ||
+                (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ERC20_ASSET_CLASS),
+                "NFT.com: decreasing auction only supports ETH and ERC20");
+        }
 
         return true;
     }
@@ -365,6 +376,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             "NFT.com: sell maker must > 0"
         );
 
+        require((sellOrder.auctionType == LibSignature.AuctionType.English) &&
+            (buyOrder.auctionType == LibSignature.AuctionType.English), "NFT.com: auction type must match");
+
         // check if seller maker and buyer take match on every corresponding index
         for (uint256 i = 0; i < sellOrder.makeAssets.length; i++) {
             if (!validateSingleAssetMatch1(buyOrder.takeAssets[i], sellOrder.makeAssets[i])) {
@@ -419,6 +433,33 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         return success;
     }
 
+    function getDecreasingPrice(LibSignature.Order memory sellOrder) public view returns (uint256) {
+        require(sellOrder.auctionType == LibSignature.AuctionType.Decreasing, "NFT.com: auction type must match");
+        require(sellOrder.takeAssets.length == 1, "NFT.com: sellOrder must have 1 takeAsset");
+        require((sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) ||
+                (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ERC20_ASSET_CLASS),
+                "NFT.com: decreasing auction only supports ETH and ERC20");
+
+        uint256 secondsPassed = 0;
+        uint256 publicSaleDurationSeconds = sellOrder.end.sub(sellOrder.start);
+        uint256 finalPrice;
+        uint256 initialPrice;
+
+        (initialPrice, finalPrice) = abi.decode(sellOrder.takeAssets[0].data, (uint256, uint256));
+
+        secondsPassed = block.timestamp - sellOrder.start;
+
+        if (secondsPassed >= publicSaleDurationSeconds) {
+            return finalPrice;
+        } else {
+            uint256 totalPriceChange = initialPrice.sub(finalPrice);
+            uint256 currentPriceChange = totalPriceChange.mul(secondsPassed).div(publicSaleDurationSeconds);
+            uint256 currentPrice = initialPrice.sub(currentPriceChange);
+
+            return currentPrice;
+        }
+    }  
+
     /**
      * @dev functions that allows anyone to execute a sell order that has a specified price > 0
      * @param sellOrder the listing
@@ -444,19 +485,26 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // interactions (i.e. perform swap, fees and royalties)
         for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
             // send assets from buyer to seller (payment for goods)
-            transfer(sellOrder.takeAssets[i], msg.sender, sellOrder.maker);
+            transfer(
+                sellOrder.auctionType,
+                sellOrder.takeAssets[i],
+                msg.sender,
+                sellOrder.maker,
+                sellOrder.auctionType == LibSignature.AuctionType.Decreasing ?
+                    getDecreasingPrice(sellOrder) :
+                    0
+            );
         }
 
         for (uint256 j = 0; j < sellOrder.makeAssets.length; j++) {
             // send assets from seller to buyer (goods)
-            transfer(sellOrder.makeAssets[j], sellOrder.maker, msg.sender);
+            transfer(sellOrder.auctionType, sellOrder.makeAssets[j], sellOrder.maker, msg.sender, 0);
         }
 
         emit Match(
             sellHash,
             0x0000000000000000000000000000000000000000000000000000000000000000,
-            sellOrder.maker,
-            msg.sender,
+            sellOrder.auctionType,
             sellOrder.salt,
             0,
             sellOrder.taker != address(0x0)
@@ -495,6 +543,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         emit Match2(
             sellStructHash,
             buyStructHash,
+            sellOrder.maker,
+            sellOrder.taker,
+            sellOrder.nonce,
             sellerMakerOrderAssetData,
             sellerMakerOrderAssetTypeData,
             sellerMakerOrderAssetClass,
@@ -538,6 +589,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         emit Match3(
             sellStructHash,
             buyStructHash,
+            buyOrder.maker,
+            buyOrder.taker,
+            buyOrder.nonce,
             buyerMakerOrderAssetData,
             buyerMakerOrderAssetTypeData,
             buyerMakerOrderAssetClass,
@@ -580,12 +634,12 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // interactions (i.e. perform swap, fees and royalties)
         for (uint256 i = 0; i < buyOrder.makeAssets.length; i++) {
             // send assets from buyer to seller (payment for goods)
-            transfer(buyOrder.makeAssets[i], buyOrder.maker, sellOrder.maker);
+            transfer(sellOrder.auctionType, buyOrder.makeAssets[i], buyOrder.maker, sellOrder.maker, 0);
         }
 
         for (uint256 j = 0; j < sellOrder.makeAssets.length; j++) {
             // send assets from seller to buyer (goods)
-            transfer(sellOrder.makeAssets[j], sellOrder.maker, buyOrder.maker);
+            transfer(sellOrder.auctionType, sellOrder.makeAssets[j], sellOrder.maker, buyOrder.maker, 0);
         }
 
         // refund leftover eth in contract
@@ -595,8 +649,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         emit Match(
             sellHash,
             buyHash,
-            sellOrder.maker,
-            buyOrder.maker,
+            sellOrder.auctionType,
             sellOrder.salt,
             buyOrder.salt,
             sellOrder.taker != address(0x0)
