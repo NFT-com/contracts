@@ -39,16 +39,23 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes32 indexed makerStructHash,
         bytes32 indexed takerStructHash,
         LibSignature.AuctionType auctionType,
-        uint256 makerSalt,
-        uint256 takerSalt,
+        Sig makerSig,
+        Sig takerSig,
         bool privateSale
     );
-    event Match2(
+    event Match2A(
         bytes32 indexed makerStructHash,
         bytes32 indexed takerStructHash,
         address makerAddress,
         address takerAddress,
+        uint256 start,
+        uint256 end,
         uint256 nonce,
+        uint256 salt
+    );
+    event Match2B(
+        bytes32 indexed makerStructHash,
+        bytes32 indexed takerStructHash,
         bytes[] sellerMakerOrderAssetData,
         bytes[] sellerMakerOrderAssetTypeData,
         bytes4[] sellerMakerOrderAssetClass,
@@ -56,12 +63,19 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes[] sellerTakerOrderAssetTypeData,
         bytes4[] sellerTakerOrderAssetClass
     );
-    event Match3(
+    event Match3A(
         bytes32 indexed makerStructHash,
         bytes32 indexed takerStructHash,
         address makerAddress,
         address takerAddress,
+        uint256 start,
+        uint256 end,
         uint256 nonce,
+        uint256 salt
+    );
+    event Match3B(
+        bytes32 indexed makerStructHash,
+        bytes32 indexed takerStructHash,
         bytes[] buyerMakerOrderAssetData,
         bytes[] buyerMakerOrderAssetTypeData,
         bytes4[] buyerMakerOrderAssetClass,
@@ -239,9 +253,11 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         if (sellOrder.auctionType == LibSignature.AuctionType.Decreasing) {
             require(sellOrder.takeAssets.length == 1, "NFT.com: decreasing auction must have 1 take asset");
-            require((sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) ||
-                (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ERC20_ASSET_CLASS),
-                "NFT.com: decreasing auction only supports ETH and ERC20");
+            require(
+                (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) ||
+                    (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ERC20_ASSET_CLASS),
+                "NFT.com: decreasing auction only supports ETH and ERC20"
+            );
         }
 
         return true;
@@ -376,8 +392,11 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             "NFT.com: sell maker must > 0"
         );
 
-        require((sellOrder.auctionType == LibSignature.AuctionType.English) &&
-            (buyOrder.auctionType == LibSignature.AuctionType.English), "NFT.com: auction type must match");
+        require(
+            (sellOrder.auctionType == LibSignature.AuctionType.English) &&
+                (buyOrder.auctionType == LibSignature.AuctionType.English),
+            "NFT.com: auction type must match"
+        );
 
         // check if seller maker and buyer take match on every corresponding index
         for (uint256 i = 0; i < sellOrder.makeAssets.length; i++) {
@@ -436,9 +455,11 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     function getDecreasingPrice(LibSignature.Order memory sellOrder) public view returns (uint256) {
         require(sellOrder.auctionType == LibSignature.AuctionType.Decreasing, "NFT.com: auction type must match");
         require(sellOrder.takeAssets.length == 1, "NFT.com: sellOrder must have 1 takeAsset");
-        require((sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) ||
+        require(
+            (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) ||
                 (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ERC20_ASSET_CLASS),
-                "NFT.com: decreasing auction only supports ETH and ERC20");
+            "NFT.com: decreasing auction only supports ETH and ERC20"
+        );
 
         uint256 secondsPassed = 0;
         uint256 publicSaleDurationSeconds = sellOrder.end.sub(sellOrder.start);
@@ -458,7 +479,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
             return currentPrice;
         }
-    }  
+    }
 
     /**
      * @dev functions that allows anyone to execute a sell order that has a specified price > 0
@@ -490,9 +511,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 sellOrder.takeAssets[i],
                 msg.sender,
                 sellOrder.maker,
-                sellOrder.auctionType == LibSignature.AuctionType.Decreasing ?
-                    getDecreasingPrice(sellOrder) :
-                    0
+                sellOrder.auctionType == LibSignature.AuctionType.Decreasing ? getDecreasingPrice(sellOrder) : 0
             );
         }
 
@@ -505,9 +524,24 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             sellHash,
             0x0000000000000000000000000000000000000000000000000000000000000000,
             sellOrder.auctionType,
-            sellOrder.salt,
-            0,
+            Sig(v, r, s),
+            Sig(
+                0,
+                0x0000000000000000000000000000000000000000000000000000000000000000,
+                0x0000000000000000000000000000000000000000000000000000000000000000
+            ),
             sellOrder.taker != address(0x0)
+        );
+
+        emit Match2A(
+            sellHash,
+            0x0000000000000000000000000000000000000000000000000000000000000000,
+            sellOrder.maker,
+            sellOrder.taker,
+            sellOrder.start,
+            sellOrder.end,
+            sellOrder.nonce,
+            sellOrder.salt
         );
 
         emitMatch2(sellOrder, sellHash, sellOrder, 0x0000000000000000000000000000000000000000000000000000000000000000);
@@ -519,16 +553,13 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         LibSignature.Order calldata buyOrder,
         bytes32 buyStructHash
     ) private {
-        // buy order
-        bool buyOnly = buyStructHash == 0x0000000000000000000000000000000000000000000000000000000000000000;
-
         bytes[] memory sellerMakerOrderAssetData = new bytes[](sellOrder.makeAssets.length);
         bytes[] memory sellerMakerOrderAssetTypeData = new bytes[](sellOrder.makeAssets.length);
         bytes4[] memory sellerMakerOrderAssetClass = new bytes4[](sellOrder.makeAssets.length);
         for (uint256 i = 0; i < sellOrder.makeAssets.length; i++) {
             sellerMakerOrderAssetData[i] = sellOrder.makeAssets[i].data;
             sellerMakerOrderAssetTypeData[i] = sellOrder.makeAssets[i].assetType.data;
-            sellerMakerOrderAssetClass[i] = sellOrder.makeAssets[i].assetType.assetClass; 
+            sellerMakerOrderAssetClass[i] = sellOrder.makeAssets[i].assetType.assetClass;
         }
 
         bytes[] memory sellerTakerOrderAssetData = new bytes[](sellOrder.takeAssets.length);
@@ -540,12 +571,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             sellerTakerOrderAssetClass[i] = sellOrder.takeAssets[i].assetType.assetClass;
         }
 
-        emit Match2(
+        emit Match2B(
             sellStructHash,
             buyStructHash,
-            sellOrder.maker,
-            sellOrder.taker,
-            sellOrder.nonce,
             sellerMakerOrderAssetData,
             sellerMakerOrderAssetTypeData,
             sellerMakerOrderAssetClass,
@@ -554,12 +582,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             sellerTakerOrderAssetClass
         );
 
-        if (!buyOnly) {
-            emitMatch3(
-                sellStructHash,
-                buyOrder,
-                buyStructHash
-            );
+        // buy order
+        if (buyStructHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
+            emitMatch3(sellStructHash, buyOrder, buyStructHash);
         }
     }
 
@@ -574,7 +599,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         for (uint256 i = 0; i < buyOrder.makeAssets.length; i++) {
             buyerMakerOrderAssetData[i] = buyOrder.makeAssets[i].data;
             buyerMakerOrderAssetTypeData[i] = buyOrder.makeAssets[i].assetType.data;
-            buyerMakerOrderAssetClass[i] = buyOrder.makeAssets[i].assetType.assetClass; 
+            buyerMakerOrderAssetClass[i] = buyOrder.makeAssets[i].assetType.assetClass;
         }
 
         bytes[] memory buyerTakerOrderAssetData = new bytes[](buyOrder.takeAssets.length);
@@ -586,12 +611,20 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             buyerTakerOrderAssetClass[i] = buyOrder.takeAssets[i].assetType.assetClass;
         }
 
-        emit Match3(
+        emit Match3A(
             sellStructHash,
             buyStructHash,
             buyOrder.maker,
             buyOrder.taker,
+            buyOrder.start,
+            buyOrder.end,
             buyOrder.nonce,
+            buyOrder.salt
+        );
+
+        emit Match3B(
+            sellStructHash,
+            buyStructHash,
             buyerMakerOrderAssetData,
             buyerMakerOrderAssetTypeData,
             buyerMakerOrderAssetClass,
@@ -650,9 +683,20 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             sellHash,
             buyHash,
             sellOrder.auctionType,
-            sellOrder.salt,
-            buyOrder.salt,
+            Sig(v[0], r[0], s[0]),
+            Sig(v[1], r[1], s[1]),
             sellOrder.taker != address(0x0)
+        );
+
+        emit Match2A(
+            sellHash,
+            buyHash,
+            sellOrder.maker,
+            sellOrder.taker,
+            sellOrder.start,
+            sellOrder.end,
+            sellOrder.nonce,
+            sellOrder.salt
         );
 
         emitMatch2(sellOrder, sellHash, buyOrder, buyHash);

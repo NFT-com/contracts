@@ -240,8 +240,6 @@ describe("NFT.com Marketplace", function () {
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(buyer.address, ownerSigner.address, convertNftToken(100));
 
-        console.log("-------- 4");
-
         expect(await deployedNftProfile.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedNftToken.balanceOf(buyer.address)).to.be.equal(
           BigNumber.from(8975).mul(BigNumber.from(10).pow(BigNumber.from(17))),
