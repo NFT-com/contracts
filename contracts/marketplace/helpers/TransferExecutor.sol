@@ -85,7 +85,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         require(stakingContract != address(0), "NFT.com: UNINITIALIZED");
         uint256 value;
 
-        if (auctionType == LibSignature.AuctionType.Decreasing) value = decreasingPriceValue;
+        if (auctionType == LibSignature.AuctionType.Decreasing && from == msg.sender) value = decreasingPriceValue;
         else (value, ) = abi.decode(asset.data, (uint256, uint256));
 
         if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
