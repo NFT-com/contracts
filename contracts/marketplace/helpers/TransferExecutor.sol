@@ -71,17 +71,22 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
      * @dev multi-asset transfer function
      * @param asset the asset being transferred
      * @param from address where asset is being sent from
+     * @param auctionType type of auction
      * @param to address receiving said asset
-     * @param to address receiving said asset
-     * @param to address receiving said asset
+     * @param decreasingPriceValue value only used for decreasing price auction
      */
     function transfer(
+        LibSignature.AuctionType auctionType,
         LibAsset.Asset memory asset,
         address from,
-        address to
+        address to,
+        uint256 decreasingPriceValue
     ) internal override {
         require(stakingContract != address(0), "NFT.com: UNINITIALIZED");
-        (uint256 value, ) = abi.decode(asset.data, (uint256, uint256));
+        uint256 value;
+
+        if (auctionType == LibSignature.AuctionType.Decreasing && from == msg.sender) value = decreasingPriceValue;
+        else (value, ) = abi.decode(asset.data, (uint256, uint256));
 
         if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
             transferEth(to, value);
