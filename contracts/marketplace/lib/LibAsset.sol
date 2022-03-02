@@ -24,7 +24,7 @@ library LibAsset {
         bytes data;             // (uint256, uint256) = value, minimumBid
                                 //      SELL ORDER:
                                 //          MAKE: (the amount for sale, 0)
-                                //          TAKE: (buy now price, min bid value)
+                                //          TAKE: (buy now price, min bid value), if decreasing price auction, then (start price, ending price)
                                 //      BUY  ORDER:
                                 //          MAKE: (amount offered must >= min bid value, 0)
                                 //          TAKE: (must match sell order make, 0)
