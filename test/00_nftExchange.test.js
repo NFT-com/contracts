@@ -24,6 +24,12 @@ const convertNftToken = tokens => {
   return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(18)));
 };
 
+const AuctionType = {
+  FixedPrice: 0,
+  English: 1,
+  Decreasing: 2,
+};
+
 describe("NFT.com Marketplace", function () {
   try {
     let NftMarketplace,
@@ -162,7 +168,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         // should be false since order.start < now
@@ -190,7 +196,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         // should be false since order.end > now
@@ -220,7 +226,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -251,6 +257,107 @@ describe("NFT.com Marketplace", function () {
         await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
       });
 
+      it("should allow fixed price auctions", async function () {
+        const {
+          v: v0,
+          r: r0,
+          s: s0,
+          order: sellOrder,
+        } = await signMarketplaceOrder(
+          ownerSigner,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 0, true], // values
+              [1, 0], // data to be encoded
+            ],
+          ],
+          ethers.constants.AddressZero,
+          [[ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(100), convertNftToken(100)]]],
+          0,
+          0,
+          await deployedNftMarketplace.nonces(owner.address),
+          ethers.provider,
+          deployedNftMarketplace.address,
+          AuctionType.FixedPrice,
+        );
+
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
+
+        // send 1000 tokens to buyer
+        await deployedNftToken
+          .connect(owner)
+          .transfer(buyer.address, BigNumber.from(1000).mul(BigNumber.from(10).pow(BigNumber.from(18))));
+
+        await deployedNftMarketplace.modifyWhitelist(NFT_RINKEBY_ADDRESS, true);
+
+        // add approvals
+        await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 0);
+
+        await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0))
+          .to.emit(deployedNftToken, "Transfer")
+          .withArgs(buyer.address, ownerSigner.address, convertNftToken(100));
+
+        expect(await deployedNftProfile.ownerOf(0)).to.be.equal(buyer.address);
+        expect(await deployedNftToken.balanceOf(buyer.address)).to.be.equal(
+          BigNumber.from(1795).mul(BigNumber.from(10).pow(BigNumber.from(18))),
+        );
+        expect(await deployedNftToken.balanceOf(deployedNftStake.address)).to.be.equal(
+          BigNumber.from(25).mul(BigNumber.from(10).pow(BigNumber.from(17))),
+        );
+
+        // reset board
+        await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
+        await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(100));
+      });
+
+      it("should allow decreasing price auctions", async function () {
+        const startTime = Math.floor(new Date().getTime() / 1000) - 3600;
+        const endTime = startTime + 3600;
+
+        const {
+          v: v0,
+          r: r0,
+          s: s0,
+          order: sellOrder,
+        } = await signMarketplaceOrder(
+          ownerSigner,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [NFT_PROFILE_RINKEBY, 0, true], // values
+              [1, 0], // data to be encoded
+            ],
+          ],
+          ethers.constants.AddressZero,
+          [[ERC20_ASSET_CLASS, ["address"], [NFT_RINKEBY_ADDRESS], [convertNftToken(100), convertNftToken(0)]]],
+          startTime,
+          endTime,
+          await deployedNftMarketplace.nonces(owner.address),
+          ethers.provider,
+          deployedNftMarketplace.address,
+          AuctionType.Decreasing,
+        );
+
+        await deployedNftMarketplace.modifyWhitelist(NFT_RINKEBY_ADDRESS, true);
+
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
+
+        console.log("decreasingPrice: ", Number(await deployedNftMarketplace.getDecreasingPrice(sellOrder)));
+
+        await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedNftProfile.connect(owner).approve(deployedTransferProxy.address, 0);
+
+        await deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0);
+
+        // reset board
+        await deployedNftProfile.connect(buyer).transferFrom(buyer.address, owner.address, 0);
+        await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(100));
+      });
+
       it("should execute matched swaps using buy / sell orders", async function () {
         const {
           v: v0,
@@ -274,7 +381,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -294,7 +401,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -366,7 +473,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -386,7 +493,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -455,7 +562,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -478,7 +585,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -547,7 +654,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -573,7 +680,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -652,7 +759,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -678,7 +785,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -749,7 +856,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -772,7 +879,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -848,7 +955,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -875,7 +982,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
         // sell NFT profile NFT token 0 and 1
         // wants NFT token and WETH
@@ -912,7 +1019,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect(
@@ -944,7 +1051,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect(
@@ -1089,7 +1196,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -1119,7 +1226,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
@@ -1227,7 +1334,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
@@ -1250,7 +1357,7 @@ describe("NFT.com Marketplace", function () {
           await deployedNftMarketplace.nonces(owner.address),
           ethers.provider,
           deployedNftMarketplace.address,
-          1,
+          AuctionType.English,
         );
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;

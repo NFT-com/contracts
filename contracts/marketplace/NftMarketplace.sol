@@ -243,7 +243,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param sellOrder the listing
      * @param buyer potential executor of sellOrder
      */
-    function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) internal pure returns (bool) {
+    function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) internal view returns (bool) {
         require((sellOrder.taker == address(0) || sellOrder.taker == buyer), "NFT.com: buyer must be taker");
         require(sellOrder.makeAssets.length != 0, "NFT.com: seller make must > 0");
 
@@ -254,6 +254,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                     (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ERC20_ASSET_CLASS),
                 "NFT.com: decreasing auction only supports ETH and ERC20"
             );
+
+            require(sellOrder.start != 0 && sellOrder.start < block.timestamp, "NFT.com: start expired");
+            require(sellOrder.end != 0 && sellOrder.end > block.timestamp, "NFT.com: end expired");
         }
 
         return true;
@@ -582,10 +585,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         }
     }
 
-    function emitMatch3(
-        bytes32 sellStructHash,
-        LibSignature.Order calldata buyOrder
-    ) private {
+    function emitMatch3(bytes32 sellStructHash, LibSignature.Order calldata buyOrder) private {
         bytes[] memory buyerMakerOrderAssetData = new bytes[](buyOrder.makeAssets.length);
         bytes[] memory buyerMakerOrderAssetTypeData = new bytes[](buyOrder.makeAssets.length);
         bytes4[] memory buyerMakerOrderAssetClass = new bytes4[](buyOrder.makeAssets.length);
