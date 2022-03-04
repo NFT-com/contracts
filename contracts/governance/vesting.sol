@@ -65,7 +65,7 @@ contract Vesting {
             uint256 vestingEnd_ = vestingEnds_[i];
 
             require(recipient_ != address(0), "Vesting::initializeVesting: recipient cannot be the zero address");
-            require(initializedVestor[recipient_] == false, "Vesting::initializeVesting: recipient already initialized");
+            require(!initializedVestor[recipient_], "Vesting::initializeVesting: recipient already initialized");
             require(vestingCliff_ >= vestingBegin_, "Vesting::initializeVesting: cliff is too early");
             require(vestingEnd_ > vestingCliff_, "Vesting::initializeVesting: end is too early");
 
@@ -84,18 +84,18 @@ contract Vesting {
     }
 
     function revokeVesting(address recipient) external onlyMultiSig {
-        require(initializedVestor[recipient] == true, "Vesting::revokeVesting: recipient not initialized");
-        require(revokedVestor[recipient] == false, "Vesting::revokeVesting: recipient already revoked");
+        require(initializedVestor[recipient], "Vesting::revokeVesting: recipient not initialized");
+        require(!revokedVestor[recipient], "Vesting::revokeVesting: recipient already revoked");
 
         uint256 remaining = claim(recipient);
-        
+
         revokedVestor[recipient] = true;
         INft(nftToken).transfer(multiSig, remaining);
     }
 
     function claim(address recipient) public returns (uint256 remaining) {
         require(initializedVestor[recipient], "Vesting::claim: recipient not initialized");
-        require(revokedVestor[recipient] == false, "Vesting::claim: recipient already revoked");
+        require(!revokedVestor[recipient], "Vesting::claim: recipient already revoked");
 
         require(block.timestamp >= vestingCliff[recipient], "Vesting::claim: cliff not met");
         uint256 amount;
