@@ -62,7 +62,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes4[] sellerTakerOrderAssetClass
     );
     event Match3A(
-        bytes32 indexed makerStructHash,
+        bytes32 indexed takerStructHash,
         address makerAddress,
         address takerAddress,
         uint256 start,
@@ -71,7 +71,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         uint256 salt
     );
     event Match3B(
-        bytes32 indexed makerStructHash,
+        bytes32 indexed takerStructHash,
         bytes[] buyerMakerOrderAssetData,
         bytes[] buyerMakerOrderAssetTypeData,
         bytes4[] buyerMakerOrderAssetClass,
@@ -581,11 +581,11 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         // buy order
         if (buyStructHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            emitMatch3(sellStructHash, buyOrder);
+            emitMatch3(buyStructHash, buyOrder);
         }
     }
 
-    function emitMatch3(bytes32 sellStructHash, LibSignature.Order calldata buyOrder) private {
+    function emitMatch3(bytes32 buyStructHash, LibSignature.Order calldata buyOrder) private {
         bytes[] memory buyerMakerOrderAssetData = new bytes[](buyOrder.makeAssets.length);
         bytes[] memory buyerMakerOrderAssetTypeData = new bytes[](buyOrder.makeAssets.length);
         bytes4[] memory buyerMakerOrderAssetClass = new bytes4[](buyOrder.makeAssets.length);
@@ -605,7 +605,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         }
 
         emit Match3A(
-            sellStructHash,
+            buyStructHash,
             buyOrder.maker,
             buyOrder.taker,
             buyOrder.start,
@@ -615,7 +615,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         );
 
         emit Match3B(
-            sellStructHash,
+            buyStructHash,
             buyerMakerOrderAssetData,
             buyerMakerOrderAssetTypeData,
             buyerMakerOrderAssetClass,
@@ -646,6 +646,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]), nonces[buyOrder.maker]);
 
         require(validateMatch(sellOrder, buyOrder, false));
+
+        // TODO: fix and validate
+        require(block.timestamp >= sellOrder.end.sub(86400), "NFT.com: execution window has not been met");
 
         // effects
         if (msg.sender != buyOrder.maker) {
