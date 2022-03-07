@@ -132,7 +132,7 @@ describe("Origination Testing", function () {
         expect(
           await deployedOrigination
             .connect(owner)
-            .safeTransferFrom(owner.address, second.address, tokenId, 10, NULL_BYTES),
+            .safeTransferFrom(owner.address, second.address, tokenId, 4, NULL_BYTES),
         )
           .to.emit(deployedOrigination, "TransferSingle")
           .withArgs(owner.address, owner.address, second.address, tokenId, 4);

@@ -3,7 +3,6 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "../interfaces/IERC20TransferProxy.sol";
 import "../interfaces/INftTransferProxy.sol";
 import "../interfaces/ITransferProxy.sol";
