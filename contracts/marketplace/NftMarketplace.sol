@@ -93,7 +93,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             _erc20TransferProxy,
             _cryptoKittyProxy,
             _stakingContract,
-            250
+            100
         );
         __Ownable_init();
     }
