@@ -4,124 +4,13 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-
-interface IUniswapRouter is ISwapRouter {
-    function refundETH() external payable;
-}
 
 contract PublicNftStake is ERC20Permit, ReentrancyGuard {
-    using SafeMath for uint256;
-
     address public nftToken;
-    mapping(address => bool) public whitelistERC20;
 
-    IUniswapRouter public constant uniswapRouter = IUniswapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-
-    // mainnet: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
-    // rinkeby: 0xc778417E063141139Fce010982780140Aa0cD5Ab
-    address public WETH9;
-    address public DAO;
-
-    event WhiteListChange(address indexed token, bool val);
-    event NewDao(address indexed dao);
-
-    modifier onlyDAO() {
-        require(msg.sender == DAO, "!DAO");
-        _;
-    }
-
-    constructor(address _nftToken, address _weth) ERC20Permit("Staked NFT.com") ERC20("Staked NFT.com", "xNFT") {
+    constructor(address _nftToken) ERC20Permit("Staked NFT.com") ERC20("Staked NFT.com", "xNFT") {
         nftToken = _nftToken;
-        WETH9 = _weth;
-        DAO = msg.sender;
     }
-
-    function isContract(address account) internal view returns (bool) {
-        // This method relies on extcodesize, which returns 0 for contracts in
-        // construction, since the code is only stored at the end of the
-        // constructor execution.
-
-        uint256 size;
-        assembly {
-            size := extcodesize(account)
-        }
-        return size > 0;
-    }
-
-    function changeDAO(address newDAO) external onlyDAO {
-        DAO = newDAO;
-        emit NewDao(newDAO);
-    }
-
-    // important to restrict random addresses for key input functions into the staking contract
-    function modifyWhitelist(address token, bool val) external onlyDAO {
-        whitelistERC20[token] = val;
-        emit WhiteListChange(token, val);
-    }
-
-    function approveToken(address token) external {
-        require(whitelistERC20[token], "NFT.com: !ERC20");
-        IERC20(token).approve(address(uniswapRouter), 2**256 - 1);
-    }
-
-    function convertEthToNFT() external nonReentrant {
-        require(!isContract(msg.sender), "NFT.com: !CONTRACT");
-
-        uint256 deadline = block.timestamp + 7;
-        address tokenIn = WETH9;
-        address tokenOut = nftToken;
-        uint24 fee = 3000;
-        address recipient = address(this);
-        uint256 amountIn = address(this).balance;
-        uint256 amountOutMinimum = 1;
-        uint160 sqrtPriceLimitX96 = 0;
-
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
-            tokenIn,
-            tokenOut,
-            fee,
-            recipient,
-            deadline,
-            amountIn,
-            amountOutMinimum,
-            sqrtPriceLimitX96
-        );
-
-        uniswapRouter.exactInputSingle{ value: address(this).balance }(params);
-        uniswapRouter.refundETH();
-    }
-
-    function convertERC20ToNFT(address tokenIn) external nonReentrant {
-        require(!isContract(msg.sender), "NFT.com: !CONTRACT");
-        require(whitelistERC20[tokenIn], "NFT.com: !ERC20");
-
-        uint256 deadline = block.timestamp + 7;
-        address tokenOut = nftToken;
-        uint24 fee = 3000;
-        address recipient = address(this);
-        uint256 amountIn = IERC20(tokenIn).balanceOf(address(this));
-        uint256 amountOutMinimum = 1;
-        uint160 sqrtPriceLimitX96 = 0;
-
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams(
-            tokenIn,
-            tokenOut,
-            fee,
-            recipient,
-            deadline,
-            amountIn,
-            amountOutMinimum,
-            sqrtPriceLimitX96
-        );
-
-        uniswapRouter.exactInputSingle(params);
-    }
-
-    // important to receive ETH
-    receive() external payable {}
 
     /**
      @notice internal helper function to call allowance for a token
@@ -167,7 +56,7 @@ contract PublicNftStake is ERC20Permit, ReentrancyGuard {
         if (totalSupply == 0 || totalNftTokenLocked == 0) {
             _mint(msg.sender, _amount);
         } else {
-            uint256 xNftTokenAmount = _amount.mul(totalSupply).div(totalNftTokenLocked);
+            uint256 xNftTokenAmount = (_amount * totalSupply) / totalNftTokenLocked;
             _mint(msg.sender, xNftTokenAmount);
         }
     }
@@ -175,7 +64,7 @@ contract PublicNftStake is ERC20Permit, ReentrancyGuard {
     function leave(uint256 _xNftAmount) public nonReentrant {
         uint256 totalSupply = totalSupply();
 
-        uint256 nftAmount = _xNftAmount.mul(IERC20(nftToken).balanceOf(address(this))).div(totalSupply);
+        uint256 nftAmount = (_xNftAmount * ERC20(nftToken).balanceOf(address(this))) / totalSupply;
         _burn(msg.sender, _xNftAmount);
         IERC20(nftToken).transfer(msg.sender, nftAmount);
     }
