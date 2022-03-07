@@ -109,7 +109,7 @@ contract Vesting {
         }
         claimedAmount[recipient] += amount;
         INft(nftToken).transfer(recipient, amount);
-        
+
         remaining = vestingAmount[recipient].sub(claimedAmount[recipient]);
     }
 }

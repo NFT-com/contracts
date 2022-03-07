@@ -12,8 +12,8 @@ const {
   ERC20_ASSET_CLASS,
   ERC721_ASSET_CLASS,
   ERC1155_ASSET_CLASS,
-  COLLECTION,
   CRYPTO_KITTY,
+  COLLECTION,
   getAssetHash,
   makeSalt,
   encode,
@@ -34,19 +34,19 @@ const AuctionType = {
 describe("NFT.com Marketplace", function () {
   try {
     let NftMarketplace,
-      TransferProxy,
+      NftTransferProxy,
       CryptoKittyTransferProxy,
       ERC20TransferProxy,
       NftToken,
       NftStake,
       ERC1155Factory;
     let deployedNftMarketplace,
-      deployedTransferProxy,
+      deployedNftTransferProxy,
+      deployedCryptoKittyTransferProxy,
       deployedERC20TransferProxy,
       deployedNftToken,
       deployedTest721,
       deployedNftStake,
-      deployedCryptoKittyTransferProxy,
       deployedXEENUS,
       deployedERC1155Factory;
     let ownerSigner, buyerSigner;
@@ -62,7 +62,7 @@ describe("NFT.com Marketplace", function () {
       // Get the ContractFactory and Signers here.
       NftMarketplace = await ethers.getContractFactory("NftMarketplace");
       NftStake = await ethers.getContractFactory("PublicNftStake");
-      TransferProxy = await ethers.getContractFactory("TransferProxy");
+      NftTransferProxy = await ethers.getContractFactory("NftTransferProxy");
       ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");
       CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
       ERC1155Factory = await ethers.getContractFactory("TestERC1155");
@@ -77,7 +77,7 @@ describe("NFT.com Marketplace", function () {
       deployedNftToken = await NftToken.deploy();
 
       // the NFT profile is used for testing purposes as a random NFT being traded
-      Test721 = await ethers.getContractFactory("Test721")
+      Test721 = await ethers.getContractFactory("Test721");
       deployedTest721 = await Test721.deploy();
 
       deployedERC1155Factory = await ERC1155Factory.deploy();
@@ -88,14 +88,14 @@ describe("NFT.com Marketplace", function () {
 
       deployedNftStake = await NftStake.deploy(deployedNftToken.address, RINKEBY_WETH);
 
-      deployedTransferProxy = await upgrades.deployProxy(TransferProxy, { kind: "uups" });
+      deployedNftTransferProxy = await upgrades.deployProxy(NftTransferProxy, { kind: "uups" });
       deployedERC20TransferProxy = await upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
       deployedCryptoKittyTransferProxy = await upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
 
       deployedNftMarketplace = await upgrades.deployProxy(
         NftMarketplace,
         [
-          deployedTransferProxy.address,
+          deployedNftTransferProxy.address,
           deployedERC20TransferProxy.address,
           deployedCryptoKittyTransferProxy.address,
           deployedNftStake.address,
@@ -106,7 +106,7 @@ describe("NFT.com Marketplace", function () {
       await deployedNftMarketplace.setTransferProxy(ERC20_ASSET_CLASS, deployedERC20TransferProxy.address);
 
       // add operator being the marketplace
-      await deployedTransferProxy.addOperator(deployedNftMarketplace.address);
+      await deployedNftTransferProxy.addOperator(deployedNftMarketplace.address);
       await deployedERC20TransferProxy.addOperator(deployedNftMarketplace.address);
       await deployedCryptoKittyTransferProxy.addOperator(deployedNftMarketplace.address);
 
@@ -147,8 +147,8 @@ describe("NFT.com Marketplace", function () {
         await deployedERC20TransferProxy.addOperator(owner.address);
         await deployedERC20TransferProxy.removeOperator(owner.address);
 
-        await deployedTransferProxy.addOperator(owner.address);
-        await deployedTransferProxy.removeOperator(owner.address);
+        await deployedNftTransferProxy.addOperator(owner.address);
+        await deployedNftTransferProxy.removeOperator(owner.address);
 
         await deployedCryptoKittyTransferProxy.addOperator(owner.address);
         await deployedCryptoKittyTransferProxy.removeOperator(owner.address);
@@ -251,7 +251,7 @@ describe("NFT.com Marketplace", function () {
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
 
         await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
@@ -305,7 +305,7 @@ describe("NFT.com Marketplace", function () {
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
 
         await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
@@ -361,7 +361,7 @@ describe("NFT.com Marketplace", function () {
 
         await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1000));
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
 
         await deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0);
 
@@ -427,7 +427,7 @@ describe("NFT.com Marketplace", function () {
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
 
         // should revert due to owner != buyOrder.maker
         await expect(deployedNftMarketplace.connect(owner).approveOrder_(buyOrder)).to.be.reverted;
@@ -519,7 +519,7 @@ describe("NFT.com Marketplace", function () {
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
 
         // should revert due to owner != buyOrder.maker
         await expect(deployedNftMarketplace.connect(owner).approveOrder_(buyOrder)).to.be.reverted;
@@ -604,8 +604,8 @@ describe("NFT.com Marketplace", function () {
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 1);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 1);
 
         // match is valid
         expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
@@ -702,8 +702,8 @@ describe("NFT.com Marketplace", function () {
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedXEENUS.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 1);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 1);
 
         // match is valid
         expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
@@ -808,8 +808,8 @@ describe("NFT.com Marketplace", function () {
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedXEENUS.connect(owner).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
-        await deployedTest721.connect(buyer).approve(deployedTransferProxy.address, 1);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
+        await deployedTest721.connect(buyer).approve(deployedNftTransferProxy.address, 1);
 
         // match is valid
         expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
@@ -903,8 +903,8 @@ describe("NFT.com Marketplace", function () {
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedXEENUS.connect(owner).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(buyer).approve(deployedTransferProxy.address, 0);
-        await deployedTest721.connect(buyer).approve(deployedTransferProxy.address, 1);
+        await deployedTest721.connect(buyer).approve(deployedNftTransferProxy.address, 0);
+        await deployedTest721.connect(buyer).approve(deployedNftTransferProxy.address, 1);
 
         // match is valid
         expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
@@ -1085,8 +1085,8 @@ describe("NFT.com Marketplace", function () {
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedXEENUS.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 1);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 1);
 
         // match is valid
         expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
@@ -1252,12 +1252,12 @@ describe("NFT.com Marketplace", function () {
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedXEENUS.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 1);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 1);
 
         // approve 1155
-        await deployedERC1155Factory.connect(owner).setApprovalForAll(deployedTransferProxy.address, true);
-        await deployedERC1155Factory.connect(buyer).setApprovalForAll(deployedTransferProxy.address, true);
+        await deployedERC1155Factory.connect(owner).setApprovalForAll(deployedNftTransferProxy.address, true);
+        await deployedERC1155Factory.connect(buyer).setApprovalForAll(deployedNftTransferProxy.address, true);
 
         // approve crypto kitty to be transfer
         await deployedKittyCore.connect(owner).approve(deployedCryptoKittyTransferProxy.address, 1);
@@ -1383,8 +1383,8 @@ describe("NFT.com Marketplace", function () {
 
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 0);
-        await deployedTest721.connect(owner).approve(deployedTransferProxy.address, 1);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 1);
 
         // match is invalid since NFT token bid doesn't meet minimum desired
         expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.false;

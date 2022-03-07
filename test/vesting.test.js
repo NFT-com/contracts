@@ -71,15 +71,21 @@ describe("NFT Token Staking (Rinkeby)", function () {
       expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.lt(convertNftToken(1000));
 
       let nftBalanceVesting = await deployedNftToken.balanceOf(deployedVesting.address);
-      console.log('nftBalanceVesting: ', Number(nftBalanceVesting) / 10 ** 18);
+      console.log("nftBalanceVesting: ", Number(nftBalanceVesting) / 10 ** 18);
 
       await deployedVesting.connect(owner).revokeVesting(owner.address);
-      await expect(deployedVesting.connect(owner).revokeVesting(owner.address)).to.be.revertedWith("Vesting::revokeVesting: recipient already revoked");
+      await expect(deployedVesting.connect(owner).revokeVesting(owner.address)).to.be.revertedWith(
+        "Vesting::revokeVesting: recipient already revoked",
+      );
 
       expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.equal(0);
 
-      await expect(deployedVesting.connect(addr1).claim(owner.address)).to.be.revertedWith("Vesting::claim: recipient already revoked");
-      await expect(deployedVesting.connect(owner).claim(owner.address)).to.be.revertedWith("Vesting::claim: recipient already revoked");
+      await expect(deployedVesting.connect(addr1).claim(owner.address)).to.be.revertedWith(
+        "Vesting::claim: recipient already revoked",
+      );
+      await expect(deployedVesting.connect(owner).claim(owner.address)).to.be.revertedWith(
+        "Vesting::claim: recipient already revoked",
+      );
     });
   } catch (err) {
     console.log("error: ", err);
