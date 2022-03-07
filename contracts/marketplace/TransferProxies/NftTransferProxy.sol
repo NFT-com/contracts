@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../interfaces/INftTransferProxy.sol";
 
-contract TransferProxy is INftTransferProxy, Initializable, UUPSUpgradeable, OwnableUpgradeable {
+contract NftTransferProxy is INftTransferProxy, Initializable, UUPSUpgradeable, OwnableUpgradeable {
     mapping(address => bool) operators;
 
     function initialize() external initializer {

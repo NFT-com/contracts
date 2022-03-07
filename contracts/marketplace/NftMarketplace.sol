@@ -6,7 +6,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 import "./lib/LibSignature.sol";
 import "./interfaces/IERC1271.sol";
@@ -14,7 +13,6 @@ import "./helpers/TransferExecutor.sol";
 
 contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, TransferExecutor {
     using AddressUpgradeable for address;
-    using SafeMathUpgradeable for uint256;
 
     /* An ECDSA signature. */
     struct Sig {
@@ -323,7 +321,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         } else if (sellTakeAssetClass == LibAsset.ETH_ASSET_CLASS) {
             // require sender
             require(
-                viewOnly || msg.value >= buyMakeValue.add(buyMakeValue.mul(protocolFee).div(10000)),
+                viewOnly || msg.value >= (buyMakeValue + ((buyMakeValue * protocolFee) / 10000)),
                 "NFT.com: insufficient ETH"
             );
             return true;
@@ -461,7 +459,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         );
 
         uint256 secondsPassed = 0;
-        uint256 publicSaleDurationSeconds = sellOrder.end.sub(sellOrder.start);
+        uint256 publicSaleDurationSeconds = sellOrder.end - sellOrder.start;
         uint256 finalPrice;
         uint256 initialPrice;
 
@@ -472,11 +470,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         if (secondsPassed >= publicSaleDurationSeconds) {
             return finalPrice;
         } else {
-            uint256 totalPriceChange = initialPrice.sub(finalPrice);
-            uint256 currentPriceChange = totalPriceChange.mul(secondsPassed).div(publicSaleDurationSeconds);
-            uint256 currentPrice = initialPrice.sub(currentPriceChange);
-
-            return currentPrice;
+            uint256 totalPriceChange = initialPrice - finalPrice;
+            uint256 currentPriceChange = (totalPriceChange * secondsPassed) / publicSaleDurationSeconds;
+            return initialPrice - currentPriceChange;
         }
     }
 
@@ -648,7 +644,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         require(validateMatch(sellOrder, buyOrder, false));
 
         if (sellOrder.end != 0) {
-            require(block.timestamp >= sellOrder.end.sub(86400), "NFT.com: execution window has not been met");
+            require(block.timestamp >= (sellOrder.end - 86400), "NFT.com: execution window has not been met");
         }
 
         // effects

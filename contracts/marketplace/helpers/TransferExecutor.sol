@@ -10,8 +10,6 @@ import "../interfaces/ITransferProxy.sol";
 import "../interfaces/ITransferExecutor.sol";
 
 abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransferExecutor {
-    using SafeMathUpgradeable for uint256;
-
     address public stakingContract;
     uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
     mapping(bytes4 => address) public proxies;
@@ -61,7 +59,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
      */
     function transferEth(address to, uint256 value) internal {
         // ETH Fee
-        (bool success1, ) = stakingContract.call{ value: value.mul(protocolFee).div(10000) }("");
+        (bool success1, ) = stakingContract.call{ value: (value * protocolFee) / 10000 }("");
         (bool success2, ) = to.call{ value: value }("");
 
         require(success1 && success2, "NFT.com: transfer failed");
@@ -99,7 +97,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 IERC20Upgradeable(token),
                 from,
                 stakingContract,
-                value.mul(protocolFee).div(10000)
+                (value * protocolFee) / 10000
             );
 
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
