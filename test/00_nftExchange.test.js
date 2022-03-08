@@ -25,6 +25,10 @@ const convertNftToken = tokens => {
   return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(18)));
 };
 
+const convertSmallNftToken = tokens => {
+  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(16)));
+};
+
 const AuctionType = {
   FixedPrice: 0,
   English: 1,
@@ -39,6 +43,9 @@ describe("NFT.com Marketplace", function () {
       ERC20TransferProxy,
       NftToken,
       NftStake,
+      GenesisStake,
+      NftBuyer,
+      GenesisKey,
       ERC1155Factory;
     let deployedNftMarketplace,
       deployedNftTransferProxy,
@@ -47,12 +54,16 @@ describe("NFT.com Marketplace", function () {
       deployedNftToken,
       deployedTest721,
       deployedNftStake,
+      deployedNftBuyer,
+      deployedGenesisStake,
       deployedXEENUS,
+      deployedGenesisKey,
       deployedERC1155Factory;
     let ownerSigner, buyerSigner;
 
     const RINKEBY_WETH = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
     const RINEKBY_XEENUS = "0x022E292b44B5a146F2e8ee36Ff44D3dd863C915c";
+    const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
     const ZERO_BYTES = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
 
@@ -62,6 +73,8 @@ describe("NFT.com Marketplace", function () {
       // Get the ContractFactory and Signers here.
       NftMarketplace = await ethers.getContractFactory("NftMarketplace");
       NftStake = await ethers.getContractFactory("PublicNftStake");
+      GenesisStake = await ethers.getContractFactory("GenesisNftStake");
+      NftBuyer = await ethers.getContractFactory("NftBuyer");
       NftTransferProxy = await ethers.getContractFactory("NftTransferProxy");
       ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");
       CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
@@ -83,11 +96,32 @@ describe("NFT.com Marketplace", function () {
       deployedERC1155Factory = await ERC1155Factory.deploy();
 
       [owner, buyer, addr2, ...addrs] = await ethers.getSigners();
+
+      const name = "NFT.com Genesis Key";
+      const symbol = "NFTKEY";
+      const multiSig = buyer.address;
+      const auctionSeconds = "604800"; // seconds in 1 week
       ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
       buyerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
 
-      deployedNftStake = await NftStake.deploy(deployedNftToken.address, RINKEBY_WETH);
+      GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
+      deployedGenesisKey = await hre.upgrades.deployProxy(
+        GenesisKey,
+        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds],
+        { kind: "uups" },
+      );
+
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
+      deployedGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
+
+      deployedNftBuyer = await NftBuyer.deploy(
+        RINKEBY_FACTORY_V2,
+        deployedNftStake.address,
+        deployedGenesisStake.address,
+        deployedNftToken.address,
+        RINKEBY_WETH
+      );
       deployedNftTransferProxy = await upgrades.deployProxy(NftTransferProxy, { kind: "uups" });
       deployedERC20TransferProxy = await upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
       deployedCryptoKittyTransferProxy = await upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
@@ -98,7 +132,8 @@ describe("NFT.com Marketplace", function () {
           deployedNftTransferProxy.address,
           deployedERC20TransferProxy.address,
           deployedCryptoKittyTransferProxy.address,
-          deployedNftStake.address,
+          deployedNftBuyer.address,
+          deployedNftToken.address
         ],
         { kind: "uups" },
       );
@@ -259,10 +294,10 @@ describe("NFT.com Marketplace", function () {
 
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedNftToken.balanceOf(buyer.address)).to.be.equal(
-          BigNumber.from(8990).mul(BigNumber.from(10).pow(BigNumber.from(17))),
+          BigNumber.from(8995).mul(BigNumber.from(10).pow(BigNumber.from(17))),
         );
-        expect(await deployedNftToken.balanceOf(deployedNftStake.address)).to.be.equal(
-          BigNumber.from(1).mul(BigNumber.from(10).pow(BigNumber.from(18))),
+        expect(await deployedNftToken.balanceOf(deployedNftBuyer.address)).to.be.equal(
+          BigNumber.from(5).mul(BigNumber.from(10).pow(BigNumber.from(17))),
         );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
@@ -313,10 +348,10 @@ describe("NFT.com Marketplace", function () {
 
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedNftToken.balanceOf(buyer.address)).to.be.equal(
-          BigNumber.from(899).mul(BigNumber.from(10).pow(BigNumber.from(18))),
+          BigNumber.from(8995).mul(BigNumber.from(10).pow(BigNumber.from(17))),
         );
-        expect(await deployedNftToken.balanceOf(deployedNftStake.address)).to.be.equal(
-          BigNumber.from(1).mul(BigNumber.from(10).pow(BigNumber.from(18))),
+        expect(await deployedNftToken.balanceOf(deployedNftBuyer.address)).to.be.equal(
+          BigNumber.from(5).mul(BigNumber.from(10).pow(BigNumber.from(17))),
         );
 
         // reset board
@@ -450,8 +485,8 @@ describe("NFT.com Marketplace", function () {
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v1, r1, s1))[0]).to.be.false;
 
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyerSigner.address);
-        expect(await deployedNftToken.balanceOf(deployedNftStake.address)).to.be.equal(
-          BigNumber.from(5).mul(BigNumber.from(10).pow(BigNumber.from(18))),
+        expect(await deployedNftToken.balanceOf(deployedNftBuyer.address)).to.be.equal(
+          BigNumber.from(25).mul(BigNumber.from(10).pow(BigNumber.from(17))),
         );
 
         // reverts due to > 2000
@@ -965,7 +1000,7 @@ describe("NFT.com Marketplace", function () {
           [
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(100), convertNftToken(10)]],
             [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
-            [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(2), convertNftToken(1)]],
+            [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertSmallNftToken(2), convertSmallNftToken(1)]],
           ],
           0,
           0,
@@ -987,7 +1022,7 @@ describe("NFT.com Marketplace", function () {
           [
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(500), 0]],
             [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(250), 0]],
-            [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(1), 0]],
+            [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertSmallNftToken(1), 0]],
           ],
           owner.address,
           [
@@ -1104,7 +1139,7 @@ describe("NFT.com Marketplace", function () {
           }),
         ).to.be.reverted;
 
-        await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1000));
+        await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1500));
         const beforeEthBalance = await ethers.provider.getBalance(owner.address);
 
         // succeeds because buyer is calling and sending in ETH
@@ -1124,13 +1159,13 @@ describe("NFT.com Marketplace", function () {
         );
 
         // buyer should have sent 2 ETH, and received 1 ETH back
-        expect(await ethers.provider.getBalance(deployedNftStake.address)).to.be.equal(
-          convertNftToken(1).mul(100).div(10000),
+        expect(await ethers.provider.getBalance(deployedNftBuyer.address)).to.be.equal(
+          convertSmallNftToken(1).mul(100).div(10000),
         );
         // contract should have 0 ETH
         expect(await ethers.provider.getBalance(deployedNftMarketplace.address)).to.be.equal(0);
         // owner should have received 1 ETH
-        expect(await ethers.provider.getBalance(owner.address)).to.be.equal(beforeEthBalance.add(convertNftToken(1)));
+        expect(await ethers.provider.getBalance(owner.address)).to.be.equal(beforeEthBalance.add(convertSmallNftToken(1)));
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 1);
@@ -1307,7 +1342,7 @@ describe("NFT.com Marketplace", function () {
         );
 
         // buyer should have sent 2 ETH, and received 1 ETH back
-        expect(await ethers.provider.getBalance(deployedNftStake.address)).to.be.equal(
+        expect(await ethers.provider.getBalance(deployedNftBuyer.address)).to.be.equal(
           convertNftToken(1).mul(100).div(10000),
         );
         // contract should have 0 ETH

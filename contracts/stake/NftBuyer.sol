@@ -43,6 +43,9 @@ contract NftBuyer {
         DAO = msg.sender;
     }
 
+    // important to receive ETH
+    receive() external payable {}
+
     function changeDAO(address newDAO) external onlyDAO {
         DAO = newDAO;
         emit NewDAO(newDAO);

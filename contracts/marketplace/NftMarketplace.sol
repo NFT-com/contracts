@@ -82,7 +82,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         INftTransferProxy _transferProxy,
         IERC20TransferProxy _erc20TransferProxy,
         address _cryptoKittyProxy,
-        address _stakingContract
+        address _stakingContract,
+        address _nftToken
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
@@ -91,6 +92,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             _erc20TransferProxy,
             _cryptoKittyProxy,
             _stakingContract,
+            _nftToken,
             100
         );
         __Ownable_init();
