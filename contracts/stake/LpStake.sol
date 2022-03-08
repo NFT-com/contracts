@@ -77,12 +77,12 @@ contract LpStake is ReentrancyGuard, Ownable {
         emit SetRewardTokensPerBlock(_rewardTokensPerBlock, _withUpdate);
     }
 
-    function to64(uint256 a) internal pure returns (uint64 c) {
+    function to64(uint256 a) private pure returns (uint64 c) {
         require(a <= type(uint64).max, "LpStake: uint64 Overflow");
         c = uint64(a);
     }
 
-    function to128(uint256 a) internal pure returns (uint128 c) {
+    function to128(uint256 a) private pure returns (uint128 c) {
         require(a <= type(uint128).max, "LpStake: uint128 Overflow");
         c = uint128(a);
     }
