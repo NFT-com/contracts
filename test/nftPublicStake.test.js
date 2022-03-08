@@ -7,7 +7,6 @@ describe("NFT Token Staking (Localnet)", function () {
     let NftToken, NftStake;
     let deployedNftToken, deployedNftStake;
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
-    const RINKEBY_WETH = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -19,7 +18,7 @@ describe("NFT Token Staking (Localnet)", function () {
       deployedNftToken = await NftToken.deploy(); // mint 10B tokens
 
       NftStake = await ethers.getContractFactory("PublicNftStake");
-      deployedNftStake = await NftStake.deploy(deployedNftToken.address, RINKEBY_WETH);
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
     });
 
     it("deployment should assign the total supply of tokens to the owner", async function () {
@@ -108,12 +107,6 @@ describe("NFT Token Staking (Localnet)", function () {
       await expect(deployedNftStake.connect(ownerSigner.connect(ethers.provider)).leave(1000))
         .to.emit(deployedNftStake, "Transfer")
         .withArgs(ownerSigner.address, ethers.constants.AddressZero, 1000);
-    });
-
-    it("should allow changing of DAO", async function () {
-      expect(await deployedNftStake.DAO()).to.be.equal(owner.address);
-      await deployedNftStake.changeDAO(addr1.address);
-      expect(await deployedNftStake.DAO()).to.be.equal(addr1.address);
     });
 
     it("should allow staking users to receive additional NFT tokens as yield", async function () {

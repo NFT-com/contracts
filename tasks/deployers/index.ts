@@ -15,7 +15,7 @@ task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
   const rinkebyWETH = "0xc778417e063141139fce010982780140aa0cd5ab";
   const rinkebyGenKey = "0x9F6ED3d90D48573245d6a0c0742db4eCf27B6a56";
   const rinkebyUniV2Factory = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
-  
+
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
   const NftStake = await hre.ethers.getContractFactory("PublicNftStake");
   const GenesisNftStake = await hre.ethers.getContractFactory("GenesisNftStake");
@@ -35,7 +35,7 @@ task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
     deployedNftStake.address,
     deployedGenStake.address,
     rinkebyNFT,
-    rinkebyWETH
+    rinkebyWETH,
   );
 
   const deployedTransferProxy = await hre.upgrades.deployProxy(TransferProxy, { kind: "uups" });
@@ -54,7 +54,7 @@ task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
       deployedERC20TransferProxy.address,
       deployedCryptoKittyTransferProxy.address,
       deployedNftBuyer.address,
-      rinkebyNFT
+      rinkebyNFT,
     ],
     { kind: "uups" },
   );
@@ -152,10 +152,7 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
   const deployedNftToken = await NftToken.deploy();
   console.log(chalk.green(`deployedNftToken: ${deployedNftToken.address}`));
 
-  const deployedNftGenesisStake = await GenesisStake.deploy(
-    deployedNftToken.address,
-    deployedGenesisKeyAddress,
-  );
+  const deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKeyAddress);
 
   console.log(chalk.green(`deployedNftGenesisStake: ${deployedNftGenesisStake.address}`));
 

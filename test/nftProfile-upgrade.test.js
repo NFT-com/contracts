@@ -127,13 +127,9 @@ describe("NFT Gasless Auction V2", function () {
       // second now has 1 genesis key
       await deployedGenesisKey.connect(second).claimKey(convertSmallNumber(2), secondSigner.address, v1, r1, s1);
 
-      deployedNftGenesisStake = await GenesisStake.deploy(
-        deployedNftToken.address,
-        wethAddress,
-        deployedGenesisKey.address,
-      );
+      deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
 
-      deployedNftStake = await NftStake.deploy(deployedNftToken.address, wethAddress);
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
 
       await owner.sendTransaction({ to: addr1.address, value: convertSmallNumber(1) });
       await deployedWETH.connect(addr1).transfer(ownerSigner.address, await deployedWETH.balanceOf(addr1.address));
