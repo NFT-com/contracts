@@ -7,6 +7,14 @@ import "./uniswapv2/interfaces/IUniswapV2ERC20.sol";
 import "./uniswapv2/interfaces/IUniswapV2Pair.sol";
 import "./uniswapv2/interfaces/IUniswapV2Factory.sol";
 
+interface IWETH {
+    function deposit() external payable;
+
+    function transfer(address to, uint256 value) external returns (bool);
+
+    function withdraw(uint256) external;
+}
+
 contract NftBuyer {
     IUniswapV2Factory public factory;
     address public publicStaking;
@@ -51,6 +59,11 @@ contract NftBuyer {
         emit NewDAO(newDAO);
     }
 
+    function changePublicPercent(uint256 _percent) external onlyDAO {
+        require(_percent <= MAX_PERCENT, "!MAX_PERCENT");
+        publicStakingPercent = _percent;
+    }
+
     function isContract(address account) internal view returns (bool) {
         // This method relies on extcodesize, which returns 0 for contracts in
         // construction, since the code is only stored at the end of the
@@ -66,9 +79,20 @@ contract NftBuyer {
     // converts erc20 to WETH -> NFT token
     function convert(address erc20) public {
         require(!isContract(msg.sender), "do not convert from contract");
-        uint256 wethAmount = _toWETH(erc20);
-        // Then we convert the WETH to Nft
-        _toNFT(wethAmount);
+        if (erc20 == nft) {
+            // split proceeds
+            uint256 publicStakeAmount = (IERC20(nft).balanceOf(address(this)) * publicStakingPercent) / MAX_PERCENT;
+            _transfer(nft, publicStaking, publicStakeAmount);
+            _transfer(nft, genesisStaking, IERC20(nft).balanceOf(address(this)) - publicStakeAmount);
+        } else {
+            uint256 wethAmount = _toWETH(erc20);
+            // Then we convert the WETH to Nft
+            _toNFT(wethAmount);
+        }
+    }
+
+    function convertETH() public {
+        IWETH(weth).deposit{ value: address(this).balance }();
     }
 
     // Converts token passed as an argument to WETH
@@ -110,6 +134,7 @@ contract NftBuyer {
     // Converts WETH to Nft
     function _toNFT(uint256 amountIn) internal {
         IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(weth, nft));
+
         // Choose WETH as input token
         (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
         address token0 = pair.token0();
@@ -126,7 +151,7 @@ contract NftBuyer {
         // split proceeds
         uint256 publicStakeAmount = (IERC20(nft).balanceOf(address(this)) * publicStakingPercent) / MAX_PERCENT;
         _transfer(nft, publicStaking, publicStakeAmount);
-        _transfer(nft, genesisStaking, IERC20(nft).balanceOf(address(this)) - publicStakeAmount);
+        _transfer(nft, genesisStaking, IERC20(nft).balanceOf(address(this)));
     }
 
     function _transfer(

@@ -3,12 +3,12 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./boringcrypto/BoringOwnable.sol";
-import "./lib/SignedSafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./lib/SignedSafeMath.sol";
 
 // LpStake is based on MasterchefV2 contract, which is a rewards contract for the Sushi platform
-contract LpStake is ReentrancyGuard, BoringOwnable {
+contract LpStake is ReentrancyGuard, Ownable {
     using SignedSafeMath for int256;
     using SafeMath for uint256;
     /// @notice Info of each LpStake user.

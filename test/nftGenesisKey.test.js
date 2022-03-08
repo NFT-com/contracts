@@ -70,14 +70,10 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       );
 
       GenesisStake = await ethers.getContractFactory("GenesisNftStake");
-      deployedNftGenesisStake = await GenesisStake.deploy(
-        deployedNftToken.address,
-        wethAddress,
-        deployedGenesisKey.address,
-      );
+      deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
 
       NftStake = await ethers.getContractFactory("PublicNftStake");
-      deployedNftStake = await NftStake.deploy(deployedNftToken.address, wethAddress);
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
 
       ProfileAuction = await ethers.getContractFactory("ProfileAuctionV2");
       deployedProfileAuction = await upgrades.deployProxy(
@@ -138,7 +134,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       });
     });
 
-    describe("Blind Auction and Dutch Auction for Genesis Keys", async function () {
+    describe("Blind Auction and Decreasing Price Sale for Genesis Keys", async function () {
       it("should allow users to submit a signed signature for a genesis key", async function () {
         const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
         const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");

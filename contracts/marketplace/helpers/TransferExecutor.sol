@@ -11,7 +11,7 @@ import "hardhat/console.sol";
 
 abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransferExecutor {
     address public nftBuyContract; // uint160
-    uint256 public protocolFee;    // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
+    uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
 
     mapping(bytes4 => address) public proxies;
     mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
@@ -64,7 +64,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
      */
     function transferEth(address to, uint256 value) internal {
         // ETH Fee
-        (bool success1, ) = nftBuyContract.call{ value: value * protocolFee / 10000 }("");
+        (bool success1, ) = nftBuyContract.call{ value: (value * protocolFee) / 10000 }("");
         (bool success2, ) = to.call{ value: value }("");
 
         require(success1 && success2, "NFT.com: transfer failed");
