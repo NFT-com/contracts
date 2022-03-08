@@ -7,12 +7,16 @@ import "../interfaces/IERC20TransferProxy.sol";
 import "../interfaces/INftTransferProxy.sol";
 import "../interfaces/ITransferProxy.sol";
 import "../interfaces/ITransferExecutor.sol";
+import "hardhat/console.sol";
 
 abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransferExecutor {
-    address public stakingContract;
-    uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
+    address public nftBuyContract; // uint160
+    uint256 public protocolFee;    // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
+
     mapping(bytes4 => address) public proxies;
     mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
+
+    address public nftToken;
 
     event ProxyChange(bytes4 indexed assetType, address proxy);
     event WhitelistChange(address token, bool value);
@@ -22,15 +26,17 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         INftTransferProxy _transferProxy,
         IERC20TransferProxy _erc20TransferProxy,
         address _cryptoKittyProxy,
-        address _stakingContract,
+        address _nftBuyContract,
+        address _nftToken,
         uint256 _protocolFee
     ) internal {
         proxies[LibAsset.ERC20_ASSET_CLASS] = address(_erc20TransferProxy);
         proxies[LibAsset.ERC721_ASSET_CLASS] = address(_transferProxy);
         proxies[LibAsset.ERC1155_ASSET_CLASS] = address(_transferProxy);
         proxies[LibAsset.CRYPTO_KITTY] = _cryptoKittyProxy;
-        stakingContract = address(_stakingContract);
+        nftBuyContract = _nftBuyContract;
         protocolFee = _protocolFee;
+        nftToken = _nftToken;
     }
 
     function changeProtocolFee(uint256 _fee) external onlyOwner {
@@ -58,7 +64,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
      */
     function transferEth(address to, uint256 value) internal {
         // ETH Fee
-        (bool success1, ) = stakingContract.call{ value: (value * protocolFee) / 10000 }("");
+        (bool success1, ) = nftBuyContract.call{ value: value * protocolFee / 10000 }("");
         (bool success2, ) = to.call{ value: value }("");
 
         require(success1 && success2, "NFT.com: transfer failed");
@@ -79,7 +85,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         address to,
         uint256 decreasingPriceValue
     ) internal override {
-        require(stakingContract != address(0), "NFT.com: UNINITIALIZED");
+        require(nftBuyContract != address(0), "NFT.com: UNINITIALIZED");
         uint256 value;
 
         if (auctionType == LibSignature.AuctionType.Decreasing && from == msg.sender) value = decreasingPriceValue;
@@ -91,12 +97,14 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
             address token = abi.decode(asset.assetType.data, (address));
             require(whitelistERC20[token], "NFT.com: ERC20 NOT SUPPORTED");
 
+            uint256 fee = token == nftToken ? protocolFee / 2 : protocolFee;
+
             // ERC20 Fee
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
                 IERC20Upgradeable(token),
                 from,
-                stakingContract,
-                (value * protocolFee) / 10000
+                nftBuyContract,
+                (value * fee) / 10000
             );
 
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
