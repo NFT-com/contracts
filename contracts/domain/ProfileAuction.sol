@@ -22,9 +22,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     address public nftProfileHelperAddress;
     address public genesisKeyContract;
     address public merkleDistributorProfile;
-    
-    uint256 public publicFee;   // public fee in nft token for mint price
-    bool public publicMintBool;     // true to allow public mint
+
+    uint256 public publicFee; // public fee in nft token for mint price
+    bool public publicMintBool; // true to allow public mint
 
     mapping(uint256 => uint256) public genesisKeyClaimNumber; // genKey tokenId => number of profiles claimed
 
@@ -126,7 +126,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
      * @dev allows gen key holder to claim a profile according to merkle tree
      * @param tokenId tokenId of genesis key owned
      * @param profileUrl profileUrl to claim
-     * @param recipient user who is calling the claim function 
+     * @param recipient user who is calling the claim function
      */
     function genesisKeyMerkleClaim(
         uint256 tokenId,
@@ -170,10 +170,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == msg.sender,
             "nft.com: must be genkey owner"
         );
-        require(
-            genesisKeyClaimNumber[tokenId] != 7,
-            "nft.com: must not exceed 7 profile mints"
-        );
+        require(genesisKeyClaimNumber[tokenId] != 7, "nft.com: must not exceed 7 profile mints");
 
         // effects
         genesisKeyClaimNumber[tokenId] += 1;
