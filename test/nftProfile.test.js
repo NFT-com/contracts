@@ -285,7 +285,14 @@ describe("NFT Gasless Auction V2", function () {
 
         await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 0)).to.be.reverted;
 
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 0);
+
+        // should revert since boled is already claimed
+        await expect(deployedMerkleDistributorProfile
+          .connect(owner)
+          .claim(merkleResult.claims.boled.index, 0, "boled", merkleResult.claims.boled.proof)).to.be.reverted;
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(3);
       });
 
       it("should upgrade profile contract to V2", async function () {
