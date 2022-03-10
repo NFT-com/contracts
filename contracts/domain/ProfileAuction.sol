@@ -25,6 +25,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
     uint256 public publicFee; // public fee in nft token for mint price
     bool public publicMintBool; // true to allow public mint
+    bool public genKeyMerkleOnly; // true to only allow merkle claims
 
     mapping(uint256 => uint256) public genesisKeyClaimNumber; // genKey tokenId => number of profiles claimed
 
@@ -67,6 +68,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         governor = _governor;
         genesisKeyContract = _genesisKeyContract;
         genesisStakingContract = _genesisStakingContract;
+        genKeyMerkleOnly = true;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -124,6 +126,10 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         publicFee = _fee;
     }
 
+    function setGenKeyMerkleOnly(bool _genKeyMerkleOnly) external onlyGovernor {
+        genKeyMerkleOnly = _genKeyMerkleOnly;
+    }
+
     /**
      * @dev allows gen key holder to claim a profile according to merkle tree
      * @param tokenId tokenId of genesis key owned
@@ -136,6 +142,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         address recipient
     ) external nonReentrant returns (bool) {
         if (
+            genKeyMerkleOnly &&
             msg.sender == merkleDistributorProfile &&
             // recipient must have specified genesis key
             IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient &&
@@ -158,6 +165,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
      * @param tokenId tokenId of genesis key owned
      */
     function genesisKeyClaimProfile(string memory profileUrl, uint256 tokenId) external nonReentrant {
+        require(!genKeyMerkleOnly, "nft.com: merkle claim only right now");
         // checks
         require(
             IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == msg.sender,

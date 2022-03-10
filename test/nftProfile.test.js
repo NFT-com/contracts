@@ -268,31 +268,53 @@ describe("NFT Gasless Auction V2", function () {
       });
 
       it("should allow genesis key owners to claim from merkle tree and without", async function () {
+        expect(await deployedProfileAuction.genKeyMerkleOnly()).to.be.true;
+        expect(await deployedProfileAuction.publicMintBool()).to.be.false;
+        
         expect(await deployedGenesisKey.ownerOf(0)).to.be.equal(owner.address);
         expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(second.address);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
-
-        // reverts due to owner not having ownership over tokenId 1
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 1)).to.be.reverted;
-
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 0);
 
         // console.log('merkleResult: ', merkleResult);
         await deployedMerkleDistributorProfile
           .connect(owner)
           .claim(merkleResult.claims.gavin.index, 0, "gavin", merkleResult.claims.gavin.proof);
 
+        await deployedMerkleDistributorProfile
+            .connect(owner)
+            .claim(merkleResult.claims.boled.index, 0, "boled", merkleResult.claims.boled.proof);
+
+        // reverts because proof is wrong
+        await expect(
+          deployedMerkleDistributorProfile
+            .connect(owner)
+            .claim(merkleResult.claims.satoshi.index, 0, "satoshi", merkleResult.claims.satoshi.proof),
+        ).to.be.reverted;
+
+        // should go thru
+        await deployedMerkleDistributorProfile
+        .connect(second)
+        .claim(merkleResult.claims.satoshi.index, 1, "satoshi", merkleResult.claims.satoshi.proof);
+
+        // no more merkle tree claims -> now general claims
+        await deployedProfileAuction.connect(owner).setGenKeyMerkleOnly(false);
+
+        // reverts due to owner not having ownership over tokenId 1
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 1)).to.be.reverted;
+
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 0);
         await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 0)).to.be.reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 0)).to.be.reverted;
 
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 0);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 0);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 0);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 0);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 0);
 
-        // should revert since boled is already claimed
-        await expect(deployedMerkleDistributorProfile
-          .connect(owner)
-          .claim(merkleResult.claims.boled.index, 0, "boled", merkleResult.claims.boled.proof)).to.be.reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 0)).to.be.reverted;
 
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(3);
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
       });
 
       it("should upgrade profile contract to V2", async function () {
