@@ -3,9 +3,6 @@ pragma solidity ^0.8.0;
 
 // Allows anyone to claim a token if they exist in a merkle root.
 interface IMerkleDistributorProfile {
-    // Returns the address of the token distributed by this contract.
-    function token() external view returns (address);
-
     // Returns the profile auction contract address.
     function profileAuction() external view returns (address);
 

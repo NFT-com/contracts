@@ -53,8 +53,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         address _nftProfileHelperAddress,
         address _nftBuyer,
         address _genesisKeyContract,
-        address _genesisStakingContract,
-        address _merkleDistributorProfile
+        address _genesisStakingContract
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
@@ -68,7 +67,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         governor = _governor;
         genesisKeyContract = _genesisKeyContract;
         genesisStakingContract = _genesisStakingContract;
-        merkleDistributorProfile = _merkleDistributorProfile;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -80,6 +78,10 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     */
     function transferNftTokens(address _user, uint256 _amount) private returns (bool) {
         return IERC20Upgradeable(nftToken).transferFrom(_user, nftBuyer, _amount);
+    }
+
+    function setMerkleDistributor(address _merkle) external onlyOwner {
+        merkleDistributorProfile = _merkle;
     }
 
     /**
@@ -154,17 +156,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
      * @dev allows gen key holder to claim a profile
      * @param profileUrl profileUrl to claim
      * @param tokenId tokenId of genesis key owned
-     * @param v uint8 v of signature
-     * @param r bytes32 r of signature
-     * @param s bytes32 s of signature
      */
-    function genesisKeyClaimProfile(
-        string memory profileUrl,
-        uint256 tokenId,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external nonReentrant {
+    function genesisKeyClaimProfile(string memory profileUrl, uint256 tokenId) external nonReentrant {
         // checks
         require(
             IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == msg.sender,
@@ -176,9 +169,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         genesisKeyClaimNumber[tokenId] += 1;
 
         // interactions
-        if (IERC20Upgradeable(nftToken).allowance(msg.sender, address(this)) == 0) {
-            permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
-        }
 
         INftProfile(nftProfile).createProfile(msg.sender, 0, profileUrl, block.number);
 

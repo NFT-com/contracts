@@ -16,19 +16,13 @@ interface IProfileAuction {
 }
 
 contract MerkleDistributorProfile is IMerkleDistributorProfile {
-    address public immutable override token;
     address public immutable override profileAuction;
     bytes32 public immutable override merkleRoot;
 
     // This is a packed array of booleans.
     mapping(uint256 => uint256) private claimedBitMap;
 
-    constructor(
-        address token_,
-        address profileAuction_,
-        bytes32 merkleRoot_
-    ) {
-        token = token_;
+    constructor(address profileAuction_, bytes32 merkleRoot_) {
         profileAuction = profileAuction_;
         merkleRoot = merkleRoot_;
     }
@@ -59,7 +53,6 @@ contract MerkleDistributorProfile is IMerkleDistributorProfile {
         bytes32 node = keccak256(abi.encodePacked(index, tokenId, profileUrl));
         require(MerkleProof.verify(merkleProof, merkleRoot, node), "MerkleDistributorProfile: Invalid proof.");
 
-        // Mark it claimed and send the token.
         _setClaimed(index);
         require(
             IProfileAuction(profileAuction).genesisKeyMerkleClaim(tokenId, profileUrl, msg.sender),

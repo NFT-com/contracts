@@ -1,6 +1,7 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { convertTinyNumber, sign, getDigest, getHash, GENESIS_KEY_TYPEHASH } = require("./utils/sign-utils");
+const { parseBalanceMapKey } = require("./utils/parse-balance-map");
 
 const DECIMALS = 18;
 
@@ -21,9 +22,9 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
     let deployedNftGenesisStake;
     let NftStake;
     let deployedNftStake;
-    const ZERO_BYTES = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
     const auctionSeconds = "604800"; // seconds in 1 week
+    const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -36,8 +37,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       const symbol = "NFTKEY";
       const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
       const multiSig = addr1.address;
-
-      let coldWallet = owner.address;
 
       NftProfileHelper = await ethers.getContractFactory("NftProfileHelper");
       deployedNftProfileHelper = await NftProfileHelper.deploy();
@@ -75,22 +74,47 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       NftStake = await ethers.getContractFactory("PublicNftStake");
       deployedNftStake = await NftStake.deploy(deployedNftToken.address);
 
-      ProfileAuction = await ethers.getContractFactory("ProfileAuctionV2");
+      NftBuyer = await ethers.getContractFactory("NftBuyer");
+      deployedNftBuyer = await NftBuyer.deploy(
+        RINKEBY_FACTORY_V2,
+        deployedNftStake.address,
+        deployedNftGenesisStake.address,
+        deployedNftToken.address,
+        wethAddress,
+      );
+
+      ProfileAuction = await ethers.getContractFactory("ProfileAuction");
       deployedProfileAuction = await upgrades.deployProxy(
         ProfileAuction,
         [
           deployedNftToken.address,
-          owner.address,
           deployedNftProfile.address,
           owner.address,
           deployedNftProfileHelper.address,
-          coldWallet,
+          deployedNftBuyer.address,
           deployedGenesisKey.address,
           deployedNftGenesisStake.address,
-          deployedNftStake.address,
         ],
         { kind: "uups" },
       );
+
+      const jsonInput = JSON.parse(`{
+        "gavin": "1",
+        "boled": "1",
+        "satoshi": "2"
+      }`);
+
+      // merkle result is what you need to post publicly and store on FE
+      const merkleResult = parseBalanceMapKey(jsonInput);
+      const { merkleRoot } = merkleResult;
+
+      MerkleDistributorProfile = await ethers.getContractFactory("MerkleDistributorProfile");
+      deployedMerkleDistributorProfile = await MerkleDistributorProfile.deploy(
+        deployedProfileAuction.address,
+        merkleRoot,
+      );
+
+      deployedProfileAuction.connect(owner).setMerkleDistributor(deployedMerkleDistributorProfile.address);
 
       deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
     });

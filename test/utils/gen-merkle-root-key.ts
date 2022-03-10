@@ -15,4 +15,4 @@ const json = JSON.parse(fs.readFileSync(program.input, { encoding: "utf8" }));
 
 if (typeof json !== "object") throw new Error("Invalid JSON");
 
-console.log(JSON.stringify(parseBalanceMapKey(json)));
+console.log(JSON.stringify(parseBalanceMapKey(json), null, 2));

@@ -23,6 +23,21 @@ interface MerkleDistributorInfo {
   };
 }
 
+interface MerkleDistributorKeyInfo {
+  merkleRoot: string;
+  tokenTotal: string;
+  claims: {
+    [profileUrl: string]: {
+      index: number;
+      tokenId: string;
+      proof: string[];
+      flags?: {
+        [flag: string]: boolean;
+      };
+    };
+  };
+}
+
 type OldFormat = { [account: string]: number | string };
 type NewFormat = { address: string; earnings: string; reasons: string };
 
@@ -92,7 +107,7 @@ export function parseBalanceMap(balances: OldFormat | NewFormat[]): MerkleDistri
   };
 }
 
-export function parseBalanceMapKey(balances: OldFormat | NewFormat[]): MerkleDistributorInfo {
+export function parseBalanceMapKey(balances: OldFormat | NewFormat[]): MerkleDistributorKeyInfo {
   // if balances are in an old format, process them
   const balancesInNewFormat: NewFormat[] = Array.isArray(balances)
     ? balances
@@ -105,12 +120,12 @@ export function parseBalanceMapKey(balances: OldFormat | NewFormat[]): MerkleDis
       );
 
   const dataByAddress = balancesInNewFormat.reduce<{
-    [address: string]: { amount: BigNumber; flags?: { [flag: string]: boolean } };
+    [address: string]: { tokenId: BigNumber; flags?: { [flag: string]: boolean } };
   }>((memo, { address: account, earnings, reasons }) => {
     const parsed = account?.toLowerCase();
     if (memo[parsed]) throw new Error(`Duplicate address: ${parsed}`);
     const parsedNum = BigNumber.from(earnings);
-    if (parsedNum.lte(0)) throw new Error(`Invalid amount for account: ${account}`);
+    if (parsedNum.lt(0)) throw new Error(`Invalid tokenId for account: ${account}`);
 
     const flags = {
       isSOCKS: reasons.includes("socks"),
@@ -118,33 +133,33 @@ export function parseBalanceMapKey(balances: OldFormat | NewFormat[]): MerkleDis
       isUser: reasons.includes("user"),
     };
 
-    memo[parsed] = { amount: parsedNum, ...(reasons === "" ? {} : { flags }) };
+    memo[parsed] = { tokenId: parsedNum, ...(reasons === "" ? {} : { flags }) };
     return memo;
   }, {});
 
-  const sortedAddresses = Object.keys(dataByAddress).sort();
+  const sortedProfileUrls = Object.keys(dataByAddress).sort();
 
   // construct a tree
   const tree = new BalanceTreeKey(
-    sortedAddresses.map(address => ({ account: address, amount: dataByAddress[address].amount })),
+    sortedProfileUrls.map(profileUrl => ({ profileUrl, tokenId: dataByAddress[profileUrl].tokenId })),
   );
 
   // generate claims
-  const claims = sortedAddresses.reduce<{
-    [address: string]: { amount: string; index: number; proof: string[]; flags?: { [flag: string]: boolean } };
-  }>((memo, address, index) => {
-    const { amount, flags } = dataByAddress[address];
-    memo[address] = {
+  const claims = sortedProfileUrls.reduce<{
+    [profileUrl: string]: { tokenId: string; index: number; proof: string[]; flags?: { [flag: string]: boolean } };
+  }>((memo, profileUrl, index) => {
+    const { tokenId, flags } = dataByAddress[profileUrl];
+    memo[profileUrl] = {
       index,
-      amount: amount.toHexString(),
-      proof: tree.getProof(index, address, amount),
+      tokenId: tokenId.toHexString(),
+      proof: tree.getProof(index, tokenId, profileUrl),
       ...(flags ? { flags } : {}),
     };
     return memo;
   }, {});
 
-  const tokenTotal: BigNumber = sortedAddresses.reduce<BigNumber>(
-    (memo, key) => memo.add(dataByAddress[key].amount),
+  const tokenTotal: BigNumber = sortedProfileUrls.reduce<BigNumber>(
+    (memo, key) => memo.add(dataByAddress[key].tokenId),
     BigNumber.from(0),
   );
 
