@@ -3,7 +3,6 @@ pragma solidity >=0.8.4;
 
 import "../interface/INftProfile.sol";
 import "../oz_modified/ERC721EnumerableUpgradeable.sol";
-import "../royalties/IERC2981Royalties.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -16,20 +15,12 @@ contract NftProfile is
     ERC721EnumerableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable,
-    INftProfile,
-    IERC2981Royalties
+    INftProfile
 {
     using SafeMathUpgradeable for uint256;
 
-    struct RoyaltyInfo {
-        address recipient;
-        uint24 amount;
-    }
-
-    RoyaltyInfo private _royalties;
     mapping(uint256 => string) internal _tokenURIs;
     mapping(string => uint256) internal _tokenUsedURIs;
-    mapping(uint256 => Bid) internal _profileDetails;
 
     uint256 public protocolFee;
     address public profileAuctionContract;
@@ -85,59 +76,6 @@ contract NftProfile is
         _transfer(ERC721Upgradeable.ownerOf(tokenId), _to, tokenId);
     }
 
-    /**
-     @dev Sets token royalties
-     @param recipient recipient of the royalties
-     @param value percentage (using 2 decimals - 10000 = 100, 0 = 0)
-    */
-    function _setRoyalties(address recipient, uint256 value) internal {
-        require(value <= 10000, "NFT.com: ERC-2981 Royalty Too High");
-        _royalties = RoyaltyInfo(recipient, uint24(value));
-    }
-
-    /* @inheritdoc IERC2981Royalties */
-    function royaltyInfo(uint256, uint256 value)
-        external
-        view
-        override
-        returns (address receiver, uint256 royaltyAmount)
-    {
-        RoyaltyInfo memory royalties = _royalties;
-        receiver = royalties.recipient;
-        royaltyAmount = (value * royalties.amount) / 10000;
-    }
-
-    /* @inheritdoc ERC165Upgradeable */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721EnumerableUpgradeable)
-        returns (bool)
-    {
-        return interfaceId == type(IERC2981Royalties).interfaceId || super.supportsInterface(interfaceId);
-    }
-
-    /**
-     @notice Allows to set the royalties on the contract
-     @dev This function in a real contract should be protected with a onlOwner (or equivalent) modifier
-     @param recipient the royalties recipient
-     @param value royalties value (between 0 and 10000)
-    */
-    function setRoyalties(address recipient, uint256 value) external onlyOwner {
-        _setRoyalties(recipient, value);
-    }
-
-    /**
-     @notice returns details about a specific NFT.com profile
-     @param _tokenId the ID of the NFT.com profile
-     @return details about the NFT.com profile
-    */
-    function profileDetails(uint256 _tokenId) external view override returns (Bid memory) {
-        require(_exists(_tokenId));
-        return _profileDetails[_tokenId];
-    }
-
     function profileOwner(string memory _string) external view returns (address) {
         return ownerOf(_tokenUsedURIs[_string].sub(1));
     }
@@ -175,21 +113,17 @@ contract NftProfile is
     /**
      @notice helper function used to mint profile, set URI, bid details
      @param _receiver the user who bought the profile
-     @param _nftTokens number of NFT.com tokens staked
      @param _profileURI profile username
     */
     function createProfile(
         address _receiver,
-        uint256 _nftTokens,
-        string memory _profileURI,
-        uint256 _blockMinted
+        string memory _profileURI
     ) external override {
         require(msg.sender == profileAuctionContract);
         uint256 preSupply = totalSupply();
 
         _mint(_receiver, preSupply);
         setTokenURI(preSupply, _profileURI);
-        _profileDetails[preSupply] = Bid(_nftTokens, _blockMinted, _profileURI);
     }
 
     /**

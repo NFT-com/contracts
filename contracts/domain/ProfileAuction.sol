@@ -29,7 +29,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
     mapping(uint256 => uint256) public genesisKeyClaimNumber; // genKey tokenId => number of profiles claimed
 
-    event MintedProfile(address _user, string _val, uint256 _amount, uint256 _blockNum);
+    event MintedProfile(address _user, string _val);
 
     modifier validAndUnusedURI(string memory _profileURI) {
         require(validURI(_profileURI));
@@ -150,8 +150,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         ) {
             genesisKeyClaimNumber[tokenId] += 1;
 
-            INftProfile(nftProfile).createProfile(recipient, 0, profileUrl, block.number);
-            emit MintedProfile(recipient, profileUrl, 0, block.number);
+            INftProfile(nftProfile).createProfile(recipient, profileUrl);
+            emit MintedProfile(recipient, profileUrl);
 
             return true;
         } else {
@@ -178,9 +178,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         // interactions
 
-        INftProfile(nftProfile).createProfile(msg.sender, 0, profileUrl, block.number);
+        INftProfile(nftProfile).createProfile(msg.sender, profileUrl);
 
-        emit MintedProfile(msg.sender, profileUrl, 0, block.number);
+        emit MintedProfile(msg.sender, profileUrl);
     }
 
     function setPublicMint(bool _val) external onlyGovernor {
@@ -203,8 +203,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         require(transferNftTokens(msg.sender, publicFee), "nft.com: insufficient funds");
 
-        INftProfile(nftProfile).createProfile(msg.sender, 0, profileUrl, block.number);
+        INftProfile(nftProfile).createProfile(msg.sender, profileUrl);
 
-        emit MintedProfile(msg.sender, profileUrl, 0, block.number);
+        emit MintedProfile(msg.sender, profileUrl);
     }
 }

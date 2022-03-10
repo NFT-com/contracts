@@ -16,7 +16,7 @@ const { parseBalanceMapKey } = require("./utils/parse-balance-map");
 const DECIMALS = 18;
 const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 
-describe("NFT Gasless Auction V2", function () {
+describe("NFT Profile Auction / Minting", function () {
   try {
     let NftToken;
     let deployedNftToken;
@@ -250,12 +250,7 @@ describe("NFT Gasless Auction V2", function () {
 
       it("profile creation is limited to the nft profile auction contract", async function () {
         await expect(
-          deployedNftProfile.createProfile(addr1.address, [
-            1000, // tokens
-            await ethers.provider.getBlockNumber(), // block bid is minted
-            "test", // profile URI
-            1000, // block wait
-          ]),
+          deployedNftProfile.createProfile(addr1.address, "test"),
         ).to.be.reverted;
       });
 
