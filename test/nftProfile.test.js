@@ -168,7 +168,7 @@ describe("NFT Profile Auction / Minting", function () {
           deployedNftProfileHelper.address,
           deployedNftBuyer.address,
           deployedGenesisKey.address,
-          deployedNftGenesisStake.address,
+          deployedNftGenesisStake.address
         ],
         { kind: "uups" },
       );
@@ -249,9 +249,7 @@ describe("NFT Profile Auction / Minting", function () {
       });
 
       it("profile creation is limited to the nft profile auction contract", async function () {
-        await expect(
-          deployedNftProfile.createProfile(addr1.address, "test"),
-        ).to.be.reverted;
+        await expect(deployedNftProfile.createProfile(addr1.address, "test")).to.be.reverted;
       });
 
       it("should revert on public functions without protection", async function () {
@@ -265,7 +263,7 @@ describe("NFT Profile Auction / Minting", function () {
       it("should allow genesis key owners to claim from merkle tree and without", async function () {
         expect(await deployedProfileAuction.genKeyMerkleOnly()).to.be.true;
         expect(await deployedProfileAuction.publicMintBool()).to.be.false;
-        
+
         expect(await deployedGenesisKey.ownerOf(0)).to.be.equal(owner.address);
         expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(second.address);
 
@@ -277,8 +275,8 @@ describe("NFT Profile Auction / Minting", function () {
           .claim(merkleResult.claims.gavin.index, 0, "gavin", merkleResult.claims.gavin.proof);
 
         await deployedMerkleDistributorProfile
-            .connect(owner)
-            .claim(merkleResult.claims.boled.index, 0, "boled", merkleResult.claims.boled.proof);
+          .connect(owner)
+          .claim(merkleResult.claims.boled.index, 0, "boled", merkleResult.claims.boled.proof);
 
         // reverts because proof is wrong
         await expect(
@@ -289,8 +287,8 @@ describe("NFT Profile Auction / Minting", function () {
 
         // should go thru
         await deployedMerkleDistributorProfile
-        .connect(second)
-        .claim(merkleResult.claims.satoshi.index, 1, "satoshi", merkleResult.claims.satoshi.proof);
+          .connect(second)
+          .claim(merkleResult.claims.satoshi.index, 1, "satoshi", merkleResult.claims.satoshi.proof);
 
         // no more merkle tree claims -> now general claims
         await deployedProfileAuction.connect(owner).setGenKeyMerkleOnly(false);
@@ -310,6 +308,35 @@ describe("NFT Profile Auction / Minting", function () {
         await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 0)).to.be.reverted;
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
+        
+        // open public mint
+        await deployedProfileAuction.connect(owner).setPublicMint(true);
+
+        // approve first
+        
+        await deployedNftToken.connect(owner).approve(deployedProfileAuction.address, MAX_UINT);
+        await deployedProfileAuction.connect(owner).publicMint(
+          "profile5",
+          27,
+          ZERO_BYTES,
+          ZERO_BYTES
+        );
+
+        await deployedProfileAuction.connect(owner).publicMint(
+          "profile6",
+          27,
+          ZERO_BYTES,
+          ZERO_BYTES
+        );
+
+        await deployedProfileAuction.connect(owner).publicMint(
+          "profile7",
+          27,
+          ZERO_BYTES,
+          ZERO_BYTES
+        );
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(11);
       });
 
       it("should upgrade profile contract to V2", async function () {

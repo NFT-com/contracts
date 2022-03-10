@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "../interface/IMerkleDistributorProfile.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 // From: https://github.com/Uniswap/merkle-distributor/blob/master/contracts/MerkleDistributor.sol

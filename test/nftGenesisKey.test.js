@@ -93,7 +93,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           deployedNftProfileHelper.address,
           deployedNftBuyer.address,
           deployedGenesisKey.address,
-          deployedNftGenesisStake.address,
+          deployedNftGenesisStake.address
         ],
         { kind: "uups" },
       );

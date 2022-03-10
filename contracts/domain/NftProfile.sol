@@ -115,10 +115,7 @@ contract NftProfile is
      @param _receiver the user who bought the profile
      @param _profileURI profile username
     */
-    function createProfile(
-        address _receiver,
-        string memory _profileURI
-    ) external override {
+    function createProfile(address _receiver, string memory _profileURI) external override {
         require(msg.sender == profileAuctionContract);
         uint256 preSupply = totalSupply();
 
