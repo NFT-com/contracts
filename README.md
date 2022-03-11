@@ -18,29 +18,29 @@ ZERO_BYTES = `0x0000000000000000000000000000000000000000000000000000000000000000
 
 ## Rinkeby Address
 
-- [deployedGenesisKey](https://rinkeby.etherscan.io/address/0x9F6ED3d90D48573245d6a0c0742db4eCf27B6a56)
-  - implementation => 0xc3d64c2f994df319f52f8158d787593e65872585
-- [deployedNftToken](https://rinkeby.etherscan.io/address/0xa75F995f252ba5F7C17f834b314201271d32eC35)
-- [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0x1eCF99bB796fC05b6E409CE5d4682353A166852b)
-- [deployedNftStake](https://rinkeby.etherscan.io/address/0xB1f851f3a250Fc1FFdd4eDdFB3529BfFe379924B)
-- [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0xED98f77010891884A63da7605c6B7DE6E4eD91F1)
-- [deployedNftProfileProxy](https://rinkeby.etherscan.io/address/0xc5782D87B3d353edbf1B03dEB001949Afd2e25E8)
-  - implementation => 0x0f78239245b45044d0f475a04c5caa41e266c4ee
-- [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/0x2295828BBB9270cF92D29ed79bA0260d64fdF23f)
-  - implementation => 0xE73B373C251C8177D87758c2DfC7d10be8fFE553
+- [deployedGenesisKey](https://rinkeby.etherscan.io/address/0xb5815c46D262005C170576330D0FB27d018fAd60)
+  - implementation => tbd
+- [deployedNftToken](https://rinkeby.etherscan.io/address/0x6e62f41A3aDf9f30fab56060D62bCFeB08C7F501)
+- [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0x35b8eaC589B6de7534D11cf30b8069c7fEa8A6C3)
+- [deployedNftStake](https://rinkeby.etherscan.io/address/0x9Eb10c976E7f8D7A1bD992239e7513978963E32f)
+- [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0x8515765a5B77c506cA7AAdE5c9891d9cFb8AdbfE)
+- [deployedNftProfileProxy](https://rinkeby.etherscan.io/address/0xA2395cd351A8E7cbB3af729060FDB813738313ff)
+  - implementation => tbd
+- [deployedNftBuyer](https://rinkeby.etherscan.io/address/0xe2d257DD0c8989aD30963633120ff35055B1fB62)
+  - implementation => tbd
+- [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/0x941BA75176396e4Fa168750b7927EF42DF67FF0C)
+  - implementation => tbd
 
 ## Rinkeby Marketplace
 
-- [deployedNftStake](https://rinkeby.etherscan.io/address/0x026BCDC5a320ac798Fa8e2b12AF6ba4927b9479E)
-- [deployedGenesisStake](https://rinkeby.etherscan.io/address/0xBb8c6b591339844794c9C743E268AbB2b45c336e)
-- [nftTransferProxy](https://rinkeby.etherscan.io/address/0x59998f8085069b72a77E953452E1155797E39149)
-  - implementation => 0xDfA0914E53b3C222fCBf67cD3cD89474e7B63bef
-- [deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/0x93DE38cdF2675972F38d94300c954Ea42E0639d0)
-  - implementation => 0xFecF248854c3A4e36A37CE04e7f025F718873509
-- [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/0x0530a5462D2990953Dd7a7150F325b5fD74ECB30)
-  - implementation => 0x67A59654E2ec02f12fbbcb6A2A758c7aB7c2c8E5
-- [deployedNftMarketplace](https://rinkeby.etherscan.io/address/0xA3509a064A54a7a60Fc4Db0245ef44F812f439f6)
-  - implementation => 0x6ad4Bd1Da2675Fd15BC69a0390Fc5a25cE64DAe5
+- [nftTransferProxy](https://rinkeby.etherscan.io/address/0xA3802263Ee1305de54c2E8b24a800EF82B564742)
+  - implementation => TBD
+- [deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/0x32B091f6Af61bfC0dC78D22DAfCc981e3403350c)
+  - implementation => TBD
+- [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/0x24AC307422b694c71242e37C297b7fD26E09f4cD)
+  - implementation => TBD
+- [deployedNftMarketplace](https://rinkeby.etherscan.io/address/0x5e6420d2EceF69265503797c6a3D1f6f6188b024)
+  - implementation => TBD
 
 ### Pre Requisites
 

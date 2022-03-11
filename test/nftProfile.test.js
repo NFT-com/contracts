@@ -168,7 +168,7 @@ describe("NFT Profile Auction / Minting", function () {
           deployedNftProfileHelper.address,
           deployedNftBuyer.address,
           deployedGenesisKey.address,
-          deployedNftGenesisStake.address
+          deployedNftGenesisStake.address,
         ],
         { kind: "uups" },
       );
@@ -308,33 +308,18 @@ describe("NFT Profile Auction / Minting", function () {
         await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 0)).to.be.reverted;
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
-        
+
         // open public mint
         await deployedProfileAuction.connect(owner).setPublicMint(true);
 
         // approve first
-        
+
         await deployedNftToken.connect(owner).approve(deployedProfileAuction.address, MAX_UINT);
-        await deployedProfileAuction.connect(owner).publicMint(
-          "profile5",
-          27,
-          ZERO_BYTES,
-          ZERO_BYTES
-        );
+        await deployedProfileAuction.connect(owner).publicMint("profile5", 27, ZERO_BYTES, ZERO_BYTES);
 
-        await deployedProfileAuction.connect(owner).publicMint(
-          "profile6",
-          27,
-          ZERO_BYTES,
-          ZERO_BYTES
-        );
+        await deployedProfileAuction.connect(owner).publicMint("profile6", 27, ZERO_BYTES, ZERO_BYTES);
 
-        await deployedProfileAuction.connect(owner).publicMint(
-          "profile7",
-          27,
-          ZERO_BYTES,
-          ZERO_BYTES
-        );
+        await deployedProfileAuction.connect(owner).publicMint("profile7", 27, ZERO_BYTES, ZERO_BYTES);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(11);
       });

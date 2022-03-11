@@ -25,7 +25,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     bytes4 internal constant MAGICVALUE = 0x1626ba7e; // bytes4(keccak256("isValidSignature(bytes32,bytes)")
     bytes4 private constant _INTERFACE_ID_ERC2981 = 0x2a55205a;
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
-    mapping(bytes32 => bool) private approvedOrders; // TODO: delete from mainnet
     mapping(bytes32 => uint256) private _approvedOrdersByNonce;
     mapping(address => uint256) public nonces; // nonce for each account
 
@@ -33,6 +32,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     event Cancel(bytes32 structHash, address indexed maker);
     event Approval(bytes32 structHash, address indexed maker);
     event NonceIncremented(address indexed maker, uint256 newNonce);
+    event BuyNowInfo(bytes32 indexed makerStructHash, address takerAddress);
     event Match(
         bytes32 indexed makerStructHash,
         bytes32 indexed takerStructHash,
@@ -529,6 +529,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             ),
             sellOrder.taker != address(0x0)
         );
+
+        emit BuyNowInfo(sellHash, msg.sender);
 
         emit Match2A(
             sellHash,
