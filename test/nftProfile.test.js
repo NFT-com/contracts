@@ -308,7 +308,6 @@ describe("NFT Profile Auction / Minting", function () {
         await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 0)).to.be.reverted;
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
-
         // open public mint
         await deployedProfileAuction.connect(owner).setPublicMint(true);
 
