@@ -34,15 +34,15 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
   const deployedNftToken = await NftToken.deploy();
   console.log(chalk.green(`deployedNftToken: ${deployedNftToken.address}`));
 
-  // GENESIS KEY STAKE ================================================================================
+  // NFT GENESIS KEY STAKE ============================================================================
   const GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
   const deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKeyAddress);
   console.log(chalk.green(`deployedNftGenesisStake: ${deployedNftGenesisStake.address}`));
 
   // PUBLIC STAKE =====================================================================================
   const NftStake = await hre.ethers.getContractFactory("PublicNftStake");
-  const deployedNftStake = await NftStake.deploy(deployedNftToken.address);
-  console.log(chalk.green(`deployedNftStake: ${deployedNftStake.address}`));
+  const deployedPublicStake = await NftStake.deploy(deployedNftToken.address);
+  console.log(chalk.green(`deployedPublicStake: ${deployedPublicStake.address}`));
 
   // NftProfileHelper =================================================================================
   const NftProfileHelper = await hre.ethers.getContractFactory("NftProfileHelper");
@@ -66,7 +66,7 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
   const NftBuyer = await hre.ethers.getContractFactory("NftBuyer");
   const deployedNftBuyer = await NftBuyer.deploy(
     UNI_V2_FACTORY,
-    deployedNftStake.address,
+    deployedPublicStake.address,
     deployedNftGenesisStake.address,
     deployedNftToken.address,
     wethAddress,
