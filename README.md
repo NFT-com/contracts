@@ -15,7 +15,7 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
 ## Rinkeby Address
 
 - [deployedGenesisKey](https://rinkeby.etherscan.io/address/0xb5815c46D262005C170576330D0FB27d018fAd60)
-  - implementation => 0xdad818e145825fbb2d869df4fe447a6722e75cd6
+  - implementation => 0x1ddd02d080681b3dc14f79c48b785cc1d3973928
 - [deployedNftToken](https://rinkeby.etherscan.io/address/0x6e62f41A3aDf9f30fab56060D62bCFeB08C7F501)
 - [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0x35b8eaC589B6de7534D11cf30b8069c7fEa8A6C3)
 - [deployedPublicStake](https://rinkeby.etherscan.io/address/0x9Eb10c976E7f8D7A1bD992239e7513978963E32f)

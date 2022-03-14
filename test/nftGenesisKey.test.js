@@ -204,13 +204,14 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
               [v0, v1],
               [r0, r1],
               [s0, s1],
+              convertTinyNumber(1)
             ),
         )
           .to.emit(deployedWETH, "Transfer")
           .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
 
         expect(await deployedWETH.balanceOf(addr1.address)).to.eq(
-          BigNumber.from(beforeWethAddr1).add(convertTinyNumber(3)),
+          BigNumber.from(beforeWethAddr1).add(convertTinyNumber(2)),
         );
 
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(0);
@@ -237,6 +238,8 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         // just testing
         await deployedGenesisKey.setApprovalForAll(deployedGenesisKey.address, true);
+        
+        console.log('=======> await deployedGenesisKey.tokenIdsOwned(ownerSigner.address)', await deployedGenesisKey.tokenIdsOwned(ownerSigner.address));
       });
 
       // start public auction
@@ -265,7 +268,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await expect(
           deployedGenesisKey
             .connect(owner)
-            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0]),
+            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0], convertTinyNumber(1)),
         ).to.be.reverted;
       });
 
@@ -313,7 +316,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await expect(
           deployedGenesisKey
             .connect(owner)
-            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0]),
+            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0], convertTinyNumber(1)),
         ).to.be.reverted;
 
         const currentPrice = await deployedGenesisKey.getCurrentPrice();

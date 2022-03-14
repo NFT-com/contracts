@@ -91,7 +91,7 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`deployedProfileAuction: ${deployedProfileAuction.address}`));
 });
 
-// Step 3
+// Step 3 (profileUrl -> tokenId) claim
 task("deploy:ProfileMerkle").setAction(async function (taskArguments, hre) {
   const deployedProfileAuction = ""; // TODO:
 
@@ -179,7 +179,6 @@ task("deploy:Airdrop").setAction(async function (taskArguments, hre) {
 });
 
 // UPGRADES ============================================================================================
-
 task("upgrade:ProfileAuction").setAction(async function (taskArguments, { ethers, upgrades }) {
   const ProfileAuction = await ethers.getContractFactory("ProfileAuction");
 
@@ -213,6 +212,6 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
-  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0x9F6ED3d90D48573245d6a0c0742db4eCf27B6a56", GenesisKey);
-  console.log(chalk.green("upgraded profile auction: ", upgradedGenesisKey.address));
+  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0xb5815c46D262005C170576330D0FB27d018fAd60", GenesisKey);
+  console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 });

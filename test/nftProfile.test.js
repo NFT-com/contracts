@@ -118,10 +118,11 @@ describe("NFT Profile Auction / Minting", function () {
             [v0, v1],
             [r0, r1],
             [s0, s1],
+            convertSmallNumber(2)
           ),
       )
         .to.emit(deployedWETH, "Transfer")
-        .withArgs(ownerSigner.address, addr1.address, convertSmallNumber(10));
+        .withArgs(ownerSigner.address, addr1.address, convertSmallNumber(2));
 
       // owner now has 1 genesis key
       await deployedGenesisKey.connect(owner).claimKey(convertBigNumber(1), ownerSigner.address, v0, r0, s0);
