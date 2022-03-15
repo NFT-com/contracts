@@ -166,7 +166,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         console.log("start validating: ");
         LibSignature.validate(order); // validates start and end time
 
-        console.log("cancelledHash: ");
         console.logBool(cancelledOrFinalized[hash]);
         if (cancelledOrFinalized[hash]) {
             return false;
@@ -174,7 +173,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         uint256 approvedOrderNoncePlusOne = _approvedOrdersByNonce[hash];
         if (approvedOrderNoncePlusOne != 0) {
-            console.log("inside nonce");
             return approvedOrderNoncePlusOne == nonces[order.maker] + 1;
         }
 
