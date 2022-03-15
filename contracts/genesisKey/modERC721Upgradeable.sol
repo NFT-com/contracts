@@ -96,7 +96,7 @@ contract ERC721Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradeab
         return _symbol;
     }
 
-    function multiOwnerOf(uint256 startIndex, uint256 endIndex) external view returns (address[] memory) {
+    function multiOwnerOf(uint256 startIndex, uint256 endIndex) external override view returns (address[] memory) {
         address[] memory addrBalances = new address[](endIndex - startIndex);
         
         for (uint256 i = startIndex; i < endIndex; i++) {
@@ -106,7 +106,7 @@ contract ERC721Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradeab
         return addrBalances;
     }
 
-    function tokenIdsOwned(address user) external view returns (bool[] memory) {
+    function tokenIdsOwned(address user) external override view returns (bool[] memory) {
         bool[] memory tokenIdUser = new bool[](_totalSupply);
 
         for (uint256 i = 0; i < _totalSupply; i++) {

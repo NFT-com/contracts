@@ -1,17 +1,13 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const chalk = require("chalk");
 const {
   convertBigNumber,
   convertSmallNumber,
   sign,
   getDigest,
   getHash,
-  ERC20_PERMIT_TYPEHASH,
-  BID_TYPEHASH,
   GENESIS_KEY_TYPEHASH,
 } = require("./utils/sign-utils");
-const { parseBalanceMapKey } = require("./utils/parse-balance-map");
 
 const DECIMALS = 18;
 const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
@@ -252,43 +248,35 @@ describe("NFT Profile Auction / Minting", function () {
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
-        // console.log('merkleResult: ', merkleResult);
-        await deployedMerkleDistributorProfile
+        await deployedProfileAuction
           .connect(owner)
-          .claim(merkleResult.claims.gavin.index, 0, "gavin", merkleResult.claims.gavin.proof);
+          .genesisKeyWhitelistClaim("gavin", 0, owner.address);
 
-        await deployedMerkleDistributorProfile
+        await deployedProfileAuction
           .connect(owner)
-          .claim(merkleResult.claims.boled.index, 0, "boled", merkleResult.claims.boled.proof);
-
-        // reverts because proof is wrong
-        await expect(
-          deployedMerkleDistributorProfile
-            .connect(owner)
-            .claim(merkleResult.claims.satoshi.index, 0, "satoshi", merkleResult.claims.satoshi.proof),
-        ).to.be.reverted;
+          .genesisKeyWhitelistClaim("boled", 0, owner.address);
 
         // should go thru
-        await deployedMerkleDistributorProfile
+        await deployedProfileAuction
           .connect(second)
-          .claim(merkleResult.claims.satoshi.index, 1, "satoshi", merkleResult.claims.satoshi.proof);
+          .genesisKeyWhitelistClaim("satoshi", 1, second.address);
 
         // no more merkle tree claims -> now general claims
         await deployedProfileAuction.connect(owner).setGenKeyWhitelistOnly(false);
 
         // reverts due to owner not having ownership over tokenId 1
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 1)).to.be.reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 1, owner.address)).to.be.reverted;
 
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 0);
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 0)).to.be.reverted;
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 0)).to.be.reverted;
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 0, owner.address);
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 0, owner.address)).to.be.reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 0, owner.address)).to.be.reverted;
 
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 0);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 0);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 0);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 0);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 0, owner.address);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 0, owner.address);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 0, owner.address);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 0, owner.address);
 
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 0)).to.be.reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 0, owner.address)).to.be.reverted;
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
         // open public mint
