@@ -114,7 +114,7 @@ describe("NFT Profile Auction / Minting", function () {
             [v0, v1],
             [r0, r1],
             [s0, s1],
-            convertSmallNumber(2)
+            convertSmallNumber(2),
           ),
       )
         .to.emit(deployedWETH, "Transfer")
@@ -248,35 +248,33 @@ describe("NFT Profile Auction / Minting", function () {
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
-        await deployedProfileAuction
-          .connect(owner)
-          .genesisKeyWhitelistClaim("gavin", 0, owner.address);
+        await deployedProfileAuction.connect(owner).genesisKeyWhitelistClaim("gavin", 0, owner.address);
 
-        await deployedProfileAuction
-          .connect(owner)
-          .genesisKeyWhitelistClaim("boled", 0, owner.address);
+        await deployedProfileAuction.connect(owner).genesisKeyWhitelistClaim("boled", 0, owner.address);
 
         // should go thru
-        await deployedProfileAuction
-          .connect(second)
-          .genesisKeyWhitelistClaim("satoshi", 1, second.address);
+        await deployedProfileAuction.connect(second).genesisKeyWhitelistClaim("satoshi", 1, second.address);
 
         // no more merkle tree claims -> now general claims
         await deployedProfileAuction.connect(owner).setGenKeyWhitelistOnly(false);
 
         // reverts due to owner not having ownership over tokenId 1
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 1, owner.address)).to.be.reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 1, owner.address)).to.be
+          .reverted;
 
         await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 0, owner.address);
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 0, owner.address)).to.be.reverted;
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 0, owner.address)).to.be.reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 0, owner.address)).to.be
+          .reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 0, owner.address)).to.be
+          .reverted;
 
         await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 0, owner.address);
         await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 0, owner.address);
         await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 0, owner.address);
         await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 0, owner.address);
 
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 0, owner.address)).to.be.reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 0, owner.address)).to.be
+          .reverted;
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
         // open public mint

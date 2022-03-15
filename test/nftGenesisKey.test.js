@@ -186,7 +186,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
               [v0, v1],
               [r0, r1],
               [s0, s1],
-              convertTinyNumber(1)
+              convertTinyNumber(1),
             ),
         )
           .to.emit(deployedWETH, "Transfer")
@@ -220,8 +220,11 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         // just testing
         await deployedGenesisKey.setApprovalForAll(deployedGenesisKey.address, true);
-        
-        console.log('=======> await deployedGenesisKey.tokenIdsOwned(ownerSigner.address)', await deployedGenesisKey.tokenIdsOwned(ownerSigner.address));
+
+        console.log(
+          "=======> await deployedGenesisKey.tokenIdsOwned(ownerSigner.address)",
+          await deployedGenesisKey.tokenIdsOwned(ownerSigner.address),
+        );
       });
 
       // start public auction

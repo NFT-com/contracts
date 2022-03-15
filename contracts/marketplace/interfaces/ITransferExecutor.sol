@@ -12,6 +12,8 @@ abstract contract ITransferExecutor {
         LibAsset.Asset memory asset,
         address from,
         address to,
-        uint256 decreasingPriceValue
+        uint256 decreasingPriceValue,
+        bool validRoyalty,
+        LibAsset.Asset[] memory optionalNftAssets
     ) internal virtual;
 }

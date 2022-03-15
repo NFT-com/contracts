@@ -155,11 +155,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         string memory profileUrl,
         uint256 tokenId,
         address recipient
-    )
-        external
-        validAndUnusedURI(profileUrl)
-        nonReentrant
-    {
+    ) external validAndUnusedURI(profileUrl) nonReentrant {
         require(!genKeyWhitelistOnly, "nft.com: merkle claim only right now");
         // checks
         require(
