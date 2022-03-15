@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "hardhat/console.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -163,10 +162,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         LibSignature.Order calldata order,
         Sig memory sig
     ) internal view returns (bool) {
-        console.log("start validating: ");
         LibSignature.validate(order); // validates start and end time
 
-        console.logBool(cancelledOrFinalized[hash]);
         if (cancelledOrFinalized[hash]) {
             return false;
         }
@@ -178,8 +175,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
 
         bytes32 hashV4 = LibSignature._hashTypedDataV4Marketplace(hash);
 
-        console.log("ECDSAUpgradeable.recover(hashV4, sig.v, sig.r, sig.s): ", ECDSAUpgradeable.recover(hashV4, sig.v, sig.r, sig.s));
-        console.log("order.maker: ", order.maker);
         if (ECDSAUpgradeable.recover(hashV4, sig.v, sig.r, sig.s) == order.maker) {
             return true;
         }

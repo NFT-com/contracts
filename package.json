@@ -42,7 +42,7 @@
     "eth-gas-reporter": "^0.2.24",
     "ethereum-waffle": "^3.4.0",
     "ethereumjs-util": "^7.0.4",
-    "ethers": "^5.4.4",
+    "ethers": "5.5.4",
     "fs": "^0.0.1-security",
     "fs-extra": "^10.0.0",
     "hardhat": "^2.7.0",
