@@ -1,6 +1,5 @@
 import { BigNumber, utils } from "ethers";
 import BalanceTree from "./balance-tree";
-import BalanceTreeKey from "./balance-tree-key";
 
 const { isAddress, getAddress } = utils;
 
@@ -97,69 +96,6 @@ export function parseBalanceMap(balances: OldFormat | NewFormat[]): MerkleDistri
 
   const tokenTotal: BigNumber = sortedAddresses.reduce<BigNumber>(
     (memo, key) => memo.add(dataByAddress[key].amount),
-    BigNumber.from(0),
-  );
-
-  return {
-    merkleRoot: tree.getHexRoot(),
-    tokenTotal: tokenTotal.toHexString(),
-    claims,
-  };
-}
-
-export function parseBalanceMapKey(balances: OldFormat | NewFormat[]): MerkleDistributorKeyInfo {
-  // if balances are in an old format, process them
-  const balancesInNewFormat: NewFormat[] = Array.isArray(balances)
-    ? balances
-    : Object.keys(balances).map(
-        (account): NewFormat => ({
-          address: account,
-          earnings: `0x${balances[account].toString(16)}`,
-          reasons: "",
-        }),
-      );
-
-  const dataByAddress = balancesInNewFormat.reduce<{
-    [address: string]: { tokenId: BigNumber; flags?: { [flag: string]: boolean } };
-  }>((memo, { address: account, earnings, reasons }) => {
-    const parsed = account?.toLowerCase();
-    if (memo[parsed]) throw new Error(`Duplicate address: ${parsed}`);
-    const parsedNum = BigNumber.from(earnings);
-    if (parsedNum.lt(0)) throw new Error(`Invalid tokenId for account: ${account}`);
-
-    const flags = {
-      isSOCKS: reasons.includes("socks"),
-      isLP: reasons.includes("lp"),
-      isUser: reasons.includes("user"),
-    };
-
-    memo[parsed] = { tokenId: parsedNum, ...(reasons === "" ? {} : { flags }) };
-    return memo;
-  }, {});
-
-  const sortedProfileUrls = Object.keys(dataByAddress).sort();
-
-  // construct a tree
-  const tree = new BalanceTreeKey(
-    sortedProfileUrls.map(profileUrl => ({ profileUrl, tokenId: dataByAddress[profileUrl].tokenId })),
-  );
-
-  // generate claims
-  const claims = sortedProfileUrls.reduce<{
-    [profileUrl: string]: { tokenId: string; index: number; proof: string[]; flags?: { [flag: string]: boolean } };
-  }>((memo, profileUrl, index) => {
-    const { tokenId, flags } = dataByAddress[profileUrl];
-    memo[profileUrl] = {
-      index,
-      tokenId: tokenId.toHexString(),
-      proof: tree.getProof(index, tokenId, profileUrl),
-      ...(flags ? { flags } : {}),
-    };
-    return memo;
-  }, {});
-
-  const tokenTotal: BigNumber = sortedProfileUrls.reduce<BigNumber>(
-    (memo, key) => memo.add(dataByAddress[key].tokenId),
     BigNumber.from(0),
   );
 

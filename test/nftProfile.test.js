@@ -174,24 +174,6 @@ describe("NFT Profile Auction / Minting", function () {
         { kind: "uups" },
       );
 
-      const jsonInput = JSON.parse(`{
-        "gavin": "0",
-        "boled": "0",
-        "satoshi": "1"
-      }`);
-
-      // merkle result is what you need to post publicly and store on FE
-      merkleResult = parseBalanceMapKey(jsonInput);
-      const { merkleRoot } = merkleResult;
-
-      MerkleDistributorProfile = await ethers.getContractFactory("MerkleDistributorProfile");
-      deployedMerkleDistributorProfile = await MerkleDistributorProfile.deploy(
-        deployedProfileAuction.address,
-        merkleRoot,
-      );
-
-      deployedProfileAuction.connect(owner).setMerkleDistributor(deployedMerkleDistributorProfile.address);
-
       // ===============================================================
       deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
 
@@ -257,12 +239,12 @@ describe("NFT Profile Auction / Minting", function () {
         await expect(deployedProfileAuction.publicMint("test_profile", 0, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
 
         // fails because only merkle distributor can call this
-        await expect(deployedProfileAuction.connect(owner).genesisKeyMerkleClaim(0, "test", owner.adress)).to.be
+        await expect(deployedProfileAuction.connect(owner).genesisKeyWhitelistClaim(0, "test", owner.adress)).to.be
           .reverted;
       });
 
       it("should allow genesis key owners to claim from merkle tree and without", async function () {
-        expect(await deployedProfileAuction.genKeyMerkleOnly()).to.be.true;
+        expect(await deployedProfileAuction.genKeyWhitelistOnly()).to.be.true;
         expect(await deployedProfileAuction.publicMintBool()).to.be.false;
 
         expect(await deployedGenesisKey.ownerOf(0)).to.be.equal(owner.address);
@@ -292,7 +274,7 @@ describe("NFT Profile Auction / Minting", function () {
           .claim(merkleResult.claims.satoshi.index, 1, "satoshi", merkleResult.claims.satoshi.proof);
 
         // no more merkle tree claims -> now general claims
-        await deployedProfileAuction.connect(owner).setGenKeyMerkleOnly(false);
+        await deployedProfileAuction.connect(owner).setGenKeyWhitelistOnly(false);
 
         // reverts due to owner not having ownership over tokenId 1
         await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 1)).to.be.reverted;

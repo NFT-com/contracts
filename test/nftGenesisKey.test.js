@@ -98,24 +98,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         { kind: "uups" },
       );
 
-      const jsonInput = JSON.parse(`{
-        "gavin": "1",
-        "boled": "1",
-        "satoshi": "2"
-      }`);
-
-      // merkle result is what you need to post publicly and store on FE
-      const merkleResult = parseBalanceMapKey(jsonInput);
-      const { merkleRoot } = merkleResult;
-
-      MerkleDistributorProfile = await ethers.getContractFactory("MerkleDistributorProfile");
-      deployedMerkleDistributorProfile = await MerkleDistributorProfile.deploy(
-        deployedProfileAuction.address,
-        merkleRoot,
-      );
-
-      deployedProfileAuction.connect(owner).setMerkleDistributor(deployedMerkleDistributorProfile.address);
-
       deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
     });
 

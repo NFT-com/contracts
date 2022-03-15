@@ -86,7 +86,6 @@
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.js\"",
     "deploy": "hardhat deploy:NFT.com --network rinkeby",
     "airdrop:public": "ts-node ./test/utils/gen-merkle-root.ts --input ./test/utils/airdrop.json",
-    "airdrop:genKey": "ts-node ./test/utils/gen-merkle-root-key.ts --input ./test/utils/profileGenKeyClaim.json",
     "verify": "hardhat verify --network <network> <contract>",
     "deploy-debug": "hardhat deploy:NFT.com --show-stack-traces",
     "lint": "yarn run lint:sol && yarn run lint:ts && yarn run prettier:check",

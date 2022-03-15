@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 import chalk from "chalk";
-import { parseBalanceMap, parseBalanceMapKey } from "../../test/utils/parse-balance-map";
+import { parseBalanceMap } from "../../test/utils/parse-balance-map";
 
 const network = "rinkeby";
 const governor = "0x59495589849423692778a8c5aaCA62CA80f875a4"; // TODO: UPDATE
@@ -91,31 +91,7 @@ task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`deployedProfileAuction: ${deployedProfileAuction.address}`));
 });
 
-// Step 3 (profileUrl -> tokenId) claim
-task("deploy:ProfileMerkle").setAction(async function (taskArguments, hre) {
-  const deployedProfileAuction = ""; // TODO:
-
-  // Profile Distributor Merkle ========================================================================
-  // TODO: add in correct JSON mapping
-  const jsonInput = JSON.parse(`{
-    "gavin": "1",
-    "boled": "1",
-    "satoshi": "2"
-  }`);
-
-  // merkle result is what you need to post publicly and store on FE
-  const merkleResult = parseBalanceMapKey(jsonInput);
-  const { merkleRoot } = merkleResult;
-
-  const MerkleDistributorProfile = await hre.ethers.getContractFactory("MerkleDistributorProfile");
-  const deployedMerkleDistributorProfile = await MerkleDistributorProfile.deploy(deployedProfileAuction, merkleRoot);
-  console.log(chalk.green(`deployedMerkleDistributorProfile: ${deployedMerkleDistributorProfile.address}`));
-
-  // TODO: make sure this is executed by multisig
-  // await deployedProfileAuction.setMerkleDistributor(deployedMerkleDistributorProfile.address);
-});
-
-// Step 4
+// Step 3
 task("deploy:NftMarketplace").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying the marketplace contacts..."));
 
@@ -158,7 +134,7 @@ task("deploy:NftMarketplace").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("finished deploying nft marketplace contracts!"));
 });
 
-// STEP 5 (wait until ready)
+// STEP 4 (wait until ready)
 task("deploy:Airdrop").setAction(async function (taskArguments, hre) {
   // Profile Distributor Merkle ========================================================================
   // TODO: add in correct JSON mapping
