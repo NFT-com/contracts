@@ -27,7 +27,7 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
 // STEP 2 deploy:NFT.com
 task("deploy:2").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`initializing...`));
-  const deployedGenesisKeyAddress = "0xb5815c46D262005C170576330D0FB27d018fAd60"; // TODO: fill in after genesis key is done
+  const deployedGenesisKeyAddress = "0xDd84b04FeA34c7119077564215b6ebdAD93aeB32"; // TODO: fill in after genesis key is done
 
   // NFT TOKEN ========================================================================================
   const NftToken = await hre.ethers.getContractFactory("NftToken");
@@ -95,8 +95,8 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
 task("deploy:3").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying the marketplace contacts..."));
 
-  const rinkebyNFT = "0xa75F995f252ba5F7C17f834b314201271d32eC35";
-  const deployedNftBuyer = "0xe2d257DD0c8989aD30963633120ff35055B1fB62";
+  const rinkebyNFT = "0xBe1BF67300A8c28F805f0399513885D290cA99F7";
+  const deployedNftBuyer = "0xD5e0CEA10321287d6cb70E12dCAd6DCa0Bec8cF8";
 
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
   const NftTransferProxy = await hre.ethers.getContractFactory("NftTransferProxy");
