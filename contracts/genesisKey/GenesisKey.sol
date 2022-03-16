@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "./modERC721Upgradeable.sol";
+import "../erc721a/ERC721AUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -17,7 +17,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 // depending on auction participation, there may be less
 // assumes we use WETH as the token of denomination
 
-contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     address public wethAddress;
@@ -29,7 +29,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
     uint256 public initialWethPrice; // initial price of genesis keys in Weth
     uint256 public finalWethPrice; // final price of genesis keys in Weth
     uint256 public numKeysForSale; // number of keys available for public sale
-    uint256 public numKeysPublicPurchased; // number of keys purchased
+    uint256 public numKeysPublicPurchased; // number of keys purchased // TODO: REMOVE FOR PROD (no reset sale)
 
     /* An ECDSA signature. */
     struct Sig {
@@ -59,7 +59,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
         uint256 _auctionSeconds
     ) public initializer {
         __ReentrancyGuard_init();
-        __ERC721_init(name, symbol);
+        __ERC721AUpgradeable_init(name, symbol, "ipfs://");
         __UUPSUpgradeable_init();
 
         wethAddress = _wethAddress;
@@ -307,8 +307,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
         cancelledOrFinalized[hash] = true;
 
         // interactions
-        uint256 preSupply = totalSupply();
-        _mint(_owner, preSupply);
+        _mint(_owner, 1, "", false);
 
         emit ClaimedGenesisKey(_owner, _wethTokens, claimableBlock[hash], true);
     }
@@ -323,8 +322,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
         remainingTeamAdvisorGrant = remainingTeamAdvisorGrant.sub(receivers.length);
 
         for (uint256 i = 0; i < receivers.length; i++) {
-            uint256 preSupply = totalSupply();
-            _mint(receivers[i], preSupply);
+            _mint(receivers[i], 1, "", false);
 
             emit ClaimedGenesisKey(receivers[i], 0, block.number, false);
         }
@@ -371,8 +369,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
         }
 
         // interactions
-        uint256 preSupply = totalSupply();
-        _mint(msg.sender, preSupply);
+        _mint(msg.sender, 1, "", false);
 
         numKeysPublicPurchased = numKeysPublicPurchased.add(1);
 

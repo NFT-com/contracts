@@ -81,6 +81,8 @@ contract ERC721AUpgradeable is
     // Token symbol
     string private _symbol;
 
+    string private defaultBaseURI;
+
     // Mapping from token ID to ownership details
     // An empty struct value does not necessarily mean the token is unowned. See _ownershipOf implementation for details.
     mapping(uint256 => TokenOwnership) internal _ownerships;
@@ -97,14 +99,16 @@ contract ERC721AUpgradeable is
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    function __ERC721AUpgradeable_init(string memory name_, string memory symbol_) internal initializer {
-        __ERC721AUpgradeable_init_unchained(name_, symbol_);
+    function __ERC721AUpgradeable_init(string memory name_, string memory symbol_, string memory defaultBaseURI_) internal initializer {
+        __ERC721AUpgradeable_init_unchained(name_, symbol_, defaultBaseURI_);
+        defaultBaseURI = defaultBaseURI_;
     }
 
-    function __ERC721AUpgradeable_init_unchained(string memory name_, string memory symbol_) internal initializer {
+    function __ERC721AUpgradeable_init_unchained(string memory name_, string memory symbol_, string memory defaultBaseURI_) internal initializer {
         _name = name_;
         _symbol = symbol_;
         _currentIndex = _startTokenId();
+        defaultBaseURI = defaultBaseURI_;
     }
 
     /**
@@ -235,6 +239,28 @@ contract ERC721AUpgradeable is
         return _symbol;
     }
 
+    function multiOwnerOf(uint256 startIndex, uint256 endIndex) external view returns (address[] memory) {
+        address[] memory addrBalances = new address[](endIndex - startIndex);
+
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            addrBalances[i] = ownerOf(i);
+        }
+
+        return addrBalances;
+    }
+
+    function tokenIdsOwned(address user) external view returns (bool[] memory) {
+        bool[] memory tokenIdUser = new bool[](totalSupply());
+
+        for (uint256 i = 0; i < totalSupply(); i++) {
+            if (ownerOf(i) == user) {
+                tokenIdUser[i] = true;
+            }
+        }
+
+        return tokenIdUser;
+    }
+
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
@@ -251,7 +277,7 @@ contract ERC721AUpgradeable is
      * by default, can be overriden in child contracts.
      */
     function _baseURI() internal view virtual returns (string memory) {
-        return "https://api.nft.com/uri/";
+        return defaultBaseURI;
     }
 
     /**
@@ -636,4 +662,6 @@ contract ERC721AUpgradeable is
         uint256 startTokenId,
         uint256 quantity
     ) internal virtual {}
+
+    uint256[44] private __gap;
 }

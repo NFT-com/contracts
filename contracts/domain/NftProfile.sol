@@ -37,7 +37,7 @@ contract NftProfile is
         address _nftErc20Contract
     ) public initializer {
         __ReentrancyGuard_init();
-        __ERC721AUpgradeable_init(name, symbol);
+        __ERC721AUpgradeable_init(name, symbol, "https://api.nft.com/uri/");
         __UUPSUpgradeable_init();
         protocolFee = 200; // 2% fee
 
