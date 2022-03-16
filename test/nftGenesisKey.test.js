@@ -1,6 +1,7 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { convertTinyNumber, sign, getDigest, getHash, GENESIS_KEY_TYPEHASH } = require("./utils/sign-utils");
+const { parseBalanceMapKey } = require("./utils/parse-balance-map");
 
 const DECIMALS = 18;
 
@@ -21,9 +22,9 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
     let deployedNftGenesisStake;
     let NftStake;
     let deployedNftStake;
-    const ZERO_BYTES = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
     const auctionSeconds = "604800"; // seconds in 1 week
+    const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -36,8 +37,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       const symbol = "NFTKEY";
       const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
       const multiSig = addr1.address;
-
-      let coldWallet = owner.address;
 
       NftProfileHelper = await ethers.getContractFactory("NftProfileHelper");
       deployedNftProfileHelper = await NftProfileHelper.deploy();
@@ -75,19 +74,26 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       NftStake = await ethers.getContractFactory("PublicNftStake");
       deployedNftStake = await NftStake.deploy(deployedNftToken.address);
 
-      ProfileAuction = await ethers.getContractFactory("ProfileAuctionV2");
+      NftBuyer = await ethers.getContractFactory("NftBuyer");
+      deployedNftBuyer = await NftBuyer.deploy(
+        RINKEBY_FACTORY_V2,
+        deployedNftStake.address,
+        deployedNftGenesisStake.address,
+        deployedNftToken.address,
+        wethAddress,
+      );
+
+      ProfileAuction = await ethers.getContractFactory("ProfileAuction");
       deployedProfileAuction = await upgrades.deployProxy(
         ProfileAuction,
         [
           deployedNftToken.address,
-          owner.address,
           deployedNftProfile.address,
           owner.address,
           deployedNftProfileHelper.address,
-          coldWallet,
+          deployedNftBuyer.address,
           deployedGenesisKey.address,
           deployedNftGenesisStake.address,
-          deployedNftStake.address,
         ],
         { kind: "uups" },
       );
@@ -180,13 +186,14 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
               [v0, v1],
               [r0, r1],
               [s0, s1],
+              convertTinyNumber(1),
             ),
         )
           .to.emit(deployedWETH, "Transfer")
           .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
 
         expect(await deployedWETH.balanceOf(addr1.address)).to.eq(
-          BigNumber.from(beforeWethAddr1).add(convertTinyNumber(3)),
+          BigNumber.from(beforeWethAddr1).add(convertTinyNumber(2)),
         );
 
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(0);
@@ -213,6 +220,11 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         // just testing
         await deployedGenesisKey.setApprovalForAll(deployedGenesisKey.address, true);
+
+        console.log(
+          "=======> await deployedGenesisKey.tokenIdsOwned(ownerSigner.address)",
+          await deployedGenesisKey.tokenIdsOwned(ownerSigner.address),
+        );
       });
 
       // start public auction
@@ -241,7 +253,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await expect(
           deployedGenesisKey
             .connect(owner)
-            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0]),
+            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0], convertTinyNumber(1)),
         ).to.be.reverted;
       });
 
@@ -289,7 +301,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await expect(
           deployedGenesisKey
             .connect(owner)
-            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0]),
+            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0], convertTinyNumber(1)),
         ).to.be.reverted;
 
         const currentPrice = await deployedGenesisKey.getCurrentPrice();

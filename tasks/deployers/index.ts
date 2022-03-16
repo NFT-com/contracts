@@ -1,45 +1,112 @@
 import { task } from "hardhat/config";
 import chalk from "chalk";
-import { NftBuyer } from "../../typechain";
+import { parseBalanceMap } from "../../test/utils/parse-balance-map";
 
-task("upgrade:ProfileAuction").setAction(async function (taskArguments, { ethers, upgrades }) {
-  const ProfileAuction = await ethers.getContractFactory("ProfileAuction");
+const network = "rinkeby";
+const governor = "0x59495589849423692778a8c5aaCA62CA80f875a4"; // TODO: UPDATE
+const wethAddress =
+  network === "rinkeby" ? "0xc778417e063141139fce010982780140aa0cd5ab" : "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+const UNI_V2_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 
-  await upgrades.upgradeProxy("0x7d4dDE9418f2c2d2D895C09e81155E1AB08aE236", ProfileAuction);
+// STEP 1 (deploy:GenesisKey)
+task("deploy:1").setAction(async function (taskArguments, hre) {
+  const name = "NFT.com Genesis Key";
+  const symbol = "NFTKEY";
+  const auctionSeconds = "604800"; // seconds in 1 week
+  const multiSig = governor;
+
+  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+  const deployedGenesisKey = await hre.upgrades.deployProxy(
+    GenesisKey,
+    [name, symbol, wethAddress, multiSig, auctionSeconds],
+    { kind: "uups" },
+  );
+  console.log(chalk.green(`deployedGenesisKey: ${deployedGenesisKey.address}`));
 });
 
-task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
+// STEP 2 deploy:NFT.com
+task("deploy:2").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green(`initializing...`));
+  const deployedGenesisKeyAddress = "0xDd84b04FeA34c7119077564215b6ebdAD93aeB32"; // TODO: fill in after genesis key is done
+
+  // NFT TOKEN ========================================================================================
+  const NftToken = await hre.ethers.getContractFactory("NftToken");
+  const deployedNftToken = await NftToken.deploy();
+  console.log(chalk.green(`deployedNftToken: ${deployedNftToken.address}`));
+
+  // NFT GENESIS KEY STAKE ============================================================================
+  const GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
+  const deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKeyAddress);
+  console.log(chalk.green(`deployedNftGenesisStake: ${deployedNftGenesisStake.address}`));
+
+  // PUBLIC STAKE =====================================================================================
+  const NftStake = await hre.ethers.getContractFactory("PublicNftStake");
+  const deployedPublicStake = await NftStake.deploy(deployedNftToken.address);
+  console.log(chalk.green(`deployedPublicStake: ${deployedPublicStake.address}`));
+
+  // NftProfileHelper =================================================================================
+  const NftProfileHelper = await hre.ethers.getContractFactory("NftProfileHelper");
+  const deployedNftProfileHelper = await NftProfileHelper.deploy();
+  console.log(chalk.green(`deployedNftProfileHelper: ${deployedNftProfileHelper.address}`));
+
+  // NFT PROFILE ======================================================================================
+  const NftProfile = await hre.ethers.getContractFactory("NftProfile");
+  const deployedNftProfileProxy = await hre.upgrades.deployProxy(
+    NftProfile,
+    [
+      "NFT.com", // string memory name,
+      "NFT.com", // string memory symbol,
+      deployedNftToken.address,
+    ],
+    { kind: "uups" },
+  );
+  console.log(chalk.green(`deployedNftProfileProxy: ${deployedNftProfileProxy.address}`));
+
+  // NFT BUYER ========================================================================================
+  const NftBuyer = await hre.ethers.getContractFactory("NftBuyer");
+  const deployedNftBuyer = await NftBuyer.deploy(
+    UNI_V2_FACTORY,
+    deployedPublicStake.address,
+    deployedNftGenesisStake.address,
+    deployedNftToken.address,
+    wethAddress,
+  );
+  console.log(chalk.green(`deployedNftBuyer: ${deployedNftBuyer.address}`));
+
+  // PROFILE AUCTION =================================================================================
+  const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
+  const deployedProfileAuction = await hre.upgrades.deployProxy(
+    ProfileAuction,
+    [
+      deployedNftToken.address,
+      deployedNftProfileProxy.address,
+      governor,
+      deployedNftProfileHelper.address,
+      deployedNftBuyer.address,
+      deployedGenesisKeyAddress,
+      deployedNftGenesisStake.address,
+    ],
+    { kind: "uups" },
+  );
+  console.log(chalk.green(`deployedProfileAuction: ${deployedProfileAuction.address}`));
+});
+
+// Step 3 NftMarketplace
+task("deploy:3").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying the marketplace contacts..."));
 
-  const rinkebyNFT = "0xa75F995f252ba5F7C17f834b314201271d32eC35";
-  const rinkebyWETH = "0xc778417e063141139fce010982780140aa0cd5ab";
-  const rinkebyGenKey = "0x9F6ED3d90D48573245d6a0c0742db4eCf27B6a56";
-  const rinkebyUniV2Factory = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+  const rinkebyNFT = "0xBe1BF67300A8c28F805f0399513885D290cA99F7";
+  const deployedNftBuyer = "0xD5e0CEA10321287d6cb70E12dCAd6DCa0Bec8cF8";
 
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
-  const NftStake = await hre.ethers.getContractFactory("PublicNftStake");
-  const GenesisNftStake = await hre.ethers.getContractFactory("GenesisNftStake");
-  const TransferProxy = await hre.ethers.getContractFactory("TransferProxy");
+  const NftTransferProxy = await hre.ethers.getContractFactory("NftTransferProxy");
   const ERC20TransferProxy = await hre.ethers.getContractFactory("ERC20TransferProxy");
   const CryptoKittyTransferProxy = await hre.ethers.getContractFactory("CryptoKittyTransferProxy");
-  const NftBuyer = await hre.ethers.getContractFactory("NftBuyer");
+  const ValidationLogic = await hre.ethers.getContractFactory("ValidationLogic");
+  const MarketplaceEvent = await hre.ethers.getContractFactory("MarketplaceEvent");
 
-  const deployedNftStake = await NftStake.deploy(rinkebyNFT);
-  console.log(chalk.green("deployedNftStake: ", deployedNftStake.address));
-
-  const deployedGenStake = await GenesisNftStake.deploy(rinkebyNFT, rinkebyGenKey);
-  console.log(chalk.green("deployedGenStake: ", deployedGenStake.address));
-
-  const deployedNftBuyer = await NftBuyer.deploy(
-    rinkebyUniV2Factory,
-    deployedNftStake.address,
-    deployedGenStake.address,
-    rinkebyNFT,
-    rinkebyWETH,
-  );
-
-  const deployedTransferProxy = await hre.upgrades.deployProxy(TransferProxy, { kind: "uups" });
-  console.log(chalk.green("nftTransferProxy: ", deployedTransferProxy.address));
+  const deployedNftTransferProxy = await hre.upgrades.deployProxy(NftTransferProxy, { kind: "uups" });
+  console.log(chalk.green("nftTransferProxy: ", deployedNftTransferProxy.address));
 
   const deployedERC20TransferProxy = await hre.upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
   console.log(chalk.green("deployedERC20TransferProxy: ", deployedERC20TransferProxy.address));
@@ -47,29 +114,66 @@ task("deploy:NFTMarketplace").setAction(async function (taskArguments, hre) {
   const deployedCryptoKittyTransferProxy = await hre.upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
   console.log(chalk.green("deployedCryptoKittyTransferProxy: ", deployedCryptoKittyTransferProxy.address));
 
+  const deployedValidationLogic = await hre.upgrades.deployProxy(ValidationLogic, { kind: "uups" });
+  console.log(chalk.green("deployedValidationLogic: ", deployedValidationLogic.address));
+
+  const deployedMarketplaceEvent = await hre.upgrades.deployProxy(MarketplaceEvent, { kind: "uups" });
+  console.log(chalk.green("deployedMarketplaceEvent: ", deployedMarketplaceEvent.address));
+
   const deployedNftMarketplace = await hre.upgrades.deployProxy(
     NftMarketplace,
     [
-      deployedTransferProxy.address,
+      deployedNftTransferProxy.address,
       deployedERC20TransferProxy.address,
       deployedCryptoKittyTransferProxy.address,
-      deployedNftBuyer.address,
+      deployedNftBuyer,
       rinkebyNFT,
+      deployedValidationLogic.address,
+      deployedMarketplaceEvent.address,
     ],
     { kind: "uups" },
   );
 
   console.log(chalk.green("deployedNftMarketplace: ", deployedNftMarketplace.address));
 
+  await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
+
   // add operator being the marketplace
-  await deployedTransferProxy.addOperator(deployedNftMarketplace.address);
+  await deployedNftTransferProxy.addOperator(deployedNftMarketplace.address);
   await deployedERC20TransferProxy.addOperator(deployedNftMarketplace.address);
   await deployedCryptoKittyTransferProxy.addOperator(deployedNftMarketplace.address);
 
   console.log(chalk.green("finished deploying nft marketplace contracts!"));
 });
 
-task("upgrade:NFTMarketplace").setAction(async function (taskArguments, hre) {
+// STEP 4 Airdrop (wait until ready)
+task("deploy:4").setAction(async function (taskArguments, hre) {
+  // Profile Distributor Merkle ========================================================================
+  // TODO: add in correct JSON mapping
+  const jsonInput = JSON.parse(`{
+    "0x59495589849423692778a8c5aaCA62CA80f875a4": "100",
+  }`);
+
+  // TODO: use right address
+  const nftToken = "";
+
+  // merkle result is what you need to post publicly and store on FE
+  const merkleResult = parseBalanceMap(jsonInput);
+  const { merkleRoot } = merkleResult;
+
+  const MerkleDistributor = await hre.ethers.getContractFactory("MerkleDistributor");
+  const deployedNftTokenAirdrop = await MerkleDistributor.deploy(nftToken, merkleRoot);
+  console.log(chalk.green(`deployedNftTokenAirdrop: ${deployedNftTokenAirdrop.address}`));
+});
+
+// UPGRADES ============================================================================================
+task("upgrade:ProfileAuction").setAction(async function (taskArguments, { ethers, upgrades }) {
+  const ProfileAuction = await ethers.getContractFactory("ProfileAuction");
+
+  await upgrades.upgradeProxy("0x7d4dDE9418f2c2d2D895C09e81155E1AB08aE236", ProfileAuction);
+});
+
+task("upgrade:NftMarketplace").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
 
@@ -79,23 +183,6 @@ task("upgrade:NFTMarketplace").setAction(async function (taskArguments, hre) {
   );
   console.log(chalk.green("upgraded nft marketplace: ", upgradedNftMarketplace.address));
   // console.log(chalk.green("upgradedNftMarketplace: ", JSON.stringify(upgradedNftMarketplace, null, 2)));
-});
-
-task("deploy:GenKey").setAction(async function (taskArguments, hre) {
-  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
-
-  const name = "NFT.com Genesis Key";
-  const symbol = "NFTKEY";
-  const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
-  const multiSig = "0x59495589849423692778a8c5aaCA62CA80f875a4"; // testnet deployer
-  const auctionSeconds = "604800"; // seconds in 1 week
-
-  const deployedGenKey = await hre.upgrades.deployProxy(
-    GenesisKey,
-    [name, symbol, wethAddress, multiSig, auctionSeconds],
-    { kind: "uups" },
-  );
-  console.log(chalk.green("deployedGenKey: ", deployedGenKey.address));
 });
 
 task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
@@ -113,89 +200,6 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
-  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0x9F6ED3d90D48573245d6a0c0742db4eCf27B6a56", GenesisKey);
-  console.log(chalk.green("upgraded profile auction: ", upgradedGenesisKey.address));
-});
-
-task("deploy:GenesisKey").setAction(async function (taskArguments, hre) {
-  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
-  const governor = process.env.GOVERNOR_ADDRESS;
-
-  const name = "NFT.com Genesis Key";
-  const symbol = "NFTKEY";
-  const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
-  const auctionSeconds = "604800"; // seconds in 1 week
-  const multiSig = governor;
-
-  const deployedGenesisKey = await hre.upgrades.deployProxy(
-    GenesisKey,
-    [name, symbol, wethAddress, multiSig, auctionSeconds],
-    { kind: "uups" },
-  );
-
-  console.log(chalk.green(`deployedGenesisKey: ${deployedGenesisKey.address}`));
-});
-
-task("deploy:NFT.com").setAction(async function (taskArguments, hre) {
-  console.log(chalk.green(`initializing...`));
-
-  const NftToken = await hre.ethers.getContractFactory("NftToken");
-  const governor = process.env.GOVERNOR_ADDRESS;
-  const minter = process.env.MINTER_ADDRESS;
-  const coldWallet = process.env.COLD_WALLET_ADDRESS;
-  const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
-  const deployedGenesisKeyAddress = ""; // TODO: fill in after genesis key is done
-
-  const GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
-  const NftStake = await hre.ethers.getContractFactory("PublicNftStake");
-
-  const deployedNftToken = await NftToken.deploy();
-  console.log(chalk.green(`deployedNftToken: ${deployedNftToken.address}`));
-
-  const deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKeyAddress);
-
-  console.log(chalk.green(`deployedNftGenesisStake: ${deployedNftGenesisStake.address}`));
-
-  const deployedNftStake = await NftStake.deploy(deployedNftToken.address);
-
-  console.log(chalk.green(`deployedNftStake: ${deployedNftStake.address}`));
-
-  const NftProfileHelper = await hre.ethers.getContractFactory("NftProfileHelper");
-  const deployedNftProfileHelper = await NftProfileHelper.deploy();
-
-  console.log(chalk.green(`deployedNftProfileHelper: ${deployedNftProfileHelper.address}`));
-
-  const NftProfile = await hre.ethers.getContractFactory("NftProfile");
-  const deployedNftProfileProxy = await hre.upgrades.deployProxy(
-    NftProfile,
-    [
-      "NFT.com", // string memory name,
-      "NFT.com", // string memory symbol,
-      deployedNftToken.address, // address _nftCashAddress,
-    ],
-    { kind: "uups" },
-  );
-
-  console.log(chalk.green(`deployedNftProfileProxy: ${deployedNftProfileProxy.address}`));
-
-  const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuctionV2");
-  const deployedProfileAuctionProxy = await hre.upgrades.deployProxy(
-    ProfileAuction,
-    [
-      deployedNftToken.address,
-      minter,
-      deployedNftProfileProxy.address,
-      governor,
-      deployedNftProfileHelper.address,
-      coldWallet,
-      deployedGenesisKeyAddress,
-      deployedNftGenesisStake.address,
-      deployedNftStake.address,
-    ],
-    { kind: "uups" },
-  );
-
-  console.log(chalk.green(`deployedProfileAuctionProxy: ${deployedProfileAuctionProxy.address}`));
-
-  await deployedNftProfileProxy.setProfileAuction(deployedProfileAuctionProxy.address);
+  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0xb5815c46D262005C170576330D0FB27d018fAd60", GenesisKey);
+  console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 });

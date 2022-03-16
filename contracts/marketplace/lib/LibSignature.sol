@@ -58,8 +58,8 @@ library LibSignature {
     }
 
     function validate(Order calldata order) internal view {
-        require(order.start == 0 || order.start < block.timestamp, "NFT.com: Order expired");
-        require(order.end == 0 || order.end > block.timestamp, "NFT.com: Order expired");
+        require(order.start == 0 || order.start < block.timestamp, "NFT.com: start expired");
+        require(order.end == 0 || order.end > block.timestamp, "NFT.com: end expired");
     }
 
     function concatVRS(

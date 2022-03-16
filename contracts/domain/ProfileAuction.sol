@@ -11,6 +11,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721Enume
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
+// TODO: optimize gas for NftProfile contract -> erc721A?
 contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     address public governor;
     address public owner;
@@ -20,14 +21,14 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     address public nftBuyer;
     address public nftProfileHelperAddress;
     address public genesisKeyContract;
-    address public merkleDistributorProfile;
-    
-    uint256 public publicFee;   // public fee in nft token for mint price
-    bool public publicMintBool;     // true to allow public mint
+
+    uint256 public publicFee; // public fee in nft token for mint price
+    bool public publicMintBool; // true to allow public mint
+    bool public genKeyWhitelistOnly; // true to only allow merkle claims
 
     mapping(uint256 => uint256) public genesisKeyClaimNumber; // genKey tokenId => number of profiles claimed
 
-    event MintedProfile(address _user, string _val, uint256 _amount, uint256 _blockNum);
+    event MintedProfile(address _user, string _val);
 
     modifier validAndUnusedURI(string memory _profileURI) {
         require(validURI(_profileURI));
@@ -52,8 +53,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         address _nftProfileHelperAddress,
         address _nftBuyer,
         address _genesisKeyContract,
-        address _genesisStakingContract,
-        address _merkleDistributorProfile
+        address _genesisStakingContract
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
@@ -67,7 +67,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         governor = _governor;
         genesisKeyContract = _genesisKeyContract;
         genesisStakingContract = _genesisStakingContract;
-        merkleDistributorProfile = _merkleDistributorProfile;
+        genKeyWhitelistOnly = true;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -98,50 +98,46 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         return INftProfileHelper(nftProfileHelperAddress)._validURI(_name);
     }
 
+    // GOV FUNCTIONS
     function setOwner(address _new) external onlyOwner {
         owner = _new;
-    }
-
-    // external function used to determine if _user is a genesis key holder or has staked their key
-    function genKeyOwner(address _user) public view returns (bool) {
-        return
-            IERC721EnumerableUpgradeable(genesisKeyContract).balanceOf(_user) != 0 ||
-            IGenesisKeyStake(genesisStakingContract).stakedAddress(_user) != 0;
-    }
-
-    function validGenKey(address _user, bool _genKey) private view returns (bool) {
-        if (_genKey) {
-            return genKeyOwner(_user);
-        }
-
-        return true;
     }
 
     function setPublicFee(uint256 _fee) external onlyGovernor {
         publicFee = _fee;
     }
 
+    function setGenKeyWhitelistOnly(bool _genKeyWhitelistOnly) external onlyGovernor {
+        genKeyWhitelistOnly = _genKeyWhitelistOnly;
+    }
+
+    function setPublicMint(bool _val) external onlyGovernor {
+        publicMintBool = _val;
+    }
+
+    // CLAIM FUNCTIONS
+
     /**
      * @dev allows gen key holder to claim a profile according to merkle tree
-     * @param tokenId tokenId of genesis key owned
      * @param profileUrl profileUrl to claim
-     * @param recipient user who is calling the claim function 
+     * @param tokenId tokenId of genesis key owned
+     * @param recipient user who is calling the claim function
      */
-    function genesisKeyMerkleClaim(
-        uint256 tokenId,
+    function genesisKeyWhitelistClaim(
         string memory profileUrl,
+        uint256 tokenId,
         address recipient
-    ) external nonReentrant returns (bool) {
+    ) external nonReentrant validAndUnusedURI(profileUrl) returns (bool) {
         if (
-            msg.sender == merkleDistributorProfile &&
+            genKeyWhitelistOnly &&
             // recipient must have specified genesis key
             IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient &&
             genesisKeyClaimNumber[tokenId] != 7
         ) {
             genesisKeyClaimNumber[tokenId] += 1;
 
-            INftProfile(nftProfile).createProfile(recipient, 0, profileUrl, block.number);
-            emit MintedProfile(recipient, profileUrl, 0, block.number);
+            INftProfile(nftProfile).createProfile(recipient, profileUrl);
+            emit MintedProfile(recipient, profileUrl);
 
             return true;
         } else {
@@ -153,42 +149,28 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
      * @dev allows gen key holder to claim a profile
      * @param profileUrl profileUrl to claim
      * @param tokenId tokenId of genesis key owned
-     * @param v uint8 v of signature
-     * @param r bytes32 r of signature
-     * @param s bytes32 s of signature
+     * @param recipient user who is calling the claim function
      */
     function genesisKeyClaimProfile(
         string memory profileUrl,
         uint256 tokenId,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external nonReentrant {
+        address recipient
+    ) external validAndUnusedURI(profileUrl) nonReentrant {
+        require(!genKeyWhitelistOnly, "nft.com: merkle claim only right now");
         // checks
         require(
-            IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == msg.sender,
+            IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient,
             "nft.com: must be genkey owner"
         );
-        require(
-            genesisKeyClaimNumber[tokenId] != 7,
-            "nft.com: must not exceed 7 profile mints"
-        );
+        require(genesisKeyClaimNumber[tokenId] != 7, "nft.com: must not exceed 7 profile mints");
 
         // effects
         genesisKeyClaimNumber[tokenId] += 1;
 
         // interactions
-        if (IERC20Upgradeable(nftToken).allowance(msg.sender, address(this)) == 0) {
-            permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
-        }
+        INftProfile(nftProfile).createProfile(recipient, profileUrl);
 
-        INftProfile(nftProfile).createProfile(msg.sender, 0, profileUrl, block.number);
-
-        emit MintedProfile(msg.sender, profileUrl, 0, block.number);
-    }
-
-    function setPublicMint(bool _val) external onlyGovernor {
-        publicMintBool = _val;
+        emit MintedProfile(recipient, profileUrl);
     }
 
     function publicMint(
@@ -196,7 +178,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external nonReentrant {
+    ) external nonReentrant validAndUnusedURI(profileUrl) {
         // checks
         require(publicMintBool, "nft.com: public minting is disabled");
         // effects
@@ -207,8 +189,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         require(transferNftTokens(msg.sender, publicFee), "nft.com: insufficient funds");
 
-        INftProfile(nftProfile).createProfile(msg.sender, 0, profileUrl, block.number);
+        INftProfile(nftProfile).createProfile(msg.sender, profileUrl);
 
-        emit MintedProfile(msg.sender, profileUrl, 0, block.number);
+        emit MintedProfile(msg.sender, profileUrl);
     }
 }
