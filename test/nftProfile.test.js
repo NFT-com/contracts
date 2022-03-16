@@ -1,17 +1,13 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const chalk = require("chalk");
 const {
   convertBigNumber,
   convertSmallNumber,
   sign,
   getDigest,
   getHash,
-  ERC20_PERMIT_TYPEHASH,
-  BID_TYPEHASH,
   GENESIS_KEY_TYPEHASH,
 } = require("./utils/sign-utils");
-const { parseBalanceMapKey } = require("./utils/parse-balance-map");
 
 const DECIMALS = 18;
 const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
@@ -118,10 +114,11 @@ describe("NFT Profile Auction / Minting", function () {
             [v0, v1],
             [r0, r1],
             [s0, s1],
+            convertSmallNumber(2),
           ),
       )
         .to.emit(deployedWETH, "Transfer")
-        .withArgs(ownerSigner.address, addr1.address, convertSmallNumber(10));
+        .withArgs(ownerSigner.address, addr1.address, convertSmallNumber(2));
 
       // owner now has 1 genesis key
       await deployedGenesisKey.connect(owner).claimKey(convertBigNumber(1), ownerSigner.address, v0, r0, s0);
@@ -172,24 +169,6 @@ describe("NFT Profile Auction / Minting", function () {
         ],
         { kind: "uups" },
       );
-
-      const jsonInput = JSON.parse(`{
-        "gavin": "0",
-        "boled": "0",
-        "satoshi": "1"
-      }`);
-
-      // merkle result is what you need to post publicly and store on FE
-      merkleResult = parseBalanceMapKey(jsonInput);
-      const { merkleRoot } = merkleResult;
-
-      MerkleDistributorProfile = await ethers.getContractFactory("MerkleDistributorProfile");
-      deployedMerkleDistributorProfile = await MerkleDistributorProfile.deploy(
-        deployedProfileAuction.address,
-        merkleRoot,
-      );
-
-      deployedProfileAuction.connect(owner).setMerkleDistributor(deployedMerkleDistributorProfile.address);
 
       // ===============================================================
       deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
@@ -256,12 +235,12 @@ describe("NFT Profile Auction / Minting", function () {
         await expect(deployedProfileAuction.publicMint("test_profile", 0, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
 
         // fails because only merkle distributor can call this
-        await expect(deployedProfileAuction.connect(owner).genesisKeyMerkleClaim(0, "test", owner.adress)).to.be
+        await expect(deployedProfileAuction.connect(owner).genesisKeyWhitelistClaim(0, "test", owner.adress)).to.be
           .reverted;
       });
 
       it("should allow genesis key owners to claim from merkle tree and without", async function () {
-        expect(await deployedProfileAuction.genKeyMerkleOnly()).to.be.true;
+        expect(await deployedProfileAuction.genKeyWhitelistOnly()).to.be.true;
         expect(await deployedProfileAuction.publicMintBool()).to.be.false;
 
         expect(await deployedGenesisKey.ownerOf(0)).to.be.equal(owner.address);
@@ -269,43 +248,33 @@ describe("NFT Profile Auction / Minting", function () {
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
-        // console.log('merkleResult: ', merkleResult);
-        await deployedMerkleDistributorProfile
-          .connect(owner)
-          .claim(merkleResult.claims.gavin.index, 0, "gavin", merkleResult.claims.gavin.proof);
+        await deployedProfileAuction.connect(owner).genesisKeyWhitelistClaim("gavin", 0, owner.address);
 
-        await deployedMerkleDistributorProfile
-          .connect(owner)
-          .claim(merkleResult.claims.boled.index, 0, "boled", merkleResult.claims.boled.proof);
-
-        // reverts because proof is wrong
-        await expect(
-          deployedMerkleDistributorProfile
-            .connect(owner)
-            .claim(merkleResult.claims.satoshi.index, 0, "satoshi", merkleResult.claims.satoshi.proof),
-        ).to.be.reverted;
+        await deployedProfileAuction.connect(owner).genesisKeyWhitelistClaim("boled", 0, owner.address);
 
         // should go thru
-        await deployedMerkleDistributorProfile
-          .connect(second)
-          .claim(merkleResult.claims.satoshi.index, 1, "satoshi", merkleResult.claims.satoshi.proof);
+        await deployedProfileAuction.connect(second).genesisKeyWhitelistClaim("satoshi", 1, second.address);
 
         // no more merkle tree claims -> now general claims
-        await deployedProfileAuction.connect(owner).setGenKeyMerkleOnly(false);
+        await deployedProfileAuction.connect(owner).setGenKeyWhitelistOnly(false);
 
         // reverts due to owner not having ownership over tokenId 1
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 1)).to.be.reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 1, owner.address)).to.be
+          .reverted;
 
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 0);
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 0)).to.be.reverted;
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 0)).to.be.reverted;
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 0, owner.address);
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 0, owner.address)).to.be
+          .reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 0, owner.address)).to.be
+          .reverted;
 
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 0);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 0);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 0);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 0);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 0, owner.address);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 0, owner.address);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 0, owner.address);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 0, owner.address);
 
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 0)).to.be.reverted;
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 0, owner.address)).to.be
+          .reverted;
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
         // open public mint

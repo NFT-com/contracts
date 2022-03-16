@@ -90,6 +90,7 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
             [v0, v1],
             [r0, r1],
             [s0, s1],
+            convertTinyNumber(1),
           ),
       )
         .to.emit(deployedWETH, "Transfer")

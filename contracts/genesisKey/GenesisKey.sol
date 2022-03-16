@@ -41,7 +41,6 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
     event BidCancelled(bytes32 indexed hash);
     event NewClaimableGenKey(address indexed _user, uint256 _amount, uint256 _blockNum);
     event ClaimedGenesisKey(address indexed _user, uint256 _amount, uint256 _blockNum, bool _whitelist);
-    event InitMetadata(uint256 _tokenId, string uri);
 
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized bid, by hash
     mapping(bytes32 => uint256) public claimableBlock; // Claimable bid (0 = not claimable, > 0 = claimable), by hash
