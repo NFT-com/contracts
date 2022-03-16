@@ -20,10 +20,9 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
 
     mapping(bytes4 => address) public proxies;
     mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
+    mapping(address => RoyaltyInfo) public royaltyInfo; // mapping of NFT to their royalties
 
     address public nftToken;
-
-    mapping(address => RoyaltyInfo) public royaltyInfo; // mapping of NFT to their royalties
 
     event ProxyChange(bytes4 indexed assetType, address proxy);
     event WhitelistChange(address token, bool value);
@@ -52,7 +51,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         address recipient,
         uint256 amount
     ) external onlyOwner {
-        require(amount <= type(uint96).max, "uint96 Overflow");
+        require(amount <= type(uint96).max);
         royaltyInfo[nftContract].owner = recipient;
         royaltyInfo[nftContract].percent = uint96(amount);
 
@@ -60,13 +59,13 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     }
 
     function changeProtocolFee(uint256 _fee) external onlyOwner {
-        require(_fee <= 2000, "NFT.com: 20% MAX");
+        require(_fee <= 2000);
         protocolFee = _fee;
         emit ProtocolFeeChange(_fee);
     }
 
     function modifyWhitelist(address _token, bool _val) external onlyOwner {
-        require(whitelistERC20[_token] != _val, "NFT.com: !SAME");
+        require(whitelistERC20[_token] != _val);
         whitelistERC20[_token] = _val;
         emit WhitelistChange(_token, _val);
     }
@@ -82,7 +81,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
      * @param to counterparty receiving ETH for transaction
      * @param value base value of ETH in wei
      * @param validRoyalty true if singular NFT asset paired with only fungible token(s) trade
-     * @param optionalNftAssets only used if validRoyalty is true, should be 1 single asset => NFT collection being traded
+     * @param optionalNftAssets only used if validRoyalty is true, should be 1 asset => NFT collection being traded
      */
     function transferEth(
         address to,
@@ -97,10 +96,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         // handle royalty
         if (validRoyalty) {
             require(optionalNftAssets.length == 1, "NFT.com: Royalty not supported for multiple NFTs");
-            require(
-                optionalNftAssets[0].assetType.assetClass == LibAsset.ERC721_ASSET_CLASS,
-                "NFT.com: NftAsset must be ERC721"
-            );
+            require(optionalNftAssets[0].assetType.assetClass == LibAsset.ERC721_ASSET_CLASS, "te !721");
             (address nftRoyalty, , ) = abi.decode(optionalNftAssets[0].assetType.data, (address, uint256, bool));
 
             // handle royalty
@@ -109,11 +105,11 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 (bool success3, ) = royaltyInfo[nftRoyalty].owner.call{
                     value: (value * royaltyInfo[nftRoyalty].percent) / 10000
                 }("");
-                require(success3, "NFT.com: royalty eth failed");
+                require(success3, "te !rty");
             }
         }
 
-        require(success1 && success2, "NFT.com: eth transfer failed");
+        require(success1 && success2, "te !eth");
     }
 
     /**
@@ -124,7 +120,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
      * @param to address receiving said asset
      * @param decreasingPriceValue value only used for decreasing price auction
      * @param validRoyalty true if singular NFT asset paired with only fungible token(s) trade
-     * @param optionalNftAssets only used if validRoyalty is true, should be 1 single asset => NFT collection being traded
+     * @param optionalNftAssets only used if validRoyalty is true, should be 1 asset => NFT collection being traded
      */
     function transfer(
         LibSignature.AuctionType auctionType,
@@ -135,7 +131,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         bool validRoyalty,
         LibAsset.Asset[] memory optionalNftAssets
     ) internal override {
-        require(nftBuyContract != address(0), "NFT.com: UNINITIALIZED");
+        require(nftBuyContract != address(0));
         uint256 value;
 
         if (auctionType == LibSignature.AuctionType.Decreasing && from == msg.sender) value = decreasingPriceValue;
@@ -145,7 +141,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
             transferEth(to, value, validRoyalty, optionalNftAssets);
         } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
             address token = abi.decode(asset.assetType.data, (address));
-            require(whitelistERC20[token], "NFT.com: ERC20 NOT SUPPORTED");
+            require(whitelistERC20[token], "t !list");
 
             uint256 fee = token == nftToken ? protocolFee / 2 : protocolFee;
 
@@ -159,20 +155,17 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
 
             // handle royalty
             if (validRoyalty) {
-                require(optionalNftAssets.length == 1, "NFT.com: Royalty not supported for multiple NFTs");
-                require(
-                    optionalNftAssets[0].assetType.assetClass == LibAsset.ERC721_ASSET_CLASS,
-                    "NFT.com: NftAsset must be ERC721"
-                );
-                (address nftRoyalty, , ) = abi.decode(optionalNftAssets[0].assetType.data, (address, uint256, bool));
+                require(optionalNftAssets.length == 1, "t len");
+                require(optionalNftAssets[0].assetType.assetClass == LibAsset.ERC721_ASSET_CLASS, "t !721");
+                (address nftContract, , ) = abi.decode(optionalNftAssets[0].assetType.data, (address, uint256, bool));
 
-                if (royaltyInfo[nftRoyalty].owner != address(0) && royaltyInfo[nftRoyalty].percent != uint256(0)) {
+                if (royaltyInfo[nftContract].owner != address(0) && royaltyInfo[nftContract].percent != uint256(0)) {
                     // Royalty
                     IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
-                        IERC20Upgradeable(nftRoyalty),
+                        IERC20Upgradeable(nftContract),
                         from,
-                        royaltyInfo[nftRoyalty].owner,
-                        (value * royaltyInfo[nftRoyalty].percent) / 10000
+                        royaltyInfo[nftContract].owner,
+                        (value * royaltyInfo[nftContract].percent) / 10000
                     );
                 }
             }
@@ -186,7 +179,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         } else if (asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
             (address token, uint256 tokenId, ) = abi.decode(asset.assetType.data, (address, uint256, bool));
 
-            require(value == 1, "erc721 value error");
+            require(value == 1, "t !1");
             INftTransferProxy(proxies[LibAsset.ERC721_ASSET_CLASS]).erc721safeTransferFrom(
                 IERC721Upgradeable(token),
                 from,

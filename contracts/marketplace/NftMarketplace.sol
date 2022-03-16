@@ -9,16 +9,10 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "./interfaces/IERC1271.sol";
 import "./helpers/TransferExecutor.sol";
 import "./ValidationLogic.sol";
+import "./MarketplaceEvent.sol";
 
 contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, TransferExecutor {
     using AddressUpgradeable for address;
-
-    /* An ECDSA signature. */
-    struct Sig {
-        uint8 v;
-        bytes32 r;
-        bytes32 s;
-    }
 
     uint256 private constant UINT256_MAX = 2**256 - 1;
     bytes4 internal constant MAGICVALUE = 0x1626ba7e; // bytes4(keccak256("isValidSignature(bytes32,bytes)")
@@ -26,56 +20,12 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     mapping(bytes32 => uint256) private _approvedOrdersByNonce;
     mapping(address => uint256) public nonces; // nonce for each account
     ValidationLogic public validationLogic;
+    MarketplaceEvent public marketplaceEvent;
 
     //events
     event Cancel(bytes32 structHash, address indexed maker);
     event Approval(bytes32 structHash, address indexed maker);
     event NonceIncremented(address indexed maker, uint256 newNonce);
-    event BuyNowInfo(bytes32 indexed makerStructHash, address takerAddress);
-    event Match(
-        bytes32 indexed makerStructHash,
-        bytes32 indexed takerStructHash,
-        LibSignature.AuctionType auctionType,
-        Sig makerSig,
-        Sig takerSig,
-        bool privateSale
-    );
-    event Match2A(
-        bytes32 indexed makerStructHash,
-        address makerAddress,
-        address takerAddress,
-        uint256 start,
-        uint256 end,
-        uint256 nonce,
-        uint256 salt
-    );
-    event Match2B(
-        bytes32 indexed makerStructHash,
-        bytes[] sellerMakerOrderAssetData,
-        bytes[] sellerMakerOrderAssetTypeData,
-        bytes4[] sellerMakerOrderAssetClass,
-        bytes[] sellerTakerOrderAssetData,
-        bytes[] sellerTakerOrderAssetTypeData,
-        bytes4[] sellerTakerOrderAssetClass
-    );
-    event Match3A(
-        bytes32 indexed takerStructHash,
-        address makerAddress,
-        address takerAddress,
-        uint256 start,
-        uint256 end,
-        uint256 nonce,
-        uint256 salt
-    );
-    event Match3B(
-        bytes32 indexed takerStructHash,
-        bytes[] buyerMakerOrderAssetData,
-        bytes[] buyerMakerOrderAssetTypeData,
-        bytes4[] buyerMakerOrderAssetClass,
-        bytes[] buyerTakerOrderAssetData,
-        bytes[] buyerTakerOrderAssetTypeData,
-        bytes4[] buyerTakerOrderAssetClass
-    );
 
     function initialize(
         INftTransferProxy _transferProxy,
@@ -83,7 +33,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         address _cryptoKittyProxy,
         address _stakingContract,
         address _nftToken,
-        ValidationLogic _validationLogic
+        ValidationLogic _validationLogic,
+        MarketplaceEvent _marketplaceEvent
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
@@ -96,6 +47,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             100
         );
         validationLogic = _validationLogic;
+        marketplaceEvent = _marketplaceEvent;
         __Ownable_init();
     }
 
@@ -114,32 +66,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes32 hash = LibSignature.getStructHash(order, nonce);
         require(validateOrder(hash, order, sig));
         return hash;
-    }
-
-    /**
-     * @dev function converting v r s into bytes32 signature via concat method
-     */
-    function concatVRS(
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public pure returns (bytes memory) {
-        return LibSignature.concatVRS(v, r, s);
-    }
-
-    /**
-     * @dev function converting v r s into bytes32 signature via concat method
-     */
-    function recoverVRS(bytes calldata signature)
-        public
-        pure
-        returns (
-            uint8,
-            bytes32,
-            bytes32
-        )
-    {
-        return LibSignature.recoverVRS(signature);
     }
 
     // invalidate all previous unused nonce orders
@@ -183,8 +109,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // EIP 1271 Contract Validation
         if (order.maker.isContract()) {
             require(
-                IERC1271(order.maker).isValidSignature(hashV4, concatVRS(sig.v, sig.r, sig.s)) == MAGICVALUE,
-                "contract order signature verification error"
+                IERC1271(order.maker).isValidSignature(hashV4, LibSignature.concatVRS(sig.v, sig.r, sig.s)) ==
+                    MAGICVALUE,
+                "!1271"
             );
 
             return true;
@@ -211,8 +138,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     }
 
     function cancel(LibSignature.Order calldata order) external nonReentrant {
-        require(msg.sender == order.maker, "not a maker");
-        require(order.salt != 0, "0 salt can't be used");
+        require(msg.sender == order.maker);
+        require(order.salt != 0);
         bytes32 hash = LibSignature.getStructHash(order, nonces[order.maker]);
         cancelledOrFinalized[hash] = true;
         emit Cancel(hash, msg.sender);
@@ -224,8 +151,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      */
     function approveOrder_(LibSignature.Order calldata order) external nonReentrant {
         // checks
-        require(msg.sender == order.maker, "not a maker");
-        require(order.salt != 0, "0 salt can't be used");
+        require(msg.sender == order.maker);
+        require(order.salt != 0);
         bytes32 hash = LibSignature.getStructHash(order, nonces[order.maker]);
 
         /* Assert order has not already been approved. */
@@ -237,25 +164,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         _approvedOrdersByNonce[hash] = nonces[order.maker] + 1;
 
         emit Approval(hash, msg.sender);
-    }
-
-    // wrapper
-    function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) external view returns (bool) {
-        return validationLogic.validateBuyNow(sellOrder, buyer);
-    }
-
-    // wrapper
-    function validateMatch_(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder)
-        external
-        view
-        returns (bool)
-    {
-        return validationLogic.validateMatch_(sellOrder, buyOrder);
-    }
-
-    // wrapper
-    function getDecreasingPrice(LibSignature.Order memory sellOrder) external view returns (uint256) {
-        return validationLogic.getDecreasingPrice(sellOrder);
     }
 
     /**
@@ -316,112 +224,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             );
         }
 
-        emit Match(
-            sellHash,
-            0x0000000000000000000000000000000000000000000000000000000000000000,
-            sellOrder.auctionType,
-            Sig(v, r, s),
-            Sig(
-                0,
-                0x0000000000000000000000000000000000000000000000000000000000000000,
-                0x0000000000000000000000000000000000000000000000000000000000000000
-            ),
-            sellOrder.taker != address(0x0)
-        );
-
-        emit BuyNowInfo(sellHash, msg.sender);
-
-        emit Match2A(
-            sellHash,
-            sellOrder.maker,
-            sellOrder.taker,
-            sellOrder.start,
-            sellOrder.end,
-            sellOrder.nonce,
-            sellOrder.salt
-        );
-
-        emitMatch2(sellOrder, sellHash, sellOrder, 0x0000000000000000000000000000000000000000000000000000000000000000);
-    }
-
-    function emitMatch2(
-        LibSignature.Order calldata sellOrder,
-        bytes32 sellStructHash,
-        LibSignature.Order calldata buyOrder,
-        bytes32 buyStructHash
-    ) private {
-        bytes[] memory sellerMakerOrderAssetData = new bytes[](sellOrder.makeAssets.length);
-        bytes[] memory sellerMakerOrderAssetTypeData = new bytes[](sellOrder.makeAssets.length);
-        bytes4[] memory sellerMakerOrderAssetClass = new bytes4[](sellOrder.makeAssets.length);
-        for (uint256 i = 0; i < sellOrder.makeAssets.length; i++) {
-            sellerMakerOrderAssetData[i] = sellOrder.makeAssets[i].data;
-            sellerMakerOrderAssetTypeData[i] = sellOrder.makeAssets[i].assetType.data;
-            sellerMakerOrderAssetClass[i] = sellOrder.makeAssets[i].assetType.assetClass;
-        }
-
-        bytes[] memory sellerTakerOrderAssetData = new bytes[](sellOrder.takeAssets.length);
-        bytes[] memory sellerTakerOrderAssetTypeData = new bytes[](sellOrder.takeAssets.length);
-        bytes4[] memory sellerTakerOrderAssetClass = new bytes4[](sellOrder.takeAssets.length);
-        for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
-            sellerTakerOrderAssetData[i] = sellOrder.takeAssets[i].data;
-            sellerTakerOrderAssetTypeData[i] = sellOrder.takeAssets[i].assetType.data;
-            sellerTakerOrderAssetClass[i] = sellOrder.takeAssets[i].assetType.assetClass;
-        }
-
-        emit Match2B(
-            sellStructHash,
-            sellerMakerOrderAssetData,
-            sellerMakerOrderAssetTypeData,
-            sellerMakerOrderAssetClass,
-            sellerTakerOrderAssetData,
-            sellerTakerOrderAssetTypeData,
-            sellerTakerOrderAssetClass
-        );
-
-        // buy order
-        if (buyStructHash != 0x0000000000000000000000000000000000000000000000000000000000000000) {
-            emitMatch3(buyStructHash, buyOrder);
-        }
-    }
-
-    function emitMatch3(bytes32 buyStructHash, LibSignature.Order calldata buyOrder) private {
-        bytes[] memory buyerMakerOrderAssetData = new bytes[](buyOrder.makeAssets.length);
-        bytes[] memory buyerMakerOrderAssetTypeData = new bytes[](buyOrder.makeAssets.length);
-        bytes4[] memory buyerMakerOrderAssetClass = new bytes4[](buyOrder.makeAssets.length);
-        for (uint256 i = 0; i < buyOrder.makeAssets.length; i++) {
-            buyerMakerOrderAssetData[i] = buyOrder.makeAssets[i].data;
-            buyerMakerOrderAssetTypeData[i] = buyOrder.makeAssets[i].assetType.data;
-            buyerMakerOrderAssetClass[i] = buyOrder.makeAssets[i].assetType.assetClass;
-        }
-
-        bytes[] memory buyerTakerOrderAssetData = new bytes[](buyOrder.takeAssets.length);
-        bytes[] memory buyerTakerOrderAssetTypeData = new bytes[](buyOrder.takeAssets.length);
-        bytes4[] memory buyerTakerOrderAssetClass = new bytes4[](buyOrder.takeAssets.length);
-        for (uint256 i = 0; i < buyOrder.takeAssets.length; i++) {
-            buyerTakerOrderAssetData[i] = buyOrder.takeAssets[i].data;
-            buyerTakerOrderAssetTypeData[i] = buyOrder.takeAssets[i].assetType.data;
-            buyerTakerOrderAssetClass[i] = buyOrder.takeAssets[i].assetType.assetClass;
-        }
-
-        emit Match3A(
-            buyStructHash,
-            buyOrder.maker,
-            buyOrder.taker,
-            buyOrder.start,
-            buyOrder.end,
-            buyOrder.nonce,
-            buyOrder.salt
-        );
-
-        emit Match3B(
-            buyStructHash,
-            buyerMakerOrderAssetData,
-            buyerMakerOrderAssetTypeData,
-            buyerMakerOrderAssetClass,
-            buyerTakerOrderAssetData,
-            buyerTakerOrderAssetTypeData,
-            buyerTakerOrderAssetClass
-        );
+        require(marketplaceEvent.emitBuyNow(sellHash, sellOrder, v, r, s));
     }
 
     /**
@@ -447,7 +250,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         require(validationLogic.validateMatch_(sellOrder, buyOrder));
 
         if (sellOrder.end != 0) {
-            require(block.timestamp >= (sellOrder.end - 86400), "NFT.com: execution window has not been met");
+            require(block.timestamp >= (sellOrder.end - 86400), "!exe");
         }
 
         // effects
@@ -496,25 +299,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         (bool success, ) = msg.sender.call{ value: address(this).balance }("");
         require(success);
 
-        emit Match(
-            sellHash,
-            buyHash,
-            sellOrder.auctionType,
-            Sig(v[0], r[0], s[0]),
-            Sig(v[1], r[1], s[1]),
-            sellOrder.taker != address(0x0)
-        );
-
-        emit Match2A(
-            sellHash,
-            sellOrder.maker,
-            sellOrder.taker,
-            sellOrder.start,
-            sellOrder.end,
-            sellOrder.nonce,
-            sellOrder.salt
-        );
-
-        emitMatch2(sellOrder, sellHash, buyOrder, buyHash);
+        require(marketplaceEvent.emitExecuteSwap(sellHash, buyHash, sellOrder, buyOrder, v, r, s));
     }
 }
