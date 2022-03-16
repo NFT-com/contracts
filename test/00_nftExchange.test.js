@@ -45,6 +45,8 @@ describe("NFT.com Marketplace", function () {
       NftStake,
       GenesisStake,
       NftBuyer,
+      MarketplaceEvent,
+      ValidationLogic,
       GenesisKey,
       ERC1155Factory;
     let deployedNftMarketplace,
@@ -55,6 +57,8 @@ describe("NFT.com Marketplace", function () {
       deployedTest721,
       deployedNftStake,
       deployedNftBuyer,
+      deployedValidationLogic,
+      deployedMarketplaceEvent,
       deployedWETH,
       deployedGenesisStake,
       deployedUniV2Router,
@@ -67,7 +71,6 @@ describe("NFT.com Marketplace", function () {
     const RINEKBY_XEENUS = "0x022E292b44B5a146F2e8ee36Ff44D3dd863C915c";
     const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
     const RINKEBY_ROUTER_V2 = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
-    const ZERO_BYTES = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
 
     // `beforeEach` will run before each test, re-deploying the contract every
@@ -82,6 +85,8 @@ describe("NFT.com Marketplace", function () {
       ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");
       CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
       ERC1155Factory = await ethers.getContractFactory("TestERC1155");
+      ValidationLogic = await ethers.getContractFactory("ValidationLogic");
+      MarketplaceEvent = await ethers.getContractFactory("MarketplaceEvent");
 
       deployedXEENUS = new ethers.Contract(
         RINEKBY_XEENUS,
@@ -140,6 +145,8 @@ describe("NFT.com Marketplace", function () {
       deployedNftTransferProxy = await upgrades.deployProxy(NftTransferProxy, { kind: "uups" });
       deployedERC20TransferProxy = await upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
       deployedCryptoKittyTransferProxy = await upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
+      deployedValidationLogic = await upgrades.deployProxy(ValidationLogic, { kind: "uups" });
+      deployedMarketplaceEvent = await upgrades.deployProxy(MarketplaceEvent, { kind: "uups" });
 
       deployedNftMarketplace = await upgrades.deployProxy(
         NftMarketplace,
@@ -149,10 +156,13 @@ describe("NFT.com Marketplace", function () {
           deployedCryptoKittyTransferProxy.address,
           deployedNftBuyer.address,
           deployedNftToken.address,
+          deployedValidationLogic.address,
+          deployedMarketplaceEvent.address,
         ],
         { kind: "uups" },
       );
 
+      await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
       await deployedNftMarketplace.setTransferProxy(ERC20_ASSET_CLASS, deployedERC20TransferProxy.address);
 
       // add operator being the marketplace
@@ -176,22 +186,6 @@ describe("NFT.com Marketplace", function () {
     });
 
     describe("Initialize Marketplace", function () {
-      it("should encode VRS into bytes65 signature", async function () {
-        const v = 28;
-        const r = "0x8fbf2bcdc98d8ceea20e1c9e6c3237ff9d8536a813a7166a5a5ce4411eee9fb9";
-        const s = "0x2a6cb9a6e2a74fd3b3689b14e004c8b6bb65a83f79ce617af2d4befbe26ac6ff";
-
-        let sig = await deployedNftMarketplace.concatVRS(v, r, s);
-        let decoded = await deployedNftMarketplace.recoverVRS(sig);
-
-        // revert due to size of sig != 65
-        await expect(deployedNftMarketplace.recoverVRS(getHash(["uint256"], [1000]))).to.be.reverted;
-
-        expect(decoded[0]).to.be.equal(v);
-        expect(decoded[1]).to.be.equal(r);
-        expect(decoded[2]).to.be.equal(s);
-      });
-
       it("should test adding and removing operators", async function () {
         // add and remove
         await deployedERC20TransferProxy.addOperator(owner.address);
@@ -407,7 +401,7 @@ describe("NFT.com Marketplace", function () {
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
-        console.log("decreasingPrice: ", Number(await deployedNftMarketplace.getDecreasingPrice(sellOrder)));
+        console.log("decreasingPrice: ", Number(await deployedValidationLogic.getDecreasingPrice(sellOrder)));
 
         await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1000));
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
@@ -486,7 +480,7 @@ describe("NFT.com Marketplace", function () {
         await deployedNftMarketplace.connect(buyer).approveOrder_(buyOrder);
 
         // match is valid
-        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+        expect(await deployedValidationLogic.validateMatch_(sellOrder, buyOrder)).to.be.true;
 
         await expect(
           deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
@@ -578,7 +572,7 @@ describe("NFT.com Marketplace", function () {
         await deployedNftMarketplace.connect(buyer).approveOrder_(buyOrder);
 
         // match is valid
-        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+        expect(await deployedValidationLogic.validateMatch_(sellOrder, buyOrder)).to.be.true;
 
         await deployedNftMarketplace.connect(owner).incrementNonce();
 
@@ -658,7 +652,7 @@ describe("NFT.com Marketplace", function () {
         await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 1);
 
         // match is valid
-        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+        expect(await deployedValidationLogic.validateMatch_(sellOrder, buyOrder)).to.be.true;
 
         // balances before
         expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);
@@ -756,7 +750,7 @@ describe("NFT.com Marketplace", function () {
         await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 1);
 
         // match is valid
-        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+        expect(await deployedValidationLogic.validateMatch_(sellOrder, buyOrder)).to.be.true;
 
         // balances before
         expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);
@@ -862,7 +856,7 @@ describe("NFT.com Marketplace", function () {
         await deployedTest721.connect(buyer).approve(deployedNftTransferProxy.address, 1);
 
         // match is valid
-        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+        expect(await deployedValidationLogic.validateMatch_(sellOrder, buyOrder)).to.be.true;
 
         // balances before
         expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);
@@ -957,7 +951,7 @@ describe("NFT.com Marketplace", function () {
         await deployedTest721.connect(buyer).approve(deployedNftTransferProxy.address, 1);
 
         // match is valid
-        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+        expect(await deployedValidationLogic.validateMatch_(sellOrder, buyOrder)).to.be.true;
 
         // balances before
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
@@ -1133,7 +1127,7 @@ describe("NFT.com Marketplace", function () {
         ).to.be.true;
 
         // should revert because eth is used twice
-        await expect(deployedNftMarketplace.validateMatch_(incorrect_sellOrder, incorrect_buyOrder)).to.be.reverted;
+        await expect(deployedValidationLogic.validateMatch_(incorrect_sellOrder, incorrect_buyOrder)).to.be.reverted;
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
@@ -1144,7 +1138,7 @@ describe("NFT.com Marketplace", function () {
         await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 1);
 
         // match is valid
-        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+        expect(await deployedValidationLogic.validateMatch_(sellOrder, buyOrder)).to.be.true;
 
         // balances before
         expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);
@@ -1383,7 +1377,8 @@ describe("NFT.com Marketplace", function () {
         await deployedKittyCore.connect(owner).approve(deployedCryptoKittyTransferProxy.address, 1);
 
         // match is valid
-        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
+        await deployedValidationLogic.validateMatch_(sellOrder, buyOrder);
+        expect(await deployedValidationLogic.validateMatch_(sellOrder, buyOrder)).to.be.true;
 
         // balances before
         expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);
@@ -1507,7 +1502,7 @@ describe("NFT.com Marketplace", function () {
         await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 1);
 
         // match is invalid since NFT token bid doesn't meet minimum desired
-        expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.false;
+        expect(await deployedValidationLogic.validateMatch_(sellOrder, buyOrder)).to.be.false;
 
         // balances before
         expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);

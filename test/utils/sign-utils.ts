@@ -137,7 +137,7 @@ export const signMarketplaceOrder = async (
   deployedNftMarketplaceAddress: string,
   auctionType: number,
 ): Promise<any> => {
-  const salt = 1645721783; // 1 || makeSalt();
+  const salt = makeSalt();
 
   const makeAssetHash = getAssetHashes(makeAssets);
 

@@ -50,4 +50,25 @@ library LibAsset {
         }
         return keccak256(abi.encodePacked(assetHashes));
     }
+    function isSingularNft(
+        Asset[] calldata assets
+    ) internal pure returns (bool) {
+        if (assets.length == 1 && assets[0].assetType.assetClass == ERC721_ASSET_CLASS) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    function isOnlyFungible(
+        Asset[] calldata assets
+    ) internal pure returns (bool) {
+        for (uint256 i = 0; i < assets.length; i++) {
+            if (assets[i].assetType.assetClass != ERC20_ASSET_CLASS &&
+                assets[i].assetType.assetClass != ETH_ASSET_CLASS) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
