@@ -99,12 +99,20 @@ contract ERC721AUpgradeable is
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    function __ERC721AUpgradeable_init(string memory name_, string memory symbol_, string memory defaultBaseURI_) internal initializer {
+    function __ERC721AUpgradeable_init(
+        string memory name_,
+        string memory symbol_,
+        string memory defaultBaseURI_
+    ) internal initializer {
         __ERC721AUpgradeable_init_unchained(name_, symbol_, defaultBaseURI_);
         defaultBaseURI = defaultBaseURI_;
     }
 
-    function __ERC721AUpgradeable_init_unchained(string memory name_, string memory symbol_, string memory defaultBaseURI_) internal initializer {
+    function __ERC721AUpgradeable_init_unchained(
+        string memory name_,
+        string memory symbol_,
+        string memory defaultBaseURI_
+    ) internal initializer {
         _name = name_;
         _symbol = symbol_;
         _currentIndex = _startTokenId();
@@ -143,7 +151,13 @@ contract ERC721AUpgradeable is
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC165Upgradeable, IERC165Upgradeable)
+        returns (bool)
+    {
         return
             interfaceId == type(IERC721Upgradeable).interfaceId ||
             interfaceId == type(IERC721MetadataUpgradeable).interfaceId ||
@@ -605,7 +619,9 @@ contract ERC721AUpgradeable is
         uint256 tokenId,
         bytes memory _data
     ) private returns (bool) {
-        try IERC721ReceiverUpgradeable(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (bytes4 retval) {
+        try IERC721ReceiverUpgradeable(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (
+            bytes4 retval
+        ) {
             return retval == IERC721ReceiverUpgradeable(to).onERC721Received.selector;
         } catch (bytes memory reason) {
             if (reason.length == 0) {

@@ -9,13 +9,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
-contract NftProfile is
-    Initializable,
-    ERC721AUpgradeable,
-    ReentrancyGuardUpgradeable,
-    UUPSUpgradeable,
-    INftProfile
-{
+contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, INftProfile {
     using SafeMathUpgradeable for uint256;
 
     mapping(uint256 => string) internal _tokenURIs;
