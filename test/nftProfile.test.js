@@ -239,7 +239,7 @@ describe("NFT Profile Auction / Minting", function () {
           .reverted;
       });
 
-      it("should allow genesis key owners to claim from merkle tree and without", async function () {
+      it("should allow genesis key owners to claim", async function () {
         expect(await deployedProfileAuction.genKeyWhitelistOnly()).to.be.true;
         expect(await deployedProfileAuction.publicMintBool()).to.be.false;
 
