@@ -2,10 +2,18 @@
 pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./interfaces/IValidationLogic.sol";
 
-abstract contract ValidationLogic is Initializable, OwnableUpgradeable, IValidationLogic {
+contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, IValidationLogic {
+    function initialize() public initializer {
+        __UUPSUpgradeable_init();
+        __Ownable_init();
+    }
+
+    function _authorizeUpgrade(address) internal override onlyOwner {}
+
     /**
      *  @dev validateSingleAssetMatch1 makes sure two assets can be matched (same index in LibSignature array)
      *  @param buyTakeAsset what the buyer is hoping to take
@@ -52,7 +60,7 @@ abstract contract ValidationLogic is Initializable, OwnableUpgradeable, IValidat
                 (address, uint256, bool)
             );
 
-            require(buyMakeAddress == sellTakeAddress, "NFT.com: contracts must match");
+            require(buyMakeAddress == sellTakeAddress, "vatd !match");
 
             if (sellTakeAllowAll) {
                 return true;
@@ -61,9 +69,10 @@ abstract contract ValidationLogic is Initializable, OwnableUpgradeable, IValidat
             }
         } else if (sellTakeAssetClass == LibAsset.ERC20_ASSET_CLASS) {
             return abi.decode(buyMakeAssetTypeData, (address)) == abi.decode(sellTakeAssetTypeData, (address));
-        }
-        // no need to handle LibAsset.ETH_ASSET_CLASS since that is handled at run time
-        else {
+        } else if (sellTakeAssetClass == LibAsset.ETH_ASSET_CLASS) {
+            // no need to handle LibAsset.ETH_ASSET_CLASS since that is handled at run time
+            return true;
+        } else {
             // should not come here
             return false;
         }
@@ -108,27 +117,33 @@ abstract contract ValidationLogic is Initializable, OwnableUpgradeable, IValidat
         LibSignature.Order calldata buyOrder,
         bool viewOnly
     ) internal view returns (bool) {
-        // flag to ensuree ETH is not used multiple timese
+        // flag to ensure ETH is not used multiple timese
         bool ETH_ASSET_USED = false;
+
+        require(
+            sellOrder.auctionType == LibSignature.AuctionType.English &&
+                buyOrder.auctionType == LibSignature.AuctionType.English,
+            "!english"
+        );
 
         // sellOrder taker must be valid
         require(
             (sellOrder.taker == address(0) || sellOrder.taker == buyOrder.maker) &&
                 // buyOrder taker must be valid
                 (buyOrder.taker == address(0) || buyOrder.taker == sellOrder.maker),
-            "NFT.com: maker taker must match"
+            "vm !match"
         );
 
         // must be selling something and make and take must match
         require(
             sellOrder.makeAssets.length != 0 && buyOrder.takeAssets.length == sellOrder.makeAssets.length,
-            "NFT.com: sell maker must > 0"
+            "vm assets > 0"
         );
 
         require(
             (sellOrder.auctionType == LibSignature.AuctionType.English) &&
                 (buyOrder.auctionType == LibSignature.AuctionType.English),
-            "NFT.com: auction type must match"
+            "vm auctionType"
         );
 
         // check if seller maker and buyer take match on every corresponding index
@@ -139,8 +154,8 @@ abstract contract ValidationLogic is Initializable, OwnableUpgradeable, IValidat
 
             // if ETH, seller must be sending ETH / calling
             if (sellOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
-                require(!ETH_ASSET_USED, "NFT.com: ETH already used");
-                require(viewOnly || msg.sender == sellOrder.maker, "NFT.com: seller must send ETH");
+                require(!ETH_ASSET_USED, "vm eth");
+                require(viewOnly || msg.sender == sellOrder.maker, "vm sellerEth"); // seller must pay ETH
                 ETH_ASSET_USED = true;
             }
         }
@@ -148,7 +163,7 @@ abstract contract ValidationLogic is Initializable, OwnableUpgradeable, IValidat
         // if seller's takeAssets = 0, that means seller doesn't make what buyer's makeAssets are, so ignore
         // if seller's takeAssets > 0, seller has a specified list
         if (sellOrder.takeAssets.length != 0) {
-            require(sellOrder.takeAssets.length == buyOrder.makeAssets.length, "NFT.com: sellTake must match buyMake");
+            require(sellOrder.takeAssets.length == buyOrder.makeAssets.length, "vm assets_len");
             // check if seller maker and buyer take match on every corresponding index
             for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
                 if (!validateSingleAssetMatch2(sellOrder.takeAssets[i], buyOrder.makeAssets[i])) {
@@ -157,8 +172,8 @@ abstract contract ValidationLogic is Initializable, OwnableUpgradeable, IValidat
 
                 // if ETH, buyer must be sending ETH / calling
                 if (buyOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
-                    require(!ETH_ASSET_USED, "NFT.com: ETH already used");
-                    require(viewOnly || msg.sender == buyOrder.maker, "NFT.com: buyer must send ETH");
+                    require(!ETH_ASSET_USED, "vm eth2");
+                    require(viewOnly || msg.sender == buyOrder.maker, "vm buyerEth"); // buyer must pay ETH
                     ETH_ASSET_USED = true;
                 }
             }
@@ -167,25 +182,29 @@ abstract contract ValidationLogic is Initializable, OwnableUpgradeable, IValidat
         return true;
     }
 
+    function decreasingValidation(LibSignature.Order calldata sellOrder) private pure {
+        require(sellOrder.takeAssets.length == 1, "dv 1_len");
+        require(
+            (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) ||
+                (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ERC20_ASSET_CLASS),
+            "dv fung" // only fungible tokens
+        );
+    }
+
     /**
      * @dev validateBuyNow makes sure a buyer can fulfill the sellOrder and that the sellOrder is formatted properly
      * @param sellOrder the listing
      * @param buyer potential executor of sellOrder
      */
     function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) public view override returns (bool) {
-        require((sellOrder.taker == address(0) || sellOrder.taker == buyer), "NFT.com: buyer must be taker");
-        require(sellOrder.makeAssets.length != 0, "NFT.com: seller make must > 0");
+        require((sellOrder.taker == address(0) || sellOrder.taker == buyer), "vbn !match");
+        require(sellOrder.makeAssets.length != 0, "vbn assets > 0");
 
         if (sellOrder.auctionType == LibSignature.AuctionType.Decreasing) {
-            require(sellOrder.takeAssets.length == 1, "NFT.com: decreasing auction must have 1 take asset");
-            require(
-                (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) ||
-                    (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ERC20_ASSET_CLASS),
-                "NFT.com: decreasing auction only supports ETH and ERC20"
-            );
+            decreasingValidation(sellOrder);
 
-            require(sellOrder.start != 0 && sellOrder.start < block.timestamp, "NFT.com: start expired");
-            require(sellOrder.end != 0 && sellOrder.end > block.timestamp, "NFT.com: end expired");
+            require(sellOrder.start != 0 && sellOrder.start < block.timestamp, "vbn start");
+            require(sellOrder.end != 0 && sellOrder.end > block.timestamp, "vbn end");
         }
 
         return true;
@@ -205,14 +224,9 @@ abstract contract ValidationLogic is Initializable, OwnableUpgradeable, IValidat
         return validateMatch(sellOrder, buyOrder, true);
     }
 
-    function getDecreasingPrice(LibSignature.Order memory sellOrder) public view override returns (uint256) {
-        require(sellOrder.auctionType == LibSignature.AuctionType.Decreasing, "NFT.com: auction type must match");
-        require(sellOrder.takeAssets.length == 1, "NFT.com: sellOrder must have 1 takeAsset");
-        require(
-            (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) ||
-                (sellOrder.takeAssets[0].assetType.assetClass == LibAsset.ERC20_ASSET_CLASS),
-            "NFT.com: decreasing auction only supports ETH and ERC20"
-        );
+    function getDecreasingPrice(LibSignature.Order calldata sellOrder) public view override returns (uint256) {
+        require(sellOrder.auctionType == LibSignature.AuctionType.Decreasing, "gdp !decreasing");
+        decreasingValidation(sellOrder);
 
         uint256 secondsPassed = 0;
         uint256 publicSaleDurationSeconds = sellOrder.end - sellOrder.start;

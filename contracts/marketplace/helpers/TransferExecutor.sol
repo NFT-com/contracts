@@ -209,4 +209,6 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         }
         emit Transfer(asset, from, to);
     }
+
+    uint256[49] private __gap;
 }

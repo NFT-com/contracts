@@ -10,13 +10,7 @@ import "./interfaces/IERC1271.sol";
 import "./helpers/TransferExecutor.sol";
 import "./ValidationLogic.sol";
 
-contract NftMarketplace is
-    Initializable,
-    ReentrancyGuardUpgradeable,
-    UUPSUpgradeable,
-    TransferExecutor,
-    ValidationLogic
-{
+contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, TransferExecutor {
     using AddressUpgradeable for address;
 
     /* An ECDSA signature. */
@@ -31,6 +25,7 @@ contract NftMarketplace is
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
     mapping(bytes32 => uint256) private _approvedOrdersByNonce;
     mapping(address => uint256) public nonces; // nonce for each account
+    ValidationLogic public validationLogic;
 
     //events
     event Cancel(bytes32 structHash, address indexed maker);
@@ -87,7 +82,8 @@ contract NftMarketplace is
         IERC20TransferProxy _erc20TransferProxy,
         address _cryptoKittyProxy,
         address _stakingContract,
-        address _nftToken
+        address _nftToken,
+        ValidationLogic _validationLogic
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
@@ -99,6 +95,7 @@ contract NftMarketplace is
             _nftToken,
             100
         );
+        validationLogic = _validationLogic;
         __Ownable_init();
     }
 
@@ -242,6 +239,25 @@ contract NftMarketplace is
         emit Approval(hash, msg.sender);
     }
 
+    // wrapper
+    function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) external view returns (bool) {
+        return validationLogic.validateBuyNow(sellOrder, buyer);
+    }
+
+    // wrapper
+    function validateMatch_(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder)
+        external
+        view
+        returns (bool)
+    {
+        return validationLogic.validateMatch_(sellOrder, buyOrder);
+    }
+
+    // wrapper
+    function getDecreasingPrice(LibSignature.Order memory sellOrder) external view returns (uint256) {
+        return validationLogic.getDecreasingPrice(sellOrder);
+    }
+
     /**
      * @dev functions that allows anyone to execute a sell order that has a specified price > 0
      * @param sellOrder the listing
@@ -258,7 +274,7 @@ contract NftMarketplace is
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s), nonces[sellOrder.maker]);
 
-        require(validateBuyNow(sellOrder, msg.sender));
+        require(validationLogic.validateBuyNow(sellOrder, msg.sender));
 
         if (msg.sender != sellOrder.maker) {
             cancelledOrFinalized[sellHash] = true;
@@ -279,7 +295,9 @@ contract NftMarketplace is
                 sellOrder.takeAssets[i],
                 msg.sender,
                 sellOrder.maker,
-                sellOrder.auctionType == LibSignature.AuctionType.Decreasing ? getDecreasingPrice(sellOrder) : 0,
+                sellOrder.auctionType == LibSignature.AuctionType.Decreasing
+                    ? validationLogic.getDecreasingPrice(sellOrder)
+                    : 0,
                 royaltyScore == 2,
                 sellOrder.makeAssets
             );
@@ -426,7 +444,7 @@ contract NftMarketplace is
 
         bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]), nonces[buyOrder.maker]);
 
-        require(validateMatch_(sellOrder, buyOrder));
+        require(validationLogic.validateMatch_(sellOrder, buyOrder));
 
         if (sellOrder.end != 0) {
             require(block.timestamp >= (sellOrder.end - 86400), "NFT.com: execution window has not been met");

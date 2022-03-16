@@ -45,6 +45,7 @@ describe("NFT.com Marketplace", function () {
       NftStake,
       GenesisStake,
       NftBuyer,
+      ValidationLogic,
       GenesisKey,
       ERC1155Factory;
     let deployedNftMarketplace,
@@ -55,6 +56,7 @@ describe("NFT.com Marketplace", function () {
       deployedTest721,
       deployedNftStake,
       deployedNftBuyer,
+      deployedValidationLogic,
       deployedWETH,
       deployedGenesisStake,
       deployedUniV2Router,
@@ -82,6 +84,7 @@ describe("NFT.com Marketplace", function () {
       ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");
       CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
       ERC1155Factory = await ethers.getContractFactory("TestERC1155");
+      ValidationLogic = await ethers.getContractFactory("ValidationLogic");
 
       deployedXEENUS = new ethers.Contract(
         RINEKBY_XEENUS,
@@ -140,6 +143,7 @@ describe("NFT.com Marketplace", function () {
       deployedNftTransferProxy = await upgrades.deployProxy(NftTransferProxy, { kind: "uups" });
       deployedERC20TransferProxy = await upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
       deployedCryptoKittyTransferProxy = await upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
+      deployedValidationLogic = await upgrades.deployProxy(ValidationLogic, { kind: "uups" });
 
       deployedNftMarketplace = await upgrades.deployProxy(
         NftMarketplace,
@@ -149,6 +153,7 @@ describe("NFT.com Marketplace", function () {
           deployedCryptoKittyTransferProxy.address,
           deployedNftBuyer.address,
           deployedNftToken.address,
+          deployedValidationLogic.address,
         ],
         { kind: "uups" },
       );
@@ -1383,6 +1388,7 @@ describe("NFT.com Marketplace", function () {
         await deployedKittyCore.connect(owner).approve(deployedCryptoKittyTransferProxy.address, 1);
 
         // match is valid
+        await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder);
         expect(await deployedNftMarketplace.validateMatch_(sellOrder, buyOrder)).to.be.true;
 
         // balances before
