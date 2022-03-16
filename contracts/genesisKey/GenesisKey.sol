@@ -41,11 +41,9 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
     event BidCancelled(bytes32 indexed hash);
     event NewClaimableGenKey(address indexed _user, uint256 _amount, uint256 _blockNum);
     event ClaimedGenesisKey(address indexed _user, uint256 _amount, uint256 _blockNum, bool _whitelist);
-    event InitMetadata(uint256 _tokenId, string uri);
 
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized bid, by hash
     mapping(bytes32 => uint256) public claimableBlock; // Claimable bid (0 = not claimable, > 0 = claimable), by hash
-    mapping(bytes32 => uint256) public todoDeleteProd; // TODO: DELETE FROM PROD!!!!!
     uint256 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
 
     modifier onlyOwner() {
@@ -252,13 +250,15 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
      @param v array of v sig
      @param r array of r sig
      @param s array of s sig
+     @param _wethMin minimum Weth of blind auction -> use this as the flat rate for everyone
     */
     function whitelistExecuteBid(
         uint256[] calldata _wethTokens,
         address[] calldata _owners,
         uint8[] calldata v,
         bytes32[] calldata r,
-        bytes32[] calldata s
+        bytes32[] calldata s,
+        uint256 _wethMin
     ) external nonReentrant onlyOwner {
         require(!startPublicSale, "GEN_KEY: before dutch auction");
         // checks
@@ -272,6 +272,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
 
         for (uint256 i = 0; i < _wethTokens.length; i++) {
             bytes32 hash = requireValidBid_(_wethTokens[i], _owners[i], Sig(v[i], r[i], s[i]));
+            require(_wethTokens[i] >= _wethMin, "GEN_KEY: WETH amount must be greater than minimum");
             require(!cancelledOrFinalized[hash]);
             require(claimableBlock[hash] == 0);
 
@@ -279,7 +280,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
             claimableBlock[hash] = block.number;
 
             // interactions
-            require(transferWethTokens(_owners[i], _wethTokens[i])); // transfer WETH token
+            require(transferWethTokens(_owners[i], _wethMin)); // transfer WETH token
 
             emit NewClaimableGenKey(_owners[i], _wethTokens[i], block.number);
         }
@@ -349,6 +350,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
         // checks
         require(startPublicSale, "GEN_KEY: invalid time");
         require(numKeysPublicPurchased < numKeysForSale, "GEN_KEY: no more keys left for sale");
+        require(remainingTeamAdvisorGrant + totalSupply() != 10000, "GEN_KEY: no more keys left for sale");
 
         uint256 currentWethPrice = getCurrentPrice();
 
