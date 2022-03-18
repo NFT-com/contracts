@@ -2,20 +2,14 @@
 pragma solidity >=0.8.4;
 
 import "../interface/INftProfile.sol";
-import "../oz_modified/ERC721EnumerableUpgradeable.sol";
+import "../erc721a/ERC721AUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
-contract NftProfile is
-    Initializable,
-    ERC721EnumerableUpgradeable,
-    ReentrancyGuardUpgradeable,
-    UUPSUpgradeable,
-    INftProfile
-{
+contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, INftProfile {
     using SafeMathUpgradeable for uint256;
 
     mapping(uint256 => string) internal _tokenURIs;
@@ -37,8 +31,7 @@ contract NftProfile is
         address _nftErc20Contract
     ) public initializer {
         __ReentrancyGuard_init();
-        __ERC721Enumerable_init();
-        __ERC721_init(name, symbol);
+        __ERC721AUpgradeable_init(name, symbol, "https://api.nft.com/uri/");
         __UUPSUpgradeable_init();
         protocolFee = 200; // 2% fee
 
@@ -72,7 +65,7 @@ contract NftProfile is
         require(_tokenUsedURIs[_profile] != 0);
         uint256 tokenId = _tokenUsedURIs[_profile].sub(1);
 
-        _transfer(ERC721Upgradeable.ownerOf(tokenId), _to, tokenId);
+        _transfer(ERC721AUpgradeable.ownerOf(tokenId), _to, tokenId);
     }
 
     function profileOwner(string memory _string) external view returns (address) {
@@ -117,8 +110,7 @@ contract NftProfile is
     function createProfile(address _receiver, string memory _profileURI) external override {
         require(msg.sender == profileAuctionContract);
         uint256 preSupply = totalSupply();
-
-        _mint(_receiver, preSupply);
+        _mint(_receiver, 1, "", false);
         setTokenURI(preSupply, _profileURI);
     }
 
