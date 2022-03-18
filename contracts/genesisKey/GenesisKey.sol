@@ -2,6 +2,7 @@
 pragma solidity >=0.8.4;
 
 import "./modERC721Upgradeable.sol";
+import "../interface/IGenesisKey.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -17,12 +18,13 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 // depending on auction participation, there may be less
 // assumes we use WETH as the token of denomination
 
-contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, IGenesisKey {
     using SafeMathUpgradeable for uint256;
 
     address public wethAddress;
     address public owner;
     address public multiSig;
+    address public genesisKeyMerkle;
     bool public startPublicSale; // global state indicator if public sale is happening
     uint256 public publicSaleStartSecond; // second public sale starts
     uint256 public publicSaleDurationSeconds; // length of public sale in seconds
@@ -79,6 +81,10 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
 
     function setMultiSig(address _newMS) external onlyOwner {
         multiSig = _newMS;
+    }
+
+    function setGenesisKeyMerkle(address _newMK) external onlyOwner {
+        genesisKeyMerkle = _newMK;
     }
 
     function setPublicSaleDuration(uint256 _seconds) external onlyOwner {
@@ -243,74 +249,26 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
         return IERC20Upgradeable(wethAddress).transferFrom(_user, multiSig, _amount);
     }
 
-    /**
-     @notice function to allow multiple users to win blind whitelist spot
-     @param _wethTokens array of weth token amount
-     @param _owners array of owner who made signature
-     @param v array of v sig
-     @param r array of r sig
-     @param s array of s sig
-     @param _wethMin minimum Weth of blind auction -> use this as the flat rate for everyone
-    */
-    function whitelistExecuteBid(
-        uint256[] calldata _wethTokens,
-        address[] calldata _owners,
-        uint8[] calldata v,
-        bytes32[] calldata r,
-        bytes32[] calldata s,
-        uint256 _wethMin
-    ) external nonReentrant onlyOwner {
-        require(!startPublicSale, "GEN_KEY: before dutch auction");
-        // checks
-        require(
-            _wethTokens.length == _owners.length &&
-                _owners.length == v.length &&
-                v.length == r.length &&
-                r.length == s.length,
-            "GEN_KEY: Invalid Array"
-        );
-
-        for (uint256 i = 0; i < _wethTokens.length; i++) {
-            bytes32 hash = requireValidBid_(_wethTokens[i], _owners[i], Sig(v[i], r[i], s[i]));
-            require(_wethTokens[i] >= _wethMin, "GEN_KEY: WETH amount must be greater than minimum");
-            require(!cancelledOrFinalized[hash]);
-            require(claimableBlock[hash] == 0);
-
-            // effects
-            claimableBlock[hash] = block.number;
-
-            // interactions
-            require(transferWethTokens(_owners[i], _wethMin)); // transfer WETH token
-
-            emit NewClaimableGenKey(_owners[i], _wethTokens[i], block.number);
-        }
-    }
-
     // =========POST WHITELIST CLAIM KEY ==========================================================================
     /**
      @notice allows winning keys to be self-minted by winners
     */
     function claimKey(
-        uint256 _wethTokens,
-        address _owner,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external nonReentrant {
+        address recipient,
+        uint256 _wethTokens
+    ) external override nonReentrant returns (bool) {
         // checks
-        require(msg.sender == _owner);
-        bytes32 hash = requireValidBid_(_wethTokens, _owner, Sig(v, r, s));
-        require(!cancelledOrFinalized[hash]);
-        require(claimableBlock[hash] != 0);
+        require(msg.sender == genesisKeyMerkle);
 
         // effects
-        cancelledOrFinalized[hash] = true;
-
         // interactions
+        require(transferWethTokens(recipient, _wethTokens)); // transfer WETH token
         uint256 preSupply = totalSupply();
-        _mint(_owner, preSupply);
+        _mint(recipient, preSupply + 1);
 
-        emit ClaimedGenesisKey(_owner, _wethTokens, claimableBlock[hash], true);
+        emit ClaimedGenesisKey(recipient, _wethTokens, block.number, true);
+
+        return true;
     }
 
     /**
@@ -324,7 +282,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
 
         for (uint256 i = 0; i < receivers.length; i++) {
             uint256 preSupply = totalSupply();
-            _mint(receivers[i], preSupply);
+            _mint(receivers[i], preSupply + 1);
 
             emit ClaimedGenesisKey(receivers[i], 0, block.number, false);
         }
@@ -372,7 +330,7 @@ contract GenesisKey is Initializable, ERC721Upgradeable, ReentrancyGuardUpgradea
 
         // interactions
         uint256 preSupply = totalSupply();
-        _mint(msg.sender, preSupply);
+        _mint(msg.sender, preSupply + 1);
 
         numKeysPublicPurchased = numKeysPublicPurchased.add(1);
 

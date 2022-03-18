@@ -187,10 +187,10 @@ task("upgrade:NftMarketplace").setAction(async function (taskArguments, hre) {
 
 task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
-  const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuctionV2");
+  const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 
   const upgradedProfileAuction = await hre.upgrades.upgradeProxy(
-    "0x2295828BBB9270cF92D29ed79bA0260d64fdF23f",
+    "0x031579cE4485170f053F772c0a293C2C62889540",
     ProfileAuction,
   );
   console.log(chalk.green("upgraded profile auction: ", upgradedProfileAuction.address));
@@ -200,6 +200,6 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
-  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0xb5815c46D262005C170576330D0FB27d018fAd60", GenesisKey);
+  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0xDd84b04FeA34c7119077564215b6ebdAD93aeB32", GenesisKey);
   console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 });

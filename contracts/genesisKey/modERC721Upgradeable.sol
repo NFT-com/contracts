@@ -107,9 +107,9 @@ contract ERC721Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradeab
     }
 
     function tokenIdsOwned(address user) external view override returns (bool[] memory) {
-        bool[] memory tokenIdUser = new bool[](_totalSupply);
+        bool[] memory tokenIdUser = new bool[](_totalSupply + 1);
 
-        for (uint256 i = 0; i < _totalSupply; i++) {
+        for (uint256 i = 1; i <= _totalSupply; i++) {
             if (ERC721Upgradeable.ownerOf(i) == user) {
                 tokenIdUser[i] = true;
             }

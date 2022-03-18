@@ -9,6 +9,8 @@ const {
   GENESIS_KEY_TYPEHASH,
 } = require("./utils/sign-utils");
 
+const { parseBalanceMap } = require("./utils/parse-balance-map");
+
 describe("NFT Token Genesis Staking (Localnet)", function () {
   try {
     let NftToken, NftStake;
@@ -78,29 +80,41 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
         ),
       );
 
-      const { v: v0, r: r0, s: s0 } = sign(genesisKeyBid, ownerSigner);
-      const { v: v1, r: r1, s: s1 } = sign(genesisKeyBid2, secondSigner);
+      const jsonInput = JSON.parse(`{
+        "${ownerSigner.address}": "1",
+        "${secondSigner.address}": "2"
+      }`);
 
-      await expect(
-        deployedGenesisKey
-          .connect(owner)
-          .whitelistExecuteBid(
-            [convertTinyNumber(1), convertTinyNumber(2)],
-            [ownerSigner.address, secondSigner.address],
-            [v0, v1],
-            [r0, r1],
-            [s0, s1],
-            convertTinyNumber(1),
-          ),
-      )
-        .to.emit(deployedWETH, "Transfer")
-        .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
+      const wethMin = convertTinyNumber(1);
+    
+      // merkle result is what you need to post publicly and store on FE
+      const merkleResult = parseBalanceMap(jsonInput);
+      const { merkleRoot } = merkleResult;
+    
+      const GenesisKeyDistributor = await ethers.getContractFactory("GenesisKeyDistributor");
+      const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(
+        deployedGenesisKey.address,
+        merkleRoot,
+        wethMin
+      );
 
-      // owner now has 1 genesis key
-      await deployedGenesisKey.connect(owner).claimKey(convertTinyNumber(1), ownerSigner.address, v0, r0, s0);
+      await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
 
-      // second now has 1 genesis key
-      await deployedGenesisKey.connect(second).claimKey(convertTinyNumber(2), secondSigner.address, v1, r1, s1);
+      await expect(deployedGenesisKeyDistributor.connect(owner).claim(
+        merkleResult.claims[`${ownerSigner.address}`].index,
+        ownerSigner.address,
+        merkleResult.claims[`${ownerSigner.address}`].amount,
+        merkleResult.claims[`${ownerSigner.address}`].proof
+      )).to.emit(deployedWETH, "Transfer")
+      .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
+
+      await expect(deployedGenesisKeyDistributor.connect(second).claim(
+        merkleResult.claims[`${secondSigner.address}`].index,
+        secondSigner.address,
+        merkleResult.claims[`${secondSigner.address}`].amount,
+        merkleResult.claims[`${secondSigner.address}`].proof
+      )).to.emit(deployedWETH, "Transfer")
+      .withArgs(secondSigner.address, addr1.address, convertTinyNumber(1));
 
       NftStake = await ethers.getContractFactory("GenesisNftStake");
       deployedNftGenesisStake = await NftStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
@@ -183,36 +197,37 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
         const { v: v0, r: r0, s: s0 } = sign(nftTokenPermitDigest, ownerSigner);
 
-        await deployedGenesisKey.approve(deployedNftGenesisStake.address, 0);
+        await deployedGenesisKey.approve(deployedNftGenesisStake.address, 1);
 
-        // reverts since owner does not own genesis key tokenId = 1
-        await expect(deployedNftGenesisStake.connect(owner).enter(1000, 1, v0, r0, s0)).to.be.reverted;
+        // reverts since owner does not own genesis key tokenId = 2
+        await expect(deployedNftGenesisStake.connect(owner).enter(1000, 2, v0, r0, s0)).to.be.reverted;
 
-        // make sure owner owns token Id 0
-        expect(await deployedGenesisKey.ownerOf(0)).to.be.equal(owner.address);
+        // make sure owner owns token Id 1
+        expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(owner.address);
 
-        // succeeds since owner owns genesis key tokenId = 0
-        await expect(deployedNftGenesisStake.connect(owner).enter(1000, 0, v0, r0, s0))
+        // succeeds since owner owns genesis key tokenId = 1
+        await expect(deployedNftGenesisStake.connect(owner).enter(1000, 1, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(ownerSigner.address, deployedNftGenesisStake.address, 1000);
 
         // key is now staked as well
-        expect(await deployedGenesisKey.ownerOf(0)).to.be.equal(deployedNftGenesisStake.address);
-        expect(await deployedNftGenesisStake.stakedKeys(0)).to.be.equal(owner.address);
+        expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(deployedNftGenesisStake.address);
+        expect(await deployedNftGenesisStake.stakedKeys(1)).to.be.equal(owner.address);
         expect(await deployedNftGenesisStake.stakedAddress(owner.address)).to.be.equal(1);
 
         expect(await deployedNftToken.balanceOf(ownerSigner.address)).to.be.equal("9999999999999999999999999000");
         expect(await deployedNftToken.balanceOf(deployedNftGenesisStake.address)).to.be.equal(1000);
         expect(await deployedNftGenesisStake.balanceOf(ownerSigner.address)).to.be.equal(1000);
 
-        await expect(deployedNftGenesisStake.connect(owner).leave(1000, 1)).to.be.reverted;
+        // reverts due to tokenId being wrong
+        await expect(deployedNftGenesisStake.connect(owner).leave(1000, 2)).to.be.reverted;
 
-        await expect(deployedNftGenesisStake.connect(owner).leave(1000, 0))
+        await expect(deployedNftGenesisStake.connect(owner).leave(1000, 1))
           .to.emit(deployedNftGenesisStake, "Transfer")
           .withArgs(ownerSigner.address, ethers.constants.AddressZero, 1000);
 
-        expect(await deployedGenesisKey.ownerOf(0)).to.be.equal(owner.address);
-        expect(await deployedNftGenesisStake.stakedKeys(0)).to.be.equal(ethers.constants.AddressZero);
+        expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(owner.address);
+        expect(await deployedNftGenesisStake.stakedKeys(1)).to.be.equal(ethers.constants.AddressZero);
         expect(await deployedNftGenesisStake.stakedAddress(owner.address)).to.be.equal(0);
       });
 
@@ -237,15 +252,15 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
         const { v: v0, r: r0, s: s0 } = sign(nftTokenPermitDigest, ownerSigner);
 
-        await deployedGenesisKey.approve(deployedNftGenesisStake.address, 0);
+        await deployedGenesisKey.approve(deployedNftGenesisStake.address, 1);
 
-        await expect(deployedNftGenesisStake.connect(owner).enter(1000, 0, v0, r0, s0))
+        await expect(deployedNftGenesisStake.connect(owner).enter(1000, 1, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(ownerSigner.address, deployedNftGenesisStake.address, 1000);
 
         await deployedNftToken.connect(owner).transfer(deployedNftGenesisStake.address, 5000);
 
-        await expect(deployedNftGenesisStake.connect(owner).leave(1000, 0))
+        await expect(deployedNftGenesisStake.connect(owner).leave(1000, 1))
           .to.emit(deployedNftGenesisStake, "Transfer")
           .withArgs(ownerSigner.address, ethers.constants.AddressZero, 1000);
 

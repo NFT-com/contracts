@@ -11,7 +11,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721Enume
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
-// TODO: optimize gas for NftProfile contract -> erc721A?
 contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     address public governor;
     address public owner;
@@ -116,35 +115,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     }
 
     // CLAIM FUNCTIONS
-
-    /**
-     * @dev allows gen key holder to claim a profile according to merkle tree
-     * @param profileUrl profileUrl to claim
-     * @param tokenId tokenId of genesis key owned
-     * @param recipient user who is calling the claim function
-     */
-    function genesisKeyWhitelistClaim(
-        string memory profileUrl,
-        uint256 tokenId,
-        address recipient
-    ) external nonReentrant validAndUnusedURI(profileUrl) returns (bool) {
-        if (
-            genKeyWhitelistOnly &&
-            // recipient must have specified genesis key
-            IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient &&
-            genesisKeyClaimNumber[tokenId] != 7
-        ) {
-            genesisKeyClaimNumber[tokenId] += 1;
-
-            INftProfile(nftProfile).createProfile(recipient, profileUrl);
-            emit MintedProfile(recipient, profileUrl);
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     /**
      * @dev allows gen key holder to claim a profile
      * @param profileUrl profileUrl to claim
@@ -156,13 +126,13 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         uint256 tokenId,
         address recipient
     ) external validAndUnusedURI(profileUrl) nonReentrant {
-        require(!genKeyWhitelistOnly, "nft.com: merkle claim only right now");
         // checks
         require(
             IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient,
             "nft.com: must be genkey owner"
         );
-        require(genesisKeyClaimNumber[tokenId] != 7, "nft.com: must not exceed 7 profile mints");
+        uint256 profilesAllowed = genKeyWhitelistOnly ? 2 : 7;
+        require(genesisKeyClaimNumber[tokenId] != profilesAllowed, "");
 
         // effects
         genesisKeyClaimNumber[tokenId] += 1;
