@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { convertTinyNumber, sign, getDigest, getHash, GENESIS_KEY_TYPEHASH } = require("./utils/sign-utils");
-const { parseBalanceMapKey } = require("./utils/parse-balance-map");
+const { parseBalanceMap } = require("./utils/parse-balance-map");
 
 const DECIMALS = 18;
 
@@ -172,48 +172,66 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           ),
         );
 
-        const { v: v0, r: r0, s: s0 } = sign(genesisKeyBid, ownerSigner);
-        const { v: v1, r: r1, s: s1 } = sign(genesisKeyBid2, secondSigner);
-
         const beforeWethAddr1 = await deployedWETH.balanceOf(addr1.address);
 
-        await expect(
-          deployedGenesisKey
-            .connect(owner)
-            .whitelistExecuteBid(
-              [convertTinyNumber(1), convertTinyNumber(2)],
-              [ownerSigner.address, secondSigner.address],
-              [v0, v1],
-              [r0, r1],
-              [s0, s1],
-              convertTinyNumber(1),
-            ),
-        )
-          .to.emit(deployedWETH, "Transfer")
-          .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
+        const jsonInput = JSON.parse(`{
+          "${ownerSigner.address}": "1",
+          "${secondSigner.address}": "2"
+        }`);
+
+        const wethMin = convertTinyNumber(1);
+      
+        // merkle result is what you need to post publicly and store on FE
+        const merkleResult = parseBalanceMap(jsonInput);
+        const { merkleRoot } = merkleResult;
+      
+        const GenesisKeyDistributor = await ethers.getContractFactory("GenesisKeyDistributor");
+        const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(
+          deployedGenesisKey.address,
+          merkleRoot,
+          wethMin
+        );
+
+        await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
+
+        await expect(deployedGenesisKeyDistributor.connect(owner).claim(
+          merkleResult.claims[`${ownerSigner.address}`].index,
+          ownerSigner.address,
+          merkleResult.claims[`${ownerSigner.address}`].amount,
+          merkleResult.claims[`${ownerSigner.address}`].proof
+        )).to.emit(deployedWETH, "Transfer")
+        .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
+
+        expect(await deployedWETH.balanceOf(addr1.address)).to.eq(
+          BigNumber.from(beforeWethAddr1).add(convertTinyNumber(1)),
+        );
+
+        expect(await deployedGenesisKey.totalSupply()).to.be.equal(1);
+
+        // reverts bc owner != secondSigner
+        await expect(deployedGenesisKeyDistributor.connect(owner).claim(
+          merkleResult.claims[`${secondSigner.address}`].index,
+          secondSigner.address,
+          merkleResult.claims[`${secondSigner.address}`].amount,
+          merkleResult.claims[`${secondSigner.address}`].proof
+        )).to.be.reverted;
+
+        await expect(deployedGenesisKeyDistributor.connect(second).claim(
+          merkleResult.claims[`${secondSigner.address}`].index,
+          secondSigner.address,
+          merkleResult.claims[`${secondSigner.address}`].amount,
+          merkleResult.claims[`${secondSigner.address}`].proof
+        )).to.emit(deployedWETH, "Transfer")
+        .withArgs(secondSigner.address, addr1.address, convertTinyNumber(1));
 
         expect(await deployedWETH.balanceOf(addr1.address)).to.eq(
           BigNumber.from(beforeWethAddr1).add(convertTinyNumber(2)),
         );
 
-        expect(await deployedGenesisKey.totalSupply()).to.be.equal(0);
-
-        // make sure genesis key can be claimed
-        await deployedGenesisKey.connect(owner).claimKey(convertTinyNumber(1), ownerSigner.address, v0, r0, s0);
-
-        expect(await deployedGenesisKey.totalSupply()).to.be.equal(1);
-
-        expect(await deployedGenesisKey.tokenURI(0)).to.be.equal("ipfs://0");
-
-        // fail because owner != secondSigner, who is the only one who can claim
-        await expect(deployedGenesisKey.connect(owner).claimKey(convertTinyNumber(2), secondSigner.address, v1, r1, s1))
-          .to.be.reverted;
-
-        await deployedGenesisKey.connect(second).claimKey(convertTinyNumber(2), secondSigner.address, v1, r1, s1);
-
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(2);
 
         expect(await deployedGenesisKey.tokenURI(1)).to.be.equal("ipfs://1");
+        expect(await deployedGenesisKey.tokenURI(2)).to.be.equal("ipfs://2");
 
         // reverts bc ownerSigner == msg.sender
         await expect(deployedGenesisKey.setApprovalForAll(ownerSigner.address, true)).to.be.reverted;
@@ -248,13 +266,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         const { v: v0, r: r0, s: s0 } = sign(genesisKeyBid, ownerSigner);
 
         await deployedGenesisKey.connect(owner).cancelBid(convertTinyNumber(1), ownerSigner.address, v0, r0, s0);
-
-        // reverts because the bid was cancelled
-        await expect(
-          deployedGenesisKey
-            .connect(owner)
-            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0], convertTinyNumber(1)),
-        ).to.be.reverted;
       });
 
       it("should allow the multisig to allocate team and advisor grants for genesis keys", async function () {
@@ -294,15 +305,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
             [GENESIS_KEY_TYPEHASH, convertTinyNumber(1), ownerSigner.address], // 0.01 WETH
           ),
         );
-
-        const { v: v0, r: r0, s: s0 } = sign(genesisKeyBid, ownerSigner);
-
-        // reverts because the whitelist blind auction is over now...
-        await expect(
-          deployedGenesisKey
-            .connect(owner)
-            .whitelistExecuteBid([convertTinyNumber(1)], [ownerSigner.address], [v0], [r0], [s0], convertTinyNumber(1)),
-        ).to.be.reverted;
 
         const currentPrice = await deployedGenesisKey.getCurrentPrice();
         console.log("current eth price: ", Number(currentPrice) / 10 ** 18);

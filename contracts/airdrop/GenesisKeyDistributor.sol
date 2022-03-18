@@ -1,36 +1,25 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "../interface/IMerkleDistributorProfile.sol";
+import "../interface/IGenesisKeyDistributor.sol";
+import "../interface/IGenesisKey.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 // From: https://github.com/Uniswap/merkle-distributor/blob/master/contracts/MerkleDistributor.sol
 
-interface IProfileAuction {
-    function genesisKeyMerkleClaim(
-        uint256 tokenId,
-        string memory profileUrl,
-        address recipient
-    ) external returns (bool);
-}
-
-contract MerkleDistributorProfile is IMerkleDistributorProfile {
-    address public immutable override token;
-    address public immutable override profileAuction;
+contract GenesisKeyDistributor is IGenesisKeyDistributor {
+    address public immutable override genesisKey;
     bytes32 public immutable override merkleRoot;
+    uint256 public immutable override wethAmount;
 
     // This is a packed array of booleans.
     mapping(uint256 => uint256) private claimedBitMap;
 
-    constructor(
-        address token_,
-        address profileAuction_,
-        bytes32 merkleRoot_
-    ) {
-        token = token_;
-        profileAuction = profileAuction_;
+    constructor(address genesisKey_, bytes32 merkleRoot_, uint256 wethAmount_) {
+        genesisKey = genesisKey_;
         merkleRoot = merkleRoot_;
+        wethAmount = wethAmount_;
     }
 
     function isClaimed(uint256 index) public view override returns (bool) {
@@ -49,23 +38,21 @@ contract MerkleDistributorProfile is IMerkleDistributorProfile {
 
     function claim(
         uint256 index,
+        address account,
         uint256 tokenId,
-        string memory profileUrl,
         bytes32[] calldata merkleProof
     ) external override {
-        require(!isClaimed(index), "MerkleDistributorProfile: Drop already claimed.");
+        require(msg.sender == account);
+        require(!isClaimed(index), "GenesisKeyDistributor: Drop already claimed.");
 
         // Verify the merkle proof.
-        bytes32 node = keccak256(abi.encodePacked(index, tokenId, profileUrl));
-        require(MerkleProof.verify(merkleProof, merkleRoot, node), "MerkleDistributorProfile: Invalid proof.");
+        bytes32 node = keccak256(abi.encodePacked(index, account, tokenId));
+        require(MerkleProof.verify(merkleProof, merkleRoot, node), "GenesisKeyDistributor: Invalid proof.");
 
         // Mark it claimed and send the token.
         _setClaimed(index);
-        require(
-            IProfileAuction(profileAuction).genesisKeyMerkleClaim(tokenId, profileUrl, msg.sender),
-            "MerkleDistributorProfile: Failed to claim."
-        );
+        IGenesisKey(genesisKey).claimKey(account, wethAmount);
 
-        emit Claimed(index, tokenId, profileUrl);
+        emit Claimed(index, account, tokenId);
     }
 }
