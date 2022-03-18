@@ -86,35 +86,45 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
       }`);
 
       const wethMin = convertTinyNumber(1);
-    
+
       // merkle result is what you need to post publicly and store on FE
       const merkleResult = parseBalanceMap(jsonInput);
       const { merkleRoot } = merkleResult;
-    
+
       const GenesisKeyDistributor = await ethers.getContractFactory("GenesisKeyDistributor");
       const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(
         deployedGenesisKey.address,
         merkleRoot,
-        wethMin
+        wethMin,
       );
 
       await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
 
-      await expect(deployedGenesisKeyDistributor.connect(owner).claim(
-        merkleResult.claims[`${ownerSigner.address}`].index,
-        ownerSigner.address,
-        merkleResult.claims[`${ownerSigner.address}`].amount,
-        merkleResult.claims[`${ownerSigner.address}`].proof
-      )).to.emit(deployedWETH, "Transfer")
-      .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
+      await expect(
+        deployedGenesisKeyDistributor
+          .connect(owner)
+          .claim(
+            merkleResult.claims[`${ownerSigner.address}`].index,
+            ownerSigner.address,
+            merkleResult.claims[`${ownerSigner.address}`].amount,
+            merkleResult.claims[`${ownerSigner.address}`].proof,
+          ),
+      )
+        .to.emit(deployedWETH, "Transfer")
+        .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
 
-      await expect(deployedGenesisKeyDistributor.connect(second).claim(
-        merkleResult.claims[`${secondSigner.address}`].index,
-        secondSigner.address,
-        merkleResult.claims[`${secondSigner.address}`].amount,
-        merkleResult.claims[`${secondSigner.address}`].proof
-      )).to.emit(deployedWETH, "Transfer")
-      .withArgs(secondSigner.address, addr1.address, convertTinyNumber(1));
+      await expect(
+        deployedGenesisKeyDistributor
+          .connect(second)
+          .claim(
+            merkleResult.claims[`${secondSigner.address}`].index,
+            secondSigner.address,
+            merkleResult.claims[`${secondSigner.address}`].amount,
+            merkleResult.claims[`${secondSigner.address}`].proof,
+          ),
+      )
+        .to.emit(deployedWETH, "Transfer")
+        .withArgs(secondSigner.address, addr1.address, convertTinyNumber(1));
 
       NftStake = await ethers.getContractFactory("GenesisNftStake");
       deployedNftGenesisStake = await NftStake.deploy(deployedNftToken.address, deployedGenesisKey.address);

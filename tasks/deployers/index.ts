@@ -24,6 +24,32 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`deployedGenesisKey: ${deployedGenesisKey.address}`));
 });
 
+// gen key whitelist claim
+task("deploy:1b").setAction(async function (taskArguments, hre) {
+  TODO: const deployedGenesisKey = "";
+  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+  const deployedGenesisKeyContract = await GenesisKey.attach(deployedGenesisKey);
+
+  // TODO:
+  const jsonInput = JSON.parse(`{
+    "": "1",
+    "": "2"
+  }`);
+
+  // TODO:
+  const wethMin = 1;
+
+  // merkle result is what you need to post publicly and store on FE
+  const merkleResult = parseBalanceMap(jsonInput);
+  const { merkleRoot } = merkleResult;
+
+  const GenesisKeyDistributor = await hre.ethers.getContractFactory("GenesisKeyDistributor");
+  const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(deployedGenesisKey, merkleRoot, wethMin);
+
+  console.log(chalk.green("deployedGenesisKeyDistributor: ", deployedGenesisKeyDistributor.address));
+  await deployedGenesisKeyContract.setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
+});
+
 // STEP 2 deploy:NFT.com
 task("deploy:2").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`initializing...`));
