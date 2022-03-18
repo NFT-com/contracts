@@ -26,7 +26,8 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
 
 // gen key whitelist claim
 task("deploy:1b").setAction(async function (taskArguments, hre) {
-  TODO: const deployedGenesisKey = "";
+  // TODO: 
+  const deployedGenesisKey = "0xbEeB7221B6058B9529e0bde13A072f17c63CD372";
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
   const deployedGenesisKeyContract = await GenesisKey.attach(deployedGenesisKey);
 
@@ -53,7 +54,7 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
 // STEP 2 deploy:NFT.com
 task("deploy:2").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`initializing...`));
-  const deployedGenesisKeyAddress = "0xDd84b04FeA34c7119077564215b6ebdAD93aeB32"; // TODO: fill in after genesis key is done
+  const deployedGenesisKeyAddress = "0xbEeB7221B6058B9529e0bde13A072f17c63CD372"; // TODO: fill in after genesis key is done
 
   // NFT TOKEN ========================================================================================
   const NftToken = await hre.ethers.getContractFactory("NftToken");
