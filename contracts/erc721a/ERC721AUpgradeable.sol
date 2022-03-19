@@ -253,11 +253,13 @@ contract ERC721AUpgradeable is
         return _symbol;
     }
 
+    // returns owners from [startIndex, endIndex] inclusive
     function multiOwnerOf(uint256 startIndex, uint256 endIndex) external view returns (address[] memory) {
-        address[] memory addrBalances = new address[](endIndex - startIndex);
+        require(startIndex <= endIndex);
+        address[] memory addrBalances = new address[](endIndex - startIndex + 1);
 
-        for (uint256 i = startIndex; i < endIndex; i++) {
-            addrBalances[i] = ownerOf(i + _startTokenId());
+        for (uint256 i = 0; i <= endIndex - startIndex; i++) {
+            addrBalances[i] = ownerOf(startIndex + i);
         }
 
         return addrBalances;
