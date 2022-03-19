@@ -18,6 +18,12 @@ interface INft {
 contract Vesting {
     using SafeMath for uint256;
 
+    // post 1 year cliff
+    enum VestingInstallments { MONTHLY, QUARTERLY }
+
+    uint256 public constant MONTH_SECONDS = 30 days;
+    uint256 public constant QUARTER_SECONDS = 91 days;
+
     address public nftToken;
     address public multiSig;
 
@@ -27,6 +33,7 @@ contract Vesting {
     mapping(address => uint256) public vestingCliff;
     mapping(address => uint256) public vestingEnd;
     mapping(address => uint256) public lastUpdate;
+    mapping(address => VestingInstallments) public installment;
 
     mapping(address => bool) public initializedVestor;
     mapping(address => bool) public revokedVestor;
@@ -46,13 +53,15 @@ contract Vesting {
         uint256[] memory vestingAmounts_,
         uint256[] memory vestingBegins_,
         uint256[] memory vestingCliffs_,
-        uint256[] memory vestingEnds_
+        uint256[] memory vestingEnds_,
+        VestingInstallments[] memory installments_
     ) external onlyMultiSig {
         require(
             recipients_.length == vestingAmounts_.length &&
                 vestingAmounts_.length == vestingBegins_.length &&
                 vestingBegins_.length == vestingCliffs_.length &&
-                vestingCliffs_.length == vestingEnds_.length,
+                vestingCliffs_.length == vestingEnds_.length &&
+                vestingEnds_.length == installments_.length,
             "Vesting::initializeVesting: length of all arrays must be equal"
         );
 
@@ -63,17 +72,22 @@ contract Vesting {
             uint256 vestingBegin_ = vestingBegins_[i];
             uint256 vestingCliff_ = vestingCliffs_[i];
             uint256 vestingEnd_ = vestingEnds_[i];
+            VestingInstallments installment_ = installments_[i];
 
             require(recipient_ != address(0), "Vesting::initializeVesting: recipient cannot be the zero address");
             require(!initializedVestor[recipient_], "Vesting::initializeVesting: recipient already initialized");
             require(vestingCliff_ >= vestingBegin_, "Vesting::initializeVesting: cliff is too early");
             require(vestingEnd_ > vestingCliff_, "Vesting::initializeVesting: end is too early");
+            require(installment_ == VestingInstallments.MONTHLY ||
+                installment_ == VestingInstallments.QUARTERLY,
+                "Vesting::initializeVesting: installment must be MONTHLY or QUARTERLY");
 
             vestingAmount[recipient_] = vestingAmount_;
             vestingBegin[recipient_] = vestingBegin_;
             vestingCliff[recipient_] = vestingCliff_;
             vestingEnd[recipient_] = vestingEnd_;
             lastUpdate[recipient_] = vestingBegin_;
+            installment[recipient_] =  installment_;
 
             initializedVestor[recipient_] = true;
 
@@ -102,10 +116,24 @@ contract Vesting {
         if (block.timestamp >= vestingEnd[recipient]) {
             amount = vestingAmount[recipient].sub(claimedAmount[recipient]);
         } else {
-            amount = vestingAmount[recipient].mul(block.timestamp - lastUpdate[recipient]).div(
-                vestingEnd[recipient] - vestingBegin[recipient]
-            );
-            lastUpdate[recipient] = block.timestamp;
+            VestingInstallments vInstallment = installment[recipient];
+
+            // ADVISOR
+            if (vInstallment == VestingInstallments.MONTHLY) {
+                uint256 elapsedMonths = (block.timestamp - lastUpdate[recipient]).div(MONTH_SECONDS);
+                uint256 totalMonths = (vestingEnd[recipient] - vestingBegin[recipient]).div(MONTH_SECONDS);
+                uint256 tokensPerMonth = vestingAmount[recipient].div(totalMonths);
+
+                amount = tokensPerMonth.mul(elapsedMonths);
+                lastUpdate[recipient] += elapsedMonths * MONTH_SECONDS;
+            } else { // QUARTERLY
+                uint256 elapsedQuarters = (block.timestamp - vestingBegin[recipient]).div(QUARTER_SECONDS);
+                uint256 totalQuarters = (vestingEnd[recipient] - vestingBegin[recipient]).div(QUARTER_SECONDS);
+                uint256 tokensPerQuarter = vestingAmount[recipient].div(totalQuarters);
+
+                amount = tokensPerQuarter.mul(elapsedQuarters);
+                lastUpdate[recipient] += elapsedQuarters * MONTH_SECONDS;
+            }
         }
         claimedAmount[recipient] += amount;
         INft(nftToken).transfer(recipient, amount);

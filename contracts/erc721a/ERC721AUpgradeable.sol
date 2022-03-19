@@ -257,7 +257,7 @@ contract ERC721AUpgradeable is
         address[] memory addrBalances = new address[](endIndex - startIndex);
 
         for (uint256 i = startIndex; i < endIndex; i++) {
-            addrBalances[i] = ownerOf(i);
+            addrBalances[i] = ownerOf(i + _startTokenId());
         }
 
         return addrBalances;

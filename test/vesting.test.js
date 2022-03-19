@@ -5,6 +5,11 @@ const convertNftToken = tokens => {
   return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(18)));
 };
 
+const Schedule = {
+  MONTHLY: 0,
+  QUARTERLY: 1,
+};
+
 describe("NFT Token Staking (Rinkeby)", function () {
   try {
     let NftToken, Vesting;
@@ -49,6 +54,7 @@ describe("NFT Token Staking (Rinkeby)", function () {
             [Math.floor(new Date().getTime() / 1000) - 60 * 60],
             [Math.floor(new Date().getTime() / 1000) - 60 * 60],
             [Math.floor(new Date().getTime() / 1000) + 60 * 60 * 7],
+            [Schedule.MONTHLY],
           ),
       )
         .to.emit(deployedNftToken, "Transfer")
@@ -63,6 +69,7 @@ describe("NFT Token Staking (Rinkeby)", function () {
             [Math.floor(new Date().getTime() / 1000) - 60 * 60],
             [Math.floor(new Date().getTime() / 1000) - 60 * 60],
             [Math.floor(new Date().getTime() / 1000) + 60 * 60 * 7],
+            [Schedule.MONTHLY],
           ),
       ).to.be.revertedWith("Vesting::initializeVesting: recipient already initialized");
 
