@@ -244,6 +244,9 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(2);
 
+        console.log('owners 1 - 2', await deployedGenesisKey.multiOwnerOf(1, 2));
+        await expect(deployedGenesisKey.multiOwnerOf(3, 2)).to.be.reverted;
+
         expect(await deployedGenesisKey.tokenURI(1)).to.be.equal("ipfs://1");
         expect(await deployedGenesisKey.tokenURI(2)).to.be.equal("ipfs://2");
 
