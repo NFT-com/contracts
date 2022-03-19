@@ -1,5 +1,6 @@
 import { task } from "hardhat/config";
 import chalk from "chalk";
+import fs from "fs";
 import { parseBalanceMap } from "../../test/utils/parse-balance-map";
 
 const network = "rinkeby";
@@ -33,12 +34,14 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
 
   // TODO:
   const jsonInput = JSON.parse(`{
-    "": "1",
-    "": "2"
+    "0x59495589849423692778a8c5aaCA62CA80f875a4": "1",
+    "0x2b9EE94612b9e038909471600e11993D5624eC42": "2",
+    "0x0f33d6F1d69f87E5494cBfCAC9B9A3619f38Ca09": "3",
+    "0x9B733736A14C8f5483A54278349A25d3D174226d": "4"
   }`);
 
   // TODO:
-  const wethMin = 1;
+  const wethMin = hre.ethers.BigNumber.from(Number(10 ** 16).toString());
 
   // merkle result is what you need to post publicly and store on FE
   const merkleResult = parseBalanceMap(jsonInput);
@@ -47,6 +50,13 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
   const GenesisKeyDistributor = await hre.ethers.getContractFactory("GenesisKeyDistributor");
   const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(deployedGenesisKey, merkleRoot, wethMin);
 
+  console.log(chalk.green("merkleResult: ", merkleResult));
+
+  const json = JSON.stringify(merkleResult, null, 2);
+  fs.writeFileSync(`./tasks/merkle/gk/rinkeby-${new Date()}.json`, json);
+  console.log(`saved merkle gk rinkeby`);
+
+  console.log(chalk.green("merkleRoot: ", merkleRoot));
   console.log(chalk.green("deployedGenesisKeyDistributor: ", deployedGenesisKeyDistributor.address));
   await deployedGenesisKeyContract.setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
 });
@@ -194,10 +204,11 @@ task("deploy:4").setAction(async function (taskArguments, hre) {
 });
 
 // UPGRADES ============================================================================================
-task("upgrade:ProfileAuction").setAction(async function (taskArguments, { ethers, upgrades }) {
-  const ProfileAuction = await ethers.getContractFactory("ProfileAuction");
+task("upgrade:NftProfile").setAction(async function (taskArguments, { ethers, upgrades }) {
+  const NftProfile = await ethers.getContractFactory("NftProfile");
 
-  await upgrades.upgradeProxy("0x7d4dDE9418f2c2d2D895C09e81155E1AB08aE236", ProfileAuction);
+  const upgradedNftProfile = await upgrades.upgradeProxy("0xaa7F30a10D3E259ae9B14308C77dFe5aA2f5D9Df", NftProfile);
+  console.log(chalk.green("upgradedNftProfile: ", upgradedNftProfile.address));
 });
 
 task("upgrade:NftMarketplace").setAction(async function (taskArguments, hre) {
@@ -217,7 +228,7 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
   const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 
   const upgradedProfileAuction = await hre.upgrades.upgradeProxy(
-    "0x031579cE4485170f053F772c0a293C2C62889540",
+    "0xc53884b5E8B9f29635D865FBBccFd7Baf103B6eC",
     ProfileAuction,
   );
   console.log(chalk.green("upgraded profile auction: ", upgradedProfileAuction.address));
@@ -227,6 +238,6 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
-  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0xDd84b04FeA34c7119077564215b6ebdAD93aeB32", GenesisKey);
+  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0xbEeB7221B6058B9529e0bde13A072f17c63CD372", GenesisKey);
   console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 });

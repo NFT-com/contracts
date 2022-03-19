@@ -199,6 +199,23 @@ describe("NFT.com Marketplace", function () {
       });
     });
 
+    // const ask = `{"maker":"0xF968EC896Ffcb78411328F9EcfAbB9FcCFe4E863","makeAssets":[{"assetType":{"assetClass":"0x73ad2146","data":"0x000000000000000000000000f5de760f2e916647fd766b4ad9e85ff943ce3a2b000000000000000000000000000000000000000000000000000000000002c5230000000000000000000000000000000000000000000000000000000000000000"},"data":"0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000"}],"taker":"0x0000000000000000000000000000000000000000","takeAssets":[{"assetType":{"assetClass":"0x8ae85d84","data":"0x000000000000000000000000c778417e063141139fce010982780140aa0cd5ab"},"data":"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000"}],"salt":1647623420,"start":1647622820,"end":1648228220,"nonce":0,"auctionType":1}`
+    // const bid = `{"maker":"0xcb606fbaE8f03ecA4F394c9c7111B48F1d0f901D","makeAssets":[{"assetType":{"assetClass":"0x8ae85d84","data":"0x000000000000000000000000c778417e063141139fce010982780140aa0cd5ab"},"data":"0x000000000000000000000000000000000000000000000000016345785d8a00000000000000000000000000000000000000000000000000000000000000000000"}],"taker":"0xF968EC896Ffcb78411328F9EcfAbB9FcCFe4E863","takeAssets":[{"assetType":{"assetClass":"0x73ad2146","data":"0x000000000000000000000000f5de760f2e916647fd766b4ad9e85ff943ce3a2b000000000000000000000000000000000000000000000000000000000002c5230000000000000000000000000000000000000000000000000000000000000000"},"data":"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000"}],"salt":1647624640,"start":1647624040,"end":1648228220,"nonce":0,"auctionType":1}`
+    // describe("validateOrder anthony", function () {
+    //   it("should validate correctly: ", async function () {
+    //     const vlAddress = "0xce789D5C9DfDdEBA2AA87b37f2dE25e26a767023";
+    //     const ValidationLogic = await ethers.getContractFactory("ValidationLogic");
+    //     const deployedValidationLogicContract = await ValidationLogic.attach(vlAddress);
+
+    //     try {
+    //       const result = await deployedValidationLogicContract.validateMatch_(JSON.parse(ask), JSON.parse(bid));
+    //       console.log('result: ', result);
+    //     } catch(err) {
+    //       console.log('err anthony: ', err);
+    //     }
+    //   });
+    // })
+
     describe("Allow Multi-Asset Swaps via EOA users using sigV4", function () {
       it("should catch edge cases for start and end times", async function () {
         const {

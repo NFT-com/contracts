@@ -15,13 +15,13 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
 ## Rinkeby Address
 
 - [deployedGenesisKey](https://rinkeby.etherscan.io/address/0xbEeB7221B6058B9529e0bde13A072f17c63CD372)
-  - implementation => 0xe190Dde27bed3aB6cBcF62E155aA485D1228520F
+  - implementation => 0x5307ef69dea1dda5459a0122122966589c1148cc
 - [deployedNftToken](https://rinkeby.etherscan.io/address/0x0F38751eA1bD10B373Cf9f61794426a251f43f99)
 - [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0x3C35A978826A49Fb276357bFE0C489eD32940CCa)
 - [deployedPublicStake](https://rinkeby.etherscan.io/address/0xbC956A5a1B1E47d44F5c9F66fdfF9C61f2b19BD1)
 - [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0x53055289B76640fb00bD2E9C63b3974810744B3E)
 - [deployedNftProfileProxy](https://rinkeby.etherscan.io/address/0xaa7F30a10D3E259ae9B14308C77dFe5aA2f5D9Df)
-  - implementation => 0xd60fb4F9fd51eC20402625Ea39494b28111b4Ed3
+  - implementation => 0x56ae523a5996852c4c3f8edde7a9335d4f958a13
 - [deployedNftBuyer](https://rinkeby.etherscan.io/address/0xce04Ee11831899784598b221249C6609D8D8322F)
 - [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/0xc53884b5E8B9f29635D865FBBccFd7Baf103B6eC)
   - implementation => 0x771802dDc03173D0284ee7B046cf02A6e802F5cc
@@ -40,6 +40,7 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
   - implementation => 0xDdE3E8BeEb4aE8345df3a3B9aB524979bD9f8463
 - [deployedNftMarketplace](https://rinkeby.etherscan.io/address/0xC6F83d1D6D5a2aC7EE034483F8Ebe29646467Db7)
   - implementation => 0x9556449F3a9F06196A01E92d34e42Efb466073c0
+- [deployedGenesisKeyDistributor](https://rinkeby.etherscan.io/address/0x97e46FfEACfC60c9e50f635FE41f483036f269C9)
 
 ### Pre Requisites
 
