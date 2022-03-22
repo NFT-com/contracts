@@ -40,25 +40,29 @@ describe("NFT Token Staking (Rinkeby)", function () {
         "Vesting::claim: recipient not initialized",
       );
       await expect(
-        deployedVesting.connect(addr1).initializeVesting([owner.address], [1], [0], [0], [0]),
+        deployedVesting.connect(addr1).initializeVesting([owner.address], [1], [0], [0], [0], [Schedule.MONTHLY]),
       ).to.be.revertedWith("Vesting::onlyMultiSig: Only multisig can call this function");
 
       await deployedNftToken.approve(deployedVesting.address, convertNftToken(10000000));
 
+      const currentTime1 = Math.floor(new Date().getTime() / 1000);
+
       await expect(
         deployedVesting
           .connect(owner)
           .initializeVesting(
-            [owner.address],
-            [convertNftToken(1000)],
-            [Math.floor(new Date().getTime() / 1000) - 60 * 60],
-            [Math.floor(new Date().getTime() / 1000) - 60 * 60],
-            [Math.floor(new Date().getTime() / 1000) + 60 * 60 * 7],
-            [Schedule.MONTHLY],
+            [owner.address, addr1.address],
+            [convertNftToken(1000), convertNftToken(1000)],
+            [currentTime1 - 60 * 60, currentTime1 - 60 * 60],
+            [currentTime1 - 60 * 60, currentTime1 - 60 * 60],
+            [currentTime1 + 86400 * 62, currentTime1 + 86400 * 62],
+            [Schedule.MONTHLY, Schedule.MONTHLY],
           ),
       )
         .to.emit(deployedNftToken, "Transfer")
-        .withArgs(owner.address, deployedVesting.address, convertNftToken(1000));
+        .withArgs(owner.address, deployedVesting.address, convertNftToken(2000));
+
+      const currentTime2 = Math.floor(new Date().getTime() / 1000);
 
       await expect(
         deployedVesting
@@ -66,26 +70,61 @@ describe("NFT Token Staking (Rinkeby)", function () {
           .initializeVesting(
             [owner.address],
             [convertNftToken(1000)],
-            [Math.floor(new Date().getTime() / 1000) - 60 * 60],
-            [Math.floor(new Date().getTime() / 1000) - 60 * 60],
-            [Math.floor(new Date().getTime() / 1000) + 60 * 60 * 7],
+            [currentTime2 - 60 * 60],
+            [currentTime2 - 60 * 60],
+            [currentTime2 + 86400 * 62],
             [Schedule.MONTHLY],
           ),
       ).to.be.revertedWith("Vesting::initializeVesting: recipient already initialized");
 
+      // CLAIM 1
+      await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 31]);
+
       await deployedVesting.connect(addr1).claim(owner.address);
 
-      expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.lt(convertNftToken(1000));
+      expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.equal(convertNftToken(1500));
 
       let nftBalanceVesting = await deployedNftToken.balanceOf(deployedVesting.address);
       console.log("nftBalanceVesting: ", Number(nftBalanceVesting) / 10 ** 18);
+
+      // CLAIM 2
+      await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 45]);
+
+      await deployedVesting.connect(addr1).claim(owner.address);
+
+      expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.equal(convertNftToken(1500));
+
+      let nftBalanceVesting2 = await deployedNftToken.balanceOf(deployedVesting.address);
+      console.log("nftBalanceVesting2: ", Number(nftBalanceVesting2) / 10 ** 18);
+
+      // CLAIM 3
+      await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 62]);
+
+      await deployedVesting.connect(addr1).claim(owner.address);
+
+      expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.equal(convertNftToken(1000));
+
+      let nftBalanceVesting3 = await deployedNftToken.balanceOf(deployedVesting.address);
+      console.log("nftBalanceVesting3: ", Number(nftBalanceVesting3) / 10 ** 18);
+
+      // CLAIM 4
+      await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 93]);
+
+      await deployedVesting.connect(addr1).claim(owner.address);
+
+      expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.equal(convertNftToken(1000));
+
+      let nftBalanceVesting4 = await deployedNftToken.balanceOf(deployedVesting.address);
+      console.log("nftBalanceVesting4: ", Number(nftBalanceVesting4) / 10 ** 18);
+
+      // REVOKE?
 
       await deployedVesting.connect(owner).revokeVesting(owner.address);
       await expect(deployedVesting.connect(owner).revokeVesting(owner.address)).to.be.revertedWith(
         "Vesting::revokeVesting: recipient already revoked",
       );
 
-      expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.equal(0);
+      expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.equal(convertNftToken(1000));
 
       await expect(deployedVesting.connect(addr1).claim(owner.address)).to.be.revertedWith(
         "Vesting::claim: recipient already revoked",
@@ -93,6 +132,13 @@ describe("NFT Token Staking (Rinkeby)", function () {
       await expect(deployedVesting.connect(owner).claim(owner.address)).to.be.revertedWith(
         "Vesting::claim: recipient already revoked",
       );
+
+      // CLAIM for addr1
+      await expect(deployedVesting.connect(addr1).claim(addr1.address))
+        .to.emit(deployedNftToken, "Transfer")
+        .withArgs(deployedVesting.address, addr1.address, convertNftToken(1000));
+
+      expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.equal(convertNftToken(0));
     });
   } catch (err) {
     console.log("error: ", err);

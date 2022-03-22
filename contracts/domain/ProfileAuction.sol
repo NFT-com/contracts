@@ -132,7 +132,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             "nft.com: must be genkey owner"
         );
         uint256 profilesAllowed = genKeyWhitelistOnly ? 2 : 7;
-        require(genesisKeyClaimNumber[tokenId] != profilesAllowed, "");
+        require(genesisKeyClaimNumber[tokenId] != profilesAllowed);
 
         // effects
         genesisKeyClaimNumber[tokenId] += 1;

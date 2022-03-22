@@ -2,6 +2,7 @@
 pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "hardhat/console.sol";
 
 interface INft {
     function balanceOf(address account) external view returns (uint256);
@@ -19,7 +20,10 @@ contract Vesting {
     using SafeMath for uint256;
 
     // post 1 year cliff
-    enum VestingInstallments { MONTHLY, QUARTERLY }
+    enum VestingInstallments {
+        MONTHLY,
+        QUARTERLY
+    }
 
     uint256 public constant MONTH_SECONDS = 30 days;
     uint256 public constant QUARTER_SECONDS = 91 days;
@@ -65,6 +69,9 @@ contract Vesting {
             "Vesting::initializeVesting: length of all arrays must be equal"
         );
 
+        console.log("MONTH_SECONDS: ", MONTH_SECONDS);
+        console.log("QUARTER_SECONDS: ", QUARTER_SECONDS);
+
         uint256 totalAmount;
         for (uint256 i = 0; i < recipients_.length; i++) {
             address recipient_ = recipients_[i];
@@ -78,16 +85,23 @@ contract Vesting {
             require(!initializedVestor[recipient_], "Vesting::initializeVesting: recipient already initialized");
             require(vestingCliff_ >= vestingBegin_, "Vesting::initializeVesting: cliff is too early");
             require(vestingEnd_ > vestingCliff_, "Vesting::initializeVesting: end is too early");
-            require(installment_ == VestingInstallments.MONTHLY ||
-                installment_ == VestingInstallments.QUARTERLY,
-                "Vesting::initializeVesting: installment must be MONTHLY or QUARTERLY");
+            require(
+                installment_ == VestingInstallments.MONTHLY
+                    ? vestingEnd_ - vestingBegin_ >= MONTH_SECONDS
+                    : vestingEnd_ - vestingBegin_ >= QUARTER_SECONDS,
+                "Vesting::initializeVesting: end is too early"
+            );
+            require(
+                installment_ == VestingInstallments.MONTHLY || installment_ == VestingInstallments.QUARTERLY,
+                "Vesting::initializeVesting: installment must be MONTHLY or QUARTERLY"
+            );
 
             vestingAmount[recipient_] = vestingAmount_;
             vestingBegin[recipient_] = vestingBegin_;
             vestingCliff[recipient_] = vestingCliff_;
             vestingEnd[recipient_] = vestingEnd_;
             lastUpdate[recipient_] = vestingBegin_;
-            installment[recipient_] =  installment_;
+            installment[recipient_] = installment_;
 
             initializedVestor[recipient_] = true;
 
@@ -122,13 +136,16 @@ contract Vesting {
             if (vInstallment == VestingInstallments.MONTHLY) {
                 uint256 elapsedMonths = (block.timestamp - lastUpdate[recipient]).div(MONTH_SECONDS);
                 uint256 totalMonths = (vestingEnd[recipient] - vestingBegin[recipient]).div(MONTH_SECONDS);
+
                 uint256 tokensPerMonth = vestingAmount[recipient].div(totalMonths);
 
                 amount = tokensPerMonth.mul(elapsedMonths);
                 lastUpdate[recipient] += elapsedMonths * MONTH_SECONDS;
-            } else { // QUARTERLY
+            } else {
+                // QUARTERLY
                 uint256 elapsedQuarters = (block.timestamp - vestingBegin[recipient]).div(QUARTER_SECONDS);
                 uint256 totalQuarters = (vestingEnd[recipient] - vestingBegin[recipient]).div(QUARTER_SECONDS);
+
                 uint256 tokensPerQuarter = vestingAmount[recipient].div(totalQuarters);
 
                 amount = tokensPerQuarter.mul(elapsedQuarters);

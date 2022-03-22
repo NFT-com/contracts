@@ -17,11 +17,9 @@ interface IWETH {
 
 contract NftBuyer {
     IUniswapV2Factory public factory;
-    address public publicStaking;
     address public genesisStaking;
     address public nft;
     address public weth;
-    uint256 public publicStakingPercent; // out of 10000, where 5000 = 50%, 2000 = 20%
     uint256 public constant MAX_PERCENT = 10000;
 
     address public DAO;
@@ -36,17 +34,14 @@ contract NftBuyer {
     // staking contract = nftStake
     constructor(
         IUniswapV2Factory _factory,
-        address _publicStaking,
         address _genesisStaking,
         address _nft,
         address _weth
     ) {
         factory = _factory;
         nft = _nft;
-        publicStaking = _publicStaking;
         genesisStaking = _genesisStaking;
         weth = _weth;
-        publicStakingPercent = 5000; // 50 - 50 split initially
 
         DAO = msg.sender;
     }
@@ -57,11 +52,6 @@ contract NftBuyer {
     function changeDAO(address newDAO) external onlyDAO {
         DAO = newDAO;
         emit NewDAO(newDAO);
-    }
-
-    function changePublicPercent(uint256 _percent) external onlyDAO {
-        require(_percent <= MAX_PERCENT, "!MAX_PERCENT");
-        publicStakingPercent = _percent;
     }
 
     function isContract(address account) internal view returns (bool) {
@@ -81,9 +71,7 @@ contract NftBuyer {
         require(!isContract(msg.sender), "do not convert from contract");
         if (erc20 == nft) {
             // split proceeds
-            uint256 publicStakeAmount = (IERC20(nft).balanceOf(address(this)) * publicStakingPercent) / MAX_PERCENT;
-            _transfer(nft, publicStaking, publicStakeAmount);
-            _transfer(nft, genesisStaking, IERC20(nft).balanceOf(address(this)) - publicStakeAmount);
+            _transfer(nft, genesisStaking, IERC20(nft).balanceOf(address(this)));
         } else {
             uint256 wethAmount = _toWETH(erc20);
             // Then we convert the WETH to Nft
@@ -100,7 +88,7 @@ contract NftBuyer {
         // If the passed token is Nft, don't convert anything
         if (token == nft) {
             uint256 amount = IERC20(token).balanceOf(address(this));
-            _transfer(token, publicStaking, amount);
+            _transfer(token, genesisStaking, amount);
             return 0;
         }
         // If the passed token is WETH, don't convert anything
@@ -149,8 +137,6 @@ contract NftBuyer {
         pair.swap(amount0Out, amount1Out, address(this), new bytes(0));
 
         // split proceeds
-        uint256 publicStakeAmount = (IERC20(nft).balanceOf(address(this)) * publicStakingPercent) / MAX_PERCENT;
-        _transfer(nft, publicStaking, publicStakeAmount);
         _transfer(nft, genesisStaking, IERC20(nft).balanceOf(address(this)));
     }
 
