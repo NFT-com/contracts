@@ -33,8 +33,6 @@ describe("NFT Profile Auction / Minting", function () {
     let deployedWETH;
     let GenesisStake;
     let deployedNftGenesisStake;
-    let NftStake;
-    let deployedNftStake;
     const name = "NFT.com Genesis Key";
     const symbol = "NFTKEY";
     const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
@@ -48,7 +46,6 @@ describe("NFT Profile Auction / Minting", function () {
       NftProfileHelper = await hre.ethers.getContractFactory("NftProfileHelper");
       GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
       GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
-      NftStake = await hre.ethers.getContractFactory("PublicNftStake");
       NftProfile = await hre.ethers.getContractFactory("NftProfile");
       ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
       ProfileAuctionV2 = await hre.ethers.getContractFactory("ProfileAuctionV2");
@@ -152,8 +149,6 @@ describe("NFT Profile Auction / Minting", function () {
 
       deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
 
-      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
-
       await owner.sendTransaction({ to: addr1.address, value: convertSmallNumber(1) });
       await deployedWETH.connect(addr1).transfer(ownerSigner.address, await deployedWETH.balanceOf(addr1.address));
       // genesis key setup end ===============================================================
@@ -173,7 +168,6 @@ describe("NFT Profile Auction / Minting", function () {
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       deployedNftBuyer = await NftBuyer.deploy(
         RINKEBY_FACTORY_V2,
-        deployedNftStake.address,
         deployedNftGenesisStake.address,
         deployedNftToken.address,
         wethAddress,

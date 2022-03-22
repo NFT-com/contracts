@@ -47,6 +47,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized bid, by hash
     mapping(bytes32 => uint256) public claimableBlock; // Claimable bid (0 = not claimable, > 0 = claimable), by hash
     uint256 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
+    uint256 public lastClaimTime; // Last time a key was claimed
 
     modifier onlyOwner() {
         require(msg.sender == owner, "GEN_KEY: !AUTH");
@@ -70,6 +71,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         owner = msg.sender;
         multiSig = _multiSig;
         remainingTeamAdvisorGrant = 250; // 250 genesis keys allocated
+        lastClaimTime = block.timestamp;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -266,9 +268,26 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(transferWethTokens(recipient, _wethTokens)); // transfer WETH token
         _mint(recipient, 1, "", false);
 
+        randomTeamGrant(recipient);
+
         emit ClaimedGenesisKey(recipient, _wethTokens, block.number, true);
 
         return true;
+    }
+
+    // pseudo-randomly assign a team to a key
+    function randomTeamGrant(address _recipient) private {
+        if (
+            remainingTeamAdvisorGrant != 0 &&
+            (uint256(uint160(_recipient)) + block.timestamp) % 5 == 0 &&
+            lastClaimTime > 5 minutes
+        ) {
+            remainingTeamAdvisorGrant -= 1;
+            lastClaimTime = block.timestamp;
+
+            _mint(multiSig, 1, "", false);
+            emit ClaimedGenesisKey(multiSig, 0, block.number, false);
+        }
     }
 
     /**
@@ -331,6 +350,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         _mint(msg.sender, 1, "", false);
 
         numKeysPublicPurchased = numKeysPublicPurchased.add(1);
+
+        randomTeamGrant(msg.sender);
 
         emit ClaimedGenesisKey(msg.sender, currentWethPrice, block.number, false);
     }
