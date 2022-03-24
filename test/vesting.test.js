@@ -15,7 +15,6 @@ describe("NFT Token Staking (Rinkeby)", function () {
     let NftToken, Vesting;
     let deployedNftToken, deployedVesting;
     let multisig;
-    const NFT_RINKEBY_ADDRESS = "0x4DE2fE09Bc8F2145fE12e278641d2c93B9D4393A";
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -26,10 +25,10 @@ describe("NFT Token Staking (Rinkeby)", function () {
       multisig = owner.address;
 
       NftToken = await ethers.getContractFactory("NftToken");
-      deployedNftToken = await NftToken.attach(NFT_RINKEBY_ADDRESS);
+      deployedNftToken = await NftToken.deploy();
 
       Vesting = await ethers.getContractFactory("Vesting");
-      deployedVesting = await Vesting.deploy(NFT_RINKEBY_ADDRESS, multisig);
+      deployedVesting = await Vesting.deploy(deployedNftToken.address, multisig);
     });
 
     it("should allow multisig to initialize vesting", async function () {
