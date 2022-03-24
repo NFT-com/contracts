@@ -37,6 +37,7 @@ describe("NFT Profile Auction / Minting", function () {
     const symbol = "NFTKEY";
     const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
     const auctionSeconds = "604800"; // seconds in 1 week
+    let secondSigner;
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -60,7 +61,7 @@ describe("NFT Profile Auction / Minting", function () {
       // genesis key setup ===============================================================
       const multiSig = addr1.address;
       const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
-      const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
+      secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
 
       deployedWETH = new ethers.Contract(
         wethAddress,
@@ -262,7 +263,7 @@ describe("NFT Profile Auction / Minting", function () {
         expect(await deployedProfileAuction.publicMintBool()).to.be.false;
 
         expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(owner.address);
-        expect(await deployedGenesisKey.ownerOf(2)).to.be.equal(second.address);
+        expect(await deployedGenesisKey.ownerOf(2)).to.be.equal(secondSigner.address);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
