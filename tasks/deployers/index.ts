@@ -258,6 +258,6 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
-  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0xbEeB7221B6058B9529e0bde13A072f17c63CD372", GenesisKey);
+  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0xAed146B7E487B2d64b51B6D27F75c1f52247050a", GenesisKey);
   console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 });
