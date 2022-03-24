@@ -259,18 +259,22 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     /**
      @notice allows winning keys to be self-minted by winners
     */
-    function claimKey(address recipient, uint256 _wethTokens) external override nonReentrant returns (bool) {
+    function claimKey(address recipient, uint256 _eth) external payable override nonReentrant returns (bool) {
         // checks
         require(msg.sender == genesisKeyMerkle);
 
         // effects
         // interactions
-        require(transferWethTokens(recipient, _wethTokens)); // transfer WETH token
+        require(msg.value >= _eth); // transfer WETH token
         _mint(recipient, 1, "", false);
 
         randomTeamGrant(recipient);
 
-        emit ClaimedGenesisKey(recipient, _wethTokens, block.number, true);
+        if (msg.value > _eth) {
+            safeTransferETH(recipient, msg.value - _eth);
+        }
+
+        emit ClaimedGenesisKey(recipient, _eth, block.number, true);
 
         return true;
     }
