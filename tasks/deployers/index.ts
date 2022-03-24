@@ -7,6 +7,8 @@ const network = "rinkeby";
 const governor = "0x59495589849423692778a8c5aaCA62CA80f875a4"; // TODO: UPDATE
 const wethAddress =
   network === "rinkeby" ? "0xc778417e063141139fce010982780140aa0cd5ab" : "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+const usdcAddress =
+  network === "rinkeby" ? "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" : "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const UNI_V2_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 
 // STEP 1 (deploy:GenesisKey)
@@ -28,20 +30,35 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
 // gen key whitelist claim
 task("deploy:1b").setAction(async function (taskArguments, hre) {
   // TODO:
-  const deployedGenesisKey = "0xbEeB7221B6058B9529e0bde13A072f17c63CD372";
+  const deployedGenesisKey = "0xAed146B7E487B2d64b51B6D27F75c1f52247050a";
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
   const deployedGenesisKeyContract = await GenesisKey.attach(deployedGenesisKey);
 
   // TODO:
   const jsonInput = JSON.parse(`{
+    "0xD8D46690Db9534eb3873aCf5792B8a12631D8229": "1",
+    "0x9f76C103788c520dCb6fAd09ABd274440b8D026D": "1",
+    "0xC478BEc40f863DE406f4B87490011944aFB9Aa27": "1",
+    "0xE65eC5f5583053FADcAF2ebA354F8592D3c2ABb9": "1",
+    "0x56a065dFEB4616f89aD733003914A8e11dB6CEdD": "1",
+    "0x7F04084166e1F2478B8f7a99FafBA4238c7dDA83": "1",
+    "0xa18376780EB719bA2d2abb02D1c6e4B8689329e0": "1",
+    "0x31EeE8EbAF0eD960537BB272071fE81CAcdDd77A": "1",
+    "0xBb6113fb407DD8156a2dc1eE7246b86cA0b510ed": "1",
+    "0x84EEFFB8Ed6958878Eb4a35aB33346D8aF1A01f3": "1",
+    "0xfA3ccA6a31E30Bf9A0133a679d33357bb282c995": "1",
+    "0x5c09f8b380140E40A4ADc744F9B199a9383553F9": "1",
+    "0x090Be0f933d005EB7f30BEcF78A37B9C0DBb7442": "1",
+    "0xc97F36837e25C150a22A9a5FBDd2445366F11245": "1",
     "0x59495589849423692778a8c5aaCA62CA80f875a4": "1",
-    "0x2b9EE94612b9e038909471600e11993D5624eC42": "2",
-    "0x0f33d6F1d69f87E5494cBfCAC9B9A3619f38Ca09": "3",
-    "0x9B733736A14C8f5483A54278349A25d3D174226d": "4"
+    "0x34c0774DA64e53cAfC3C17710dFD55f6D2B51c7E": "1",
+    "0x2b9EE94612b9e038909471600e11993D5624eC42": "1",
+    "0xFC4BCb93a151F68773dA76D5D61E5f1Eea9FD494": "1",
+    "0xFC4BCb93a151F68773dA76D5D61E5f1Eea9FD494": "1"
   }`);
 
   // TODO:
-  const wethMin = hre.ethers.BigNumber.from(Number(10 ** 16).toString());
+  const wethMin = hre.ethers.BigNumber.from("1000000000000000");
 
   // merkle result is what you need to post publicly and store on FE
   const merkleResult = parseBalanceMap(jsonInput);
@@ -64,7 +81,7 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
 // STEP 2 deploy:NFT.com
 task("deploy:2").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`initializing...`));
-  const deployedGenesisKeyAddress = "0xbEeB7221B6058B9529e0bde13A072f17c63CD372"; // TODO: fill in after genesis key is done
+  const deployedGenesisKeyAddress = "0xAed146B7E487B2d64b51B6D27F75c1f52247050a"; // TODO: fill in after genesis key is done
 
   // NFT TOKEN ========================================================================================
   const NftToken = await hre.ethers.getContractFactory("NftToken");
@@ -120,14 +137,16 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
     { kind: "uups" },
   );
   console.log(chalk.green(`deployedProfileAuction: ${deployedProfileAuction.address}`));
+
+  await deployedNftProfileProxy.setProfileAuction(deployedProfileAuction.address);
 });
 
 // Step 3 NftMarketplace
 task("deploy:3").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying the marketplace contacts..."));
 
-  const rinkebyNFT = "0xBe1BF67300A8c28F805f0399513885D290cA99F7";
-  const deployedNftBuyer = "0xD5e0CEA10321287d6cb70E12dCAd6DCa0Bec8cF8";
+  const nftToken = "0xFD080f88e4dA08cAA35744b281481cc86b95D287";
+  const deployedNftBuyer = "0xC47FA495c5DaCd88D7A5D52B8274e251c6609cf5";
 
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
   const NftTransferProxy = await hre.ethers.getContractFactory("NftTransferProxy");
@@ -158,7 +177,7 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
       deployedERC20TransferProxy.address,
       deployedCryptoKittyTransferProxy.address,
       deployedNftBuyer,
-      rinkebyNFT,
+      nftToken,
       deployedValidationLogic.address,
       deployedMarketplaceEvent.address,
     ],
@@ -168,6 +187,13 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deployedNftMarketplace: ", deployedNftMarketplace.address));
 
   await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
+
+  await deployedNftMarketplace.modifyWhitelist(wethAddress, true);
+  console.log(chalk.green("whitelisted WETH: ", wethAddress));
+  await deployedNftMarketplace.modifyWhitelist(usdcAddress, true);
+  console.log(chalk.green("whitelisted USDC: ", usdcAddress));
+  await deployedNftMarketplace.modifyWhitelist(nftToken, true);
+  console.log(chalk.green("whitelisted NftToken: ", nftToken));
 
   // add operator being the marketplace
   await deployedNftTransferProxy.addOperator(deployedNftMarketplace.address);

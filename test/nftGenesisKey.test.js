@@ -173,7 +173,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           "${secondSigner.address}": "2"
         }`);
 
-        const wethMin = convertTinyNumber(1);
+        const ethMin = convertTinyNumber(1);
 
         // merkle result is what you need to post publicly and store on FE
         const merkleResult = parseBalanceMap(jsonInput);
@@ -183,27 +183,26 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(
           deployedGenesisKey.address,
           merkleRoot,
-          wethMin,
+          ethMin,
         );
 
         await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
 
-        await expect(
-          deployedGenesisKeyDistributor
-            .connect(owner)
-            .claim(
-              merkleResult.claims[`${ownerSigner.address}`].index,
-              ownerSigner.address,
-              merkleResult.claims[`${ownerSigner.address}`].amount,
-              merkleResult.claims[`${ownerSigner.address}`].proof,
-            ),
-        )
-          .to.emit(deployedWETH, "Transfer")
-          .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
+        await deployedGenesisKeyDistributor
+          .connect(owner)
+          .claim(
+            merkleResult.claims[`${ownerSigner.address}`].index,
+            ownerSigner.address,
+            merkleResult.claims[`${ownerSigner.address}`].amount,
+            merkleResult.claims[`${ownerSigner.address}`].proof,
+            {
+              value: ethMin,
+            },
+          );
 
-        expect(await deployedWETH.balanceOf(addr1.address)).to.eq(
-          BigNumber.from(beforeWethAddr1).add(convertTinyNumber(1)),
-        );
+        const gkEth1 = await web3.eth.getBalance(deployedGenesisKey.address);
+        console.log("gkEth1: ", gkEth1);
+        await expect(gkEth1).to.be.equal(convertTinyNumber(1));
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
@@ -219,6 +218,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
             ),
         ).to.be.reverted;
 
+        // reverts due to no ETH passed in
         await expect(
           deployedGenesisKeyDistributor
             .connect(second)
@@ -228,13 +228,23 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
               merkleResult.claims[`${secondSigner.address}`].amount,
               merkleResult.claims[`${secondSigner.address}`].proof,
             ),
-        )
-          .to.emit(deployedWETH, "Transfer")
-          .withArgs(secondSigner.address, addr1.address, convertTinyNumber(1));
+        ).to.be.reverted;
 
-        expect(await deployedWETH.balanceOf(addr1.address)).to.eq(
-          BigNumber.from(beforeWethAddr1).add(convertTinyNumber(2)),
-        );
+        await deployedGenesisKeyDistributor
+          .connect(second)
+          .claim(
+            merkleResult.claims[`${secondSigner.address}`].index,
+            secondSigner.address,
+            merkleResult.claims[`${secondSigner.address}`].amount,
+            merkleResult.claims[`${secondSigner.address}`].proof,
+            {
+              value: ethMin,
+            },
+          );
+
+        const gkEth2 = await web3.eth.getBalance(deployedGenesisKey.address);
+        console.log("gkEth2: ", gkEth2);
+        await expect(gkEth2).to.be.equal(convertTinyNumber(2));
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
