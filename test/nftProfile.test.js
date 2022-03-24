@@ -35,7 +35,7 @@ describe("NFT Profile Auction / Minting", function () {
     let deployedNftGenesisStake;
     const name = "NFT.com Genesis Key";
     const symbol = "NFTKEY";
-    const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
+    let wethAddress;
     const auctionSeconds = "604800"; // seconds in 1 week
 
     // `beforeEach` will run before each test, re-deploying the contract every
@@ -62,11 +62,9 @@ describe("NFT Profile Auction / Minting", function () {
       const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
       const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
 
-      deployedWETH = new ethers.Contract(
-        wethAddress,
-        `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"guy","type":"address"},{"name":"wad","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"src","type":"address"},{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"wad","type":"uint256"}],"name":"withdraw","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"guy","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Withdrawal","type":"event"}]`,
-        ethers.provider,
-      );
+      // mock token
+      deployedWETH = await NftToken.deploy();
+      wethAddress = deployedWETH.address;
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
@@ -121,7 +119,7 @@ describe("NFT Profile Auction / Minting", function () {
 
       await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
 
-      await expect(
+      await
         deployedGenesisKeyDistributor
           .connect(owner)
           .claim(
@@ -129,12 +127,10 @@ describe("NFT Profile Auction / Minting", function () {
             ownerSigner.address,
             merkleResult.claims[`${ownerSigner.address}`].amount,
             merkleResult.claims[`${ownerSigner.address}`].proof,
-          ),
-      )
-        .to.emit(deployedWETH, "Transfer")
-        .withArgs(ownerSigner.address, addr1.address, convertSmallNumber(1));
+            { value: wethMin }
+          );
 
-      await expect(
+      await
         deployedGenesisKeyDistributor
           .connect(second)
           .claim(
@@ -142,10 +138,8 @@ describe("NFT Profile Auction / Minting", function () {
             secondSigner.address,
             merkleResult.claims[`${secondSigner.address}`].amount,
             merkleResult.claims[`${secondSigner.address}`].proof,
-          ),
-      )
-        .to.emit(deployedWETH, "Transfer")
-        .withArgs(secondSigner.address, addr1.address, convertSmallNumber(1));
+            { value: wethMin }
+          );
 
       deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
 
