@@ -119,27 +119,25 @@ describe("NFT Profile Auction / Minting", function () {
 
       await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
 
-      await
-        deployedGenesisKeyDistributor
-          .connect(owner)
-          .claim(
-            merkleResult.claims[`${ownerSigner.address}`].index,
-            ownerSigner.address,
-            merkleResult.claims[`${ownerSigner.address}`].amount,
-            merkleResult.claims[`${ownerSigner.address}`].proof,
-            { value: wethMin }
-          );
+      await deployedGenesisKeyDistributor
+        .connect(owner)
+        .claim(
+          merkleResult.claims[`${ownerSigner.address}`].index,
+          ownerSigner.address,
+          merkleResult.claims[`${ownerSigner.address}`].amount,
+          merkleResult.claims[`${ownerSigner.address}`].proof,
+          { value: wethMin },
+        );
 
-      await
-        deployedGenesisKeyDistributor
-          .connect(second)
-          .claim(
-            merkleResult.claims[`${secondSigner.address}`].index,
-            secondSigner.address,
-            merkleResult.claims[`${secondSigner.address}`].amount,
-            merkleResult.claims[`${secondSigner.address}`].proof,
-            { value: wethMin }
-          );
+      await deployedGenesisKeyDistributor
+        .connect(second)
+        .claim(
+          merkleResult.claims[`${secondSigner.address}`].index,
+          secondSigner.address,
+          merkleResult.claims[`${secondSigner.address}`].amount,
+          merkleResult.claims[`${secondSigner.address}`].proof,
+          { value: wethMin },
+        );
 
       deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
 

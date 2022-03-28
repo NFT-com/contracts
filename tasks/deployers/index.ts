@@ -24,18 +24,54 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
     [name, symbol, wethAddress, multiSig, auctionSeconds],
     { kind: "uups" },
   );
+
+  const GenesisKeyTeamClaim = await hre.ethers.getContractFactory("GenesisKeyTeamClaim");
+  const deployedGenesisKeyTeamClaim = await hre.upgrades.deployProxy(
+    GenesisKeyTeamClaim,
+    [deployedGenesisKey.address],
+    { kind: "uups" },
+  );
+
+  const GenesisKeyTeamDistributor = await hre.ethers.getContractFactory("GenesisKeyTeamDistributor");
+  const deployedGkTeamDistributor = await GenesisKeyTeamDistributor.deploy(deployedGenesisKeyTeamClaim.address);
+
+  await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
+
+  console.log(chalk.green(`deployedGkTeamDistributor: ${deployedGkTeamDistributor.address}`));
+  console.log(chalk.green(`deployedGenesisKeyTeamClaim: ${deployedGenesisKeyTeamClaim.address}`));
   console.log(chalk.green(`deployedGenesisKey: ${deployedGenesisKey.address}`));
 });
 
+const deployedGenesisKeyAddress = "0x52Ec5398c29d6627E543931C473Ba36c2bBE0f5C";
+
 // gen key whitelist claim
 task("deploy:1b").setAction(async function (taskArguments, hre) {
-  // TODO:
-  const deployedGenesisKey = "0xAed146B7E487B2d64b51B6D27F75c1f52247050a";
+  // insider merkle tree ==============================================================================================
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
-  const deployedGenesisKeyContract = await GenesisKey.attach(deployedGenesisKey);
+  const deployedGenesisKeyContract = await GenesisKey.attach(deployedGenesisKeyAddress);
+
+  const genesisKeyTeamDistributorAddress = "0x9629E6F272Ed58f35bA7739BA37C156091Fa4011";
+  const GenesisKeyTeamDistributor = await hre.ethers.getContractFactory("GenesisKeyTeamDistributor");
+  const deployedGenesisKeyTeamDistributor = await GenesisKeyTeamDistributor.attach(genesisKeyTeamDistributorAddress);
+
+  const insiderGKClaimJSON = JSON.parse(`{
+    "0xD8D46690Db9534eb3873aCf5792B8a12631D8229": "1"
+  }`);
+
+  const merkleResultInsider = parseBalanceMap(insiderGKClaimJSON);
+  const merkleRootInsider = merkleResult.merkleRoot;
+  await deployedGenesisKeyTeamDistributor.changeMerkleRoot(merkleRootInsider);
+  const insiderJSON = JSON.stringify(merkleResultInsider, null, 2);
+  fs.writeFileSync(`./tasks/merkle/gkInsider/rinkeby-${new Date()}.json`, insiderJSON);
+  console.log(`saved merkle gkInsider rinkeby`);
+
+  console.log(chalk.green("merkleRoot: ", merkleRoot));
+  console.log(chalk.green("deployedGenesisKeyDistributor: ", deployedGenesisKeyTeamDistributor.address));
+
+  // general whitelist winners ========================================================================================
 
   // TODO:
-  const jsonInput = JSON.parse(`{
+  const genesisWhitelistWinnerJSON = JSON.parse(`{
     "0xD8D46690Db9534eb3873aCf5792B8a12631D8229": "1",
     "0x9f76C103788c520dCb6fAd09ABd274440b8D026D": "1",
     "0xC478BEc40f863DE406f4B87490011944aFB9Aa27": "1",
@@ -61,11 +97,15 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
   const wethMin = hre.ethers.BigNumber.from("1000000000000000");
 
   // merkle result is what you need to post publicly and store on FE
-  const merkleResult = parseBalanceMap(jsonInput);
+  const merkleResult = parseBalanceMap(genesisWhitelistWinnerJSON);
   const { merkleRoot } = merkleResult;
 
   const GenesisKeyDistributor = await hre.ethers.getContractFactory("GenesisKeyDistributor");
-  const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(deployedGenesisKey, merkleRoot, wethMin);
+  const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(
+    deployedGenesisKeyAddress,
+    merkleRoot,
+    wethMin,
+  );
 
   console.log(chalk.green("merkleResult: ", merkleResult));
 
@@ -81,8 +121,6 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
 // STEP 2 deploy:NFT.com
 task("deploy:2").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`initializing...`));
-  const deployedGenesisKeyAddress = "0xAed146B7E487B2d64b51B6D27F75c1f52247050a"; // TODO: fill in after genesis key is done
-
   // NFT TOKEN ========================================================================================
   const NftToken = await hre.ethers.getContractFactory("NftToken");
   const deployedNftToken = await NftToken.deploy();
@@ -145,8 +183,8 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
 task("deploy:3").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying the marketplace contacts..."));
 
-  const nftToken = "0xFD080f88e4dA08cAA35744b281481cc86b95D287";
-  const deployedNftBuyer = "0xC47FA495c5DaCd88D7A5D52B8274e251c6609cf5";
+  const nftToken = "0xB0424DFEBA067023D83979864A8cA4640F6B77Fd";
+  const deployedNftBuyer = "0x8b1f6EF9126088653A8405Dc33d51922aE63904a";
 
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
   const NftTransferProxy = await hre.ethers.getContractFactory("NftTransferProxy");
@@ -248,7 +286,7 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
   const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 
   const upgradedProfileAuction = await hre.upgrades.upgradeProxy(
-    "0xc53884b5E8B9f29635D865FBBccFd7Baf103B6eC",
+    "0x386B1a1C8Bc6d3Ca3cF66f15f49742a9a2840CA2",
     ProfileAuction,
   );
   console.log(chalk.green("upgraded profile auction: ", upgradedProfileAuction.address));
@@ -258,6 +296,6 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
-  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0xAed146B7E487B2d64b51B6D27F75c1f52247050a", GenesisKey);
+  const upgradedGenesisKey = await hre.upgrades.upgradeProxy(deployedGenesisKeyAddress, GenesisKey);
   console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 });
