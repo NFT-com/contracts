@@ -143,6 +143,20 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         emit MintedProfile(recipient, profileUrl);
     }
 
+    // mint for team and advisors
+    function reservedMint(address[] memory _receivers, string[] memory _profiles) external nonReentrant onlyOwner {
+        require(_receivers.length == _profiles.length);
+
+        for (uint256 i = 0; i < _profiles.length; i++) {
+            require(validURI(_profiles[i]));
+            require(!INftProfile(nftProfile).tokenUsed(_profiles[i]));
+
+            INftProfile(nftProfile).createProfile(_receivers[i], _profiles[i]);
+
+            emit MintedProfile(_receivers[i], _profiles[i]);
+        }
+    }
+
     function publicMint(
         string memory profileUrl,
         uint8 v,
