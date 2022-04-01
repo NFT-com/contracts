@@ -63,7 +63,7 @@ contract GenesisKeyTeamDistributor is IGenesisKeyTeamDistributor {
 
         // Mark it claimed and send the token.
         _setClaimed(index);
-        IGkTeam(gkTeam).teamClaim(account);
+        require(IGkTeam(gkTeam).teamClaim(account), "GKTeamDistributor: No team keys available");
 
         emit Claimed(index, account, tokenId);
     }

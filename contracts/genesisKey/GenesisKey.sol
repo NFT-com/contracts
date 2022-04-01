@@ -36,6 +36,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     uint256 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
     uint256 public lastClaimTime; // Last time a key was claimed
     address public gkTeamClaimContract;
+    bool public randomClaimBool; // true if random claim is enabled for team
 
     /* An ECDSA signature. */
     struct Sig {
@@ -58,7 +59,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         string memory symbol,
         address _wethAddress,
         address _multiSig,
-        uint256 _auctionSeconds
+        uint256 _auctionSeconds,
+        bool _randomClaimBool
     ) public initializer {
         __ReentrancyGuard_init();
         __ERC721AUpgradeable_init(name, symbol, "ipfs://");
@@ -71,6 +73,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         multiSig = _multiSig;
         remainingTeamAdvisorGrant = 250; // 250 genesis keys allocated
         lastClaimTime = block.timestamp;
+        randomClaimBool = _randomClaimBool;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -90,6 +93,14 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     function setPublicSaleDuration(uint256 _seconds) external onlyOwner {
         publicSaleDurationSeconds = _seconds;
+    }
+
+    function setPausedTransfer(bool paused) public override onlyOwner {
+        pausedTransfer = paused;
+    }
+
+    function setWhitelist(address _address, bool _val) public override onlyOwner {
+        whitelistedTransfer[_address] = _val;
     }
 
     // initial weth price is the high price (starting point)
@@ -276,7 +287,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         if (
             remainingTeamAdvisorGrant != 0 &&
             (uint256(uint160(_recipient)) + block.timestamp) % 5 == 0 &&
-            lastClaimTime > 1 minutes
+            lastClaimTime > 1 minutes &&
+            randomClaimBool
         ) {
             remainingTeamAdvisorGrant -= 1;
             lastClaimTime = block.timestamp;

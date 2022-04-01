@@ -2,6 +2,7 @@ import { task } from "hardhat/config";
 import chalk from "chalk";
 import fs from "fs";
 import { parseBalanceMap } from "../../test/utils/parse-balance-map";
+import { TASK_TEST } from "hardhat/builtin-tasks/task-names";
 
 const network = "rinkeby";
 const governor = "0x59495589849423692778a8c5aaCA62CA80f875a4"; // TODO: UPDATE
@@ -10,6 +11,12 @@ const wethAddress =
 const usdcAddress =
   network === "rinkeby" ? "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" : "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const UNI_V2_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+
+task("deploy:0").setAction(async function (taskArguments, hre) {
+  const NftToken = await hre.ethers.getContractFactory("NftToken");
+  const deployedNftToken = await NftToken.deploy();
+  console.log(chalk.green(`deployedNftToken: ${deployedNftToken.address}`));
+});
 
 // STEP 1 (deploy:GenesisKey)
 task("deploy:1").setAction(async function (taskArguments, hre) {
@@ -37,6 +44,11 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
 
   await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
 
+  // only set pause transfer until public sale is over
+  await deployedGenesisKey.setPausedTransfer(true); // TODO: remember to unpause this later
+  await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
+  await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
+
   console.log(chalk.green(`deployedGkTeamDistributor: ${deployedGkTeamDistributor.address}`));
   console.log(chalk.green(`deployedGenesisKeyTeamClaim: ${deployedGenesisKeyTeamClaim.address}`));
   console.log(chalk.green(`deployedGenesisKey: ${deployedGenesisKey.address}`));
@@ -44,57 +56,69 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
 
 const deployedGenesisKeyAddress = "0x52Ec5398c29d6627E543931C473Ba36c2bBE0f5C";
 
+//       "firstLosingBid": [
+//         {
+//           "key": "0xFC4BCb93a151F68773dA76D5D61E5f1Eea9FD494",
+//           "value": "100000000000000"
+//         }
+//       ],
+//       "whitelistWinnersCount": "15",
+//       "medianPrice": "250000000000000000",
+//       "totalBidsCount": "15"
+//     }
+//   }
+// }
+
 // gen key whitelist claim
 task("deploy:1b").setAction(async function (taskArguments, hre) {
   // insider merkle tree ==============================================================================================
-  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
-  const deployedGenesisKeyContract = await GenesisKey.attach(deployedGenesisKeyAddress);
-
-  const genesisKeyTeamDistributorAddress = "0x9629E6F272Ed58f35bA7739BA37C156091Fa4011";
+  // redeploy....
+  const genesisKeyTeamDistributorAddress = "0xf4CB1960416a7a676eE1AB9C6808B73254EEE32F";
   const GenesisKeyTeamDistributor = await hre.ethers.getContractFactory("GenesisKeyTeamDistributor");
   const deployedGenesisKeyTeamDistributor = await GenesisKeyTeamDistributor.attach(genesisKeyTeamDistributorAddress);
 
   const insiderGKClaimJSON = JSON.parse(`{
-    "0xD8D46690Db9534eb3873aCf5792B8a12631D8229": "1"
+    "0x59495589849423692778a8c5aaCA62CA80f875a4": "1",
+    "0x341dE5B426d3582f35357094Ae412cf4E41774Cd": "1"
   }`);
 
   const merkleResultInsider = parseBalanceMap(insiderGKClaimJSON);
-  const merkleRootInsider = merkleResult.merkleRoot;
+  const merkleRootInsider = merkleResultInsider.merkleRoot;
   await deployedGenesisKeyTeamDistributor.changeMerkleRoot(merkleRootInsider);
   const insiderJSON = JSON.stringify(merkleResultInsider, null, 2);
   fs.writeFileSync(`./tasks/merkle/gkInsider/rinkeby-${new Date()}.json`, insiderJSON);
   console.log(`saved merkle gkInsider rinkeby`);
 
-  console.log(chalk.green("merkleRoot: ", merkleRoot));
-  console.log(chalk.green("deployedGenesisKeyDistributor: ", deployedGenesisKeyTeamDistributor.address));
+  console.log(chalk.green("merkleRootInsider: ", merkleRootInsider));
+  console.log(chalk.green("deployedGenesisKeyTeamDistributor: ", deployedGenesisKeyTeamDistributor.address));
+});
 
+task("deploy:1c").setAction(async function (taskArguments, hre) {
   // general whitelist winners ========================================================================================
+  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+  const deployedGenesisKeyContract = await GenesisKey.attach(deployedGenesisKeyAddress);
 
   // TODO:
   const genesisWhitelistWinnerJSON = JSON.parse(`{
-    "0xD8D46690Db9534eb3873aCf5792B8a12631D8229": "1",
-    "0x9f76C103788c520dCb6fAd09ABd274440b8D026D": "1",
-    "0xC478BEc40f863DE406f4B87490011944aFB9Aa27": "1",
     "0xE65eC5f5583053FADcAF2ebA354F8592D3c2ABb9": "1",
+    "0xD8D46690Db9534eb3873aCf5792B8a12631D8229": "1",
+    "0xC478BEc40f863DE406f4B87490011944aFB9Aa27": "1",
+    "0x338eFdd45AE7D010da108f39d293565449C52682": "1",
     "0x56a065dFEB4616f89aD733003914A8e11dB6CEdD": "1",
-    "0x7F04084166e1F2478B8f7a99FafBA4238c7dDA83": "1",
-    "0xa18376780EB719bA2d2abb02D1c6e4B8689329e0": "1",
-    "0x31EeE8EbAF0eD960537BB272071fE81CAcdDd77A": "1",
-    "0xBb6113fb407DD8156a2dc1eE7246b86cA0b510ed": "1",
-    "0x84EEFFB8Ed6958878Eb4a35aB33346D8aF1A01f3": "1",
-    "0xfA3ccA6a31E30Bf9A0133a679d33357bb282c995": "1",
-    "0x5c09f8b380140E40A4ADc744F9B199a9383553F9": "1",
-    "0x090Be0f933d005EB7f30BEcF78A37B9C0DBb7442": "1",
-    "0xc97F36837e25C150a22A9a5FBDd2445366F11245": "1",
+    "0x9f76C103788c520dCb6fAd09ABd274440b8D026D": "1",
+    "0x74bB476C99d2fad476DB75654e58404Db6EC4977": "1",
     "0x59495589849423692778a8c5aaCA62CA80f875a4": "1",
-    "0x34c0774DA64e53cAfC3C17710dFD55f6D2B51c7E": "1",
+    "0xF968EC896Ffcb78411328F9EcfAbB9FcCFe4E863": "1",
+    "0xfA3ccA6a31E30Bf9A0133a679d33357bb282c995": "1",
+    "0xf7BA53e8D1a6cFcA763D52D5759E17C2139b1b76": "1",
+    "0x090Be0f933d005EB7f30BEcF78A37B9C0DBb7442": "1",
     "0x2b9EE94612b9e038909471600e11993D5624eC42": "1",
-    "0xFC4BCb93a151F68773dA76D5D61E5f1Eea9FD494": "1",
+    "0xc97F36837e25C150a22A9a5FBDd2445366F11245": "1",
     "0xFC4BCb93a151F68773dA76D5D61E5f1Eea9FD494": "1"
   }`);
 
   // TODO:
-  const wethMin = hre.ethers.BigNumber.from("1000000000000000");
+  const wethMin = hre.ethers.BigNumber.from("100000000000000");
 
   // merkle result is what you need to post publicly and store on FE
   const merkleResult = parseBalanceMap(genesisWhitelistWinnerJSON);

@@ -12,10 +12,21 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
 - [Solcover](https://github.com/sc-forks/solidity-coverage): code coverage
 - [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
 
+## Mainnet Tokens
+
+- [deployedNftToken](https://rinkeby.etherscan.io/address/0x025195c0660f6Db8D2EC836f9f1d418Da1A01a8e)
+- [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/)
+- [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/)
+- [deployedNftProfileProxy](https://rinkeby.etherscan.io/address/)
+  - implementation =>
+- [deployedNftBuyer](https://rinkeby.etherscan.io/address/)
+- [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/)
+  - implementation =>
+
 ## Rinkeby GK
 
-- [deployedGkTeamDistributor](https://rinkeby.etherscan.io/address/0x9629E6F272Ed58f35bA7739BA37C156091Fa4011)
-- [deployedGenesisKeyTeamClaim](https://rinkeby.etherscan.io/address/0xB4900656f35687352e042CafA06ecd4077cC9b5E)
+- [deployedGkTeamDistributor](https://rinkeby.etherscan.io/address/0xf4CB1960416a7a676eE1AB9C6808B73254EEE32F)
+- [deployedGenesisKeyTeamClaim](https://rinkeby.etherscan.io/address/0xb2e8e382df819AA3EBb29906f613A8609F918e2e)
   - implementation => 0x05d277DE3642ee03738Be2ce260B2a206Ae43d6A
 - [deployedGenesisKey](https://rinkeby.etherscan.io/address/0x52Ec5398c29d6627E543931C473Ba36c2bBE0f5C)
   - implementation => 0x43653AF07633BBE22Cd5840dD5E616D4Cd357AE6
@@ -27,7 +38,7 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
 - [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0xb5c97E7a54f1969e930E6499Eb7AE2B7c33BA0f0)
 - [deployedNftProfileProxy](https://rinkeby.etherscan.io/address/0x26E13D1c3D5B081CdFADB025324624753bC06c78)
   - implementation => 0xad4C038f2744a8ab687A7b8fdDfE9DABD3d8fb6c
-- [deployedNftBuyer](https://rinkeby.etherscan.io/address/0x8b1f6EF9126088653A8405Dc33d51922aE63904a)
+- [deployedNftBuyer](https://rinkeby.etherscan.io/address/0x8b1f6EF9126088653A8405Dc33dGK51922aE63904a)
 - [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/0x386B1a1C8Bc6d3Ca3cF66f15f49742a9a2840CA2)
   - implementation => 0x37EFdd23BC3423B31b51D3d8eabfD2B5Cc70E981
 

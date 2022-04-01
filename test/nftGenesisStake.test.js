@@ -20,6 +20,10 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
     let GenesisKey;
     let deployedGenesisKey;
     let deployedWETH;
+    let GenesisKeyTeamClaim;
+    let deployedGenesisKeyTeamClaim;
+    let GenesisKeyTeamDistributor;
+    let deployedGkTeamDistributor;
     const name = "NFT.com Genesis Key";
     const symbol = "NFTKEY";
     let wethAddress;
@@ -42,9 +46,23 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds],
+        [name, symbol, wethAddress, multiSig, auctionSeconds, true],
         { kind: "uups" },
       );
+
+      GenesisKeyTeamClaim = await ethers.getContractFactory("GenesisKeyTeamClaim");
+      deployedGenesisKeyTeamClaim = await upgrades.deployProxy(GenesisKeyTeamClaim, [deployedGenesisKey.address], {
+        kind: "uups",
+      });
+
+      GenesisKeyTeamDistributor = await ethers.getContractFactory("GenesisKeyTeamDistributor");
+      deployedGkTeamDistributor = await GenesisKeyTeamDistributor.deploy(deployedGenesisKeyTeamClaim.address);
+
+      await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
+
+      // only set pause transfer until public sale is over
+      await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
+      await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
 
       const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
       const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
