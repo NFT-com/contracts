@@ -33,6 +33,10 @@ describe("NFT Profile Auction / Minting", function () {
     let deployedWETH;
     let GenesisStake;
     let deployedNftGenesisStake;
+    let GenesisKeyTeamClaim;
+    let deployedGenesisKeyTeamClaim;
+    let GenesisKeyTeamDistributor;
+    let deployedGkTeamDistributor;
     const name = "NFT.com Genesis Key";
     const symbol = "NFTKEY";
     let wethAddress;
@@ -68,9 +72,23 @@ describe("NFT Profile Auction / Minting", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds],
+        [name, symbol, wethAddress, multiSig, auctionSeconds, false],
         { kind: "uups" },
       );
+
+      GenesisKeyTeamClaim = await ethers.getContractFactory("GenesisKeyTeamClaim");
+      deployedGenesisKeyTeamClaim = await upgrades.deployProxy(GenesisKeyTeamClaim, [deployedGenesisKey.address], {
+        kind: "uups",
+      });
+
+      GenesisKeyTeamDistributor = await ethers.getContractFactory("GenesisKeyTeamDistributor");
+      deployedGkTeamDistributor = await GenesisKeyTeamDistributor.deploy(deployedGenesisKeyTeamClaim.address);
+
+      await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
+
+      // only set pause transfer until public sale is over
+      await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
+      await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
 
       // approve WETH
       await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);

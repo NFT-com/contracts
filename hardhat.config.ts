@@ -35,9 +35,25 @@ if (!mnemonic) {
   throw new Error("Please set your MNEMONIC in a .env file");
 }
 
+// Ensure that we have all the environment variables we need.
+const mainnetPK: string | undefined = process.env.MAINNET_PRIVATE_KEY;
+if (!mainnetPK) {
+  throw new Error("Please set your MAINNET_PRIVATE_KEY in a .env file");
+}
+
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
 if (!infuraApiKey) {
   throw new Error("Please set your INFURA_API_KEY in a .env file");
+}
+
+function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
+  const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
+  return {
+    accounts: [`${mainnetPK}`],
+    chainId: chainIds[network],
+    url,
+    gasPrice: 15000000000,
+  };
 }
 
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
@@ -73,6 +89,7 @@ const config: HardhatUserConfig = {
       },
       chainId: chainIds.hardhat,
     },
+    mainnet: getChainConfigPK("mainnet"),
     goerli: getChainConfig("goerli"),
     kovan: getChainConfig("kovan"),
     rinkeby: getChainConfig("rinkeby"),

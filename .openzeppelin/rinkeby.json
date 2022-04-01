@@ -370,6 +370,21 @@
       "address": "0xbb5fc6e4BdD97B11a1CB41C5EE7DE842744BCC9b",
       "txHash": "0xd3309d7df1e30e7cf61368c003c36c14793f843d532309f2a49e690687cad6e7",
       "kind": "uups"
+    },
+    {
+      "address": "0x0484fC6b62294aAD07d659F805789C96C79ff82D",
+      "txHash": "0x1c238194365a088c0eb0a3f4aa7246ea5fb81d2cd42a33f5de63ec36dfb07215",
+      "kind": "uups"
+    },
+    {
+      "address": "0x2B707CcFB06E498b867B5799dFa81FEceA15A135",
+      "txHash": "0x05e118fef95cc83ad5e1711b8efd0446da403d8fa098b48660e4d18ee989b5e7",
+      "kind": "uups"
+    },
+    {
+      "address": "0xb2e8e382df819AA3EBb29906f613A8609F918e2e",
+      "txHash": "0x4f089b4303a8eaaedff07402bf8bba917e754e1687b82dd5e206757502ba4d54",
+      "kind": "uups"
     }
   ],
   "impls": {
