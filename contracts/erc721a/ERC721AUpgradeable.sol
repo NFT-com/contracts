@@ -19,7 +19,6 @@ error BalanceQueryForZeroAddress();
 error MintToZeroAddress();
 error MintZeroQuantity();
 error OwnerQueryForNonexistentToken();
-error PausedTransfer();
 error TransferCallerNotOwnerNorApproved();
 error TransferFromIncorrectOwner();
 error TransferToNonERC721ReceiverImplementer();
@@ -97,12 +96,6 @@ contract ERC721AUpgradeable is
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
-    // Whitelisted transfer (true / false)
-    mapping(address => bool) public whitelistedTransfer;
-
-    // true transfers are paused
-    bool public pausedTransfer;
-
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
@@ -132,10 +125,6 @@ contract ERC721AUpgradeable is
     function _startTokenId() internal view virtual returns (uint256) {
         return 0;
     }
-
-    function setPausedTransfer(bool paused) public virtual {}
-
-    function setWhitelist(address _address, bool _val) public virtual {}
 
     /**
      * @dev Burned tokens are calculated here, use _totalMinted() if you want to count just minted tokens.
@@ -490,8 +479,6 @@ contract ERC721AUpgradeable is
         address to,
         uint256 tokenId
     ) internal {
-        if (pausedTransfer && !whitelistedTransfer[from]) revert PausedTransfer();
-
         TokenOwnership memory prevOwnership = _ownershipOf(tokenId);
 
         if (prevOwnership.addr != from) revert TransferFromIncorrectOwner();
