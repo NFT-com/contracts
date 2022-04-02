@@ -62,6 +62,8 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
       // only set pause transfer until public sale is over
       await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
+      await deployedGenesisKey.setWhitelist(owner.address, true);
+      await deployedGenesisKey.setWhitelist(second.address, true);
       await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
 
       const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
@@ -136,6 +138,8 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
       NftStake = await ethers.getContractFactory("GenesisNftStake");
       deployedNftGenesisStake = await NftStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
+
+      await deployedGenesisKey.setWhitelist(deployedNftGenesisStake.address, true);
 
       await owner.sendTransaction({ to: addr1.address, value: convertTinyNumber(1) });
 

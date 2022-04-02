@@ -24,11 +24,12 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   const symbol = "NFTKEY";
   const auctionSeconds = "604800"; // seconds in 1 week
   const multiSig = governor;
+  const randomTeamAssignBool = true;
 
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
   const deployedGenesisKey = await hre.upgrades.deployProxy(
     GenesisKey,
-    [name, symbol, wethAddress, multiSig, auctionSeconds],
+    [name, symbol, wethAddress, multiSig, auctionSeconds, randomTeamAssignBool],
     { kind: "uups" },
   );
 
@@ -45,7 +46,6 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
 
   // only set pause transfer until public sale is over
-  await deployedGenesisKey.setPausedTransfer(true); // TODO: remember to unpause this later
   await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
   await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
 

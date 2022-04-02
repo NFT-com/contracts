@@ -18,6 +18,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 // depending on auction participation, there may be less
 // assumes we use WETH as the token of denomination
 
+error PausedTransfer();
+
 contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, IGenesisKey {
     using SafeMathUpgradeable for uint256;
 
@@ -37,6 +39,12 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     uint256 public lastClaimTime; // Last time a key was claimed
     address public gkTeamClaimContract;
     bool public randomClaimBool; // true if random claim is enabled for team
+
+    // Whitelisted transfer (true / false)
+    mapping(address => bool) public whitelistedTransfer;
+
+    // true transfers are paused
+    bool public pausedTransfer;
 
     /* An ECDSA signature. */
     struct Sig {
@@ -83,6 +91,15 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         owner = _owner;
     }
 
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override {
+        if (totalSupply() != 10000 && !whitelistedTransfer[from]) revert PausedTransfer();
+        _transfer(from, to, tokenId);
+    }
+
     function setMultiSig(address _newMS) external onlyOwner {
         multiSig = _newMS;
     }
@@ -95,11 +112,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         publicSaleDurationSeconds = _seconds;
     }
 
-    function setPausedTransfer(bool paused) public override onlyOwner {
-        pausedTransfer = paused;
-    }
-
-    function setWhitelist(address _address, bool _val) public override onlyOwner {
+    function setWhitelist(address _address, bool _val) external onlyOwner {
         whitelistedTransfer[_address] = _val;
     }
 
@@ -309,7 +322,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(msg.sender == multiSig, "GEN_KEY: !AUTH");
         require(remainingTeamAdvisorGrant >= receivers.length);
 
-        remainingTeamAdvisorGrant = remainingTeamAdvisorGrant.sub(receivers.length);
+        remainingTeamAdvisorGrant -= receivers.length;
 
         for (uint256 i = 0; i < receivers.length; i++) {
             _mint(receivers[i], 1, "", false);

@@ -82,8 +82,9 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
 
       // only set pause transfer until public sale is over
-      await deployedGenesisKey.setPausedTransfer(true); // TODO: remember to unpause this later
       await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
+      await deployedGenesisKey.setWhitelist(owner.address, true);
+      await deployedGenesisKey.setWhitelist(second.address, true);
       await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
 
       NftBuyer = await ethers.getContractFactory("NftBuyer");

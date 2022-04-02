@@ -88,6 +88,8 @@ describe("NFT Profile Auction / Minting", function () {
 
       // only set pause transfer until public sale is over
       await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
+      await deployedGenesisKey.setWhitelist(owner.address, true);
+      await deployedGenesisKey.setWhitelist(second.address, true);
       await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
 
       // approve WETH
