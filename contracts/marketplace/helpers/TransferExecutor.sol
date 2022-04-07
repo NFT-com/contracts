@@ -162,7 +162,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 if (royaltyInfo[nftContract].owner != address(0) && royaltyInfo[nftContract].percent != uint256(0)) {
                     // Royalty
                     IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
-                        IERC20Upgradeable(nftContract),
+                        IERC20Upgradeable(token),
                         from,
                         royaltyInfo[nftContract].owner,
                         (value * royaltyInfo[nftContract].percent) / 10000
