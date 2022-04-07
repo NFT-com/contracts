@@ -10,14 +10,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
-// this contract will contain logic related to the initial minting of Genesis Keys
-// the keys will be split into 2 tranches
-// tranch #1 will be a blind auction
-// tranch #2 will be a dutch auction
-// there will only ever be 10,000 genesis keys maximum
-// depending on auction participation, there may be less
-// assumes we use WETH as the token of denomination
-
 error PausedTransfer();
 
 contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, IGenesisKey {
@@ -62,6 +54,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         _;
     }
 
+    // TODO: make sure ipfs hash is set
     function initialize(
         string memory name,
         string memory symbol,

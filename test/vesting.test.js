@@ -28,7 +28,7 @@ describe("NFT Token Staking (Rinkeby)", function () {
       deployedNftToken = await NftToken.deploy();
 
       Vesting = await ethers.getContractFactory("Vesting");
-      deployedVesting = await Vesting.deploy(deployedNftToken.address, multisig);
+      deployedVesting = await hre.upgrades.deployProxy(Vesting, [deployedNftToken.address, multisig], { kind: "uups" });
     });
 
     it("should allow multisig to initialize vesting", async function () {
@@ -138,6 +138,79 @@ describe("NFT Token Staking (Rinkeby)", function () {
         .withArgs(deployedVesting.address, addr1.address, convertNftToken(1000));
 
       expect(await deployedNftToken.balanceOf(deployedVesting.address)).to.be.equal(convertNftToken(0));
+    });
+
+    it("should allow multisig to initialize vesting and claim all easily", async function () {
+      let nftBalance = await deployedNftToken.balanceOf(owner.address);
+      console.log("starting nft balance from multisig: ", Number(nftBalance) / 10 ** 18);
+
+      await expect(deployedVesting.connect(owner).claim(owner.address)).to.be.revertedWith(
+        "Vesting::claim: recipient not initialized",
+      );
+      await expect(
+        deployedVesting.connect(addr1).initializeVesting([owner.address], [1], [0], [0], [0], [Schedule.MONTHLY]),
+      ).to.be.revertedWith("Vesting::onlyMultiSig: Only multisig can call this function");
+
+      await deployedNftToken.approve(deployedVesting.address, convertNftToken(10000000));
+
+      const blockNumBefore = await ethers.provider.getBlockNumber();
+      const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+      const timestampBefore = blockBefore.timestamp;
+
+      const currentTime1 = timestampBefore;
+
+      await expect(
+        deployedVesting
+          .connect(owner)
+          .initializeVesting(
+            [owner.address, addr1.address],
+            [convertNftToken(1000), convertNftToken(1000)],
+            [currentTime1 - 60 * 60, currentTime1 - 60 * 60],
+            [currentTime1 - 60 * 60, currentTime1 - 60 * 60],
+            [currentTime1 + 86400 * 62, currentTime1 + 86400 * 62],
+            [Schedule.MONTHLY, Schedule.MONTHLY],
+          ),
+      )
+        .to.emit(deployedNftToken, "Transfer")
+        .withArgs(owner.address, deployedVesting.address, convertNftToken(2000));
+
+      const blockNumBefore2 = await ethers.provider.getBlockNumber();
+      const blockBefore2 = await ethers.provider.getBlock(blockNumBefore2);
+      const timestampBefore2 = blockBefore2.timestamp;
+
+      const currentTime2 = timestampBefore2;
+
+      await expect(
+        deployedVesting
+          .connect(owner)
+          .initializeVesting(
+            [owner.address],
+            [convertNftToken(1000)],
+            [currentTime2 - 60 * 60],
+            [currentTime2 - 60 * 60],
+            [currentTime2 + 86400 * 62],
+            [Schedule.MONTHLY],
+          ),
+      ).to.be.revertedWith("Vesting::initializeVesting: recipient already initialized");
+
+      await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 31]);
+      await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 45]);
+
+      console.log("nftBalanceVesting 1: ", Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18);
+
+      await deployedVesting.connect(addr2).multiClaim([owner.address, addr1.address]);
+
+      console.log("nftBalanceVesting 2: ", Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18);
+
+      // CLAIM 3
+      await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 62]);
+      await deployedVesting.connect(addr2).multiClaim([owner.address, addr1.address]);
+
+      console.log("nftBalanceVesting 3: ", Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18);
+
+      // CLAIM 4
+      await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 93]);
+      console.log("nftBalanceVesting 4: ", Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18);
     });
   } catch (err) {
     console.log("error: ", err);

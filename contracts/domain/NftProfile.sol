@@ -14,6 +14,7 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     mapping(uint256 => string) internal _tokenURIs;
     mapping(string => uint256) internal _tokenUsedURIs;
+    mapping(string => uint256) internal _expiryTimeline;
 
     uint256 public protocolFee;
     address public profileAuctionContract;
@@ -106,12 +107,43 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
      @notice helper function used to mint profile, set URI, bid details
      @param _receiver the user who bought the profile
      @param _profileURI profile username
+     @param _expiry seconds to add to expiry
     */
-    function createProfile(address _receiver, string memory _profileURI) external override {
+    function createProfile(address _receiver, string memory _profileURI, uint256 _expiry) external override {
         require(msg.sender == profileAuctionContract);
         uint256 preSupply = totalSupply();
         _mint(_receiver, 1, "", false);
         setTokenURI(preSupply, _profileURI);
+        _expiryTimeline[_profileURI] = block.timestamp + _expiry;
+    }
+
+    /**
+     @notice helper function used to extend existing profile registration
+     @param _profileURI profile username
+     @param _duration seconds to add to expiry
+    */
+    function extendRent(string memory _profileURI, uint256 _duration) external override {
+        require(_exists(_tokenUsedURIs[_profileURI]));
+        require(msg.sender == profileAuctionContract);
+        require(_expiryTimeline[_profileURI] >= block.timestamp);
+
+        _expiryTimeline[_profileURI] += _duration;
+    }
+
+    function purchaseExpiredProfile(
+        string memory _profileURI,
+        uint256 _duration,
+        address _receiver
+    ) external override {
+        require(msg.sender == profileAuctionContract);
+        require(_exists(_tokenUsedURIs[_profileURI]));
+        require(_expiryTimeline[_profileURI] < block.timestamp);
+        require(_tokenUsedURIs[_profileURI] != 0);
+
+        _expiryTimeline[_profileURI] = block.timestamp + _duration;
+        uint256 tokenId = _tokenUsedURIs[_profileURI].sub(1);
+
+        _transfer(ERC721AUpgradeable.ownerOf(tokenId), _receiver, tokenId);
     }
 
     /**
