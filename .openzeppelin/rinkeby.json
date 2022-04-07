@@ -16001,6 +16001,262 @@
           }
         }
       }
+    },
+    "8f1f7885eef24d9cf2d4e960cf792191c79d4964baf93fc2ebcfc59bce66e884": {
+      "address": "0x97B3C70a7366146Af1Fa38A962b812b73cDb4897",
+      "txHash": "0x0a7d0dc3e2b97767e4dc7a5eedb6ca64a16e6c1e81ca1c77898f6530a2ccb896",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "Vesting",
+            "label": "nftToken",
+            "type": "t_address",
+            "src": "contracts/governance/vesting.sol:42"
+          },
+          {
+            "contract": "Vesting",
+            "label": "multiSig",
+            "type": "t_address",
+            "src": "contracts/governance/vesting.sol:43"
+          },
+          {
+            "contract": "Vesting",
+            "label": "claimedAmount",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:45"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingAmount",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:46"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingBegin",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:47"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingCliff",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:48"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingEnd",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:49"
+          },
+          {
+            "contract": "Vesting",
+            "label": "lastUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:50"
+          },
+          {
+            "contract": "Vesting",
+            "label": "installment",
+            "type": "t_mapping(t_address,t_enum(VestingInstallments)1224)",
+            "src": "contracts/governance/vesting.sol:51"
+          },
+          {
+            "contract": "Vesting",
+            "label": "initializedVestor",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/governance/vesting.sol:53"
+          },
+          {
+            "contract": "Vesting",
+            "label": "revokedVestor",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/governance/vesting.sol:54"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_enum(VestingInstallments)1224)": {
+            "label": "mapping(address => enum Vesting.VestingInstallments)"
+          },
+          "t_enum(VestingInstallments)1224": {
+            "label": "enum Vesting.VestingInstallments",
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "0bee082c05218c5bf95810699bcf75199300c9eb943a49d747dea8f0c2eac905": {
+      "address": "0x14D1e4BEDcbA9a701c40CbD67E9B6b760cF59F28",
+      "txHash": "0x9fbd0fff413d9702d213c58d60f8fea37dfd6d221c6c809b6c3e80fa99db239a",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "Vesting",
+            "label": "nftToken",
+            "type": "t_address",
+            "src": "contracts/governance/vesting.sol:42"
+          },
+          {
+            "contract": "Vesting",
+            "label": "multiSig",
+            "type": "t_address",
+            "src": "contracts/governance/vesting.sol:43"
+          },
+          {
+            "contract": "Vesting",
+            "label": "claimedAmount",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:45"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingAmount",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:46"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingBegin",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:47"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingCliff",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:48"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingEnd",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:49"
+          },
+          {
+            "contract": "Vesting",
+            "label": "lastUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:50"
+          },
+          {
+            "contract": "Vesting",
+            "label": "installment",
+            "type": "t_mapping(t_address,t_enum(VestingInstallments)13302)",
+            "src": "contracts/governance/vesting.sol:51"
+          },
+          {
+            "contract": "Vesting",
+            "label": "initializedVestor",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/governance/vesting.sol:53"
+          },
+          {
+            "contract": "Vesting",
+            "label": "revokedVestor",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/governance/vesting.sol:54"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_enum(VestingInstallments)13302)": {
+            "label": "mapping(address => enum Vesting.VestingInstallments)"
+          },
+          "t_enum(VestingInstallments)13302": {
+            "label": "enum Vesting.VestingInstallments",
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
     }
   }
 }

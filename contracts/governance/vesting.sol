@@ -167,9 +167,9 @@ contract Vesting is Initializable, UUPSUpgradeable {
         remaining = vestingAmount[recipient].sub(claimedAmount[recipient]);
     }
 
-    function getClaimableBalance(address user) external view returns (uint256) {
-        require(initializedVestor[user], "Vesting::getClaimableBalance: user not initialized");
-        require(!revokedVestor[user], "Vesting::getClaimableBalance: user already revoked");
+    function currentClaim(address user) external view returns (uint256) {
+        require(initializedVestor[user], "Vesting::currentClaim: user not initialized");
+        require(!revokedVestor[user], "Vesting::currentClaim: user already revoked");
 
         if (block.timestamp >= vestingCliff[user]) {
             if (block.timestamp >= vestingEnd[user]) {
@@ -196,9 +196,9 @@ contract Vesting is Initializable, UUPSUpgradeable {
         }
     }
 
-    function getRemainingClaim(address user) external view returns (uint256) {
-        require(initializedVestor[user], "Vesting::getRemainingClaim: user not initialized");
-        require(!revokedVestor[user], "Vesting::getRemainingClaim: user already revoked");
+    function toBeVested(address user) external view returns (uint256) {
+        require(initializedVestor[user], "Vesting::toBeVested: user not initialized");
+        require(!revokedVestor[user], "Vesting::toBeVested: user already revoked");
         return vestingAmount[user].sub(claimedAmount[user]);
     }
 
