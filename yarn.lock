@@ -199,16 +199,6 @@
   dependencies:
     "@cspotcode/source-map-consumer" "0.8.0"
 
-"@endemolshinegroup/cosmiconfig-typescript-loader@^3.0.2":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@endemolshinegroup/cosmiconfig-typescript-loader/-/cosmiconfig-typescript-loader-3.0.2.tgz#eea4635828dde372838b0909693ebd9aafeec22d"
-  integrity sha512-QRVtqJuS1mcT56oHpVegkKBlgtWjXw/gHNWO3eL9oyB5Sc7HBoc2OLG/nYpVfT/Jejvo3NUrD0Udk7XgoyDKkA==
-  dependencies:
-    lodash.get "^4"
-    make-error "^1"
-    ts-node "^9"
-    tslib "^2"
-
 "@ensdomains/ens@^0.4.4":
   "integrity" "sha512-JSvpj1iNMFjK6K+uVl4unqMoa9rf5jopb8cya5UGBWz23Nw8hSNT7efgUx4BTlAPAgpNlEioUfeTyQ6J9ZvTVw=="
   "resolved" "https://registry.npmjs.org/@ensdomains/ens/-/ens-0.4.5.tgz"
@@ -331,7 +321,6 @@
   "resolved" "https://registry.npmjs.org/@ethereumjs/ethash/-/ethash-1.0.0.tgz"
   "version" "1.0.0"
   dependencies:
-    "@ethereumjs/block" "^3.5.0"
     "@types/levelup" "^4.3.0"
     "buffer-xor" "^2.0.1"
     "ethereumjs-util" "^7.0.7"
@@ -817,9 +806,7 @@
   "resolved" "https://registry.npmjs.org/@openzeppelin/hardhat-upgrades/-/hardhat-upgrades-1.10.0.tgz"
   "version" "1.10.0"
   dependencies:
-    "@openzeppelin/upgrades-core" "^1.13.1"
-    chalk "^4.1.0"
-    proper-lockfile "^4.1.1"
+    "@openzeppelin/upgrades-core" "^1.9.0"
 
 "@openzeppelin/upgrades-core@^1.9.0":
   "integrity" "sha512-dd2VhRItfMSUOJwhXh1OUR/74LqbVhmkCSShfqf9OjFJAJbMuWdbEi2Fy2SxLvMGwdzrpbjtlB74KI5y+YT2RA=="
@@ -1230,12 +1217,7 @@
   "resolved" "https://registry.npmjs.org/@types/sinon/-/sinon-10.0.2.tgz"
   "version" "10.0.2"
   dependencies:
-    "@types/sinonjs__fake-timers" "*"
-
-"@types/sinonjs__fake-timers@*":
-  version "8.1.1"
-  resolved "https://registry.yarnpkg.com/@types/sinonjs__fake-timers/-/sinonjs__fake-timers-8.1.1.tgz#b49c2c70150141a15e0fa7e79cf1f92a72934ce3"
-  integrity sha512-0kSuKjAS0TrGLJ0M/+8MaFkGsQhZpB6pxOmvS3K8FYI72K//YmdfoW9X2qPsAKh1mkwxGD5zib9s1FIFed6E8g==
+    "@sinonjs/fake-timers" "^7.1.0"
 
 "@types/underscore@*":
   "integrity" "sha512-Fl1TX1dapfXyDqFg2ic9M+vlXRktcPJrc4PR7sRc7sdVrjavg/JHlbUXBt8qWWqhJrmSqg3RNAkAPRiOYw6Ahw=="
@@ -1290,8 +1272,8 @@
   "resolved" "https://registry.npmjs.org/@typescript-eslint/scope-manager/-/scope-manager-4.29.3.tgz"
   "version" "4.29.3"
   dependencies:
-    "@typescript-eslint/types" "4.33.0"
-    "@typescript-eslint/visitor-keys" "4.33.0"
+    "@typescript-eslint/types" "4.29.3"
+    "@typescript-eslint/visitor-keys" "4.29.3"
 
 "@typescript-eslint/types@4.29.3":
   "integrity" "sha512-s1eV1lKNgoIYLAl1JUba8NhULmf+jOmmeFO1G5MN/RBCyyzg4TIOfIOICVNC06lor+Xmy4FypIIhFiJXOknhIg=="
@@ -5784,9 +5766,8 @@
     "@ethereumjs/tx" "^3.3.0"
     "@ethereumjs/vm" "^5.5.2"
     "@ethersproject/abi" "^5.1.2"
-    "@metamask/eth-sig-util" "^4.0.0"
     "@sentry/node" "^5.18.1"
-    "@solidity-parser/parser" "^0.14.1"
+    "@solidity-parser/parser" "^0.14.0"
     "@types/bn.js" "^5.1.0"
     "@types/lru-cache" "^5.1.0"
     "abort-controller" "^3.0.0"
@@ -10582,7 +10563,7 @@
   "resolved" "https://registry.npmjs.org/ts-node/-/ts-node-10.2.1.tgz"
   "version" "10.2.1"
   dependencies:
-    "@cspotcode/source-map-support" "0.7.0"
+    "@cspotcode/source-map-support" "0.6.1"
     "@tsconfig/node10" "^1.0.7"
     "@tsconfig/node12" "^1.0.7"
     "@tsconfig/node14" "^1.0.0"
@@ -11081,6 +11062,7 @@
   "resolved" "https://registry.npmjs.org/web3-core-method/-/web3-core-method-1.6.0.tgz"
   "version" "1.6.0"
   dependencies:
+    "@ethereumjs/common" "^2.4.0"
     "@ethersproject/transactions" "^5.0.0-beta.135"
     "web3-core-helpers" "1.6.0"
     "web3-core-promievent" "1.6.0"
