@@ -6062,11 +6062,6 @@
       "kind": "uups"
     },
     {
-      "address": "0x43e6465C8692a82AFEF8569211042919dF6bcBd5",
-      "txHash": "0x017e416569ee14620683b9507082f1948f7299dda91c31d6fc9733be1d6e013c",
-      "kind": "uups"
-    },
-    {
       "address": "0x103B545E0D075AD69a44f1D245c25671Ace2426B",
       "txHash": "0xd518d3d40e9a604bcda2e217067a84ead64603c56ac900fbb11d5c64ac94427b",
       "kind": "uups"
@@ -6229,11 +6224,6 @@
     {
       "address": "0xE197428a3aB9E011ff99cD9d9D4c5Ea5D8f51f49",
       "txHash": "0xef7e102381c48012f66ae68537eab4f05bd2c4825174cee28b207c4468655e98",
-      "kind": "uups"
-    },
-    {
-      "address": "0x4ab699B737c64958525172579D5411C4b2C343E7",
-      "txHash": "0x2c85959fb93dcb450320c78f9639bbbf71224f078f894145f88f2c6b8359e0e3",
       "kind": "uups"
     },
     {
@@ -9939,6 +9929,16 @@
     {
       "address": "0x262652fC980340bD40b0eae537913ED7c5A8E474",
       "txHash": "0xe529ce3cf3713746a7602b0b69049361a64012ede638c0b69c6d6be660602082",
+      "kind": "uups"
+    },
+    {
+      "address": "0x43e6465C8692a82AFEF8569211042919dF6bcBd5",
+      "txHash": "0xf8028189d6f8b1dfdb77eef0964e4bfb606c353e41e6fb72c56432a1c89140e5",
+      "kind": "uups"
+    },
+    {
+      "address": "0x4ab699B737c64958525172579D5411C4b2C343E7",
+      "txHash": "0x4ef4b198da95018c25af817280c1ee9842b9f1f6069fff33340472235b7a70c0",
       "kind": "uups"
     }
   ],
@@ -36438,6 +36438,134 @@
             "label": "revokedVestor",
             "type": "t_mapping(t_address,t_bool)",
             "src": "contracts/governance/vesting.sol:44"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_enum(VestingInstallments)13302)": {
+            "label": "mapping(address => enum Vesting.VestingInstallments)"
+          },
+          "t_enum(VestingInstallments)13302": {
+            "label": "enum Vesting.VestingInstallments",
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "669087e702ebfd55864066bdc2bc4d908145c40ec1728b0752d0aa9d5d613374": {
+      "address": "0xd20Cb8c25E5A738f559DF29f64B6E2DD408e44C2",
+      "txHash": "0x56d6f5edf4679377d3c5badf831e86721d3329ee0f40473075bdfa0cc8b7c206",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "Vesting",
+            "label": "nftToken",
+            "type": "t_address",
+            "src": "contracts/governance/vesting.sol:42"
+          },
+          {
+            "contract": "Vesting",
+            "label": "multiSig",
+            "type": "t_address",
+            "src": "contracts/governance/vesting.sol:43"
+          },
+          {
+            "contract": "Vesting",
+            "label": "claimedAmount",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:45"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingAmount",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:46"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingBegin",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:47"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingCliff",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:48"
+          },
+          {
+            "contract": "Vesting",
+            "label": "vestingEnd",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:49"
+          },
+          {
+            "contract": "Vesting",
+            "label": "lastUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/governance/vesting.sol:50"
+          },
+          {
+            "contract": "Vesting",
+            "label": "installment",
+            "type": "t_mapping(t_address,t_enum(VestingInstallments)13302)",
+            "src": "contracts/governance/vesting.sol:51"
+          },
+          {
+            "contract": "Vesting",
+            "label": "initializedVestor",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/governance/vesting.sol:53"
+          },
+          {
+            "contract": "Vesting",
+            "label": "revokedVestor",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "contracts/governance/vesting.sol:54"
           }
         ],
         "types": {
