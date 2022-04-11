@@ -429,3 +429,8 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   const upgradedGenesisKey = await hre.upgrades.upgradeProxy(deployedGenesisKeyAddress, GenesisKey);
   console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 });
+
+// TODO: script for gnosis upgrade
+// console.log("Preparing upgrade...");
+// const boxV2Address = await hre.upgrades.prepareUpgrade(proxyAddress, BoxV2);
+// console.log("BoxV2 at:", boxV2Address);

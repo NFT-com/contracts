@@ -151,13 +151,13 @@ contract Vesting is Initializable, UUPSUpgradeable {
                 uint256 tokensPerMonth = vestingAmount[recipient].div(totalMonths);
                 amount = tokensPerMonth.mul(elapsedMonths);
                 lastUpdate[recipient] += elapsedMonths * MONTH_SECONDS;
-            } else {
+            } else if (vInstallment == VestingInstallments.QUARTERLY) {
                 uint256 elapsedQuarters = (block.timestamp - lastUpdate[recipient]).div(QUARTER_SECONDS);
                 uint256 totalQuarters = (vestingEnd[recipient] - vestingBegin[recipient]).div(QUARTER_SECONDS);
 
                 uint256 tokensPerQuarter = vestingAmount[recipient].div(totalQuarters);
                 amount = tokensPerQuarter.mul(elapsedQuarters);
-                lastUpdate[recipient] += elapsedQuarters * MONTH_SECONDS;
+                lastUpdate[recipient] += elapsedQuarters * QUARTER_SECONDS;
             }
         }
         claimedAmount[recipient] += amount;
