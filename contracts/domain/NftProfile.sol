@@ -69,7 +69,7 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         _transfer(ERC721AUpgradeable.ownerOf(tokenId), _to, tokenId);
     }
 
-    function profileOwner(string memory _string) external view returns (address) {
+    function profileOwner(string memory _string) external view override returns (address) {
         return ownerOf(_tokenUsedURIs[_string].sub(1));
     }
 
@@ -107,14 +107,19 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
      @notice helper function used to mint profile, set URI, bid details
      @param _receiver the user who bought the profile
      @param _profileURI profile username
-     @param _expiry seconds to add to expiry
+     @param _duration seconds to add to expiry
     */
-    function createProfile(address _receiver, string memory _profileURI, uint256 _expiry) external override {
+    function createProfile(
+        address _receiver,
+        string memory _profileURI,
+        uint256 _duration
+    ) external override {
         require(msg.sender == profileAuctionContract);
         uint256 preSupply = totalSupply();
         _mint(_receiver, 1, "", false);
         setTokenURI(preSupply, _profileURI);
-        _expiryTimeline[_profileURI] = block.timestamp + _expiry;
+        _expiryTimeline[_profileURI] = block.timestamp + _duration;
+        emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
     }
 
     /**
@@ -122,12 +127,19 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
      @param _profileURI profile username
      @param _duration seconds to add to expiry
     */
-    function extendRent(string memory _profileURI, uint256 _duration) external override {
+    function extendRent(
+        string memory _profileURI,
+        uint256 _duration,
+        address renter
+    ) external override {
         require(_exists(_tokenUsedURIs[_profileURI]));
         require(msg.sender == profileAuctionContract);
         require(_expiryTimeline[_profileURI] >= block.timestamp);
+        uint256 tokenId = _tokenUsedURIs[_profileURI].sub(1);
+        require(ownerOf(tokenId) == renter);
 
         _expiryTimeline[_profileURI] += _duration;
+        emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
     }
 
     function purchaseExpiredProfile(
@@ -139,11 +151,14 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(_exists(_tokenUsedURIs[_profileURI]));
         require(_expiryTimeline[_profileURI] < block.timestamp);
         require(_tokenUsedURIs[_profileURI] != 0);
+        uint256 tokenId = _tokenUsedURIs[_profileURI].sub(1);
+        require(ownerOf(tokenId) != _receiver);
 
         _expiryTimeline[_profileURI] = block.timestamp + _duration;
-        uint256 tokenId = _tokenUsedURIs[_profileURI].sub(1);
 
         _transfer(ERC721AUpgradeable.ownerOf(tokenId), _receiver, tokenId);
+
+        emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
     }
 
     /**

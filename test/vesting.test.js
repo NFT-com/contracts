@@ -213,21 +213,33 @@ describe("NFT Token Staking (Rinkeby)", function () {
       await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 31]);
       await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 45]);
 
-      console.log("nftBalanceVesting 1: ", Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18);
+      console.log(
+        "nftBalanceVesting 1: ",
+        Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18,
+      );
 
       await deployedVesting.connect(addr2).multiClaim([owner.address, addr1.address]);
 
-      console.log("nftBalanceVesting 2: ", Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18);
+      console.log(
+        "nftBalanceVesting 2: ",
+        Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18,
+      );
 
       // CLAIM 3
       await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 62]);
       await deployedVesting.connect(addr2).multiClaim([owner.address, addr1.address]);
 
-      console.log("nftBalanceVesting 3: ", Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18);
+      console.log(
+        "nftBalanceVesting 3: ",
+        Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18,
+      );
 
       // CLAIM 4
       await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 93]);
-      console.log("nftBalanceVesting 4: ", Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18);
+      console.log(
+        "nftBalanceVesting 4: ",
+        Number(await deployedNftToken.balanceOf(deployedVesting.address)) / 10 ** 18,
+      );
     });
   } catch (err) {
     console.log("error: ", err);
