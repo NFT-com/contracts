@@ -74,7 +74,12 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         emit NonceIncremented(msg.sender, newNonce);
     }
 
-    function orderApproved(bytes32 hash) public view returns (bool approved) {
+    function orderApproved(
+        LibSignature.Order calldata order
+    ) public view returns (bool approved) {
+        require(order.salt != 0);
+        bytes32 hash = LibSignature.getStructHash(order, nonces[order.maker]);
+
         return _approvedOrdersByNonce[hash] != 0 && !cancelledOrFinalized[hash];
     }
 
@@ -140,6 +145,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     function cancel(LibSignature.Order calldata order) external nonReentrant {
         require(msg.sender == order.maker);
         require(order.salt != 0);
+
         bytes32 hash = LibSignature.getStructHash(order, nonces[order.maker]);
         cancelledOrFinalized[hash] = true;
         emit Cancel(hash, msg.sender);
