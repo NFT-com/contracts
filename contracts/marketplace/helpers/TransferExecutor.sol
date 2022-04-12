@@ -138,10 +138,13 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         LibAsset.Asset[] memory optionalNftAssets
     ) internal override {
         require(nftBuyContract != address(0));
+        require(to != address(0) && from != address(0));
         uint256 value;
 
         if (auctionType == LibSignature.AuctionType.Decreasing && from == msg.sender) value = decreasingPriceValue;
         else (value, ) = abi.decode(asset.data, (uint256, uint256));
+
+        require(value != 0);
 
         if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
             transferEth(to, value, validRoyalty, optionalNftAssets);
