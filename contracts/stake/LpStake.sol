@@ -205,6 +205,7 @@ contract LpStake is ReentrancyGuard, Ownable {
         uint256 amount,
         address to
     ) external nonReentrant {
+        require(to != address(0x0));
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][to];
 
@@ -227,6 +228,7 @@ contract LpStake is ReentrancyGuard, Ownable {
         uint256 amount,
         address to
     ) external nonReentrant {
+        require(to != address(0x0));
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][msg.sender];
 

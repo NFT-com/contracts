@@ -102,9 +102,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 // Royalty
                 royalty = (value * royaltyInfo[nftRoyalty].percent) / 10000;
 
-                (bool success3, ) = royaltyInfo[nftRoyalty].owner.call{
-                    value: royalty
-                }("");
+                (bool success3, ) = royaltyInfo[nftRoyalty].owner.call{ value: royalty }("");
                 require(success3, "te !rty");
             }
         }
@@ -169,7 +167,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
             }
 
             uint256 feePercent = token == nftToken ? protocolFee / 2 : protocolFee;
-            uint256 fee = (value - royalty) * feePercent / 10000;
+            uint256 fee = ((value - royalty) * feePercent) / 10000;
 
             // ERC20 Fee
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
