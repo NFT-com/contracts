@@ -119,7 +119,7 @@ describe("NFT.com Marketplace", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds],
+        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds, "ipfs//"],
         { kind: "uups" },
       );
 

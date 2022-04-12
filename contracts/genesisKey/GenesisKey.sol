@@ -63,7 +63,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         string memory baseURI
     ) public initializer {
         __ReentrancyGuard_init();
-        __ERC721AUpgradeable_init(name, symbol, baseURI);
+        __ERC721A_init(name, symbol, baseURI);
         __UUPSUpgradeable_init();
 
         wethAddress = _wethAddress;

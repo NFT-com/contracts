@@ -28,10 +28,11 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     function initialize(
         string memory name,
         string memory symbol,
-        address _nftErc20Contract
+        address _nftErc20Contract,
+        string memory baseURI
     ) public initializer {
         __ReentrancyGuard_init();
-        __ERC721AUpgradeable_init(name, symbol, "https://api.nft.com/uri/");
+        __ERC721A_init(name, symbol, baseURI);
         __UUPSUpgradeable_init();
         protocolFee = 200; // 2% fee
 
