@@ -3,12 +3,11 @@ import chalk from "chalk";
 import fs from "fs";
 import delay from "delay";
 import { parseBalanceMap } from "../../test/utils/parse-balance-map";
-import { getImplementationAddress } from '@openzeppelin/upgrades-core';
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const network = "rinkeby";
-const governor = network === "rinkeby" ? 
-  "0x59495589849423692778a8c5aaCA62CA80f875a4" :
-  "0x19942318a866606e1CC652644186A4e1f9c34277";
+const governor =
+  network === "rinkeby" ? "0x59495589849423692778a8c5aaCA62CA80f875a4" : "0x19942318a866606e1CC652644186A4e1f9c34277";
 const wethAddress =
   network === "rinkeby" ? "0xc778417e063141139fce010982780140aa0cd5ab" : "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const usdcAddress =
@@ -26,7 +25,7 @@ const verifyContract = async (name: string, address: string, args: Array<string>
   } catch (err) {
     console.log(chalk.red(`verification failed: ${err}`));
   }
-}
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getImplementation = async (name: string, proxyAddress: string, hre: any): Promise<string> => {
@@ -37,10 +36,10 @@ const getImplementation = async (name: string, proxyAddress: string, hre: any): 
 
     return currentImplAddress;
   } catch (err) {
-    console.log('error while getting implementation address:', err);
-    return 'error'
+    console.log("error while getting implementation address:", err);
+    return "error";
   }
-}
+};
 
 // TASKS ============================================================
 
@@ -59,7 +58,9 @@ const deployedNftTokenAddress = "0x5732b2D8643c94128700a00D6A2398117548041f";
 
 task("deploy:0b").setAction(async function (taskArguments, hre) {
   const Vesting = await hre.ethers.getContractFactory("Vesting");
-  const deployedVesting = await hre.upgrades.deployProxy(Vesting, [deployedNftTokenAddress, governor], { kind: "uups" });
+  const deployedVesting = await hre.upgrades.deployProxy(Vesting, [deployedNftTokenAddress, governor], {
+    kind: "uups",
+  });
   console.log(chalk.green(`deployedVesting: ${deployedVesting.address}`));
 
   console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
@@ -106,9 +107,12 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
   await delay(TIME_DELAY);
   console.log(chalk.green("verifying..."));
-  await verifyContract("deployedGkTeamDistributor", deployedGkTeamDistributor.address, [
-    deployedGenesisKeyTeamClaim.address
-  ], hre);
+  await verifyContract(
+    "deployedGkTeamDistributor",
+    deployedGkTeamDistributor.address,
+    [deployedGenesisKeyTeamClaim.address],
+    hre,
+  );
   await getImplementation("deployedGenesisKey", deployedGenesisKey.address, hre);
   await getImplementation("deployedGenesisKeyTeamClaim", deployedGenesisKeyTeamClaim.address, hre);
 });
@@ -189,11 +193,12 @@ task("deploy:1c").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
   await delay(TIME_DELAY);
   console.log(chalk.green("verifying..."));
-  await verifyContract("deployedGenesisKeyDistributor", deployedGenesisKeyDistributor.address, [
-    deployedGenesisKeyAddress,
-    merkleRoot,
-    wethMin.toString(),
-  ], hre);
+  await verifyContract(
+    "deployedGenesisKeyDistributor",
+    deployedGenesisKeyDistributor.address,
+    [deployedGenesisKeyAddress, merkleRoot, wethMin.toString()],
+    hre,
+  );
 });
 
 // STEP 2 deploy:NFT.com
@@ -257,20 +262,22 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
   // VERIFICATION =====================================================================================
   console.log(chalk.green(`delaying 10 seconds...`));
   await delay(TIME_DELAY);
-  await verifyContract("deployedNftGenesisStake", deployedNftGenesisStake.address, [
-    deployedNftToken.address,
-    deployedGenesisKeyAddress
-  ], hre);
+  await verifyContract(
+    "deployedNftGenesisStake",
+    deployedNftGenesisStake.address,
+    [deployedNftToken.address, deployedGenesisKeyAddress],
+    hre,
+  );
   await verifyContract("deployedNftProfileHelper", deployedNftProfileHelper.address, [], hre);
 
   await getImplementation("deployedNftProfileProxy", deployedNftProfileProxy.address, hre);
 
-  await verifyContract("deployedNftBuyer", deployedNftBuyer.address, [
-    UNI_V2_FACTORY,
-    deployedNftGenesisStake.address,
-    deployedNftToken.address,
-    wethAddress,
-  ], hre);
+  await verifyContract(
+    "deployedNftBuyer",
+    deployedNftBuyer.address,
+    [UNI_V2_FACTORY, deployedNftGenesisStake.address, deployedNftToken.address, wethAddress],
+    hre,
+  );
 
   await getImplementation("deployedProfileAuction", deployedProfileAuction.address, hre);
 });
@@ -343,7 +350,6 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
   await getImplementation("deployedValidationLogic", deployedValidationLogic.address, hre);
   await getImplementation("deployedMarketplaceEvent", deployedMarketplaceEvent.address, hre);
   await getImplementation("deployedNftMarketplace", deployedNftMarketplace.address, hre);
-
 });
 
 // STEP 4 Airdrop (wait until ready)
@@ -369,9 +375,7 @@ task("deploy:4").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
   await delay(TIME_DELAY);
   console.log(chalk.green("verifying..."));
-  await verifyContract("deployedNftTokenAirdrop", deployedNftTokenAirdrop.address, [
-    nftToken, merkleRoot
-  ], hre);
+  await verifyContract("deployedNftTokenAirdrop", deployedNftTokenAirdrop.address, [nftToken, merkleRoot], hre);
 });
 
 // UPGRADES ============================================================================================
@@ -410,17 +414,14 @@ task("upgrade:Vesting").setAction(async function (taskArguments, hre) {
   const Vesting = await hre.ethers.getContractFactory("Vesting");
   const vestingAddress = "0x058069538D35B3037bA373b3CAb9adc8e2388AdF";
 
-  const upgradedVesting = await hre.upgrades.upgradeProxy(
-    vestingAddress,
-    Vesting,
-  );
+  const upgradedVesting = await hre.upgrades.upgradeProxy(vestingAddress, Vesting);
   console.log(chalk.green("upgraded vesting: ", upgradedVesting.address));
 
   console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
   await delay(TIME_DELAY);
   console.log(chalk.green("verifying..."));
   await getImplementation("deployedVesting", vestingAddress, hre);
-})
+});
 
 task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));

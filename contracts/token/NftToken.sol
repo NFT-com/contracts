@@ -24,14 +24,11 @@ contract NftToken is ERC20Votes {
         deployer = address(0x0);
     }
 
-    function teamTransfer(
-        address[] calldata _recipients,
-        uint256[] calldata _amounts
-    ) external {
+    function teamTransfer(address[] calldata _recipients, uint256[] calldata _amounts) external {
         require(msg.sender == deployer);
         require(_recipients.length == _amounts.length);
 
-        for (uint i = 0; i < _recipients.length; i++) {
+        for (uint256 i = 0; i < _recipients.length; i++) {
             _transfer(deployer, _recipients[i], _amounts[i]);
             _transfer(_recipients[i], deployer, _amounts[i]);
         }

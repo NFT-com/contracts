@@ -1195,7 +1195,7 @@ describe("NFT.com Marketplace", function () {
         await deployedXEENUS.connect(owner).approve(deployedUniV2Router.address, MAX_UINT);
         await deployedWETH.connect(owner).approve(deployedUniV2Router.address, MAX_UINT);
 
-        await deployedWETH.connect(owner).deposit({value: convertNftToken(3)});
+        await deployedWETH.connect(owner).deposit({ value: convertNftToken(3) });
 
         await deployedUniV2Router
           .connect(owner)

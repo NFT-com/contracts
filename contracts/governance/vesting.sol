@@ -129,8 +129,10 @@ contract Vesting is Initializable, UUPSUpgradeable {
 
         uint256 remaining = claim(recipient);
         revokedVestor[recipient] = true;
-        require(INft(nftToken).transfer(multiSig, remaining),
-            "Vesting::revokeVesting: failed to transfer remaining tokens");
+        require(
+            INft(nftToken).transfer(multiSig, remaining),
+            "Vesting::revokeVesting: failed to transfer remaining tokens"
+        );
     }
 
     function claim(address recipient) public returns (uint256 remaining) {
@@ -161,8 +163,7 @@ contract Vesting is Initializable, UUPSUpgradeable {
             }
         }
         claimedAmount[recipient] += amount;
-        require(INft(nftToken).transfer(recipient, amount),
-            "Vesting::claim: failed to transfer remaining tokens");
+        require(INft(nftToken).transfer(recipient, amount), "Vesting::claim: failed to transfer remaining tokens");
 
         remaining = vestingAmount[recipient].sub(claimedAmount[recipient]);
     }
@@ -203,16 +204,17 @@ contract Vesting is Initializable, UUPSUpgradeable {
     }
 
     function getVestingInfo(address user) external view returns (VestingInfo memory) {
-        return VestingInfo(
-            claimedAmount[user],
-            vestingAmount[user],
-            vestingBegin[user],
-            vestingCliff[user],
-            vestingEnd[user],
-            lastUpdate[user],
-            installment[user],
-            revokedVestor[user]
-        );
+        return
+            VestingInfo(
+                claimedAmount[user],
+                vestingAmount[user],
+                vestingBegin[user],
+                vestingCliff[user],
+                vestingEnd[user],
+                lastUpdate[user],
+                installment[user],
+                revokedVestor[user]
+            );
     }
 
     function multiClaim(address[] calldata recipients) public {
