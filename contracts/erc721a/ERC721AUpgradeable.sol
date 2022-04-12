@@ -10,6 +10,7 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 error ApprovalCallerNotOwnerNorApproved();
 error ApprovalQueryForNonexistentToken();
@@ -96,19 +97,17 @@ contract ERC721AUpgradeable is
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
-    /**
-     * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
-     */
-    function __ERC721AUpgradeable_init(
+    function __ERC721A_init(
         string memory name_,
         string memory symbol_,
         string memory defaultBaseURI_
     ) internal initializer {
-        __ERC721AUpgradeable_init_unchained(name_, symbol_, defaultBaseURI_);
-        defaultBaseURI = defaultBaseURI_;
+        __Context_init_unchained();
+        __ERC165_init_unchained();
+        __ERC721A_init_unchained(name_, symbol_, defaultBaseURI_);
     }
 
-    function __ERC721AUpgradeable_init_unchained(
+    function __ERC721A_init_unchained(
         string memory name_,
         string memory symbol_,
         string memory defaultBaseURI_
@@ -201,6 +200,30 @@ contract ERC721AUpgradeable is
         _addressData[owner].aux = aux;
     }
 
+    // returns owners from [startIndex, endIndex] inclusive
+    function multiOwnerOf(uint256 startIndex, uint256 endIndex) external view returns (address[] memory) {
+        require(startIndex <= endIndex);
+        address[] memory addrBalances = new address[](endIndex - startIndex + 1);
+
+        for (uint256 i = 0; i <= endIndex - startIndex; i++) {
+            addrBalances[i] = ownerOf(startIndex + i);
+        }
+
+        return addrBalances;
+    }
+
+    function tokenIdsOwned(address user) external view returns (bool[] memory) {
+        bool[] memory tokenIdUser = new bool[](totalSupply() + _startTokenId());
+
+        for (uint256 i = 0; i < totalSupply(); i++) {
+            if (ownerOf(i + _startTokenId()) == user) {
+                tokenIdUser[i + _startTokenId()] = true;
+            }
+        }
+
+        return tokenIdUser;
+    }
+
     /**
      * Gas spent here starts off proportional to the maximum mint batch size.
      * It gradually moves to O(1) as tokens get transferred around in the collection over time.
@@ -251,30 +274,6 @@ contract ERC721AUpgradeable is
      */
     function symbol() public view virtual override returns (string memory) {
         return _symbol;
-    }
-
-    // returns owners from [startIndex, endIndex] inclusive
-    function multiOwnerOf(uint256 startIndex, uint256 endIndex) external view returns (address[] memory) {
-        require(startIndex <= endIndex);
-        address[] memory addrBalances = new address[](endIndex - startIndex + 1);
-
-        for (uint256 i = 0; i <= endIndex - startIndex; i++) {
-            addrBalances[i] = ownerOf(startIndex + i);
-        }
-
-        return addrBalances;
-    }
-
-    function tokenIdsOwned(address user) external view returns (bool[] memory) {
-        bool[] memory tokenIdUser = new bool[](totalSupply() + _startTokenId());
-
-        for (uint256 i = 0; i < totalSupply(); i++) {
-            if (ownerOf(i + _startTokenId()) == user) {
-                tokenIdUser[i + _startTokenId()] = true;
-            }
-        }
-
-        return tokenIdUser;
     }
 
     /**
@@ -491,8 +490,8 @@ contract ERC721AUpgradeable is
         // Clear approvals from the previous owner
         _approve(address(0), tokenId, from);
 
-        // Underflow of the sender"s balance is impossible because we check for
-        // ownership above and the recipient"s balance can"t realistically overflow.
+        // Underflow of the sender's balance is impossible because we check for
+        // ownership above and the recipient's balance can't realistically overflow.
         // Counter overflow is incredibly unrealistic as tokenId would have to be 2**256.
         unchecked {
             _addressData[from].balance -= 1;
@@ -555,8 +554,8 @@ contract ERC721AUpgradeable is
         // Clear approvals from the previous owner
         _approve(address(0), tokenId, from);
 
-        // Underflow of the sender"s balance is impossible because we check for
-        // ownership above and the recipient"s balance can"t realistically overflow.
+        // Underflow of the sender's balance is impossible because we check for
+        // ownership above and the recipient's balance can't realistically overflow.
         // Counter overflow is incredibly unrealistic as tokenId would have to be 2**256.
         unchecked {
             AddressData storage addressData = _addressData[from];
@@ -645,7 +644,7 @@ contract ERC721AUpgradeable is
      *
      * Calling conditions:
      *
-     * - When `from` and `to` are both non-zero, `from`"s `tokenId` will be
+     * - When `from` and `to` are both non-zero, `from`'s `tokenId` will be
      * transferred to `to`.
      * - When `from` is zero, `tokenId` will be minted for `to`.
      * - When `to` is zero, `tokenId` will be burned by `from`.
@@ -668,7 +667,7 @@ contract ERC721AUpgradeable is
      *
      * Calling conditions:
      *
-     * - When `from` and `to` are both non-zero, `from`"s `tokenId` has been
+     * - When `from` and `to` are both non-zero, `from`'s `tokenId` has been
      * transferred to `to`.
      * - When `from` is zero, `tokenId` has been minted for `to`.
      * - When `to` is zero, `tokenId` has been burned by `from`.
@@ -681,5 +680,10 @@ contract ERC721AUpgradeable is
         uint256 quantity
     ) internal virtual {}
 
-    uint256[44] private __gap;
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[42] private __gap;
 }
