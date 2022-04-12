@@ -5,6 +5,9 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 
 interface INftTransferProxy {
+    event AddOperator(address operator);
+    event RemoveOperator(address operator);
+
     function erc721safeTransferFrom(
         IERC721Upgradeable token,
         address from,

@@ -28,10 +28,12 @@ contract CryptoKittyTransferProxy is ITransferProxy, Initializable, UUPSUpgradea
 
     function addOperator(address operator) external onlyOwner {
         operators[operator] = true;
+        emit AddOperator(operator);
     }
 
     function removeOperator(address operator) external onlyOwner {
         operators[operator] = false;
+        emit RemoveOperator(operator);
     }
 
     modifier onlyOperator() {

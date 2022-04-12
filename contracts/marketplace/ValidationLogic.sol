@@ -136,7 +136,10 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
 
         // must be selling something and make and take must match
         require(
-            sellOrder.makeAssets.length != 0 && buyOrder.takeAssets.length == sellOrder.makeAssets.length,
+            (sellOrder.makeAssets.length != 0 && buyOrder.takeAssets.length == sellOrder.makeAssets.length) ||
+                ((sellOrder.taker == address(0)) &&
+                    (buyOrder.taker == address(0)) &&
+                    (buyOrder.makeAssets.length == sellOrder.makeAssets.length)),
             "vm assets > 0"
         );
 

@@ -25,10 +25,12 @@ contract ERC20TransferProxy is IERC20TransferProxy, Initializable, UUPSUpgradeab
 
     function addOperator(address operator) external onlyOwner {
         operators[operator] = true;
+        emit AddOperator(operator);
     }
 
     function removeOperator(address operator) external onlyOwner {
         operators[operator] = false;
+        emit RemoveOperator(operator);
     }
 
     modifier onlyOperator() {

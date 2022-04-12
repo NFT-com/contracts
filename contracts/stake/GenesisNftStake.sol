@@ -15,6 +15,8 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
     mapping(uint256 => address) public stakedKeys; // maps tokenId => address
     mapping(address => uint256) public stakedAddress; // maps address => number of keys staked
 
+    event NewStakedKey(uint256 indexed tokenId, address indexed staker, uint256 totalStakedKeys);
+
     constructor(address _nftToken, address _nftKeyGenesis)
         ERC20Permit("Staked NFT.com Genesis Key")
         ERC20("Staked NFT.com Genesis Key", "xNFTKEY")
@@ -66,6 +68,8 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
             // assigned key to msg.sender
             stakedKeys[_tokenId] = msg.sender;
             stakedAddress[msg.sender] += 1;
+
+            emit NewStakedKey(_tokenId, msg.sender, stakedAddress[msg.sender]);
         }
 
         // effects
@@ -99,7 +103,7 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
 
     function leave(uint256 _xNftAmount, uint256 _tokenId) public nonReentrant {
         require(stakedKeys[_tokenId] == msg.sender, "!GEN_KEY");
-        require(stakedAddress[msg.sender] != 0, "GEN_KEY != 0");
+        require(stakedAddress[msg.sender] != 0, "GEN_KEY > 0");
 
         // reset assignment
         stakedKeys[_tokenId] = address(0x0);

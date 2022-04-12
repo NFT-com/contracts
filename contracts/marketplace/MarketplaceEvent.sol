@@ -18,6 +18,7 @@ contract MarketplaceEvent is Initializable, UUPSUpgradeable, OwnableUpgradeable,
 
     function setMarketPlace(address _marketPlace) external onlyOwner {
         marketPlace = _marketPlace;
+        emit SetMarketplace(_marketPlace);
     }
 
     function emitExecuteSwap(
