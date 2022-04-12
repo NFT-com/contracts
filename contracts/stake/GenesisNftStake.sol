@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     address public nftToken;
     address public nftKeyGenesis;
     mapping(uint256 => address) public stakedKeys; // maps tokenId => address
@@ -56,9 +59,9 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
 
         // no stake yet
         if (stakedKeys[_tokenId] != msg.sender) {
-            require(IERC721Upgradeable(nftKeyGenesis).ownerOf(_tokenId) == msg.sender, "!GEN_KEY");
-
-            IERC721Upgradeable(nftKeyGenesis).transferFrom(msg.sender, address(this), _tokenId);
+            require(IERC721(nftKeyGenesis).ownerOf(_tokenId) == msg.sender, "!GK1");
+            
+            IERC721(nftKeyGenesis).transferFrom(msg.sender, address(this), _tokenId);
 
             // assigned key to msg.sender
             stakedKeys[_tokenId] = msg.sender;
@@ -106,6 +109,6 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
         uint256 nftAmount = (_xNftAmount * (IERC20(nftToken).balanceOf(address(this)))) / totalSupply;
         _burn(msg.sender, _xNftAmount);
         IERC20(nftToken).transfer(msg.sender, nftAmount);
-        IERC721Upgradeable(nftKeyGenesis).transferFrom(address(this), msg.sender, _tokenId);
+        IERC721(nftKeyGenesis).transferFrom(address(this), msg.sender, _tokenId);
     }
 }
