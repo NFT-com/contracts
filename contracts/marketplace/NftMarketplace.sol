@@ -75,7 +75,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     }
 
     function orderApproved(bytes32 hash) public view returns (bool approved) {
-        return _approvedOrdersByNonce[hash] != 0;
+        return _approvedOrdersByNonce[hash] != 0 && !cancelledOrFinalized[hash];
     }
 
     /**
