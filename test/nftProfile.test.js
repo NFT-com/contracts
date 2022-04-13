@@ -313,11 +313,11 @@ describe("NFT Profile Auction / Minting", function () {
         // approve first
 
         await deployedNftToken.connect(owner).approve(deployedProfileAuction.address, MAX_UINT);
-        await deployedProfileAuction.connect(owner).publicMint("profile5", 27, ZERO_BYTES, ZERO_BYTES);
+        await deployedProfileAuction.connect(owner).publicMint("profile5", 0, 27, ZERO_BYTES, ZERO_BYTES);
 
-        await deployedProfileAuction.connect(owner).publicMint("profile6", 27, ZERO_BYTES, ZERO_BYTES);
+        await deployedProfileAuction.connect(owner).publicMint("profile6", 0, 27, ZERO_BYTES, ZERO_BYTES);
 
-        await deployedProfileAuction.connect(owner).publicMint("profile7", 27, ZERO_BYTES, ZERO_BYTES);
+        await deployedProfileAuction.connect(owner).publicMint("profile7", 0, 27, ZERO_BYTES, ZERO_BYTES);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(11);
       });

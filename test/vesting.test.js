@@ -10,6 +10,12 @@ const Schedule = {
   QUARTERLY: 1,
 };
 
+async function mineNBlocks(n) {
+  for (let index = 0; index < n; index++) {
+    await network.provider.send('evm_mine');
+  }
+}
+
 describe("NFT Token Staking (Rinkeby)", function () {
   try {
     let NftToken, Vesting;
@@ -76,8 +82,14 @@ describe("NFT Token Staking (Rinkeby)", function () {
           ),
       ).to.be.revertedWith("Vesting::initializeVesting: recipient already initialized");
 
+      expect(await deployedVesting.currentClaim(owner.address)).to.equal(convertNftToken(0));
+      expect(await deployedVesting.currentClaim(addr1.address)).to.equal(convertNftToken(0));
+      expect(await deployedVesting.currentClaim(addr2.address)).to.equal(convertNftToken(0));
+
       // CLAIM 1
       await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 31]);
+
+      await mineNBlocks(100);
 
       expect(await deployedVesting.currentClaim(owner.address)).to.equal(convertNftToken(500));
       expect(await deployedVesting.currentClaim(addr1.address)).to.equal(convertNftToken(500));
@@ -108,6 +120,7 @@ describe("NFT Token Staking (Rinkeby)", function () {
 
       // CLAIM 3
       await network.provider.send("evm_setNextBlockTimestamp", [currentTime1 + 86400 * 62]);
+      await mineNBlocks(100);
 
       expect(await deployedVesting.currentClaim(owner.address)).to.equal(convertNftToken(500));
       expect(await deployedVesting.toBeVested(owner.address)).to.equal(convertNftToken(500));
