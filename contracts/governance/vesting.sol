@@ -160,6 +160,8 @@ contract Vesting is Initializable, UUPSUpgradeable {
                 uint256 tokensPerQuarter = vestingAmount[recipient].div(totalQuarters);
                 amount = tokensPerQuarter.mul(elapsedQuarters);
                 lastUpdate[recipient] += elapsedQuarters * QUARTER_SECONDS;
+            } else {
+                require(false, "Vesting::claim: invalid installment");
             }
         }
         claimedAmount[recipient] += amount;
@@ -181,15 +183,16 @@ contract Vesting is Initializable, UUPSUpgradeable {
                 if (vInstallment == VestingInstallments.MONTHLY) {
                     uint256 totalMonths = (vestingEnd[user] - vestingBegin[user]).div(MONTH_SECONDS);
                     uint256 tokensPerMonth = vestingAmount[user].div(totalMonths);
-
                     uint256 elapsedMonths = (block.timestamp - lastUpdate[user]).div(MONTH_SECONDS);
                     return tokensPerMonth.mul(elapsedMonths);
-                } else {
+                } else if (vInstallment == VestingInstallments.QUARTERLY) {
                     uint256 totalQuarters = (vestingEnd[user] - vestingBegin[user]).div(QUARTER_SECONDS);
                     uint256 tokensPerQuarter = vestingAmount[user].div(totalQuarters);
 
                     uint256 elapsedQuarters = (block.timestamp - lastUpdate[user]).div(QUARTER_SECONDS);
                     return tokensPerQuarter.mul(elapsedQuarters);
+                } else {
+                    return 0;
                 }
             }
         } else {
