@@ -42,7 +42,6 @@ const getImplementation = async (name: string, proxyAddress: string, hre: any): 
 };
 
 // TASKS ============================================================
-
 task("deploy:0").setAction(async function (taskArguments, hre) {
   const NftToken = await hre.ethers.getContractFactory("NftToken");
   const deployedNftToken = await NftToken.deploy();
@@ -54,7 +53,8 @@ task("deploy:0").setAction(async function (taskArguments, hre) {
   await verifyContract("deployedNftToken", deployedNftToken.address, [], hre);
 });
 
-const deployedNftTokenAddress = "0x5732b2D8643c94128700a00D6A2398117548041f";
+const deployedNftTokenAddress =
+  network == "rinkeby" ? "0xd20Cb8c25E5A738f559DF29f64B6E2DD408e44C2" : "0x52E587F6632C1A2C0552FE07e184f7f4920Be5d6";
 
 task("deploy:0b").setAction(async function (taskArguments, hre) {
   const Vesting = await hre.ethers.getContractFactory("Vesting");
@@ -117,13 +117,12 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   await getImplementation("deployedGenesisKeyTeamClaim", deployedGenesisKeyTeamClaim.address, hre);
 });
 
-const deployedGenesisKeyAddress = "0x9c82765274a69C14d4abd6F75c0275D39F1a80A5";
+const deployedGenesisKeyAddress = network == "rinkeby" ? "0xE197428a3aB9E011ff99cD9d9D4c5Ea5D8f51f49" : "";
+const genesisKeyTeamDistributorAddress = network == "rinkeby" ? "0x1e01eED656d9aA0B9a16E76F720A6da63a838EA7" : "";
 
-// gen key whitelist claim
+// gen key whitelist claim INSIDER
 task("deploy:1b").setAction(async function (taskArguments, hre) {
   // insider merkle tree ==============================================================================================
-  // redeploy....
-  const genesisKeyTeamDistributorAddress = "0xdf18a3a174076E88eA5B380beb1020CAB9045917";
   const GenesisKeyTeamDistributor = await hre.ethers.getContractFactory("GenesisKeyTeamDistributor");
   const deployedGenesisKeyTeamDistributor = await GenesisKeyTeamDistributor.attach(genesisKeyTeamDistributorAddress);
 
@@ -260,7 +259,7 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
   await deployedNftProfileProxy.setProfileAuction(deployedProfileAuction.address);
 
   // VERIFICATION =====================================================================================
-  console.log(chalk.green(`delaying 10 seconds...`));
+  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
   await delay(TIME_DELAY);
   await verifyContract(
     "deployedNftGenesisStake",
@@ -282,12 +281,11 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
   await getImplementation("deployedProfileAuction", deployedProfileAuction.address, hre);
 });
 
+const deployedNftBuyer = network == "rinkeby" ? "0x150D3a845da123eed1a9efB03234bDA030b270Ae" : "";
+
 // Step 3 NftMarketplace
 task("deploy:3").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying the marketplace contacts..."));
-
-  const nftToken = "0x5732b2D8643c94128700a00D6A2398117548041f";
-  const deployedNftBuyer = "0x150D3a845da123eed1a9efB03234bDA030b270Ae";
 
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
   const NftTransferProxy = await hre.ethers.getContractFactory("NftTransferProxy");
@@ -318,7 +316,7 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
       deployedERC20TransferProxy.address,
       deployedCryptoKittyTransferProxy.address,
       deployedNftBuyer,
-      nftToken,
+      deployedNftTokenAddress,
       deployedValidationLogic.address,
       deployedMarketplaceEvent.address,
     ],
@@ -333,8 +331,8 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("whitelisted WETH: ", wethAddress));
   await deployedNftMarketplace.modifyWhitelist(usdcAddress, true);
   console.log(chalk.green("whitelisted USDC: ", usdcAddress));
-  await deployedNftMarketplace.modifyWhitelist(nftToken, true);
-  console.log(chalk.green("whitelisted NftToken: ", nftToken));
+  await deployedNftMarketplace.modifyWhitelist(deployedNftTokenAddress, true);
+  console.log(chalk.green("whitelisted NftToken: ", deployedNftTokenAddress));
 
   // add operator being the marketplace
   await deployedNftTransferProxy.addOperator(deployedNftMarketplace.address);

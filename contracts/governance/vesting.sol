@@ -53,6 +53,8 @@ contract Vesting is Initializable, UUPSUpgradeable {
     mapping(address => bool) public initializedVestor;
     mapping(address => bool) public revokedVestor;
 
+    event NewMultiSig(address oldMultiSig, address newMultiSig);
+
     modifier onlyMultiSig() {
         require(msg.sender == multiSig, "Vesting::onlyMultiSig: Only multisig can call this function");
         _;
@@ -121,6 +123,11 @@ contract Vesting is Initializable, UUPSUpgradeable {
         }
 
         INft(nftToken).transferFrom(multiSig, address(this), totalAmount);
+    }
+
+    function changeMultiSig(address multiSig_) external onlyMultiSig {
+        multiSig = multiSig_;
+        emit NewMultiSig(msg.sender, multiSig);
     }
 
     function revokeVesting(address recipient) external onlyMultiSig {
