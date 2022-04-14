@@ -141,6 +141,11 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         );
 
         require(
+            buyOrder.makeAssets.length != 0 && sellOrder.takeAssets.length == buyOrder.makeAssets.length,
+            "vm assets > 0"
+        );
+
+        require(
             (sellOrder.auctionType == LibSignature.AuctionType.English) &&
                 (buyOrder.auctionType == LibSignature.AuctionType.English),
             "vm auctionType"
