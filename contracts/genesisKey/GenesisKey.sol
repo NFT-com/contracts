@@ -30,7 +30,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     uint256 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
     uint256 public lastClaimTime; // Last time a key was claimed
     address public gkTeamClaimContract;
-    bool public randomClaimBool; // true if random claim is enabled for team
+    bool public randomClaimBool; // true if random claim is enabled for team (only used for testing consistency)
 
     // Whitelisted transfer (true / false)
     mapping(address => bool) public whitelistedTransfer;
@@ -61,10 +61,11 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         address _wethAddress,
         address _multiSig,
         uint256 _auctionSeconds,
-        bool _randomClaimBool
+        bool _randomClaimBool,
+        string memory baseURI
     ) public initializer {
         __ReentrancyGuard_init();
-        __ERC721AUpgradeable_init(name, symbol, "ipfs://");
+        __ERC721A_init(name, symbol, baseURI);
         __UUPSUpgradeable_init();
 
         wethAddress = _wethAddress;

@@ -73,7 +73,7 @@ describe("NFT Profile Auction / Minting", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds, false],
+        [name, symbol, wethAddress, multiSig, auctionSeconds, false, "ipfs//"],
         { kind: "uups" },
       );
 
@@ -172,6 +172,7 @@ describe("NFT Profile Auction / Minting", function () {
           "NFT.com", // string memory name,
           "NFT.com", // string memory symbol,
           deployedNftToken.address, // address _nftCashAddress,
+          "https://api.nft.com/uri/",
         ],
         { kind: "uups" },
       );

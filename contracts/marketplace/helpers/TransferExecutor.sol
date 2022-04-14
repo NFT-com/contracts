@@ -3,16 +3,19 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "../interfaces/IERC20TransferProxy.sol";
 import "../interfaces/INftTransferProxy.sol";
 import "../interfaces/ITransferProxy.sol";
 import "../interfaces/ITransferExecutor.sol";
 
 abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransferExecutor {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+
     // bitpacked storage
     struct RoyaltyInfo {
         address owner;
-        uint96 percent; // 0 - 10000, where 10000 is 100%
+        uint96 percent; // 0 - 10000, where 10000 is 100%, 100 = 1%
     }
 
     address public nftBuyContract; // uint160
@@ -51,7 +54,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         address recipient,
         uint256 amount
     ) external onlyOwner {
-        require(amount <= type(uint96).max);
+        require(amount <= 10000);
         royaltyInfo[nftContract].owner = recipient;
         royaltyInfo[nftContract].percent = uint96(amount);
 
@@ -89,9 +92,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         bool validRoyalty,
         LibAsset.Asset[] memory optionalNftAssets
     ) internal {
-        // ETH Fee
-        (bool success1, ) = nftBuyContract.call{ value: (value * protocolFee) / 10000 }("");
-        (bool success2, ) = to.call{ value: value }("");
+        uint256 royalty;
 
         // handle royalty
         if (validRoyalty) {
@@ -102,12 +103,17 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
             // handle royalty
             if (royaltyInfo[nftRoyalty].owner != address(0) && royaltyInfo[nftRoyalty].percent != uint256(0)) {
                 // Royalty
-                (bool success3, ) = royaltyInfo[nftRoyalty].owner.call{
-                    value: (value * royaltyInfo[nftRoyalty].percent) / 10000
-                }("");
+                royalty = (value * royaltyInfo[nftRoyalty].percent) / 10000;
+
+                (bool success3, ) = royaltyInfo[nftRoyalty].owner.call{ value: royalty }("");
                 require(success3, "te !rty");
             }
         }
+
+        // ETH Fee
+        uint256 fee = ((value - royalty) * protocolFee) / 10000;
+        (bool success1, ) = nftBuyContract.call{ value: fee }("");
+        (bool success2, ) = to.call{ value: (value - royalty) - fee }("");
 
         require(success1 && success2, "te !eth");
     }
@@ -132,26 +138,20 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         LibAsset.Asset[] memory optionalNftAssets
     ) internal override {
         require(nftBuyContract != address(0));
+        require(to != address(0) && from != address(0));
         uint256 value;
 
         if (auctionType == LibSignature.AuctionType.Decreasing && from == msg.sender) value = decreasingPriceValue;
         else (value, ) = abi.decode(asset.data, (uint256, uint256));
+
+        require(value != 0);
 
         if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
             transferEth(to, value, validRoyalty, optionalNftAssets);
         } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
             address token = abi.decode(asset.assetType.data, (address));
             require(whitelistERC20[token], "t !list");
-
-            uint256 fee = token == nftToken ? protocolFee / 2 : protocolFee;
-
-            // ERC20 Fee
-            IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
-                IERC20Upgradeable(token),
-                from,
-                nftBuyContract,
-                (value * fee) / 10000
-            );
+            uint256 royalty;
 
             // handle royalty
             if (validRoyalty) {
@@ -160,21 +160,34 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 (address nftContract, , ) = abi.decode(optionalNftAssets[0].assetType.data, (address, uint256, bool));
 
                 if (royaltyInfo[nftContract].owner != address(0) && royaltyInfo[nftContract].percent != uint256(0)) {
+                    royalty = (value * royaltyInfo[nftContract].percent) / 10000;
+
                     // Royalty
                     IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
                         IERC20Upgradeable(token),
                         from,
                         royaltyInfo[nftContract].owner,
-                        (value * royaltyInfo[nftContract].percent) / 10000
+                        royalty
                     );
                 }
             }
+
+            uint256 feePercent = token == nftToken ? protocolFee / 2 : protocolFee;
+            uint256 fee = ((value - royalty) * feePercent) / 10000;
+
+            // ERC20 Fee
+            IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
+                IERC20Upgradeable(token),
+                from,
+                nftBuyContract,
+                fee
+            );
 
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
                 IERC20Upgradeable(token),
                 from,
                 to,
-                value
+                (value - royalty) - fee
             );
         } else if (asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
             (address token, uint256 tokenId, ) = abi.decode(asset.assetType.data, (address, uint256, bool));
