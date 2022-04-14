@@ -12,7 +12,7 @@ const Schedule = {
 
 async function mineNBlocks(n) {
   for (let index = 0; index < n; index++) {
-    await network.provider.send('evm_mine');
+    await network.provider.send("evm_mine");
   }
 }
 
