@@ -60,7 +60,7 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
         // no stake yet
         if (stakedKeys[_tokenId] != msg.sender) {
             require(IERC721(nftKeyGenesis).ownerOf(_tokenId) == msg.sender, "!GK1");
-            
+
             IERC721(nftKeyGenesis).transferFrom(msg.sender, address(this), _tokenId);
 
             // assigned key to msg.sender

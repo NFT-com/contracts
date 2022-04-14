@@ -61,6 +61,8 @@ contract LpStake is ReentrancyGuard, Ownable {
     /// @param _rewardToken The reward token contract address.
     /// @param _rewardTokensPerBlock reward tokens created per block.
     constructor(IERC20 _rewardToken, uint256 _rewardTokensPerBlock) {
+        require(address(_rewardToken) != address(0));
+
         REWARD_TOKEN = _rewardToken;
         rewardTokensPerBlock = _rewardTokensPerBlock;
         totalAllocPoint = 0;
