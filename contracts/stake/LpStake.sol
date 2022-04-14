@@ -61,6 +61,8 @@ contract LpStake is ReentrancyGuard, Ownable {
     /// @param _rewardToken The reward token contract address.
     /// @param _rewardTokensPerBlock reward tokens created per block.
     constructor(IERC20 _rewardToken, uint256 _rewardTokensPerBlock) {
+        require(address(_rewardToken) != address(0));
+
         REWARD_TOKEN = _rewardToken;
         rewardTokensPerBlock = _rewardTokensPerBlock;
         totalAllocPoint = 0;
@@ -109,7 +111,7 @@ contract LpStake is ReentrancyGuard, Ownable {
     /// @param allocPoint AP of the new pool.
     /// @param _lpToken Address of the LP ERC-20 token.
     function add(uint256 allocPoint, IERC20 _lpToken) external onlyOwner {
-        require(!addedLPs[address(_lpToken)], "genericFarmV2::there is already a pool with this LP");
+        require(!addedLPs[address(_lpToken)], "LpStake::there is already a pool with this LP");
         uint256 lastRewardBlock = block.number;
         totalAllocPoint = totalAllocPoint.add(allocPoint);
         lpToken.push(_lpToken);
@@ -205,6 +207,7 @@ contract LpStake is ReentrancyGuard, Ownable {
         uint256 amount,
         address to
     ) external nonReentrant {
+        require(to != address(0x0));
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][to];
 
@@ -227,6 +230,7 @@ contract LpStake is ReentrancyGuard, Ownable {
         uint256 amount,
         address to
     ) external nonReentrant {
+        require(to != address(0x0));
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][msg.sender];
 
@@ -264,7 +268,7 @@ contract LpStake is ReentrancyGuard, Ownable {
     /// @param pid The index of the pool. See `poolInfo`.
     /// @param to Receiver of the LP tokens.
     function emergencyWithdraw(uint256 pid, address to) public {
-        require(address(0) != to, "genericFarmV2::can't withdraw to address zero");
+        require(address(0) != to, "LpStake::can't withdraw to address zero");
         UserInfo storage user = userInfo[pid][msg.sender];
         uint256 amount = user.amount;
         user.amount = 0;

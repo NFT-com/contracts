@@ -51,7 +51,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds, true],
+        [name, symbol, wethAddress, multiSig, auctionSeconds, true, "ipfs//"],
         { kind: "uups" },
       );
 
@@ -64,6 +64,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           "NFT.com", // string memory name,
           "NFT.com", // string memory symbol,
           deployedNftToken.address, // address _nftCashAddress,
+          "https://api.nft.com/uri/",
         ],
         { kind: "uups" },
       );
