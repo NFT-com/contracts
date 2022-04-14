@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./uniswapv2/interfaces/IUniswapV2ERC20.sol";
@@ -16,6 +17,8 @@ interface IWETH {
 }
 
 contract NftBuyer {
+    using SafeERC20 for IERC20;
+
     IUniswapV2Factory public factory;
     address public genesisStaking;
     address public nft;
@@ -38,6 +41,11 @@ contract NftBuyer {
         address _nft,
         address _weth
     ) {
+        require(address(_factory) != address(0));
+        require(_genesisStaking != address(0));
+        require(_nft != address(0));
+        require(_weth != address(0));
+
         factory = _factory;
         nft = _nft;
         genesisStaking = _genesisStaking;

@@ -40,7 +40,7 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds],
+        [name, symbol, wethAddress, multiSig, auctionSeconds, "ipfs//"],
         { kind: "uups" },
       );
 
