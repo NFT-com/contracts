@@ -65,8 +65,8 @@ describe("NFT.com Marketplace", function () {
       deployedERC1155Factory;
     let ownerSigner, buyerSigner;
 
-    const RINKEBY_WETH = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
-    const RINEKBY_XEENUS = "0x022E292b44B5a146F2e8ee36Ff44D3dd863C915c";
+    let RINKEBY_WETH;
+    let RINKEBY_XEENUS;
     const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
     const RINKEBY_ROUTER_V2 = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
@@ -85,11 +85,10 @@ describe("NFT.com Marketplace", function () {
       ValidationLogic = await ethers.getContractFactory("ValidationLogic");
       MarketplaceEvent = await ethers.getContractFactory("MarketplaceEvent");
 
-      deployedXEENUS = new ethers.Contract(
-        RINEKBY_XEENUS,
-        `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"spender","type":"address"},{"name":"tokens","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"from","type":"address"},{"name":"to","type":"address"},{"name":"tokens","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"tokenOwner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"acceptOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"drip","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"to","type":"address"},{"name":"tokens","type":"uint256"}],"name":"transfer","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"spender","type":"address"},{"name":"tokens","type":"uint256"},{"name":"data","type":"bytes"}],"name":"approveAndCall","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"newOwner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"tokenAddress","type":"address"},{"name":"tokens","type":"uint256"}],"name":"transferAnyERC20Token","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"tokenOwner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_from","type":"address"},{"indexed":true,"name":"_to","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"tokens","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"tokenOwner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"tokens","type":"uint256"}],"name":"Approval","type":"event"}]`,
-        ethers.provider,
-      );
+      NftToken = await ethers.getContractFactory("NftToken");
+
+      deployedXEENUS = await NftToken.deploy();
+      RINKEBY_XEENUS = deployedXEENUS.address;
 
       deployedUniV2Router = new ethers.Contract(
         RINKEBY_ROUTER_V2,
@@ -97,7 +96,6 @@ describe("NFT.com Marketplace", function () {
         ethers.provider,
       );
 
-      NftToken = await ethers.getContractFactory("NftToken");
       deployedNftToken = await NftToken.deploy();
 
       // the NFT profile is used for testing purposes as a random NFT being traded
@@ -117,19 +115,17 @@ describe("NFT.com Marketplace", function () {
 
       GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
+      const weth = await hre.ethers.getContractFactory("WETH");
+      deployedWETH = await weth.deploy();
+      RINKEBY_WETH = deployedWETH.address;
+
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds],
+        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds, true],
         { kind: "uups" },
       );
 
       deployedGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
-
-      deployedWETH = new ethers.Contract(
-        RINKEBY_WETH,
-        `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"guy","type":"address"},{"name":"wad","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"src","type":"address"},{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"wad","type":"uint256"}],"name":"withdraw","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"guy","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Withdrawal","type":"event"}]`,
-        ethers.provider,
-      );
 
       deployedNftBuyer = await NftBuyer.deploy(
         RINKEBY_FACTORY_V2,
@@ -193,23 +189,6 @@ describe("NFT.com Marketplace", function () {
         await deployedCryptoKittyTransferProxy.removeOperator(owner.address);
       });
     });
-
-    // const ask = `{"maker":"0xF968EC896Ffcb78411328F9EcfAbB9FcCFe4E863","makeAssets":[{"assetType":{"assetClass":"0x73ad2146","data":"0x000000000000000000000000f5de760f2e916647fd766b4ad9e85ff943ce3a2b000000000000000000000000000000000000000000000000000000000002c5230000000000000000000000000000000000000000000000000000000000000000"},"data":"0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000"}],"taker":"0x0000000000000000000000000000000000000000","takeAssets":[{"assetType":{"assetClass":"0x8ae85d84","data":"0x000000000000000000000000c778417e063141139fce010982780140aa0cd5ab"},"data":"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000"}],"salt":1647623420,"start":1647622820,"end":1648228220,"nonce":0,"auctionType":1}`
-    // const bid = `{"maker":"0xcb606fbaE8f03ecA4F394c9c7111B48F1d0f901D","makeAssets":[{"assetType":{"assetClass":"0x8ae85d84","data":"0x000000000000000000000000c778417e063141139fce010982780140aa0cd5ab"},"data":"0x000000000000000000000000000000000000000000000000016345785d8a00000000000000000000000000000000000000000000000000000000000000000000"}],"taker":"0xF968EC896Ffcb78411328F9EcfAbB9FcCFe4E863","takeAssets":[{"assetType":{"assetClass":"0x73ad2146","data":"0x000000000000000000000000f5de760f2e916647fd766b4ad9e85ff943ce3a2b000000000000000000000000000000000000000000000000000000000002c5230000000000000000000000000000000000000000000000000000000000000000"},"data":"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000"}],"salt":1647624640,"start":1647624040,"end":1648228220,"nonce":0,"auctionType":1}`
-    // describe("validateOrder anthony", function () {
-    //   it("should validate correctly: ", async function () {
-    //     const vlAddress = "0xce789D5C9DfDdEBA2AA87b37f2dE25e26a767023";
-    //     const ValidationLogic = await ethers.getContractFactory("ValidationLogic");
-    //     const deployedValidationLogicContract = await ValidationLogic.attach(vlAddress);
-
-    //     try {
-    //       const result = await deployedValidationLogicContract.validateMatch_(JSON.parse(ask), JSON.parse(bid));
-    //       console.log('result: ', result);
-    //     } catch(err) {
-    //       console.log('err anthony: ', err);
-    //     }
-    //   });
-    // })
 
     describe("Allow Multi-Asset Swaps via EOA users using sigV4", function () {
       it("should catch edge cases for start and end times", async function () {
@@ -689,7 +668,7 @@ describe("NFT.com Marketplace", function () {
 
       it("should allow more complicated multi-asset swaps", async function () {
         await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(RINEKBY_XEENUS, true);
+        await deployedNftMarketplace.modifyWhitelist(RINKEBY_XEENUS, true);
 
         // sell NFT profile NFT token 0 and 1
         // wants NFT token and WETH
@@ -717,7 +696,7 @@ describe("NFT.com Marketplace", function () {
           ethers.constants.AddressZero,
           [
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(100), convertNftToken(10)]],
-            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
+            [ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
           ],
           0,
           0,
@@ -738,7 +717,7 @@ describe("NFT.com Marketplace", function () {
           buyerSigner,
           [
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(500), 0]],
-            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(250), 0]],
+            [ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(250), 0]],
           ],
           owner.address,
           [
@@ -795,7 +774,7 @@ describe("NFT.com Marketplace", function () {
         await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1000));
 
         await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(RINEKBY_XEENUS, true);
+        await deployedNftMarketplace.modifyWhitelist(RINKEBY_XEENUS, true);
 
         // sell NFT profile NFT token 0 and 1
         // wants NFT token and WETH
@@ -813,7 +792,7 @@ describe("NFT.com Marketplace", function () {
               [deployedTest721.address, 0, true], // values
               [1, 0], // data to be encoded
             ],
-            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), 0]],
+            [ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(500), 0]],
           ],
           ethers.constants.AddressZero,
           [
@@ -849,7 +828,7 @@ describe("NFT.com Marketplace", function () {
           owner.address,
           [
             [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [deployedTest721.address, 0, true], [1, 0]],
-            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), 0]],
+            [ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(500), 0]],
           ],
           0,
           0,
@@ -901,7 +880,7 @@ describe("NFT.com Marketplace", function () {
         await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1000));
 
         await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(RINEKBY_XEENUS, true);
+        await deployedNftMarketplace.modifyWhitelist(RINKEBY_XEENUS, true);
 
         // sell NFT profile NFT token 0 and 1
         // wants NFT token and WETH
@@ -912,7 +891,7 @@ describe("NFT.com Marketplace", function () {
           order: sellOrder,
         } = await signMarketplaceOrder(
           ownerSigner,
-          [[ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), 0]]],
+          [[ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(500), 0]]],
           ethers.constants.AddressZero,
           [
             [
@@ -945,7 +924,7 @@ describe("NFT.com Marketplace", function () {
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(500), 0]],
           ],
           owner.address,
-          [[ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), 0]]],
+          [[ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(500), 0]]],
           0,
           0,
           await deployedNftMarketplace.nonces(owner.address),
@@ -991,7 +970,7 @@ describe("NFT.com Marketplace", function () {
 
       it("should allow valid eth swaps and convert fees to NFT coin", async function () {
         await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(RINEKBY_XEENUS, true);
+        await deployedNftMarketplace.modifyWhitelist(RINKEBY_XEENUS, true);
         await owner.sendTransaction({ to: buyer.address, value: convertNftToken(2) });
 
         // sell NFT profile NFT token 0 and 1
@@ -1020,7 +999,7 @@ describe("NFT.com Marketplace", function () {
           ethers.constants.AddressZero,
           [
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(100), convertNftToken(10)]],
-            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
+            [ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
             [
               ETH_ASSET_CLASS,
               ["address"],
@@ -1047,7 +1026,7 @@ describe("NFT.com Marketplace", function () {
           buyerSigner,
           [
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(500), 0]],
-            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(250), 0]],
+            [ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(250), 0]],
             [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertSmallNftToken(1), 0]],
           ],
           owner.address,
@@ -1089,7 +1068,7 @@ describe("NFT.com Marketplace", function () {
           ethers.constants.AddressZero,
           [
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(100), convertNftToken(10)]],
-            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
+            [ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
             [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(1), convertNftToken(1)]],
           ],
           0,
@@ -1115,7 +1094,7 @@ describe("NFT.com Marketplace", function () {
           buyerSigner,
           [
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(500), 0]],
-            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(250), 0]],
+            [ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(250), 0]],
             [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(1), 0]],
           ],
           owner.address,
@@ -1214,6 +1193,10 @@ describe("NFT.com Marketplace", function () {
         // UNIV2 POOL FUNDING
         await deployedNftToken.connect(owner).approve(deployedUniV2Router.address, MAX_UINT);
         await deployedXEENUS.connect(owner).approve(deployedUniV2Router.address, MAX_UINT);
+        await deployedWETH.connect(owner).approve(deployedUniV2Router.address, MAX_UINT);
+
+        await deployedWETH.connect(owner).deposit({ value: convertNftToken(3) });
+
         await deployedUniV2Router
           .connect(owner)
           .addLiquidity(
@@ -1227,6 +1210,19 @@ describe("NFT.com Marketplace", function () {
             Math.floor(new Date().getTime() / 1000) + 3600,
           );
 
+        await deployedUniV2Router
+          .connect(owner)
+          .addLiquidity(
+            RINKEBY_WETH,
+            RINKEBY_XEENUS,
+            convertNftToken(1),
+            convertNftToken(1),
+            convertNftToken(1),
+            convertNftToken(1),
+            owner.address,
+            Math.floor(new Date().getTime() / 1000) + 3600,
+          );
+
         // WETH -> ETH
         expect(await deployedWETH.balanceOf(deployedNftBuyer.address)).to.be.equal(deployedNftBuyerETH);
 
@@ -1235,7 +1231,7 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedWETH.balanceOf(deployedNftBuyer.address)).to.be.equal(0);
         expect(await deployedXEENUS.balanceOf(deployedNftBuyer.address)).to.be.gt(0);
 
-        await deployedNftBuyer.connect(owner).convert(RINEKBY_XEENUS);
+        await deployedNftBuyer.connect(owner).convert(RINKEBY_XEENUS);
 
         expect(await deployedXEENUS.balanceOf(deployedNftBuyer.address)).to.be.equal(0);
 
@@ -1249,8 +1245,8 @@ describe("NFT.com Marketplace", function () {
         // reset board
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 1);
-        await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(500));
-        await deployedXEENUS.connect(buyer).transfer(owner.address, convertNftToken(400)); // return some funds
+        await deployedNftToken.connect(owner).transfer(buyer.address, await deployedNftToken.balanceOf(owner.address));
+        await deployedXEENUS.connect(buyer).transfer(owner.address, await deployedXEENUS.balanceOf(buyer.address)); // return some funds
       });
 
       it("should allow cryptokitties and 1155s to be traded", async function () {
@@ -1274,7 +1270,7 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedKittyCore.kittyIndexToOwner(1)).to.be.equal(owner.address);
 
         await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(RINEKBY_XEENUS, true);
+        await deployedNftMarketplace.modifyWhitelist(RINKEBY_XEENUS, true);
         await owner.sendTransaction({ to: buyer.address, value: convertNftToken(2) });
 
         // sell NFT profile NFT token 0 and 1
@@ -1315,7 +1311,7 @@ describe("NFT.com Marketplace", function () {
           ethers.constants.AddressZero,
           [
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(100), convertNftToken(10)]],
-            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
+            [ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
             [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(2), convertNftToken(1)]],
             [
               ERC1155_ASSET_CLASS,
@@ -1343,7 +1339,7 @@ describe("NFT.com Marketplace", function () {
           buyerSigner,
           [
             [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(500), 0]],
-            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(250), 0]],
+            [ERC20_ASSET_CLASS, ["address"], [RINKEBY_XEENUS], [convertNftToken(250), 0]],
             [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(1), 0]],
             [ERC1155_ASSET_CLASS, ["address", "uint256", "bool"], [deployedERC1155Factory.address, 0, false], [80, 0]],
           ],

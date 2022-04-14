@@ -20,9 +20,15 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
     let deployedNftProfileHelper;
     let GenesisStake;
     let deployedNftGenesisStake;
+    let GenesisKeyTeamClaim;
+    let deployedGenesisKeyTeamClaim;
+    let GenesisKeyTeamDistributor;
+    let deployedGkTeamDistributor;
+
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
     const auctionSeconds = "604800"; // seconds in 1 week
     const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+    let wethAddress;
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -33,7 +39,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
       const name = "NFT.com Genesis Key";
       const symbol = "NFTKEY";
-      const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
       const multiSig = addr1.address;
 
       NftProfileHelper = await ethers.getContractFactory("NftProfileHelper");
@@ -41,15 +46,12 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
       GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
-      deployedWETH = new ethers.Contract(
-        wethAddress,
-        `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"guy","type":"address"},{"name":"wad","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"src","type":"address"},{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"wad","type":"uint256"}],"name":"withdraw","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"guy","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Withdrawal","type":"event"}]`,
-        ethers.provider,
-      );
+      deployedWETH = await NftToken.deploy();
+      wethAddress = deployedWETH.address;
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds],
+        [name, symbol, wethAddress, multiSig, auctionSeconds, true],
         { kind: "uups" },
       );
 
@@ -68,6 +70,22 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
       GenesisStake = await ethers.getContractFactory("GenesisNftStake");
       deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
+
+      GenesisKeyTeamClaim = await ethers.getContractFactory("GenesisKeyTeamClaim");
+      deployedGenesisKeyTeamClaim = await upgrades.deployProxy(GenesisKeyTeamClaim, [deployedGenesisKey.address], {
+        kind: "uups",
+      });
+
+      GenesisKeyTeamDistributor = await ethers.getContractFactory("GenesisKeyTeamDistributor");
+      deployedGkTeamDistributor = await GenesisKeyTeamDistributor.deploy(deployedGenesisKeyTeamClaim.address);
+
+      await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
+
+      // only set pause transfer until public sale is over
+      await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
+      await deployedGenesisKey.setWhitelist(owner.address, true);
+      await deployedGenesisKey.setWhitelist(second.address, true);
+      await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
 
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       deployedNftBuyer = await NftBuyer.deploy(
@@ -173,7 +191,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           "${secondSigner.address}": "2"
         }`);
 
-        const wethMin = convertTinyNumber(1);
+        const ethMin = convertTinyNumber(1);
 
         // merkle result is what you need to post publicly and store on FE
         const merkleResult = parseBalanceMap(jsonInput);
@@ -183,27 +201,26 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(
           deployedGenesisKey.address,
           merkleRoot,
-          wethMin,
+          ethMin,
         );
 
         await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
 
-        await expect(
-          deployedGenesisKeyDistributor
-            .connect(owner)
-            .claim(
-              merkleResult.claims[`${ownerSigner.address}`].index,
-              ownerSigner.address,
-              merkleResult.claims[`${ownerSigner.address}`].amount,
-              merkleResult.claims[`${ownerSigner.address}`].proof,
-            ),
-        )
-          .to.emit(deployedWETH, "Transfer")
-          .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
+        await deployedGenesisKeyDistributor
+          .connect(owner)
+          .claim(
+            merkleResult.claims[`${ownerSigner.address}`].index,
+            ownerSigner.address,
+            merkleResult.claims[`${ownerSigner.address}`].amount,
+            merkleResult.claims[`${ownerSigner.address}`].proof,
+            {
+              value: ethMin,
+            },
+          );
 
-        expect(await deployedWETH.balanceOf(addr1.address)).to.eq(
-          BigNumber.from(beforeWethAddr1).add(convertTinyNumber(1)),
-        );
+        const gkEth1 = await web3.eth.getBalance(deployedGenesisKey.address);
+        console.log("gkEth1: ", gkEth1);
+        await expect(gkEth1).to.be.equal(convertTinyNumber(1));
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
@@ -219,6 +236,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
             ),
         ).to.be.reverted;
 
+        // reverts due to no ETH passed in
         await expect(
           deployedGenesisKeyDistributor
             .connect(second)
@@ -228,13 +246,23 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
               merkleResult.claims[`${secondSigner.address}`].amount,
               merkleResult.claims[`${secondSigner.address}`].proof,
             ),
-        )
-          .to.emit(deployedWETH, "Transfer")
-          .withArgs(secondSigner.address, addr1.address, convertTinyNumber(1));
+        ).to.be.reverted;
 
-        expect(await deployedWETH.balanceOf(addr1.address)).to.eq(
-          BigNumber.from(beforeWethAddr1).add(convertTinyNumber(2)),
-        );
+        await deployedGenesisKeyDistributor
+          .connect(second)
+          .claim(
+            merkleResult.claims[`${secondSigner.address}`].index,
+            secondSigner.address,
+            merkleResult.claims[`${secondSigner.address}`].amount,
+            merkleResult.claims[`${secondSigner.address}`].proof,
+            {
+              value: ethMin,
+            },
+          );
+
+        const gkEth2 = await web3.eth.getBalance(deployedGenesisKey.address);
+        console.log("gkEth2: ", gkEth2);
+        await expect(gkEth2).to.be.equal(convertTinyNumber(2));
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
@@ -296,10 +324,9 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       it("should allow a public auction to start, and not allow new blind auction bids", async function () {
         const initialWethPrice = convertTinyNumber(3); // 0.03 eth starting price
         const finalWethPrice = convertTinyNumber(1); // 0.01 eth floor
-        const numKeysForSale = 3;
 
         // initialized public auction
-        await deployedGenesisKey.initializePublicSale(initialWethPrice, finalWethPrice, numKeysForSale);
+        await deployedGenesisKey.initializePublicSale(initialWethPrice, finalWethPrice);
 
         const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
 
@@ -320,14 +347,10 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         const currentPrice = await deployedGenesisKey.getCurrentPrice();
         console.log("current eth price: ", Number(currentPrice) / 10 ** 18);
         expect(await deployedGenesisKey.totalSupply()).to.eq(0);
-        expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(0);
-        expect(await deployedGenesisKey.numKeysForSale()).to.eq(3);
 
         await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertTinyNumber(3) });
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
-        expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(1);
-        expect(await deployedGenesisKey.numKeysForSale()).to.eq(3);
 
         // recycle ETH to re use for Testing
         await deployedGenesisKey.setMultiSig(ownerSigner.address); // send to self
@@ -336,8 +359,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertTinyNumber(3) });
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
-        expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(2);
-        expect(await deployedGenesisKey.numKeysForSale()).to.eq(3);
 
         await deployedGenesisKey.connect(owner).transferETH();
 
@@ -358,12 +379,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         expect(await deployedWETH.balanceOf(addr2.address)).to.lt(convertTinyNumber(3));
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
-        expect(await deployedGenesisKey.numKeysPublicPurchased()).to.eq(3);
-        expect(await deployedGenesisKey.numKeysForSale()).to.eq(3);
-
-        // reverts because no more NFTs left
-        await expect(deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertTinyNumber(3) })).to.be
-          .reverted;
       });
     });
 

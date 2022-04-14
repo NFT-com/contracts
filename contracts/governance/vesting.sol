@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 interface INft {
     function balanceOf(address account) external view returns (uint256);
@@ -16,13 +17,23 @@ interface INft {
     ) external returns (bool);
 }
 
-contract Vesting {
-    using SafeMath for uint256;
+contract Vesting is Initializable, UUPSUpgradeable {
+    using SafeMathUpgradeable for uint256;
 
-    // post 1 year cliff
     enum VestingInstallments {
         MONTHLY,
         QUARTERLY
+    }
+
+    struct VestingInfo {
+        uint256 claimedAmount;
+        uint256 vestingAmount;
+        uint256 vestingBegin;
+        uint256 vestingCliff;
+        uint256 vestingEnd;
+        uint256 lastUpdate;
+        VestingInstallments installment;
+        bool revokedVestor;
     }
 
     uint256 public constant MONTH_SECONDS = 30 days;
@@ -31,26 +42,32 @@ contract Vesting {
     address public nftToken;
     address public multiSig;
 
-    mapping(address => uint256) public claimedAmount;
-    mapping(address => uint256) public vestingAmount;
-    mapping(address => uint256) public vestingBegin;
-    mapping(address => uint256) public vestingCliff;
-    mapping(address => uint256) public vestingEnd;
-    mapping(address => uint256) public lastUpdate;
-    mapping(address => VestingInstallments) public installment;
+    mapping(address => uint256) private claimedAmount;
+    mapping(address => uint256) private vestingAmount;
+    mapping(address => uint256) private vestingBegin;
+    mapping(address => uint256) private vestingCliff;
+    mapping(address => uint256) private vestingEnd;
+    mapping(address => uint256) private lastUpdate;
+    mapping(address => VestingInstallments) private installment;
 
     mapping(address => bool) public initializedVestor;
     mapping(address => bool) public revokedVestor;
+
+    event NewMultiSig(address oldMultiSig, address newMultiSig);
 
     modifier onlyMultiSig() {
         require(msg.sender == multiSig, "Vesting::onlyMultiSig: Only multisig can call this function");
         _;
     }
 
-    constructor(address nftToken_, address multiSig_) {
+    function initialize(address nftToken_, address multiSig_) public initializer {
+        __UUPSUpgradeable_init();
+
         nftToken = nftToken_;
         multiSig = multiSig_;
     }
+
+    function _authorizeUpgrade(address) internal override onlyMultiSig {}
 
     function initializeVesting(
         address[] memory recipients_,
@@ -68,9 +85,6 @@ contract Vesting {
                 vestingEnds_.length == installments_.length,
             "Vesting::initializeVesting: length of all arrays must be equal"
         );
-
-        console.log("MONTH_SECONDS: ", MONTH_SECONDS);
-        console.log("QUARTER_SECONDS: ", QUARTER_SECONDS);
 
         uint256 totalAmount;
         for (uint256 i = 0; i < recipients_.length; i++) {
@@ -111,14 +125,21 @@ contract Vesting {
         INft(nftToken).transferFrom(multiSig, address(this), totalAmount);
     }
 
+    function changeMultiSig(address multiSig_) external onlyMultiSig {
+        multiSig = multiSig_;
+        emit NewMultiSig(msg.sender, multiSig);
+    }
+
     function revokeVesting(address recipient) external onlyMultiSig {
         require(initializedVestor[recipient], "Vesting::revokeVesting: recipient not initialized");
         require(!revokedVestor[recipient], "Vesting::revokeVesting: recipient already revoked");
 
         uint256 remaining = claim(recipient);
-
         revokedVestor[recipient] = true;
-        INft(nftToken).transfer(multiSig, remaining);
+        require(
+            INft(nftToken).transfer(multiSig, remaining),
+            "Vesting::revokeVesting: failed to transfer remaining tokens"
+        );
     }
 
     function claim(address recipient) public returns (uint256 remaining) {
@@ -132,29 +153,83 @@ contract Vesting {
         } else {
             VestingInstallments vInstallment = installment[recipient];
 
-            // ADVISOR
             if (vInstallment == VestingInstallments.MONTHLY) {
                 uint256 elapsedMonths = (block.timestamp - lastUpdate[recipient]).div(MONTH_SECONDS);
                 uint256 totalMonths = (vestingEnd[recipient] - vestingBegin[recipient]).div(MONTH_SECONDS);
 
                 uint256 tokensPerMonth = vestingAmount[recipient].div(totalMonths);
-
                 amount = tokensPerMonth.mul(elapsedMonths);
                 lastUpdate[recipient] += elapsedMonths * MONTH_SECONDS;
-            } else {
-                // QUARTERLY
-                uint256 elapsedQuarters = (block.timestamp - vestingBegin[recipient]).div(QUARTER_SECONDS);
+            } else if (vInstallment == VestingInstallments.QUARTERLY) {
+                uint256 elapsedQuarters = (block.timestamp - lastUpdate[recipient]).div(QUARTER_SECONDS);
                 uint256 totalQuarters = (vestingEnd[recipient] - vestingBegin[recipient]).div(QUARTER_SECONDS);
 
                 uint256 tokensPerQuarter = vestingAmount[recipient].div(totalQuarters);
-
                 amount = tokensPerQuarter.mul(elapsedQuarters);
-                lastUpdate[recipient] += elapsedQuarters * MONTH_SECONDS;
+                lastUpdate[recipient] += elapsedQuarters * QUARTER_SECONDS;
+            } else {
+                require(false, "Vesting::claim: invalid installment");
             }
         }
         claimedAmount[recipient] += amount;
-        INft(nftToken).transfer(recipient, amount);
+        require(INft(nftToken).transfer(recipient, amount), "Vesting::claim: failed to transfer remaining tokens");
 
         remaining = vestingAmount[recipient].sub(claimedAmount[recipient]);
+    }
+
+    function currentClaim(address user) external view returns (uint256) {
+        require(initializedVestor[user], "Vesting::currentClaim: user not initialized");
+        require(!revokedVestor[user], "Vesting::currentClaim: user already revoked");
+
+        if (block.timestamp >= vestingCliff[user]) {
+            if (block.timestamp >= vestingEnd[user]) {
+                return vestingAmount[user].sub(claimedAmount[user]);
+            } else {
+                VestingInstallments vInstallment = installment[user];
+
+                if (vInstallment == VestingInstallments.MONTHLY) {
+                    uint256 totalMonths = (vestingEnd[user] - vestingBegin[user]).div(MONTH_SECONDS);
+                    uint256 tokensPerMonth = vestingAmount[user].div(totalMonths);
+                    uint256 elapsedMonths = (block.timestamp - lastUpdate[user]).div(MONTH_SECONDS);
+                    return tokensPerMonth.mul(elapsedMonths);
+                } else if (vInstallment == VestingInstallments.QUARTERLY) {
+                    uint256 totalQuarters = (vestingEnd[user] - vestingBegin[user]).div(QUARTER_SECONDS);
+                    uint256 tokensPerQuarter = vestingAmount[user].div(totalQuarters);
+
+                    uint256 elapsedQuarters = (block.timestamp - lastUpdate[user]).div(QUARTER_SECONDS);
+                    return tokensPerQuarter.mul(elapsedQuarters);
+                } else {
+                    return 0;
+                }
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    function toBeVested(address user) external view returns (uint256) {
+        require(initializedVestor[user], "Vesting::toBeVested: user not initialized");
+        require(!revokedVestor[user], "Vesting::toBeVested: user already revoked");
+        return vestingAmount[user].sub(claimedAmount[user]);
+    }
+
+    function getVestingInfo(address user) external view returns (VestingInfo memory) {
+        return
+            VestingInfo(
+                claimedAmount[user],
+                vestingAmount[user],
+                vestingBegin[user],
+                vestingCliff[user],
+                vestingEnd[user],
+                lastUpdate[user],
+                installment[user],
+                revokedVestor[user]
+            );
+    }
+
+    function multiClaim(address[] calldata recipients) public {
+        for (uint256 i = 0; i < recipients.length; i++) {
+            claim(recipients[i]);
+        }
     }
 }
