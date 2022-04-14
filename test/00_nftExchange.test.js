@@ -115,13 +115,15 @@ describe("NFT.com Marketplace", function () {
 
       GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
+      console.log('GenesisKey: ', GenesisKey)
+
       const weth = await hre.ethers.getContractFactory("WETH");
       deployedWETH = await weth.deploy();
       RINKEBY_WETH = deployedWETH.address;
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds, true, "ipfs//"],
+        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds, true, 'ipfs//'],
         { kind: "uups" },
       );
 

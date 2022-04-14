@@ -27,6 +27,13 @@ const verifyContract = async (name: string, address: string, args: Array<string>
   }
 };
 
+const delayedVerifyImp = async (name: string, address: string, hre: any): Promise<void> => {
+  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
+  await delay(TIME_DELAY);
+  console.log(chalk.green("verifying..."));
+  await getImplementation(name, address, hre);
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getImplementation = async (name: string, proxyAddress: string, hre: any): Promise<string> => {
   try {
@@ -127,11 +134,22 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
   const GenesisKeyTeamDistributor = await hre.ethers.getContractFactory("GenesisKeyTeamDistributor");
   const deployedGenesisKeyTeamDistributor = await GenesisKeyTeamDistributor.attach(genesisKeyTeamDistributorAddress);
 
+  // (joey)
+  // (jonathan)
+  // (kent)
+  // (john)
+  // (john)
+  // (eddie)
+  // (gavin)
+
   const insiderGKClaimJSON = JSON.parse(`{
-    "0x59495589849423692778a8c5aaCA62CA80f875a4": "1",
+    "0xBD3Feab37Eb7533B03bf77381D699aD8bA64A30B": "1",
+    "0x643367af2Ae07EBFbDE7599eB0855A19c24dca5F": "1",
+    "0x2f8ECC5A549638630C094a3DB3849f1ba27C31B1": "1",
+    "0x98375cB9Dc4a14b46a4C8b284880C7C277f4c8bc": "1",
+    "0x948c21e4e9e342e083424b6132fc29644c6c0a9f": "1",
     "0x341dE5B426d3582f35357094Ae412cf4E41774Cd": "1",
-    "0xe221D08a15bF66B0116E34CBdd1a216d95669d3B": "1",
-    "0x9f76C103788c520dCb6fAd09ABd274440b8D026D": "1"
+    "0x338eFdd45AE7D010da108f39d293565449C52682": "1"
   }`);
 
   const merkleResultInsider = parseBalanceMap(insiderGKClaimJSON);
@@ -152,22 +170,23 @@ task("deploy:1c").setAction(async function (taskArguments, hre) {
 
   // TODO:
   const genesisWhitelistWinnerJSON = JSON.parse(`{
-    "0xfA3ccA6a31E30Bf9A0133a679d33357bb282c995": "1",
-    "0xFC4BCb93a151F68773dA76D5D61E5f1Eea9FD494": "1",
-    "0x56a065dFEB4616f89aD733003914A8e11dB6CEdD": "1",
-    "0x2b9EE94612b9e038909471600e11993D5624eC42": "1",
-    "0x5c09f8b380140E40A4ADc744F9B199a9383553F9": "1",
     "0x59495589849423692778a8c5aaCA62CA80f875a4": "1",
-    "0x090Be0f933d005EB7f30BEcF78A37B9C0DBb7442": "1",
+    "0xBb6113fb407DD8156a2dc1eE7246b86cA0b510ed": "1",
+    "0x511aA45406238B3366A0b2aCFBef9d5f5A77f382": "1",
+    "0x5c09f8b380140E40A4ADc744F9B199a9383553F9": "1",
+    "0x74bB476C99d2fad476DB75654e58404Db6EC4977": "1",
+    "0xf9142440D22CE022b5d88062a0b0dce0149e5F65": "1",
+    "0xfA3ccA6a31E30Bf9A0133a679d33357bb282c995": "1",
+    "0x56a065dFEB4616f89aD733003914A8e11dB6CEdD": "1",
     "0xC478BEc40f863DE406f4B87490011944aFB9Aa27": "1",
+    "0xAe51b702Ee60279307437b13734D27078EF108AA": "1",
+    "0x2b9EE94612b9e038909471600e11993D5624eC42": "1",
     "0xD8D46690Db9534eb3873aCf5792B8a12631D8229": "1",
-    "0xcb606fbaE8f03ecA4F394c9c7111B48F1d0f901D": "1",
-    "0xF968EC896Ffcb78411328F9EcfAbB9FcCFe4E863": "1",
     "0x9f76C103788c520dCb6fAd09ABd274440b8D026D": "1"
   }`);
 
   // TODO:
-  const wethMin = hre.ethers.BigNumber.from("1000000000000000");
+  const wethMin = hre.ethers.BigNumber.from("3000000000000000");
 
   // merkle result is what you need to post publicly and store on FE
   const merkleResult = parseBalanceMap(genesisWhitelistWinnerJSON);
@@ -380,11 +399,13 @@ task("deploy:4").setAction(async function (taskArguments, hre) {
 });
 
 // UPGRADES ============================================================================================
-task("upgrade:NftProfile").setAction(async function (taskArguments, { ethers, upgrades }) {
-  const NftProfile = await ethers.getContractFactory("NftProfile");
+task("upgrade:NftProfile").setAction(async function (taskArguments, hre ) {
+  const NftProfile = await hre.ethers.getContractFactory("NftProfile");
 
-  const upgradedNftProfile = await upgrades.upgradeProxy("0xaa7F30a10D3E259ae9B14308C77dFe5aA2f5D9Df", NftProfile);
+  const upgradedNftProfile = await hre.upgrades.upgradeProxy("0x734a14f4df41f2fA90f8bF7fb7Ce3E2ab68d9cF0", NftProfile);
   console.log(chalk.green("upgradedNftProfile: ", upgradedNftProfile.address));
+
+  await delayedVerifyImp("upgradedNftProfile", upgradedNftProfile.address, hre);
 });
 
 task("upgrade:NftMarketplace").setAction(async function (taskArguments, hre) {
@@ -396,7 +417,8 @@ task("upgrade:NftMarketplace").setAction(async function (taskArguments, hre) {
     NftMarketplace,
   );
   console.log(chalk.green("upgraded nft marketplace: ", upgradedNftMarketplace.address));
-  // console.log(chalk.green("upgradedNftMarketplace: ", JSON.stringify(upgradedNftMarketplace, null, 2)));
+  
+  await delayedVerifyImp("upgradedNftMarketplace", upgradedNftMarketplace.address, hre);
 });
 
 task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
@@ -408,6 +430,8 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
     ProfileAuction,
   );
   console.log(chalk.green("upgraded profile auction: ", upgradedProfileAuction.address));
+
+  await delayedVerifyImp("upgradedProfileAuction", upgradedProfileAuction.address, hre);
 });
 
 task("upgrade:Vesting").setAction(async function (taskArguments, hre) {
@@ -418,10 +442,7 @@ task("upgrade:Vesting").setAction(async function (taskArguments, hre) {
   const upgradedVesting = await hre.upgrades.upgradeProxy(vestingAddress, Vesting);
   console.log(chalk.green("upgraded vesting: ", upgradedVesting.address));
 
-  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
-  await delay(TIME_DELAY);
-  console.log(chalk.green("verifying..."));
-  await getImplementation("deployedVesting", vestingAddress, hre);
+  await delayedVerifyImp("upgradedVesting", vestingAddress, hre);
 });
 
 task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
@@ -430,6 +451,8 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
 
   const upgradedGenesisKey = await hre.upgrades.upgradeProxy(deployedGenesisKeyAddress, GenesisKey);
   console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
+
+  await delayedVerifyImp("upgradedGenesisKey", upgradedGenesisKey.address, hre);
 });
 
 // TODO: script for gnosis upgrade

@@ -37,6 +37,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     // true transfers are paused
     bool public pausedTransfer;
+    uint256 public gweiMax;
 
     /* An ECDSA signature. */
     struct Sig {
@@ -76,6 +77,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         remainingTeamAdvisorGrant = 250; // 250 genesis keys allocated
         lastClaimTime = block.timestamp;
         randomClaimBool = _randomClaimBool;
+        gweiMax = 200;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -309,6 +311,10 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         gkTeamClaimContract = _gkTeamClaimContract;
     }
 
+    function setMaxGweiPublic(uint256 _gwei) external onlyOwner {
+        gweiMax = _gwei;
+    }
+
     /**
      @notice sends grant key to end user for team / advisors / grants
     */
@@ -339,10 +345,24 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         safeTransferETH(multiSig, address(this).balance);
     }
 
+    function isContract(address account) internal view returns (bool) {
+        // This method relies on extcodesize, which returns 0 for contracts in
+        // construction, since the code is only stored at the end of the
+        // constructor execution.
+
+        uint256 size;
+        assembly {
+            size := extcodesize(account)
+        }
+        return size > 0;
+    }
+
     // ========= PUBLIC SALE =================================================================
     // external function for public sale of genesis keys
     function publicExecuteBid() external payable nonReentrant {
         // checks
+        require(!isContract(msg.sender), "GEN_KEY: !CONTRACT");
+        require(tx.gasprice <= gweiMax * 1000000000, "GEN_KEY: GAS PRICE"); // 200 GWEI
         require(startPublicSale, "GEN_KEY: invalid time");
         require(remainingTeamAdvisorGrant + totalSupply() != 10000, "GEN_KEY: no more keys left for sale");
 
