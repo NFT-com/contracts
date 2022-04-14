@@ -41,6 +41,11 @@ contract NftBuyer {
         address _nft,
         address _weth
     ) {
+        require(address(_factory) != address(0));
+        require(_genesisStaking != address(0));
+        require(_nft != address(0));
+        require(_weth != address(0));
+
         factory = _factory;
         nft = _nft;
         genesisStaking = _genesisStaking;
