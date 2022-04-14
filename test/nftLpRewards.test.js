@@ -139,6 +139,18 @@ describe("NFT Token LP Staking Yield", function () {
         await deployedWethNftLP.connect(second).approve(deployedLpStake.address, MAX_UINT);
         await deployedXeenusNftLP.connect(second).approve(deployedLpStake.address, MAX_UINT);
 
+        // make sure deposit and withdraw are not to 0x0
+        await expect(
+          deployedLpStake
+            .connect(second)
+            .deposit(0, await deployedWethNftLP.balanceOf(second.address), ethers.constants.AddressZero),
+        ).to.be.reverted;
+        await expect(
+          deployedLpStake
+            .connect(second)
+            .withdraw(0, await deployedWethNftLP.balanceOf(second.address), ethers.constants.AddressZero),
+        ).to.be.reverted;
+
         // assign reward to self
         await deployedLpStake
           .connect(second)

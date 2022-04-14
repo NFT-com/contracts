@@ -119,7 +119,7 @@ describe("NFT.com Marketplace", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds],
+        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds, "ipfs//"],
         { kind: "uups" },
       );
 
@@ -787,7 +787,7 @@ describe("NFT.com Marketplace", function () {
           v: v0,
           r: r0,
           s: s0,
-          order: sellOrder, 
+          order: sellOrder,
         } = await signMarketplaceOrder(
           ownerSigner,
           [
@@ -1260,7 +1260,7 @@ describe("NFT.com Marketplace", function () {
               ["address", "uint256", "bool"], // types
               [deployedTest721.address, 0, true], // values
               [1, 0], // data to be encoded
-            ]
+            ],
           ],
           ethers.constants.AddressZero,
           [
@@ -1296,9 +1296,7 @@ describe("NFT.com Marketplace", function () {
             [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertSmallNftToken(1), 0]],
           ],
           owner.address,
-          [
-            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [deployedTest721.address, 0, true], [1, 0]],
-          ],
+          [[ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [deployedTest721.address, 0, true], [1, 0]]],
           0,
           0,
           await deployedNftMarketplace.nonces(owner.address),
@@ -1438,7 +1436,7 @@ describe("NFT.com Marketplace", function () {
 
         // owner should have received 1 ETH - (royalty + protocol fee)
         expect(await ethers.provider.getBalance(owner.address)).to.be.equal(
-          beforeEthBalance.add(convertSmallNftToken(1).mul(9900).div(10000).mul(99).div(100))
+          beforeEthBalance.add(convertSmallNftToken(1).mul(9900).div(10000).mul(99).div(100)),
         );
 
         // nftBuyer
@@ -1667,7 +1665,9 @@ describe("NFT.com Marketplace", function () {
         // contract should have 0 ETH
         expect(await ethers.provider.getBalance(deployedNftMarketplace.address)).to.be.equal(0);
         // owner should have received 1 ETH
-        expect(await ethers.provider.getBalance(owner.address)).to.be.equal(beforeEthBalance.add(convertNftToken(1).mul(9900).div(10000)));
+        expect(await ethers.provider.getBalance(owner.address)).to.be.equal(
+          beforeEthBalance.add(convertNftToken(1).mul(9900).div(10000)),
+        );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 1);
