@@ -15,11 +15,12 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   const symbol = "NFTKEY";
   const auctionSeconds = "604800"; // seconds in 1 week
   const multiSig = governor;
+  const ipfsHash = "ipfs://{insert}/";
 
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
   const deployedGenesisKey = await hre.upgrades.deployProxy(
     GenesisKey,
-    [name, symbol, wethAddress, multiSig, auctionSeconds],
+    [name, symbol, wethAddress, multiSig, auctionSeconds, ipfsHash],
     { kind: "uups" },
   );
   console.log(chalk.green(`deployedGenesisKey: ${deployedGenesisKey.address}`));
@@ -64,6 +65,7 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
 // STEP 2 deploy:NFT.com
 task("deploy:2").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`initializing...`));
+  const profileMetadataLink = `https://${network === "rinkeby" ? "staging-api" : "api"}.nft.com/uri/`;
   const deployedGenesisKeyAddress = "0xbEeB7221B6058B9529e0bde13A072f17c63CD372"; // TODO: fill in after genesis key is done
 
   // NFT TOKEN ========================================================================================
@@ -89,6 +91,7 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
       "NFT.com", // string memory name,
       "NFT.com", // string memory symbol,
       deployedNftToken.address,
+      profileMetadataLink,
     ],
     { kind: "uups" },
   );

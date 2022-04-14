@@ -198,7 +198,8 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      */
     function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) public view override returns (bool) {
         require((sellOrder.taker == address(0) || sellOrder.taker == buyer), "vbn !match");
-        require(sellOrder.makeAssets.length != 0, "vbn assets > 0");
+        require(sellOrder.makeAssets.length != 0, "vbn make > 0");
+        require(sellOrder.takeAssets.length != 0, "vbn take > 0");
 
         if (sellOrder.auctionType == LibSignature.AuctionType.Decreasing) {
             decreasingValidation(sellOrder);

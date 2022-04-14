@@ -106,7 +106,7 @@ describe("NFT.com Marketplace", function () {
 
       deployedERC1155Factory = await ERC1155Factory.deploy();
 
-      [owner, buyer, addr2, ...addrs] = await ethers.getSigners();
+      [owner, buyer, addr2, royaltyReceiver, ...addrs] = await ethers.getSigners();
 
       const name = "NFT.com Genesis Key";
       const symbol = "NFTKEY";
@@ -119,7 +119,7 @@ describe("NFT.com Marketplace", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds],
+        [name, symbol, RINKEBY_WETH, multiSig, auctionSeconds, "ipfs//"],
         { kind: "uups" },
       );
 
@@ -193,23 +193,6 @@ describe("NFT.com Marketplace", function () {
         await deployedCryptoKittyTransferProxy.removeOperator(owner.address);
       });
     });
-
-    // const ask = `{"maker":"0xF968EC896Ffcb78411328F9EcfAbB9FcCFe4E863","makeAssets":[{"assetType":{"assetClass":"0x73ad2146","data":"0x000000000000000000000000f5de760f2e916647fd766b4ad9e85ff943ce3a2b000000000000000000000000000000000000000000000000000000000002c5230000000000000000000000000000000000000000000000000000000000000000"},"data":"0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000"}],"taker":"0x0000000000000000000000000000000000000000","takeAssets":[{"assetType":{"assetClass":"0x8ae85d84","data":"0x000000000000000000000000c778417e063141139fce010982780140aa0cd5ab"},"data":"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000"}],"salt":1647623420,"start":1647622820,"end":1648228220,"nonce":0,"auctionType":1}`
-    // const bid = `{"maker":"0xcb606fbaE8f03ecA4F394c9c7111B48F1d0f901D","makeAssets":[{"assetType":{"assetClass":"0x8ae85d84","data":"0x000000000000000000000000c778417e063141139fce010982780140aa0cd5ab"},"data":"0x000000000000000000000000000000000000000000000000016345785d8a00000000000000000000000000000000000000000000000000000000000000000000"}],"taker":"0xF968EC896Ffcb78411328F9EcfAbB9FcCFe4E863","takeAssets":[{"assetType":{"assetClass":"0x73ad2146","data":"0x000000000000000000000000f5de760f2e916647fd766b4ad9e85ff943ce3a2b000000000000000000000000000000000000000000000000000000000002c5230000000000000000000000000000000000000000000000000000000000000000"},"data":"0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000"}],"salt":1647624640,"start":1647624040,"end":1648228220,"nonce":0,"auctionType":1}`
-    // describe("validateOrder anthony", function () {
-    //   it("should validate correctly: ", async function () {
-    //     const vlAddress = "0xce789D5C9DfDdEBA2AA87b37f2dE25e26a767023";
-    //     const ValidationLogic = await ethers.getContractFactory("ValidationLogic");
-    //     const deployedValidationLogicContract = await ValidationLogic.attach(vlAddress);
-
-    //     try {
-    //       const result = await deployedValidationLogicContract.validateMatch_(JSON.parse(ask), JSON.parse(bid));
-    //       console.log('result: ', result);
-    //     } catch(err) {
-    //       console.log('err anthony: ', err);
-    //     }
-    //   });
-    // })
 
     describe("Allow Multi-Asset Swaps via EOA users using sigV4", function () {
       it("should catch edge cases for start and end times", async function () {
@@ -308,14 +291,15 @@ describe("NFT.com Marketplace", function () {
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
+        expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);
 
         await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
-          .withArgs(buyer.address, ownerSigner.address, convertNftToken(100));
+          .withArgs(buyer.address, ownerSigner.address, convertNftToken(995).div(10));
 
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedNftToken.balanceOf(buyer.address)).to.be.equal(
-          BigNumber.from(8995).mul(BigNumber.from(10).pow(BigNumber.from(17))),
+          BigNumber.from(900).mul(BigNumber.from(10).pow(BigNumber.from(18))),
         );
         expect(await deployedNftToken.balanceOf(deployedNftBuyer.address)).to.be.equal(
           BigNumber.from(5).mul(BigNumber.from(10).pow(BigNumber.from(17))),
@@ -365,11 +349,11 @@ describe("NFT.com Marketplace", function () {
 
         await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
-          .withArgs(buyer.address, ownerSigner.address, convertNftToken(100));
+          .withArgs(buyer.address, ownerSigner.address, convertNftToken(995).div(10));
 
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedNftToken.balanceOf(buyer.address)).to.be.equal(
-          BigNumber.from(8995).mul(BigNumber.from(10).pow(BigNumber.from(17))),
+          BigNumber.from(900).mul(BigNumber.from(10).pow(BigNumber.from(18))),
         );
         expect(await deployedNftToken.balanceOf(deployedNftBuyer.address)).to.be.equal(
           BigNumber.from(5).mul(BigNumber.from(10).pow(BigNumber.from(17))),
@@ -498,7 +482,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
         )
           .to.emit(deployedNftToken, "Transfer")
-          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(4975).div(10));
 
         await deployedNftMarketplace.cancel(sellOrder);
 
@@ -677,7 +661,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
         )
           .to.emit(deployedNftToken, "Transfer")
-          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(4975).div(10));
 
         // balances after
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
@@ -776,13 +760,13 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
         )
           .to.emit(deployedNftToken, "Transfer")
-          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(4975).div(10));
 
         // balances after
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(buyer.address);
         expect(await deployedXEENUS.balanceOf(owner.address)).to.be.equal(
-          beforeXeenusBalance.add(convertNftToken(250)),
+          beforeXeenusBalance.add(convertNftToken(2475).div(10)),
         );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
@@ -882,13 +866,13 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
         )
           .to.emit(deployedNftToken, "Transfer")
-          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(4975).div(10));
 
         // balances after
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(owner.address);
         expect(await deployedXEENUS.balanceOf(buyer.address)).to.be.equal(
-          beforeXeenusBalance.add(convertNftToken(500)),
+          beforeXeenusBalance.add(convertNftToken(495)),
         );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
@@ -976,13 +960,13 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]),
         )
           .to.emit(deployedNftToken, "Transfer")
-          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(4975).div(10));
 
         // balances after
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(owner.address);
         expect(await deployedXEENUS.balanceOf(buyer.address)).to.be.equal(
-          beforeXeenusBalance.add(convertNftToken(500)),
+          beforeXeenusBalance.add(convertNftToken(495)),
         );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
@@ -1166,6 +1150,7 @@ describe("NFT.com Marketplace", function () {
         ).to.be.reverted;
 
         await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1500));
+
         const beforeEthBalance = await ethers.provider.getBalance(owner.address);
 
         // succeeds because buyer is calling and sending in ETH
@@ -1175,13 +1160,13 @@ describe("NFT.com Marketplace", function () {
           }),
         )
           .to.emit(deployedNftToken, "Transfer")
-          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(4975).div(10));
 
         // balances after
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(buyer.address);
         expect(await deployedXEENUS.balanceOf(owner.address)).to.be.equal(
-          beforeXeenusBalance.add(convertNftToken(250)),
+          beforeXeenusBalance.add(convertNftToken(2475).div(10)),
         );
 
         // buyer should have sent 2 ETH, and received 1 ETH back
@@ -1190,9 +1175,9 @@ describe("NFT.com Marketplace", function () {
         );
         // contract should have 0 ETH
         expect(await ethers.provider.getBalance(deployedNftMarketplace.address)).to.be.equal(0);
-        // owner should have received 1 ETH
+        // owner should have received .01 ETH
         expect(await ethers.provider.getBalance(owner.address)).to.be.equal(
-          beforeEthBalance.add(convertSmallNftToken(1)),
+          beforeEthBalance.add(convertSmallNftToken(1).mul(99).div(100)),
         );
 
         // nftBuyer
@@ -1249,6 +1234,257 @@ describe("NFT.com Marketplace", function () {
         // reset board
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 1);
+        await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(500));
+        await deployedXEENUS.connect(buyer).transfer(owner.address, convertNftToken(400)); // return some funds
+      });
+
+      it("should allow royalties to be set and paid for ERC20s", async function () {
+        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
+        await deployedNftMarketplace.modifyWhitelist(RINEKBY_XEENUS, true);
+        await owner.sendTransaction({ to: buyer.address, value: convertNftToken(2) });
+
+        await deployedNftMarketplace.setRoyalty(deployedTest721.address, royaltyReceiver.address, 100); // 1% royalty
+
+        // sell NFT profile NFT token 0 and 1
+        // wants NFT token and WETH
+        const {
+          v: v0,
+          r: r0,
+          s: s0,
+          order: sellOrder,
+        } = await signMarketplaceOrder(
+          ownerSigner,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [deployedTest721.address, 0, true], // values
+              [1, 0], // data to be encoded
+            ],
+          ],
+          ethers.constants.AddressZero,
+          [
+            [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(100), convertNftToken(10)]],
+            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
+            [
+              ETH_ASSET_CLASS,
+              ["address"],
+              [ethers.constants.AddressZero],
+              [convertSmallNftToken(2), convertSmallNftToken(1)],
+            ],
+          ],
+          0,
+          0,
+          await deployedNftMarketplace.nonces(owner.address),
+          ethers.provider,
+          deployedNftMarketplace.address,
+          AuctionType.English,
+        );
+
+        expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
+
+        const {
+          v: v1,
+          r: r1,
+          s: s1,
+          order: buyOrder,
+        } = await signMarketplaceOrder(
+          buyerSigner,
+          [
+            [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(500), 0]],
+            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(250), 0]],
+            [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertSmallNftToken(1), 0]],
+          ],
+          owner.address,
+          [[ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [deployedTest721.address, 0, true], [1, 0]]],
+          0,
+          0,
+          await deployedNftMarketplace.nonces(owner.address),
+          ethers.provider,
+          deployedNftMarketplace.address,
+          AuctionType.English,
+        );
+        // sell NFT profile NFT token 0 and 1
+        // wants NFT token and WETH
+        const {
+          v: incorrect_v2,
+          r: incorrect_r2,
+          s: incorrect_s2,
+          order: incorrect_sellOrder,
+        } = await signMarketplaceOrder(
+          ownerSigner,
+          [
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [deployedTest721.address, 0, true], // values
+              [1, 0], // data to be encoded
+            ],
+            [
+              ERC721_ASSET_CLASS, // asset class
+              ["address", "uint256", "bool"], // types
+              [deployedTest721.address, 1, true], // values
+              [1, 0], // data to be encoded
+            ],
+            [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(1), 0]],
+          ],
+          ethers.constants.AddressZero,
+          [
+            [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(100), convertNftToken(10)]],
+            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(500), convertNftToken(50)]],
+            [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(1), convertNftToken(1)]],
+          ],
+          0,
+          0,
+          await deployedNftMarketplace.nonces(owner.address),
+          ethers.provider,
+          deployedNftMarketplace.address,
+          AuctionType.English,
+        );
+
+        expect(
+          (
+            await deployedNftMarketplace.validateOrder_(incorrect_sellOrder, incorrect_v2, incorrect_r2, incorrect_s2)
+          )[0],
+        ).to.be.true;
+
+        const {
+          v: incorrect_v3,
+          r: incorrect_r3,
+          s: incorrect_s3,
+          order: incorrect_buyOrder,
+        } = await signMarketplaceOrder(
+          buyerSigner,
+          [
+            [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(500), 0]],
+            [ERC20_ASSET_CLASS, ["address"], [RINEKBY_XEENUS], [convertNftToken(250), 0]],
+            [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(1), 0]],
+          ],
+          owner.address,
+          [
+            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [deployedTest721.address, 0, true], [1, 0]],
+            [ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [deployedTest721.address, 1, true], [1, 0]],
+            [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertNftToken(1), 0]],
+          ],
+          0,
+          0,
+          await deployedNftMarketplace.nonces(owner.address),
+          ethers.provider,
+          deployedNftMarketplace.address,
+          AuctionType.English,
+        );
+
+        expect(
+          (
+            await deployedNftMarketplace.validateOrder_(incorrect_buyOrder, incorrect_v3, incorrect_r3, incorrect_s3)
+          )[0],
+        ).to.be.true;
+
+        // should revert because eth is used twice
+        await expect(deployedValidationLogic.validateMatch_(incorrect_sellOrder, incorrect_buyOrder)).to.be.reverted;
+
+        expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
+
+        // add approvals
+        await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedXEENUS.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
+        await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 1);
+
+        // match is valid
+        expect(await deployedValidationLogic.validateMatch_(sellOrder, buyOrder)).to.be.true;
+
+        // balances before
+        expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);
+        expect(await deployedTest721.ownerOf(1)).to.be.equal(owner.address);
+        await deployedXEENUS.connect(owner).transfer(buyer.address, convertNftToken(500));
+        const beforeXeenusBalance = await deployedXEENUS.balanceOf(owner.address);
+
+        // should revert because only buyer can call and send in msg.value
+        await expect(
+          deployedNftMarketplace.connect(owner).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1], {
+            value: BigNumber.from("2000000000000000000"),
+          }),
+        ).to.be.reverted;
+
+        await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1500));
+        const beforeEthBalance = await ethers.provider.getBalance(owner.address);
+
+        expect(await ethers.provider.getBalance(deployedNftBuyer.address)).to.be.equal(0);
+
+        // succeeds because buyer is calling and sending in ETH
+        await expect(
+          deployedNftMarketplace.connect(buyer).executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1], {
+            value: BigNumber.from("2000000000000000000"),
+          }),
+        )
+          .to.emit(deployedNftToken, "Transfer")
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(492525).div(1000));
+
+        // balances after
+        expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
+        expect(await deployedTest721.ownerOf(1)).to.be.equal(owner.address);
+        expect(await deployedXEENUS.balanceOf(owner.address)).to.be.equal(
+          beforeXeenusBalance.add(convertNftToken(245025).div(1000)),
+        );
+
+        expect(await ethers.provider.getBalance(deployedNftBuyer.address)).to.be.equal(
+          convertSmallNftToken(1).mul(9900).div(10000).mul(1).div(100),
+        );
+        // contract should have 0 ETH
+        expect(await ethers.provider.getBalance(deployedNftMarketplace.address)).to.be.equal(0);
+
+        // owner should have received 1 ETH - (royalty + protocol fee)
+        expect(await ethers.provider.getBalance(owner.address)).to.be.equal(
+          beforeEthBalance.add(convertSmallNftToken(1).mul(9900).div(10000).mul(99).div(100)),
+        );
+
+        // nftBuyer
+        const deployedNftBuyerETH = await ethers.provider.getBalance(deployedNftBuyer.address);
+
+        // no funds yet
+        expect(await deployedNftToken.balanceOf(deployedGenesisStake.address)).to.be.equal(0);
+        expect(await deployedWETH.balanceOf(deployedNftBuyer.address)).to.be.equal(0);
+
+        await deployedNftBuyer.connect(owner).convertETH();
+
+        // UNIV2 POOL FUNDING
+        await deployedNftToken.connect(owner).approve(deployedUniV2Router.address, MAX_UINT);
+        await deployedXEENUS.connect(owner).approve(deployedUniV2Router.address, MAX_UINT);
+        await deployedUniV2Router
+          .connect(owner)
+          .addLiquidity(
+            RINKEBY_WETH,
+            deployedNftToken.address,
+            convertNftToken(1),
+            convertNftToken(1000),
+            convertNftToken(1),
+            convertNftToken(1000),
+            owner.address,
+            Math.floor(new Date().getTime() / 1000) + 3600,
+          );
+
+        // WETH -> ETH
+        expect(await deployedWETH.balanceOf(deployedNftBuyer.address)).to.be.equal(deployedNftBuyerETH);
+
+        await deployedNftBuyer.connect(owner).convert(RINKEBY_WETH);
+
+        expect(await deployedWETH.balanceOf(deployedNftBuyer.address)).to.be.equal(0);
+        expect(await deployedXEENUS.balanceOf(deployedNftBuyer.address)).to.be.gt(0);
+
+        await deployedNftBuyer.connect(owner).convert(RINEKBY_XEENUS);
+
+        expect(await deployedXEENUS.balanceOf(deployedNftBuyer.address)).to.be.equal(0);
+
+        expect(await deployedNftToken.balanceOf(deployedGenesisStake.address)).to.be.gt(0);
+        console.log(
+          "deployedNftToken.balanceOf(deployedGenesisStake.address): ",
+          Number(await deployedNftToken.balanceOf(deployedGenesisStake.address)) / 10 ** 18,
+        );
+        expect(await deployedWETH.balanceOf(deployedNftBuyer.address)).to.be.equal(0);
+
+        // reset board
+        await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
         await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(500));
         await deployedXEENUS.connect(buyer).transfer(owner.address, convertNftToken(400)); // return some funds
       });
@@ -1404,7 +1640,7 @@ describe("NFT.com Marketplace", function () {
           }),
         )
           .to.emit(deployedNftToken, "Transfer")
-          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(500));
+          .withArgs(buyerSigner.address, ownerSigner.address, convertNftToken(4975).div(10));
 
         // new owner of kitty 1 should be buyer
         expect(await deployedKittyCore.kittyIndexToOwner(1)).to.be.equal(buyer.address);
@@ -1419,7 +1655,7 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(buyer.address);
         expect(await deployedXEENUS.balanceOf(owner.address)).to.be.equal(
-          beforeXeenusBalance.add(convertNftToken(250)),
+          beforeXeenusBalance.add(convertNftToken(24750).div(100)),
         );
 
         // buyer should have sent 2 ETH, and received 1 ETH back
@@ -1429,7 +1665,9 @@ describe("NFT.com Marketplace", function () {
         // contract should have 0 ETH
         expect(await ethers.provider.getBalance(deployedNftMarketplace.address)).to.be.equal(0);
         // owner should have received 1 ETH
-        expect(await ethers.provider.getBalance(owner.address)).to.be.equal(beforeEthBalance.add(convertNftToken(1)));
+        expect(await ethers.provider.getBalance(owner.address)).to.be.equal(
+          beforeEthBalance.add(convertNftToken(1).mul(9900).div(10000)),
+        );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 1);
