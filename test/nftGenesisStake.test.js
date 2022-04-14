@@ -16,14 +16,17 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
     let NftToken, NftStake;
     let deployedNftToken, deployedNftGenesisStake;
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
-    const RINKEBY_WETH = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
 
     let GenesisKey;
     let deployedGenesisKey;
     let deployedWETH;
+    let GenesisKeyTeamClaim;
+    let deployedGenesisKeyTeamClaim;
+    let GenesisKeyTeamDistributor;
+    let deployedGkTeamDistributor;
     const name = "NFT.com Genesis Key";
     const symbol = "NFTKEY";
-    const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
+    let wethAddress;
     const auctionSeconds = "604800"; // seconds in 1 week
 
     // `beforeEach` will run before each test, re-deploying the contract every
@@ -38,20 +41,33 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
       GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
       const multiSig = addr1.address;
 
+      deployedWETH = await NftToken.deploy();
+      wethAddress = deployedWETH.address;
+
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds],
+        [name, symbol, wethAddress, multiSig, auctionSeconds, true],
         { kind: "uups" },
       );
 
+      GenesisKeyTeamClaim = await ethers.getContractFactory("GenesisKeyTeamClaim");
+      deployedGenesisKeyTeamClaim = await upgrades.deployProxy(GenesisKeyTeamClaim, [deployedGenesisKey.address], {
+        kind: "uups",
+      });
+
+      GenesisKeyTeamDistributor = await ethers.getContractFactory("GenesisKeyTeamDistributor");
+      deployedGkTeamDistributor = await GenesisKeyTeamDistributor.deploy(deployedGenesisKeyTeamClaim.address);
+
+      await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
+
+      // only set pause transfer until public sale is over
+      await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
+      await deployedGenesisKey.setWhitelist(owner.address, true);
+      await deployedGenesisKey.setWhitelist(second.address, true);
+      await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
+
       const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
       const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
-
-      deployedWETH = new ethers.Contract(
-        wethAddress,
-        `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"guy","type":"address"},{"name":"wad","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"src","type":"address"},{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"wad","type":"uint256"}],"name":"withdraw","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"guy","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Withdrawal","type":"event"}]`,
-        ethers.provider,
-      );
 
       // approve WETH
       await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
@@ -100,34 +116,30 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
       await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
 
-      await expect(
-        deployedGenesisKeyDistributor
-          .connect(owner)
-          .claim(
-            merkleResult.claims[`${ownerSigner.address}`].index,
-            ownerSigner.address,
-            merkleResult.claims[`${ownerSigner.address}`].amount,
-            merkleResult.claims[`${ownerSigner.address}`].proof,
-          ),
-      )
-        .to.emit(deployedWETH, "Transfer")
-        .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
+      await deployedGenesisKeyDistributor
+        .connect(owner)
+        .claim(
+          merkleResult.claims[`${ownerSigner.address}`].index,
+          ownerSigner.address,
+          merkleResult.claims[`${ownerSigner.address}`].amount,
+          merkleResult.claims[`${ownerSigner.address}`].proof,
+          { value: wethMin },
+        );
 
-      await expect(
-        deployedGenesisKeyDistributor
-          .connect(second)
-          .claim(
-            merkleResult.claims[`${secondSigner.address}`].index,
-            secondSigner.address,
-            merkleResult.claims[`${secondSigner.address}`].amount,
-            merkleResult.claims[`${secondSigner.address}`].proof,
-          ),
-      )
-        .to.emit(deployedWETH, "Transfer")
-        .withArgs(secondSigner.address, addr1.address, convertTinyNumber(1));
+      await deployedGenesisKeyDistributor
+        .connect(second)
+        .claim(
+          merkleResult.claims[`${secondSigner.address}`].index,
+          secondSigner.address,
+          merkleResult.claims[`${secondSigner.address}`].amount,
+          merkleResult.claims[`${secondSigner.address}`].proof,
+          { value: wethMin },
+        );
 
       NftStake = await ethers.getContractFactory("GenesisNftStake");
       deployedNftGenesisStake = await NftStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
+
+      await deployedGenesisKey.setWhitelist(deployedNftGenesisStake.address, true);
 
       await owner.sendTransaction({ to: addr1.address, value: convertTinyNumber(1) });
 

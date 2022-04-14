@@ -2,5 +2,5 @@
 pragma solidity ^0.8.0;
 
 interface IGenesisKey {
-    function claimKey(address recipient, uint256 _wethTokens) external returns (bool);
+    function claimKey(address recipient, uint256 _eth) external payable returns (bool);
 }

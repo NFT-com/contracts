@@ -296,10 +296,6 @@ contract ERC721AUpgradeable is
         return defaultBaseURI;
     }
 
-    function setBaseURI(string memory _input) external {
-        defaultBaseURI = _input;
-    }
-
     /**
      * @dev See {IERC721-approve}.
      */
@@ -685,5 +681,5 @@ contract ERC721AUpgradeable is
         uint256 quantity
     ) internal virtual {}
 
-    uint256[44] private __gap;
+    uint256[43] private __gap;
 }

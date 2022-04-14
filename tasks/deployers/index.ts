@@ -1,13 +1,73 @@
 import { task } from "hardhat/config";
 import chalk from "chalk";
 import fs from "fs";
+import delay from "delay";
 import { parseBalanceMap } from "../../test/utils/parse-balance-map";
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const network = "rinkeby";
-const governor = "0x59495589849423692778a8c5aaCA62CA80f875a4"; // TODO: UPDATE
+const governor =
+  network === "rinkeby" ? "0x59495589849423692778a8c5aaCA62CA80f875a4" : "0x19942318a866606e1CC652644186A4e1f9c34277";
 const wethAddress =
   network === "rinkeby" ? "0xc778417e063141139fce010982780140aa0cd5ab" : "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+const usdcAddress =
+  network === "rinkeby" ? "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" : "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const UNI_V2_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+const TIME_DELAY = 20000; // 20 seconds
+
+const verifyContract = async (name: string, address: string, args: Array<string>, hre: any): Promise<void> => {
+  try {
+    console.log(chalk.green(`verifying ${name}`));
+    await hre.run("verify:verify", {
+      address: address,
+      constructorArguments: args,
+    });
+  } catch (err) {
+    console.log(chalk.red(`verification failed: ${err}`));
+  }
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getImplementation = async (name: string, proxyAddress: string, hre: any): Promise<string> => {
+  try {
+    const currentImplAddress = await getImplementationAddress(hre.ethers.provider, proxyAddress);
+
+    await verifyContract(`${name} impl ${currentImplAddress}`, currentImplAddress, [], hre);
+
+    return currentImplAddress;
+  } catch (err) {
+    console.log("error while getting implementation address:", err);
+    return "error";
+  }
+};
+
+// TASKS ============================================================
+task("deploy:0").setAction(async function (taskArguments, hre) {
+  const NftToken = await hre.ethers.getContractFactory("NftToken");
+  const deployedNftToken = await NftToken.deploy();
+  console.log(chalk.green(`deployedNftToken: ${deployedNftToken.address}`));
+
+  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
+  await delay(TIME_DELAY);
+  console.log(chalk.green("verifying..."));
+  await verifyContract("deployedNftToken", deployedNftToken.address, [], hre);
+});
+
+const deployedNftTokenAddress =
+  network == "rinkeby" ? "0xd20Cb8c25E5A738f559DF29f64B6E2DD408e44C2" : "0x52E587F6632C1A2C0552FE07e184f7f4920Be5d6";
+
+task("deploy:0b").setAction(async function (taskArguments, hre) {
+  const Vesting = await hre.ethers.getContractFactory("Vesting");
+  const deployedVesting = await hre.upgrades.deployProxy(Vesting, [deployedNftTokenAddress, governor], {
+    kind: "uups",
+  });
+  console.log(chalk.green(`deployedVesting: ${deployedVesting.address}`));
+
+  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
+  await delay(TIME_DELAY);
+  console.log(chalk.green("verifying..."));
+  await getImplementation("deployedVesting", deployedVesting.address, hre);
+});
 
 // STEP 1 (deploy:GenesisKey)
 task("deploy:1").setAction(async function (taskArguments, hre) {
@@ -15,40 +75,109 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   const symbol = "NFTKEY";
   const auctionSeconds = "604800"; // seconds in 1 week
   const multiSig = governor;
+  const randomTeamAssignBool = true;
 
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
   const deployedGenesisKey = await hre.upgrades.deployProxy(
     GenesisKey,
-    [name, symbol, wethAddress, multiSig, auctionSeconds],
+    [name, symbol, wethAddress, multiSig, auctionSeconds, randomTeamAssignBool],
     { kind: "uups" },
   );
+
+  const GenesisKeyTeamClaim = await hre.ethers.getContractFactory("GenesisKeyTeamClaim");
+  const deployedGenesisKeyTeamClaim = await hre.upgrades.deployProxy(
+    GenesisKeyTeamClaim,
+    [deployedGenesisKey.address],
+    { kind: "uups" },
+  );
+
+  const GenesisKeyTeamDistributor = await hre.ethers.getContractFactory("GenesisKeyTeamDistributor");
+  const deployedGkTeamDistributor = await GenesisKeyTeamDistributor.deploy(deployedGenesisKeyTeamClaim.address);
+
+  await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
+
+  // only set pause transfer until public sale is over
+  await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
+  await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
+
+  console.log(chalk.green(`deployedGkTeamDistributor: ${deployedGkTeamDistributor.address}`));
+  console.log(chalk.green(`deployedGenesisKeyTeamClaim: ${deployedGenesisKeyTeamClaim.address}`));
   console.log(chalk.green(`deployedGenesisKey: ${deployedGenesisKey.address}`));
+
+  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
+  await delay(TIME_DELAY);
+  console.log(chalk.green("verifying..."));
+  await verifyContract(
+    "deployedGkTeamDistributor",
+    deployedGkTeamDistributor.address,
+    [deployedGenesisKeyTeamClaim.address],
+    hre,
+  );
+  await getImplementation("deployedGenesisKey", deployedGenesisKey.address, hre);
+  await getImplementation("deployedGenesisKeyTeamClaim", deployedGenesisKeyTeamClaim.address, hre);
 });
 
-// gen key whitelist claim
+const deployedGenesisKeyAddress = network == "rinkeby" ? "0xE197428a3aB9E011ff99cD9d9D4c5Ea5D8f51f49" : "";
+const genesisKeyTeamDistributorAddress = network == "rinkeby" ? "0x1e01eED656d9aA0B9a16E76F720A6da63a838EA7" : "";
+
+// gen key whitelist claim INSIDER
 task("deploy:1b").setAction(async function (taskArguments, hre) {
-  // TODO:
-  const deployedGenesisKey = "0xbEeB7221B6058B9529e0bde13A072f17c63CD372";
+  // insider merkle tree ==============================================================================================
+  const GenesisKeyTeamDistributor = await hre.ethers.getContractFactory("GenesisKeyTeamDistributor");
+  const deployedGenesisKeyTeamDistributor = await GenesisKeyTeamDistributor.attach(genesisKeyTeamDistributorAddress);
+
+  const insiderGKClaimJSON = JSON.parse(`{
+    "0x59495589849423692778a8c5aaCA62CA80f875a4": "1",
+    "0x341dE5B426d3582f35357094Ae412cf4E41774Cd": "1",
+    "0xe221D08a15bF66B0116E34CBdd1a216d95669d3B": "1",
+    "0x9f76C103788c520dCb6fAd09ABd274440b8D026D": "1"
+  }`);
+
+  const merkleResultInsider = parseBalanceMap(insiderGKClaimJSON);
+  const merkleRootInsider = merkleResultInsider.merkleRoot;
+  await deployedGenesisKeyTeamDistributor.changeMerkleRoot(merkleRootInsider);
+  const insiderJSON = JSON.stringify(merkleResultInsider, null, 2);
+  fs.writeFileSync(`./tasks/merkle/gkInsider/rinkeby-${new Date()}.json`, insiderJSON);
+  console.log(`saved merkle gkInsider rinkeby`);
+
+  console.log(chalk.green("merkleRootInsider: ", merkleRootInsider));
+  console.log(chalk.green("deployedGenesisKeyTeamDistributor: ", deployedGenesisKeyTeamDistributor.address));
+});
+
+task("deploy:1c").setAction(async function (taskArguments, hre) {
+  // general whitelist winners ========================================================================================
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
-  const deployedGenesisKeyContract = await GenesisKey.attach(deployedGenesisKey);
+  const deployedGenesisKeyContract = await GenesisKey.attach(deployedGenesisKeyAddress);
 
   // TODO:
-  const jsonInput = JSON.parse(`{
+  const genesisWhitelistWinnerJSON = JSON.parse(`{
+    "0xfA3ccA6a31E30Bf9A0133a679d33357bb282c995": "1",
+    "0xFC4BCb93a151F68773dA76D5D61E5f1Eea9FD494": "1",
+    "0x56a065dFEB4616f89aD733003914A8e11dB6CEdD": "1",
+    "0x2b9EE94612b9e038909471600e11993D5624eC42": "1",
+    "0x5c09f8b380140E40A4ADc744F9B199a9383553F9": "1",
     "0x59495589849423692778a8c5aaCA62CA80f875a4": "1",
-    "0x2b9EE94612b9e038909471600e11993D5624eC42": "2",
-    "0x0f33d6F1d69f87E5494cBfCAC9B9A3619f38Ca09": "3",
-    "0x9B733736A14C8f5483A54278349A25d3D174226d": "4"
+    "0x090Be0f933d005EB7f30BEcF78A37B9C0DBb7442": "1",
+    "0xC478BEc40f863DE406f4B87490011944aFB9Aa27": "1",
+    "0xD8D46690Db9534eb3873aCf5792B8a12631D8229": "1",
+    "0xcb606fbaE8f03ecA4F394c9c7111B48F1d0f901D": "1",
+    "0xF968EC896Ffcb78411328F9EcfAbB9FcCFe4E863": "1",
+    "0x9f76C103788c520dCb6fAd09ABd274440b8D026D": "1"
   }`);
 
   // TODO:
-  const wethMin = hre.ethers.BigNumber.from(Number(10 ** 16).toString());
+  const wethMin = hre.ethers.BigNumber.from("1000000000000000");
 
   // merkle result is what you need to post publicly and store on FE
-  const merkleResult = parseBalanceMap(jsonInput);
+  const merkleResult = parseBalanceMap(genesisWhitelistWinnerJSON);
   const { merkleRoot } = merkleResult;
 
   const GenesisKeyDistributor = await hre.ethers.getContractFactory("GenesisKeyDistributor");
-  const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(deployedGenesisKey, merkleRoot, wethMin);
+  const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(
+    deployedGenesisKeyAddress,
+    merkleRoot,
+    wethMin,
+  );
 
   console.log(chalk.green("merkleResult: ", merkleResult));
 
@@ -59,17 +188,24 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("merkleRoot: ", merkleRoot));
   console.log(chalk.green("deployedGenesisKeyDistributor: ", deployedGenesisKeyDistributor.address));
   await deployedGenesisKeyContract.setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
+
+  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
+  await delay(TIME_DELAY);
+  console.log(chalk.green("verifying..."));
+  await verifyContract(
+    "deployedGenesisKeyDistributor",
+    deployedGenesisKeyDistributor.address,
+    [deployedGenesisKeyAddress, merkleRoot, wethMin.toString()],
+    hre,
+  );
 });
 
 // STEP 2 deploy:NFT.com
 task("deploy:2").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`initializing...`));
-  const deployedGenesisKeyAddress = "0xbEeB7221B6058B9529e0bde13A072f17c63CD372"; // TODO: fill in after genesis key is done
-
   // NFT TOKEN ========================================================================================
   const NftToken = await hre.ethers.getContractFactory("NftToken");
-  const deployedNftToken = await NftToken.deploy();
-  console.log(chalk.green(`deployedNftToken: ${deployedNftToken.address}`));
+  const deployedNftToken = await NftToken.attach(deployedNftTokenAddress);
 
   // NFT GENESIS KEY STAKE ============================================================================
   const GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
@@ -120,14 +256,36 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
     { kind: "uups" },
   );
   console.log(chalk.green(`deployedProfileAuction: ${deployedProfileAuction.address}`));
+  await deployedNftProfileProxy.setProfileAuction(deployedProfileAuction.address);
+
+  // VERIFICATION =====================================================================================
+  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
+  await delay(TIME_DELAY);
+  await verifyContract(
+    "deployedNftGenesisStake",
+    deployedNftGenesisStake.address,
+    [deployedNftToken.address, deployedGenesisKeyAddress],
+    hre,
+  );
+  await verifyContract("deployedNftProfileHelper", deployedNftProfileHelper.address, [], hre);
+
+  await getImplementation("deployedNftProfileProxy", deployedNftProfileProxy.address, hre);
+
+  await verifyContract(
+    "deployedNftBuyer",
+    deployedNftBuyer.address,
+    [UNI_V2_FACTORY, deployedNftGenesisStake.address, deployedNftToken.address, wethAddress],
+    hre,
+  );
+
+  await getImplementation("deployedProfileAuction", deployedProfileAuction.address, hre);
 });
+
+const deployedNftBuyer = network == "rinkeby" ? "0x150D3a845da123eed1a9efB03234bDA030b270Ae" : "";
 
 // Step 3 NftMarketplace
 task("deploy:3").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying the marketplace contacts..."));
-
-  const rinkebyNFT = "0xBe1BF67300A8c28F805f0399513885D290cA99F7";
-  const deployedNftBuyer = "0xD5e0CEA10321287d6cb70E12dCAd6DCa0Bec8cF8";
 
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
   const NftTransferProxy = await hre.ethers.getContractFactory("NftTransferProxy");
@@ -158,7 +316,7 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
       deployedERC20TransferProxy.address,
       deployedCryptoKittyTransferProxy.address,
       deployedNftBuyer,
-      rinkebyNFT,
+      deployedNftTokenAddress,
       deployedValidationLogic.address,
       deployedMarketplaceEvent.address,
     ],
@@ -169,12 +327,27 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
 
   await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
 
+  await deployedNftMarketplace.modifyWhitelist(wethAddress, true);
+  console.log(chalk.green("whitelisted WETH: ", wethAddress));
+  await deployedNftMarketplace.modifyWhitelist(usdcAddress, true);
+  console.log(chalk.green("whitelisted USDC: ", usdcAddress));
+  await deployedNftMarketplace.modifyWhitelist(deployedNftTokenAddress, true);
+  console.log(chalk.green("whitelisted NftToken: ", deployedNftTokenAddress));
+
   // add operator being the marketplace
   await deployedNftTransferProxy.addOperator(deployedNftMarketplace.address);
   await deployedERC20TransferProxy.addOperator(deployedNftMarketplace.address);
   await deployedCryptoKittyTransferProxy.addOperator(deployedNftMarketplace.address);
 
   console.log(chalk.green("finished deploying nft marketplace contracts!"));
+
+  console.log(chalk.green("verifying..."));
+  await getImplementation("deployedNftTransferProxy", deployedNftTransferProxy.address, hre);
+  await getImplementation("deployedERC20TransferProxy", deployedERC20TransferProxy.address, hre);
+  await getImplementation("deployedCryptoKittyTransferProxy", deployedCryptoKittyTransferProxy.address, hre);
+  await getImplementation("deployedValidationLogic", deployedValidationLogic.address, hre);
+  await getImplementation("deployedMarketplaceEvent", deployedMarketplaceEvent.address, hre);
+  await getImplementation("deployedNftMarketplace", deployedNftMarketplace.address, hre);
 });
 
 // STEP 4 Airdrop (wait until ready)
@@ -193,8 +366,14 @@ task("deploy:4").setAction(async function (taskArguments, hre) {
   const { merkleRoot } = merkleResult;
 
   const MerkleDistributor = await hre.ethers.getContractFactory("MerkleDistributor");
+
   const deployedNftTokenAirdrop = await MerkleDistributor.deploy(nftToken, merkleRoot);
   console.log(chalk.green(`deployedNftTokenAirdrop: ${deployedNftTokenAirdrop.address}`));
+
+  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
+  await delay(TIME_DELAY);
+  console.log(chalk.green("verifying..."));
+  await verifyContract("deployedNftTokenAirdrop", deployedNftTokenAirdrop.address, [nftToken, merkleRoot], hre);
 });
 
 // UPGRADES ============================================================================================
@@ -222,16 +401,35 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
   const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 
   const upgradedProfileAuction = await hre.upgrades.upgradeProxy(
-    "0xc53884b5E8B9f29635D865FBBccFd7Baf103B6eC",
+    "0x386B1a1C8Bc6d3Ca3cF66f15f49742a9a2840CA2",
     ProfileAuction,
   );
   console.log(chalk.green("upgraded profile auction: ", upgradedProfileAuction.address));
+});
+
+task("upgrade:Vesting").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("starting to upgrade..."));
+  const Vesting = await hre.ethers.getContractFactory("Vesting");
+  const vestingAddress = "0x058069538D35B3037bA373b3CAb9adc8e2388AdF";
+
+  const upgradedVesting = await hre.upgrades.upgradeProxy(vestingAddress, Vesting);
+  console.log(chalk.green("upgraded vesting: ", upgradedVesting.address));
+
+  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
+  await delay(TIME_DELAY);
+  console.log(chalk.green("verifying..."));
+  await getImplementation("deployedVesting", vestingAddress, hre);
 });
 
 task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
-  const upgradedGenesisKey = await hre.upgrades.upgradeProxy("0xbEeB7221B6058B9529e0bde13A072f17c63CD372", GenesisKey);
+  const upgradedGenesisKey = await hre.upgrades.upgradeProxy(deployedGenesisKeyAddress, GenesisKey);
   console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 });
+
+// TODO: script for gnosis upgrade
+// console.log("Preparing upgrade...");
+// const boxV2Address = await hre.upgrades.prepareUpgrade(proxyAddress, BoxV2);
+// console.log("BoxV2 at:", boxV2Address);

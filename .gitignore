@@ -13,7 +13,6 @@ build/
 cache/
 coverage/
 dist/
-lib/
 node_modules/
 typechain/
 
@@ -27,4 +26,4 @@ yarn-debug.log*
 yarn-error.log*
 internal.md*
 .DS_Store
-.openzeppelin/
+.openzeppelin/*
