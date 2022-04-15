@@ -14,6 +14,7 @@ error PausedTransfer();
 
 contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, IGenesisKey {
     using SafeMathUpgradeable for uint256;
+    using ECDSAUpgradeable for bytes32;
 
     address public wethAddress;
     address public owner;
@@ -38,6 +39,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     // true transfers are paused
     bool public pausedTransfer;
     uint256 public gweiMax;
+    address public signerAddress;
 
     /* An ECDSA signature. */
     struct Sig {
@@ -78,6 +80,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         lastClaimTime = block.timestamp;
         randomClaimBool = _randomClaimBool;
         gweiMax = 200;
+        signerAddress = 0xB6D66FcF587D68b8058f03b88d35B36E38C5344f;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -110,6 +113,10 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     function setWhitelist(address _address, bool _val) external onlyOwner {
         whitelistedTransfer[_address] = _val;
+    }
+
+    function setSigner(address _signer) external onlyOwner {
+        signerAddress = _signer;
     }
 
     // initial weth price is the high price (starting point)
@@ -183,6 +190,10 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         }
 
         return false;
+    }
+
+    function verifySignature(bytes32 hash, bytes memory signature) public view returns (bool) {
+        return signerAddress == hash.recover(signature);
     }
 
     // primarily used to query
@@ -359,10 +370,10 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     // ========= PUBLIC SALE =================================================================
     // external function for public sale of genesis keys
-    function publicExecuteBid() external payable nonReentrant {
+    function publicExecuteBid(bytes32 hash, bytes memory signature) external payable nonReentrant {
         // checks
         require(!isContract(msg.sender), "GEN_KEY: !CONTRACT");
-        require(tx.gasprice <= gweiMax * 1000000000, "GEN_KEY: GAS PRICE"); // 200 GWEI
+        require(verifySignature(hash, signature), "GEN_KEY: INVALID SIG");
         require(startPublicSale, "GEN_KEY: invalid time");
         require(remainingTeamAdvisorGrant + totalSupply() != 10000, "GEN_KEY: no more keys left for sale");
 
@@ -390,6 +401,10 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         randomTeamGrant(msg.sender);
 
         emit ClaimedGenesisKey(msg.sender, currentWethPrice, block.number, false);
+    }
+
+    function bigMint(uint256 amount) external {
+        _mint(msg.sender, amount, "", false);
     }
 
     // public function for returning the current price
