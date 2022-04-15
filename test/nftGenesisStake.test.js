@@ -46,7 +46,7 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds, true, "ipfs//"],
+        [name, symbol, wethAddress, multiSig, auctionSeconds, true, "ipfs://"],
         { kind: "uups" },
       );
 
@@ -61,6 +61,7 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
       await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
 
       // only set pause transfer until public sale is over
+      await deployedGenesisKey.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
       await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
       await deployedGenesisKey.setWhitelist(owner.address, true);
       await deployedGenesisKey.setWhitelist(second.address, true);

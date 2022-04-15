@@ -32,7 +32,7 @@ const delayedVerifyImp = async (name: string, address: string, hre: any): Promis
   await delay(TIME_DELAY);
   console.log(chalk.green("verifying..."));
   await getImplementation(name, address, hre);
-}
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getImplementation = async (name: string, proxyAddress: string, hre: any): Promise<string> => {
@@ -127,6 +127,18 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
 
 const deployedGenesisKeyAddress = network == "rinkeby" ? "0xE197428a3aB9E011ff99cD9d9D4c5Ea5D8f51f49" : "";
 const genesisKeyTeamDistributorAddress = network == "rinkeby" ? "0x1e01eED656d9aA0B9a16E76F720A6da63a838EA7" : "";
+
+// task("mint:all").setAction(async (taskArgs: any, hre: any) => {
+//   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+//   const deployedGenesisKeyContract = await GenesisKey.attach(deployedGenesisKeyAddress);
+
+//   let totalSupply = await deployedGenesisKeyContract.totalSupply();
+//   while (Number(totalSupply) <= 10000) {
+//     await deployedGenesisKeyContract.publicExecuteBid({ value: hre.ethers.BigNumber.from("10000000000000000") });
+//     totalSupply = await deployedGenesisKeyContract.totalSupply();
+//     console.log(chalk.green(`new mint: ${Number(totalSupply)}`));
+//   }
+// });
 
 // gen key whitelist claim INSIDER
 task("deploy:1b").setAction(async function (taskArguments, hre) {
@@ -399,7 +411,7 @@ task("deploy:4").setAction(async function (taskArguments, hre) {
 });
 
 // UPGRADES ============================================================================================
-task("upgrade:NftProfile").setAction(async function (taskArguments, hre ) {
+task("upgrade:NftProfile").setAction(async function (taskArguments, hre) {
   const NftProfile = await hre.ethers.getContractFactory("NftProfile");
 
   const upgradedNftProfile = await hre.upgrades.upgradeProxy("0x734a14f4df41f2fA90f8bF7fb7Ce3E2ab68d9cF0", NftProfile);
@@ -417,7 +429,6 @@ task("upgrade:NftMarketplace").setAction(async function (taskArguments, hre) {
     NftMarketplace,
   );
   console.log(chalk.green("upgraded nft marketplace: ", upgradedNftMarketplace.address));
-  
   await delayedVerifyImp("upgradedNftMarketplace", upgradedNftMarketplace.address, hre);
 });
 
