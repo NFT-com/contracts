@@ -1,6 +1,13 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const { convertTinyNumber, sign, getDigest, getHash, GENESIS_KEY_TYPEHASH } = require("./utils/sign-utils");
+const {
+  convertTinyNumber,
+  sign,
+  getDigest,
+  signHashPublicSale,
+  getHash,
+  GENESIS_KEY_TYPEHASH,
+} = require("./utils/sign-utils");
 const { parseBalanceMap } = require("./utils/parse-balance-map");
 
 const DECIMALS = 18;
@@ -51,7 +58,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds, true, "ipfs//"],
+        [name, symbol, wethAddress, multiSig, auctionSeconds, true, "ipfs://"],
         { kind: "uups" },
       );
 
@@ -83,6 +90,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
 
       // only set pause transfer until public sale is over
+      await deployedGenesisKey.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
       await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
       await deployedGenesisKey.setWhitelist(owner.address, true);
       await deployedGenesisKey.setWhitelist(second.address, true);
@@ -302,10 +310,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
             [GENESIS_KEY_TYPEHASH, convertTinyNumber(1), ownerSigner.address], // 1 WETH
           ),
         );
-
-        const { v: v0, r: r0, s: s0 } = sign(genesisKeyBid, ownerSigner);
-
-        await deployedGenesisKey.connect(owner).cancelBid(convertTinyNumber(1), ownerSigner.address, v0, r0, s0);
       });
 
       it("should allow the multisig to allocate team and advisor grants for genesis keys", async function () {
@@ -334,22 +338,17 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         // approve WETH
         await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
 
-        // domain separator V4
-        const genesisKeyBid = await getDigest(
-          ethers.provider,
-          "NFT.com Genesis Key",
-          deployedGenesisKey.address,
-          getHash(
-            ["bytes32", "uint256", "address"],
-            [GENESIS_KEY_TYPEHASH, convertTinyNumber(1), ownerSigner.address], // 0.01 WETH
-          ),
-        );
-
         const currentPrice = await deployedGenesisKey.getCurrentPrice();
         console.log("current eth price: ", Number(currentPrice) / 10 ** 18);
         expect(await deployedGenesisKey.totalSupply()).to.eq(0);
 
-        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertTinyNumber(3) });
+        const { hash, signature } = signHashPublicSale(owner.address);
+        await deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, { value: convertTinyNumber(3) });
+
+        // reverts due to signature and hash being used again
+        await expect(
+          deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, { value: convertTinyNumber(3) }),
+        ).to.be.reverted;
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
@@ -357,7 +356,8 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await deployedGenesisKey.setMultiSig(ownerSigner.address); // send to self
         await deployedGenesisKey.connect(owner).transferETH();
 
-        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertTinyNumber(3) });
+        const { hash: hash1, signature: signature1 } = signHashPublicSale(owner.address);
+        await deployedGenesisKey.connect(owner).publicExecuteBid(hash1, signature1, { value: convertTinyNumber(3) });
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
@@ -371,7 +371,8 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         // not enough ETH, so should use WETH and refund ETH
         await deployedGenesisKey.setMultiSig(addr2.address); // send to third party
-        await deployedGenesisKey.connect(owner).publicExecuteBid({ value: convertTinyNumber(1) });
+        const { hash: hash2, signature: signature2 } = signHashPublicSale(owner.address);
+        await deployedGenesisKey.connect(owner).publicExecuteBid(hash2, signature2, { value: convertTinyNumber(1) });
 
         const afterBalance = await web3.eth.getBalance(owner.address);
 
