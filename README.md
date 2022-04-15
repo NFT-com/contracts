@@ -20,11 +20,12 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
 - [deployedNftToken](https://etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F)
 - [vesting](https://etherscan.io/address/0xE13d298F713bFFd40D011e577AeBE7F31260E5Fa)
+
   - implementation => 0xbC0F959867730b017BdB46BAE1D203A7a3d9518B
 
 - [deployedGkTeamDistributor](https://etherscan.io/address/)
 - [deployedGenesisKeyTeamClaim](https://etherscan.io/address/)
-  - implementation => 
+  - implementation =>
 - [deployedGenesisKey](https://etherscan.io/address/)
 
   - implementation => x
