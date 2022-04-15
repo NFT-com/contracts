@@ -2,6 +2,10 @@
 
 This repository covers logic for NFT.com profile bidding, and the NFT.com marketplace itself. Further developments will be added here in the future.
 
+See `.env.example` for necessary secrets.
+
+You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being a new wallet for local signing and testing.
+
 ### Tools Used
 
 - [Hardhat](https://github.com/nomiclabs/hardhat): compile and run the smart contracts on a local development network
@@ -60,12 +64,12 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
   - implementation => 0x05d277DE3642ee03738Be2ce260B2a206Ae43d6A
 - [deployedGenesisKey](https://rinkeby.etherscan.io/address/0xE197428a3aB9E011ff99cD9d9D4c5Ea5D8f51f49)
 
-  - implementation => 0x35bbe45caF7A7A03d6286408a0bb7C67c0b82D80
+  - implementation => 0x3112312F6FbBB1A60A9D72A06387A939e237ee68
 
 - [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0x4ab699B737c64958525172579D5411C4b2C343E7)
 - [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0xB58dF73BCB5C109Fe336E5D947979cdc8b397CE5)
 - [deployedNftProfileProxy](https://rinkeby.etherscan.io/address/0x734a14f4df41f2fA90f8bF7fb7Ce3E2ab68d9cF0)
-  - implementation => 0x18F15c5f80314d1976f7BC024A51211Bd7Bfbe4C
+  - implementation => 0x95de8d9aaE3BA7Fd4322d9b7c9C4511901c14fa0
 - [deployedNftBuyer](https://rinkeby.etherscan.io/address/0x3199524BB7204D1EE0dF76453B22666c82B44178)
 - [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/0xD954f115a212F328B0aBa249921f414Cb5eE3788)
 
