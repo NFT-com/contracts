@@ -1,6 +1,22 @@
 import { BigNumber, ethers, BigNumberish, BytesLike } from "ethers";
-import { keccak256, defaultAbiCoder, toUtf8Bytes, solidityPack, Bytes, _TypedDataEncoder } from "ethers/lib/utils";
+import { keccak256, defaultAbiCoder, toUtf8Bytes, solidityPack, _TypedDataEncoder } from "ethers/lib/utils";
 import { getChainId, RSV, signData } from "./rpc";
+import abi from "ethereumjs-abi";
+import Web3 from "web3";
+
+const web3 = new Web3();
+
+export const signHashPublicSale = (address: string): any => {
+  const hash =
+    "0x" + abi.soliditySHA3(["address", "string"], [address, new Date().getTime().toString()]).toString("hex");
+
+  const sigObj = web3.eth.accounts.sign(hash, process.env.PUBLIC_SALE_PK ?? "");
+
+  return {
+    hash: sigObj.messageHash,
+    signature: sigObj.signature,
+  };
+};
 
 export const sign = (digest: any, signer: ethers.Wallet): RSV => {
   return { ...signer._signingKey().signDigest(digest) };

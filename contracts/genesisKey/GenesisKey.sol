@@ -26,8 +26,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     uint256 public initialWethPrice; // initial price of genesis keys in Weth
     uint256 public finalWethPrice; // final price of genesis keys in Weth
 
-    mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized bid, by hash
-    mapping(bytes32 => uint256) public claimableBlock; // Claimable bid (0 = not claimable, > 0 = claimable), by hash
+    mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
     uint256 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
     uint256 public lastClaimTime; // Last time a key was claimed
     address public gkTeamClaimContract;
@@ -38,7 +37,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     // true transfers are paused
     bool public pausedTransfer;
-    uint256 public gweiMax;
     address public signerAddress;
 
     /* An ECDSA signature. */
@@ -79,7 +77,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         remainingTeamAdvisorGrant = 250; // 250 genesis keys allocated
         lastClaimTime = block.timestamp;
         randomClaimBool = _randomClaimBool;
-        gweiMax = 200;
         signerAddress = 0xB6D66FcF587D68b8058f03b88d35B36E38C5344f;
     }
 
@@ -143,128 +140,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         startPublicSale = false;
     }
 
-    // ======================================================================================
-    function _domainSeparatorV4() internal view returns (bytes32) {
-        bytes32 _TYPE_HASH = keccak256(
-            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        );
-
-        return
-            keccak256(
-                abi.encode(_TYPE_HASH, keccak256("NFT.com Genesis Key"), keccak256("1"), block.chainid, address(this))
-            );
-    }
-
-    function _hashTypedDataV4ProfileAuction(bytes32 structHash) internal view virtual returns (bytes32) {
-        return ECDSAUpgradeable.toTypedDataHash(_domainSeparatorV4(), structHash);
-    }
-
-    /**
-     * @dev Validate a provided previously signed bid, hash, and signature.
-     * @param hash Bid hash (already calculated, passed to avoid recalculation)
-     * @param _wethTokens weth tokens for bid
-     * @param _owner user who is making bid
-     * @param sig ECDSA signature
-     */
-    function validateBid_(
-        bytes32 hash,
-        uint256 _wethTokens,
-        address _owner,
-        Sig memory sig
-    ) internal view returns (bool) {
-        /* Bid must have valid token amount. */
-        if (_wethTokens == 0) {
-            return false;
-        }
-
-        /* Bid must have not been canceled or already filled. */
-        if (cancelledOrFinalized[hash]) {
-            return false;
-        }
-
-        /* Bid authentication. Bid must be ECDSA-signed by owner. */
-        bytes32 hashV4 = _hashTypedDataV4ProfileAuction(hash);
-
-        if (ECDSAUpgradeable.recover(hashV4, sig.v, sig.r, sig.s) == _owner) {
-            return true;
-        }
-
-        return false;
-    }
-
     function verifySignature(bytes32 hash, bytes memory signature) public view returns (bool) {
         return signerAddress == hash.recover(signature);
-    }
-
-    // primarily used to query
-    function getStructHash(uint256 _wethTokens, address _owner) public pure returns (bytes32) {
-        bytes32 _PERMIT_TYPEHASH = keccak256("GenesisBid(uint256 _wethTokens,address _owner)");
-        return keccak256(abi.encode(_PERMIT_TYPEHASH, _wethTokens, _owner));
-    }
-
-    function validateBid(
-        uint256 _wethTokens,
-        address _owner,
-        Sig memory sig
-    ) external view returns (bool) {
-        bytes32 hash = getStructHash(_wethTokens, _owner);
-
-        return validateBid_(hash, _wethTokens, _owner, sig);
-    }
-
-    /**
-     * @dev Assert a whitelist bid is valid
-     * @param _wethTokens tokens WETH
-     * @param _owner user who is making bid
-     * @param sig ECDSA signature
-     */
-    function requireValidBid_(
-        uint256 _wethTokens,
-        address _owner,
-        Sig memory sig
-    ) internal view returns (bytes32) {
-        bytes32 hash = getStructHash(_wethTokens, _owner);
-
-        require(validateBid_(hash, _wethTokens, _owner, sig), "GEN_KEY: INVALID SIG");
-        return hash;
-    }
-
-    function cancelBid(
-        uint256 _wethTokens,
-        address _owner,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external {
-        return cancelBid_(_wethTokens, _owner, Sig(v, r, s));
-    }
-
-    /**
-     * @dev Cancel an bid, preventing it from being matched. Must be called by the maker of the bid
-     * @param _wethTokens weth tokens for bid
-     * @param _owner user who is making bid
-     * @param sig ECDSA signature
-     */
-    function cancelBid_(
-        uint256 _wethTokens,
-        address _owner,
-        Sig memory sig
-    ) internal {
-        /* CHECKS */
-
-        /* Calculate bid hash. */
-        bytes32 hash = requireValidBid_(_wethTokens, _owner, sig);
-
-        require(msg.sender == _owner); // must be owner
-        require(claimableBlock[hash] == 0); // must not be claimable
-
-        /* EFFECTS */
-
-        /* Mark bid as cancelled, preventing it from being matched. */
-        cancelledOrFinalized[hash] = true;
-
-        /* Log cancel event. */
-        emit BidCancelled(hash);
     }
 
     /**
@@ -322,10 +199,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         gkTeamClaimContract = _gkTeamClaimContract;
     }
 
-    function setMaxGweiPublic(uint256 _gwei) external onlyOwner {
-        gweiMax = _gwei;
-    }
-
     /**
      @notice sends grant key to end user for team / advisors / grants
     */
@@ -373,11 +246,12 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     function publicExecuteBid(bytes32 hash, bytes memory signature) external payable nonReentrant {
         // checks
         require(!isContract(msg.sender), "GEN_KEY: !CONTRACT");
-        require(verifySignature(hash, signature), "GEN_KEY: INVALID SIG");
+        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "GEN_KEY: INVALID SIG");
         require(startPublicSale, "GEN_KEY: invalid time");
         require(remainingTeamAdvisorGrant + totalSupply() != 10000, "GEN_KEY: no more keys left for sale");
 
         uint256 currentWethPrice = getCurrentPrice();
+        cancelledOrFinalized[hash] = true;
 
         // if ETH is sent, we use it
         if (msg.value >= currentWethPrice) {

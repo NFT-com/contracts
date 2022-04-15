@@ -2,6 +2,10 @@
 
 This repository covers logic for NFT.com profile bidding, and the NFT.com marketplace itself. Further developments will be added here in the future.
 
+See `.env.example` for necessary secrets.
+
+You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being a new wallet for local signing and testing.
+
 ### Tools Used
 
 - [Hardhat](https://github.com/nomiclabs/hardhat): compile and run the smart contracts on a local development network
@@ -16,12 +20,14 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
 
 - [deployedNftToken](https://rinkeby.etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F)
 - [vesting](https://rinkeby.etherscan.io/address/)
+
   - implementation => x
 
 - [deployedGkTeamDistributor](https://rinkeby.etherscan.io/address/)
 - [deployedGenesisKeyTeamClaim](https://rinkeby.etherscan.io/address/)
   - implementation => x
 - [deployedGenesisKey](https://rinkeby.etherscan.io/address/)
+
   - implementation => x
 
 - [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/)
@@ -30,6 +36,7 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
   - implementation => x
 - [deployedNftBuyer](https://rinkeby.etherscan.io/address/)
 - [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/)
+
   - implementation => x
 
 - [nftTransferProxy](https://rinkeby.etherscan.io/address/)
@@ -49,12 +56,14 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
 
 - [deployedNftToken](https://rinkeby.etherscan.io/address/0xd20Cb8c25E5A738f559DF29f64B6E2DD408e44C2)
 - [vesting](https://rinkeby.etherscan.io/address/0x1536592da7Ab96480242be8CB9115cEFE81b8e17)
+
   - implementation => 0x43e6465C8692a82AFEF8569211042919dF6bcBd5
 
 - [deployedGkTeamDistributor](https://rinkeby.etherscan.io/address/0x1e01eED656d9aA0B9a16E76F720A6da63a838EA7)
 - [deployedGenesisKeyTeamClaim](https://rinkeby.etherscan.io/address/0x1c4fFEC2191F97B40721a37271dE59413D817319)
   - implementation => 0x05d277DE3642ee03738Be2ce260B2a206Ae43d6A
 - [deployedGenesisKey](https://rinkeby.etherscan.io/address/0xE197428a3aB9E011ff99cD9d9D4c5Ea5D8f51f49)
+
   - implementation => 0x3112312F6FbBB1A60A9D72A06387A939e237ee68
 
 - [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0x4ab699B737c64958525172579D5411C4b2C343E7)
@@ -63,6 +72,7 @@ This repository covers logic for NFT.com profile bidding, and the NFT.com market
   - implementation => 0x95de8d9aaE3BA7Fd4322d9b7c9C4511901c14fa0
 - [deployedNftBuyer](https://rinkeby.etherscan.io/address/0x3199524BB7204D1EE0dF76453B22666c82B44178)
 - [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/0xD954f115a212F328B0aBa249921f414Cb5eE3788)
+
   - implementation => 0x8E5E12d059801e655ad286cB3549453f9F6C04E9
 
 - [nftTransferProxy](https://rinkeby.etherscan.io/address/0x35FC2A74dbb135c27Ab297E869A1B45944BCeFA6)
