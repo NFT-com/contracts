@@ -61,7 +61,7 @@ task("deploy:0").setAction(async function (taskArguments, hre) {
 });
 
 const deployedNftTokenAddress =
-  network == "rinkeby" ? "0xd20Cb8c25E5A738f559DF29f64B6E2DD408e44C2" : "0x52E587F6632C1A2C0552FE07e184f7f4920Be5d6";
+  network == "rinkeby" ? "0xd20Cb8c25E5A738f559DF29f64B6E2DD408e44C2" : "0x8C42428a747281B03F10C80e978C107D4d85E37F";
 
 task("deploy:0b").setAction(async function (taskArguments, hre) {
   const Vesting = await hre.ethers.getContractFactory("Vesting");

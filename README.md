@@ -18,38 +18,37 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
 ## Mainnet Tokens
 
-- [deployedNftToken](https://rinkeby.etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F)
-- [vesting](https://rinkeby.etherscan.io/address/)
+- [deployedNftToken](https://etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F)
+- [vesting](https://etherscan.io/address/0xE13d298F713bFFd40D011e577AeBE7F31260E5Fa)
+  - implementation => 0xbC0F959867730b017BdB46BAE1D203A7a3d9518B
+
+- [deployedGkTeamDistributor](https://etherscan.io/address/)
+- [deployedGenesisKeyTeamClaim](https://etherscan.io/address/)
+  - implementation => 
+- [deployedGenesisKey](https://etherscan.io/address/)
 
   - implementation => x
 
-- [deployedGkTeamDistributor](https://rinkeby.etherscan.io/address/)
-- [deployedGenesisKeyTeamClaim](https://rinkeby.etherscan.io/address/)
+- [deployedNftGenesisStake](https://etherscan.io/address/)
+- [deployedNftProfileHelper](https://etherscan.io/address/)
+- [deployedNftProfileProxy](https://etherscan.io/address/)
   - implementation => x
-- [deployedGenesisKey](https://rinkeby.etherscan.io/address/)
+- [deployedNftBuyer](https://etherscan.io/address/)
+- [deployedProfileAuctionProxy](https://etherscan.io/address/)
 
   - implementation => x
 
-- [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/)
-- [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/)
-- [deployedNftProfileProxy](https://rinkeby.etherscan.io/address/)
+- [nftTransferProxy](https://etherscan.io/address/)
   - implementation => x
-- [deployedNftBuyer](https://rinkeby.etherscan.io/address/)
-- [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/)
-
+- [deployedERC20TransferProxy](https://etherscan.io/address/)
   - implementation => x
-
-- [nftTransferProxy](https://rinkeby.etherscan.io/address/)
+- [deployedCryptoKittyTransferProxy](https://etherscan.io/address/)
   - implementation => x
-- [deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/)
+- [deployedValidationLogic](https://etherscan.io/address/)
   - implementation => x
-- [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/)
+- [deployedMarketplaceEvent](https://etherscan.io/address/)
   - implementation => x
-- [deployedValidationLogic](https://rinkeby.etherscan.io/address/)
-  - implementation => x
-- [deployedMarketplaceEvent](https://rinkeby.etherscan.io/address/)
-  - implementation => x
-- [deployedNftMarketplace](https://rinkeby.etherscan.io/address/)
+- [deployedNftMarketplace](https://etherscan.io/address/)
   - implementation => x
 
 ## Rinkeby
