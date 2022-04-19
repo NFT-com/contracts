@@ -20,10 +20,10 @@ contract NftBuyer {
     using SafeERC20 for IERC20;
 
     IUniswapV2Factory public factory;
-    address public genesisStaking;
-    address public nft;
-    address public weth;
-    uint256 public constant MAX_PERCENT = 10000;
+    address public immutable genesisStaking;
+    address public immutable nft;
+    address public immutable weth;
+    uint256 public constant MAX_PERCENT = 10000; // 10000 = 100%
 
     constructor(
         IUniswapV2Factory _factory,
