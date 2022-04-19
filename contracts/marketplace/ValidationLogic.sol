@@ -114,12 +114,14 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @dev validateMatch makes sure two orders (on sell side and buy side) match correctly
      *  @param sellOrder the listing
      *  @param buyOrder bid for a listing
+     *  @param viewOnly true for viewOnly (primarily for testing purposes)
      *  @return true if orders can match
      */
-    function validateMatch(
-        LibSignature.Order calldata sellOrder,
-        LibSignature.Order calldata buyOrder
-    ) internal view returns (bool) {
+    function validateMatch(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder, bool viewOnly)
+        internal
+        view
+        returns (bool)
+    {
         // flag to ensure ETH is not used multiple timese
         bool ETH_ASSET_USED = false;
 
@@ -218,17 +220,18 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @dev public facing function to make sure orders can execute
      *  @param sellOrder the listing
      *  @param buyOrder bid for a listing
+     *  @param viewOnly true for viewOnly (primarily for testing purposes)
      *  @return true if valid match
      */
-    function validateMatch_(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder)
+    function validateMatch_(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder, bool viewOnly)
         public
         view
         override
         returns (bool)
     {
-        return validateMatch(sellOrder, buyOrder);
+        return validateMatch(sellOrder, buyOrder, viewOnly);
     }
-    
+
     /**
      *  @dev public facing function to get current price of a decreasing price auction
      *  @param sellOrder the listing

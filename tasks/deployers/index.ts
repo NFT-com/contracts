@@ -33,20 +33,20 @@ const getTokens = async (hre: any) => {
       : "";
   const deployedNftTokenAddress =
     network == "rinkeby"
-      ? "0xa40E1cc652ED0Bfeae2231ABAAAa8551f62560f0"
+      ? "0xBB67d85a69FCB6a200439E15e2E2c53Cfb6b0680"
       : network === "mainnet"
       ? "0x8C42428a747281B03F10C80e978C107D4d85E37F"
       : "";
   const deployedVestingAddress =
     network == "rinkeby"
-      ? "0xBaa623C1876f918982599C215D6Eb4Fd8480a130"
+      ? "0x1DD4121DA7dbA0266726f211BA006210CA111F5E"
       : network === "mainnet"
       ? "0xE13d298F713bFFd40D011e577AeBE7F31260E5Fa"
       : "";
   const deployedGenesisKeyAddress =
-    network == "rinkeby" ? "0x8cE66A6Bb03Fb407D9E9D8327e266e54058d7362" : network === "mainnet" ? "" : "";
+    network == "rinkeby" ? "0x20FC7ad1eE47245F0FEE579E1F4bEb2dC5380068" : network === "mainnet" ? "" : "";
   const genesisKeyTeamDistributorAddress =
-    network == "rinkeby" ? "0xAF8779E2a299ed59088B93d8b029d07bFC3c5dDa" : network === "mainnet" ? "" : "";
+    network == "rinkeby" ? "0x3Acb935D800c3a11c64b0E3e509C673F1bff4C0E" : network === "mainnet" ? "" : "";
   const profileMetadataLink = `https://${
     network === "rinkeby" ? "staging-api" : network === "mainnet" ? "prod-api" : ""
   }.nft.com/uri/`;
@@ -585,10 +585,9 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
 
   const upgradedGenesisKey = await hre.upgrades.upgradeProxy(
-    // (
-    //   await getTokens(hre)
-    // ).deployedGenesisKeyAddress,
-    "0xE197428a3aB9E011ff99cD9d9D4c5Ea5D8f51f49",
+    (
+      await getTokens(hre)
+    ).deployedGenesisKeyAddress,
     GenesisKey,
   );
   console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));

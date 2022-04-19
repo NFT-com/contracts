@@ -183,18 +183,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         await deployedWETH.connect(owner).transfer(second.address, convertTinyNumber(2));
 
-        const genesisKeyBid2 = await getDigest(
-          ethers.provider,
-          "NFT.com Genesis Key",
-          deployedGenesisKey.address,
-          getHash(
-            ["bytes32", "uint256", "address"],
-            [GENESIS_KEY_TYPEHASH, convertTinyNumber(2), secondSigner.address], // 1 WETH
-          ),
-        );
-
-        const beforeWethAddr1 = await deployedWETH.balanceOf(addr1.address);
-
         const jsonInput = JSON.parse(`{
           "${ownerSigner.address}": "1",
           "${secondSigner.address}": "2"
@@ -286,11 +274,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         // just testing
         await deployedGenesisKey.setApprovalForAll(deployedGenesisKey.address, true);
-
-        console.log(
-          "=======> await deployedGenesisKey.tokenIdsOwned(ownerSigner.address)",
-          await deployedGenesisKey.tokenIdsOwned(ownerSigner.address),
-        );
       });
 
       // start public auction

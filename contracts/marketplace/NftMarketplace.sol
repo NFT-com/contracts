@@ -25,7 +25,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     event Cancel(bytes32 structHash, address indexed maker);
     event Approval(bytes32 structHash, address indexed maker);
     event NonceIncremented(address indexed maker, uint256 newNonce);
-    
+
     enum ROYALTY {
         FUNGIBLE_MAKE_ASSETS,
         FUNGIBLE_TAKE_ASSETS,
@@ -193,10 +193,10 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s), nonces[sellOrder.maker]);
         require(validationLogic.validateBuyNow(sellOrder, msg.sender));
         require(msg.sender != sellOrder.maker);
-        
+
         cancelledOrFinalized[sellHash] = true;
 
-        uint8 royaltyScore = (LibAsset.isSingularNft(sellOrder.takeAssets) &&
+        ROYALTY royaltyScore = (LibAsset.isSingularNft(sellOrder.takeAssets) &&
             LibAsset.isOnlyFungible(sellOrder.makeAssets))
             ? ROYALTY.FUNGIBLE_MAKE_ASSETS
             : (LibAsset.isSingularNft(sellOrder.makeAssets) && LibAsset.isOnlyFungible(sellOrder.takeAssets))
@@ -253,7 +253,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v[0], r[0], s[0]), nonces[sellOrder.maker]);
         bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]), nonces[buyOrder.maker]);
-        require(validationLogic.validateMatch_(sellOrder, buyOrder));
+        require(validationLogic.validateMatch_(sellOrder, buyOrder, false));
         require(msg.sender == sellOrder.maker || msg.sender == buyOrder.maker);
 
         if (sellOrder.end != 0) {
@@ -264,7 +264,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         cancelledOrFinalized[buyHash] = true;
         cancelledOrFinalized[sellHash] = true;
 
-        uint8 royaltyScore = (LibAsset.isSingularNft(buyOrder.makeAssets) &&
+        ROYALTY royaltyScore = (LibAsset.isSingularNft(buyOrder.makeAssets) &&
             LibAsset.isOnlyFungible(sellOrder.makeAssets))
             ? ROYALTY.FUNGIBLE_SELLER_MAKE_ASSETS
             : (LibAsset.isSingularNft(sellOrder.makeAssets) && LibAsset.isOnlyFungible(buyOrder.makeAssets))
