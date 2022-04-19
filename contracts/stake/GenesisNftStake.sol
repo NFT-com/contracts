@@ -44,6 +44,7 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
     /**
      @notice function for allowing a user to stake
      @param _amount amount of NFT tokens to stake
+     @param _tokenId of Genesis Key being staked
      @param v optional vSig param for permit
      @param r optional rSig param for permit
      @param s optional sSig param for permit
@@ -55,20 +56,19 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
         bytes32 r,
         bytes32 s
     ) public nonReentrant {
-        // checks
-
         // no stake yet
         if (stakedKeys[_tokenId] != msg.sender) {
+            // checks
             require(IERC721(nftKeyGenesis).ownerOf(_tokenId) == msg.sender, "!GK1");
 
-            IERC721(nftKeyGenesis).transferFrom(msg.sender, address(this), _tokenId);
-
-            // assigned key to msg.sender
+            // effects: assigned key to msg.sender
             stakedKeys[_tokenId] = msg.sender;
             stakedAddress[msg.sender] += 1;
+
+            // interactions
+            IERC721(nftKeyGenesis).transferFrom(msg.sender, address(this), _tokenId);
         }
 
-        // effects
         // only apply approve permit for first time
         if (IERC20(address(this)).allowance(msg.sender, address(this)) < _amount) {
             permitXNFT(msg.sender, address(this), v, r, s); // approve xNFT token
