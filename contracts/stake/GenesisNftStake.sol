@@ -17,7 +17,7 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
 
     constructor(address _nftToken, address _nftKeyGenesis)
         ERC20Permit("Staked NFT.com Genesis Key")
-        ERC20("Staked NFT.com Genesis Key", "xNFTKEY")
+        ERC20("Staked NFT.com Genesis Key", "sNFT")
     {
         nftToken = _nftToken;
         nftKeyGenesis = _nftKeyGenesis;

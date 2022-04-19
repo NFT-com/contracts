@@ -52,7 +52,7 @@ function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
     accounts: [`${mainnetPK}`],
     chainId: chainIds[network],
     url,
-    gasPrice: 42 * 1000000000,
+    gasPrice: 40 * 1000000000,
   };
 }
 
