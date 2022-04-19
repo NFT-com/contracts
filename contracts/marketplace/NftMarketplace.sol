@@ -192,7 +192,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s), nonces[sellOrder.maker]);
         require(validationLogic.validateBuyNow(sellOrder, msg.sender));
-        require(msg.sender != sellOrder.maker);
+        require(msg.sender != sellOrder.maker, "!maker");
 
         cancelledOrFinalized[sellHash] = true;
 
@@ -253,8 +253,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v[0], r[0], s[0]), nonces[sellOrder.maker]);
         bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]), nonces[buyOrder.maker]);
-        require(validationLogic.validateMatch_(sellOrder, buyOrder, false));
-        require(msg.sender == sellOrder.maker || msg.sender == buyOrder.maker);
+        require(msg.sender == sellOrder.maker || msg.sender == buyOrder.maker, "!maker");
+        require(validationLogic.validateMatch_(sellOrder, buyOrder, msg.sender, false));
 
         if (sellOrder.end != 0) {
             require(block.timestamp >= (sellOrder.end - 24 hours), "!exe");

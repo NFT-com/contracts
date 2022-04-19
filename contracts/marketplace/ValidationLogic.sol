@@ -4,6 +4,7 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "hardhat/console.sol";
 import "./interfaces/IValidationLogic.sol";
 
 contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, IValidationLogic {
@@ -114,14 +115,16 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @dev validateMatch makes sure two orders (on sell side and buy side) match correctly
      *  @param sellOrder the listing
      *  @param buyOrder bid for a listing
+     *  @param sender person sending the transaction
      *  @param viewOnly true for viewOnly (primarily for testing purposes)
      *  @return true if orders can match
      */
-    function validateMatch(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder, bool viewOnly)
-        internal
-        view
-        returns (bool)
-    {
+    function validateMatch(
+        LibSignature.Order calldata sellOrder,
+        LibSignature.Order calldata buyOrder,
+        address sender,
+        bool viewOnly
+    ) internal view returns (bool) {
         // flag to ensure ETH is not used multiple timese
         bool ETH_ASSET_USED = false;
 
@@ -159,7 +162,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
             // if ETH, seller must be sending ETH / calling
             if (sellOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                 require(!ETH_ASSET_USED, "vm eth");
-                require(viewOnly || msg.sender == sellOrder.maker, "vm sellerEth"); // seller must pay ETH
+                require(viewOnly || sender == sellOrder.maker, "vma sellerEth"); // seller must pay ETH
                 ETH_ASSET_USED = true;
             }
         }
@@ -177,7 +180,13 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
                 // if ETH, buyer must be sending ETH / calling
                 if (buyOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                     require(!ETH_ASSET_USED, "vm eth2");
-                    require(viewOnly || msg.sender == buyOrder.maker, "vm buyerEth"); // buyer must pay ETH
+                    console.log("sender: ", sender);
+                    console.log("buyOrder.maker: ", buyOrder.maker);
+                    console.log("sender == buyOrder.maker: ");
+                    console.logBool(sender == buyOrder.maker);
+                    console.log("viewOnly || sender == buyOrder.maker: ");
+                    console.logBool(viewOnly || sender == buyOrder.maker);
+                    require(viewOnly || sender == buyOrder.maker, "vmb buyerEth"); // buyer must pay ETH
                     ETH_ASSET_USED = true;
                 }
             }
@@ -223,13 +232,13 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @param viewOnly true for viewOnly (primarily for testing purposes)
      *  @return true if valid match
      */
-    function validateMatch_(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder, bool viewOnly)
-        public
-        view
-        override
-        returns (bool)
-    {
-        return validateMatch(sellOrder, buyOrder, viewOnly);
+    function validateMatch_(
+        LibSignature.Order calldata sellOrder,
+        LibSignature.Order calldata buyOrder,
+        address sender,
+        bool viewOnly
+    ) public view override returns (bool) {
+        return validateMatch(sellOrder, buyOrder, sender, viewOnly);
     }
 
     /**
