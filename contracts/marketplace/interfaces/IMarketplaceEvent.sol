@@ -20,8 +20,8 @@ interface IMarketplaceEvent {
     );
     event Match2A(
         bytes32 indexed makerStructHash,
-        address makerAddress,
-        address takerAddress,
+        address indexed makerAddress,
+        address indexed takerAddress,
         uint256 start,
         uint256 end,
         uint256 nonce,
@@ -38,8 +38,8 @@ interface IMarketplaceEvent {
     );
     event Match3A(
         bytes32 indexed takerStructHash,
-        address makerAddress,
-        address takerAddress,
+        address indexed makerAddress,
+        address indexed takerAddress,
         uint256 start,
         uint256 end,
         uint256 nonce,
