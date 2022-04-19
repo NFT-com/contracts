@@ -196,7 +196,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         
         cancelledOrFinalized[sellHash] = true;
 
-        uint8 royaltyScore = (LibAsset.isSingularNft(sellOrder.takeAssets) &&
+        ROYALTY royaltyScore = (LibAsset.isSingularNft(sellOrder.takeAssets) &&
             LibAsset.isOnlyFungible(sellOrder.makeAssets))
             ? ROYALTY.FUNGIBLE_MAKE_ASSETS
             : (LibAsset.isSingularNft(sellOrder.makeAssets) && LibAsset.isOnlyFungible(sellOrder.takeAssets))
@@ -264,7 +264,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         cancelledOrFinalized[buyHash] = true;
         cancelledOrFinalized[sellHash] = true;
 
-        uint8 royaltyScore = (LibAsset.isSingularNft(buyOrder.makeAssets) &&
+        ROYALTY royaltyScore = (LibAsset.isSingularNft(buyOrder.makeAssets) &&
             LibAsset.isOnlyFungible(sellOrder.makeAssets))
             ? ROYALTY.FUNGIBLE_SELLER_MAKE_ASSETS
             : (LibAsset.isSingularNft(sellOrder.makeAssets) && LibAsset.isOnlyFungible(buyOrder.makeAssets))
