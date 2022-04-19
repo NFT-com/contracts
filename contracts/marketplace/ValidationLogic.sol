@@ -4,7 +4,6 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "hardhat/console.sol";
 import "./interfaces/IValidationLogic.sol";
 
 contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, IValidationLogic {
@@ -180,12 +179,6 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
                 // if ETH, buyer must be sending ETH / calling
                 if (buyOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                     require(!ETH_ASSET_USED, "vm eth2");
-                    console.log("sender: ", sender);
-                    console.log("buyOrder.maker: ", buyOrder.maker);
-                    console.log("sender == buyOrder.maker: ");
-                    console.logBool(sender == buyOrder.maker);
-                    console.log("viewOnly || sender == buyOrder.maker: ");
-                    console.logBool(viewOnly || sender == buyOrder.maker);
                     require(viewOnly || sender == buyOrder.maker, "vmb buyerEth"); // buyer must pay ETH
                     ETH_ASSET_USED = true;
                 }
