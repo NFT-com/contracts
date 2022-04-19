@@ -120,9 +120,9 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
 
     /**
      * @dev multi-asset transfer function
+     * @param auctionType type of auction
      * @param asset the asset being transferred
      * @param from address where asset is being sent from
-     * @param auctionType type of auction
      * @param to address receiving said asset
      * @param decreasingPriceValue value only used for decreasing price auction
      * @param validRoyalty true if singular NFT asset paired with only fungible token(s) trade
