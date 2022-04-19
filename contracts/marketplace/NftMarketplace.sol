@@ -57,6 +57,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @dev internal functions for returning struct hash, after verifying it is valid
      * @param order the order itself
      * @param sig the struct sig (contains VRS)
+     * @return hash of order and nonce
      */
     function requireValidOrder(
         LibSignature.Order calldata order,
@@ -83,6 +84,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param hash the struct hash for a bid
      * @param order the order itself
      * @param sig the struct sig (contains VRS)
+     * @return true if signature matches has of order; also checks for contract signature
      */
     function validateOrder(
         bytes32 hash,
@@ -126,6 +128,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param v sigV
      * @param r sigR
      * @param s sigS
+     * @return tuple, index 0 = true if order is valid and index 1 = hash of order
      */
     function validateOrder_(
         LibSignature.Order calldata order,
