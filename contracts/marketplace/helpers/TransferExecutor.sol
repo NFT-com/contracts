@@ -25,9 +25,10 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s
     mapping(address => RoyaltyInfo) public royaltyInfo; // mapping of NFT to their royalties
 
-    address public nftToken;
-    uint64 public constant MAX_ROYALTY = 10000; // 10000 = 100%
-    uint64 public constant MAX_PROTOCOL_FEE = 2000; // 2000 = 20%
+    // bitpacked 256
+    address public nftToken; // same as uint160
+    uint48 public constant MAX_ROYALTY = 10000; // 10000 = 100%
+    uint48 public constant MAX_PROTOCOL_FEE = 2000; // 2000 = 20%
 
     event ProxyChange(bytes4 indexed assetType, address proxy);
     event WhitelistChange(address indexed token, bool value);
