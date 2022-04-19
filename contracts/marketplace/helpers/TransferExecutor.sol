@@ -22,7 +22,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
 
     mapping(bytes4 => address) public proxies;
-    mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
+    mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s
     mapping(address => RoyaltyInfo) public royaltyInfo; // mapping of NFT to their royalties
 
     address public nftToken;
