@@ -252,10 +252,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     ) public payable nonReentrant {
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v[0], r[0], s[0]), nonces[sellOrder.maker]);
-
         bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]), nonces[buyOrder.maker]);
-
         require(validationLogic.validateMatch_(sellOrder, buyOrder));
+        require(msg.sender == sellOrder.maker || msg.sender == buyOrder.maker);
 
         if (sellOrder.end != 0) {
             require(block.timestamp >= (sellOrder.end - 24 hours), "!exe");
