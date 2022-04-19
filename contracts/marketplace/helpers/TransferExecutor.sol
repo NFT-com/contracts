@@ -26,6 +26,8 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     mapping(address => RoyaltyInfo) public royaltyInfo; // mapping of NFT to their royalties
 
     address public nftToken;
+    uint64 public constant MAX_ROYALTY = 10000; // 10000 = 100%
+    uint64 public constant MAX_PROTOCOL_FEE = 2000; // 2000 = 20%
 
     event ProxyChange(bytes4 indexed assetType, address proxy);
     event WhitelistChange(address indexed token, bool value);
@@ -54,7 +56,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         address recipient,
         uint256 amount
     ) external onlyOwner {
-        require(amount <= 10000);
+        require(amount <= MAX_ROYALTY);
         royaltyInfo[nftContract].owner = recipient;
         royaltyInfo[nftContract].percent = uint96(amount);
 
@@ -62,7 +64,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     }
 
     function changeProtocolFee(uint256 _fee) external onlyOwner {
-        require(_fee <= 2000);
+        require(_fee <= MAX_PROTOCOL_FEE);
         protocolFee = _fee;
         emit ProtocolFeeChange(_fee);
     }
