@@ -28,9 +28,9 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     address public nftToken;
 
     event ProxyChange(bytes4 indexed assetType, address proxy);
-    event WhitelistChange(address token, bool value);
+    event WhitelistChange(address indexed token, bool value);
     event ProtocolFeeChange(uint256 fee);
-    event RoyaltyInfoChange(address token, address owner, uint256 percent);
+    event RoyaltyInfoChange(address indexed token, address indexed owner, uint256 percent);
 
     function __TransferExecutor_init_unchained(
         INftTransferProxy _transferProxy,
