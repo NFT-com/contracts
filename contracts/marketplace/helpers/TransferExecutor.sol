@@ -22,15 +22,18 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
 
     mapping(bytes4 => address) public proxies;
-    mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
+    mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s
     mapping(address => RoyaltyInfo) public royaltyInfo; // mapping of NFT to their royalties
 
-    address public nftToken;
+    // bitpacked 256
+    address public nftToken; // same as uint160
+    uint48 public constant MAX_ROYALTY = 10000; // 10000 = 100%
+    uint48 public constant MAX_PROTOCOL_FEE = 2000; // 2000 = 20%
 
     event ProxyChange(bytes4 indexed assetType, address proxy);
-    event WhitelistChange(address token, bool value);
+    event WhitelistChange(address indexed token, bool value);
     event ProtocolFeeChange(uint256 fee);
-    event RoyaltyInfoChange(address token, address owner, uint256 percent);
+    event RoyaltyInfoChange(address indexed token, address indexed owner, uint256 percent);
 
     function __TransferExecutor_init_unchained(
         INftTransferProxy _transferProxy,
@@ -54,7 +57,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         address recipient,
         uint256 amount
     ) external onlyOwner {
-        require(amount <= 10000);
+        require(amount <= MAX_ROYALTY);
         royaltyInfo[nftContract].owner = recipient;
         royaltyInfo[nftContract].percent = uint96(amount);
 
@@ -62,7 +65,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     }
 
     function changeProtocolFee(uint256 _fee) external onlyOwner {
-        require(_fee <= 2000);
+        require(_fee <= MAX_PROTOCOL_FEE);
         protocolFee = _fee;
         emit ProtocolFeeChange(_fee);
     }
@@ -120,9 +123,9 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
 
     /**
      * @dev multi-asset transfer function
+     * @param auctionType type of auction
      * @param asset the asset being transferred
      * @param from address where asset is being sent from
-     * @param auctionType type of auction
      * @param to address receiving said asset
      * @param decreasingPriceValue value only used for decreasing price auction
      * @param validRoyalty true if singular NFT asset paired with only fungible token(s) trade

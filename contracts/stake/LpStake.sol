@@ -208,6 +208,7 @@ contract LpStake is ReentrancyGuard, Ownable {
         address to
     ) external nonReentrant {
         require(to != address(0x0));
+        require(uint256(poolInfo[pid]) != 0);
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][to];
 
@@ -231,6 +232,7 @@ contract LpStake is ReentrancyGuard, Ownable {
         address to
     ) external nonReentrant {
         require(to != address(0x0));
+        require(uint256(poolInfo[pid]) != 0);
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][msg.sender];
 
@@ -248,6 +250,7 @@ contract LpStake is ReentrancyGuard, Ownable {
     /// @param pid The index of the pool. See `poolInfo`.
     /// @param to Receiver of the rewards.
     function harvest(uint256 pid, address to) external nonReentrant {
+        require(uint256(poolInfo[pid]) != 0);
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][msg.sender];
         int256 accumulatedRewardTokens = int256(user.amount.mul(pool.accRewardTokensPerShare) / ACC_TOKEN_PRECISION);
@@ -267,7 +270,7 @@ contract LpStake is ReentrancyGuard, Ownable {
     /// @notice Withdraw without caring about rewards. EMERGENCY ONLY.
     /// @param pid The index of the pool. See `poolInfo`.
     /// @param to Receiver of the LP tokens.
-    function emergencyWithdraw(uint256 pid, address to) public {
+    function emergencyWithdraw(uint256 pid, address to) public nonReentrant {
         require(address(0) != to, "LpStake::can't withdraw to address zero");
         UserInfo storage user = userInfo[pid][msg.sender];
         uint256 amount = user.amount;
