@@ -54,74 +54,38 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
 ## Rinkeby
 
-- [deployedNftToken](https://rinkeby.etherscan.io/address/0x4aA4Cd36e21dCc2247b5FB5e30ED4D5808f7ECc1)
-- [vesting](https://rinkeby.etherscan.io/address/0x37eb4cb864d63735794ed7cD16550A7C6EDdcbB3)
+- [deployedNftToken](https://rinkeby.etherscan.io/address/0xBB67d85a69FCB6a200439E15e2E2c53Cfb6b0680)
+- [vesting](https://rinkeby.etherscan.io/address/0x1DD4121DA7dbA0266726f211BA006210CA111F5E)
 
-  - implementation => 0x43e6465C8692a82AFEF8569211042919dF6bcBd5
+  - implementation => 0x2E83F28F8C464A71Cac19d6842A3690EcfD5D6F2
 
-- [deployedGkTeamDistributor](https://rinkeby.etherscan.io/address/0xaE8F59CC5294Ad07a135eB39D361512aA9DaCb89)
-- [deployedGenesisKeyTeamClaim](https://rinkeby.etherscan.io/address/0x46b7f6864cD071845de69ce7E9D82EDBBDc7054F)
+- [deployedGkTeamDistributor](https://rinkeby.etherscan.io/address/0x3Acb935D800c3a11c64b0E3e509C673F1bff4C0E)
+- [deployedGenesisKeyTeamClaim](https://rinkeby.etherscan.io/address/0x798d55538Fcc3c1666b0b28960bCdF38B817eaB4)
   - implementation => 0x05d277DE3642ee03738Be2ce260B2a206Ae43d6A
-- [deployedGenesisKey](https://rinkeby.etherscan.io/address/0x8cE66A6Bb03Fb407D9E9D8327e266e54058d7362)
+- [deployedGenesisKey](https://rinkeby.etherscan.io/address/0x20FC7ad1eE47245F0FEE579E1F4bEb2dC5380068)
 
-  - implementation => 0x3FEB00D0784d720E995a5782325aE609E24bf4D1
+  - implementation => 0xc906f1FF1EA6D19Ed156fDC95e32A96bA887C343
 
-- [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0x7C056980e27AE75D01052C21cb598f368e01DE59)
-- [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0x82A4CB974150bEf18c138a9C935C6960D21f7D34)
-- [deployedNftProfile](https://rinkeby.etherscan.io/address/0xd7Fd5046a2523841Ee840d7574B54591300bAcB6)
-  - implementation => 0x95de8d9aaE3BA7Fd4322d9b7c9C4511901c14fa0
-- [deployedNftBuyer](https://rinkeby.etherscan.io/address/0x5396fEFC0179DE69Fb8d7F43cEa495927713Ca37)
-- [deployedProfileAuction](https://rinkeby.etherscan.io/address/0xbc6BA73F5822abff07F6BABa7617E78a6C0729c6)
+- [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0xca7355Bc1aa2886400f25D82D530cEdEBc362Ae8)
+- [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0xD3b1c64F8F5c6b3dc614ccb7E7a754a8A5607Dee)
+- [deployedNftProfile](https://rinkeby.etherscan.io/address/0x860Da2aF29a6Ac738246e2fc340Bbf99754C6aAc)
+  - implementation => 0x8410c455D8cdE7B46B9c6A223cb84765F054ABeB
+- [deployedNftBuyer](https://rinkeby.etherscan.io/address/0x05f24AD428B99e54EA85fB3D54c34eBd655A195B)
+- [deployedProfileAuction](https://rinkeby.etherscan.io/address/0xc49134c613dcF782F4df562A828cf623Eec7ff82)
 
-  - implementation => 0x8C03BF718b02F7C843c484c613eb72c0FaCE6aC0
+  - implementation => 0x89bcEB33FAd5fb02b5B7F9B9408530B9878Ed43C
 
-- [nftTransferProxy](https://rinkeby.etherscan.io/address/0xb290FfddB496F05cCC115629055967b9C4D4E0E0)
+- [nftTransferProxy](https://rinkeby.etherscan.io/address/)
   - implementation => 0xDfA0914E53b3C222fCBf67cD3cD89474e7B63bef
-- [deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/0x6Da281301f7b4506ea1F7495ae9415348dA475cC)
+- [deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/)
   - implementation => 0xFecF248854c3A4e36A37CE04e7f025F718873509
-- [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/0x709D9970c45dED0F9D5F3FdB0b08BE4134552dB6)
+- [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/)
   - implementation => 0x67A59654E2ec02f12fbbcb6A2A758c7aB7c2c8E5
-- [deployedValidationLogic](https://rinkeby.etherscan.io/address/0x10CF5F4C7cEeBb483A64E9500816f7356dC9379a)
+- [deployedValidationLogic](https://rinkeby.etherscan.io/address/)
   - implementation => 0x9B0aB7a56486E6ed12ad22Ce29a657B7268B77B4
-- [deployedMarketplaceEvent](https://rinkeby.etherscan.io/address/0x0Fae273409Ad108692d6515dd134A338364f1689)
+- [deployedMarketplaceEvent](https://rinkeby.etherscan.io/address/)
   - implementation => 0xDdE3E8BeEb4aE8345df3a3B9aB524979bD9f8463
-- [deployedNftMarketplace](https://rinkeby.etherscan.io/address/0x4dCF39912385A00ed722ce0b70A21d616eA6BAEC)
-  - implementation => 0x9a47cFd45718dB5BEEA2aA200BE50E157023469c
-
-## Rinkeby Version 2
-
-- [deployedNftToken](https://rinkeby.etherscan.io/address/0xa40E1cc652ED0Bfeae2231ABAAAa8551f62560f0)
-- [vesting](https://rinkeby.etherscan.io/address/0xBaa623C1876f918982599C215D6Eb4Fd8480a130)
-
-  - implementation => 0x43e6465C8692a82AFEF8569211042919dF6bcBd5
-
-- [deployedGkTeamDistributor](https://rinkeby.etherscan.io/address/0xAF8779E2a299ed59088B93d8b029d07bFC3c5dDa)
-- [deployedGenesisKeyTeamClaim](https://rinkeby.etherscan.io/address/0x4a096ddF693c45d67eC625c8C0c16CCD2c388C50)
-  - implementation => 0x05d277DE3642ee03738Be2ce260B2a206Ae43d6A
-- [deployedGenesisKey](https://rinkeby.etherscan.io/address/0x7B4517C94301223D2bFC009E4FCeCA2Cb0F54b23)
-
-  - implementation => 0x3FEB00D0784d720E995a5782325aE609E24bf4D1
-
-- [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0xdAFCB481D8f6d08AC1952ff4d00b9BF014156958)
-- [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0x887DFeC8EDb1533557C53F2A1e237341Ea1AC06B)
-- [deployedNftProfile](https://rinkeby.etherscan.io/address/0xb6465bA958C768b4153DB0b43967335ca5ab5cC5)
-  - implementation => 0x95de8d9aaE3BA7Fd4322d9b7c9C4511901c14fa0
-- [deployedNftBuyer](https://rinkeby.etherscan.io/address/0x1823c26FC21f124BB61256420000C3B531BF1D40)
-- [deployedProfileAuction](https://rinkeby.etherscan.io/address/0x7033C867fB817aD7F0B56DE09fc084f3Ea3aA7EE)
-
-  - implementation => 0x8C03BF718b02F7C843c484c613eb72c0FaCE6aC0
-
-- [nftTransferProxy](https://rinkeby.etherscan.io/address/0x5B64d7433A59a71130a53A50Fe96358EF29B2F6F)
-  - implementation => 0xDfA0914E53b3C222fCBf67cD3cD89474e7B63bef
-- [deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/0x8A8b722B8966E479E820612359875b17202518c6)
-  - implementation => 0xFecF248854c3A4e36A37CE04e7f025F718873509
-- [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/0xCA781eBb142e7c67a0334c0C1dA1FFe9688001FC)
-  - implementation => 0x67A59654E2ec02f12fbbcb6A2A758c7aB7c2c8E5
-- [deployedValidationLogic](https://rinkeby.etherscan.io/address/0x4259444450E25a9341853F6F19167d1fc0B280ED)
-  - implementation => 0x9B0aB7a56486E6ed12ad22Ce29a657B7268B77B4
-- [deployedMarketplaceEvent](https://rinkeby.etherscan.io/address/0x2f367496fa82832FB3EEf42D594E3D20BBC3c52D)
-  - implementation => 0xDdE3E8BeEb4aE8345df3a3B9aB524979bD9f8463
-- [deployedNftMarketplace](https://rinkeby.etherscan.io/address/0xe539C5Fd406889469860E5AF9c0b336B5fa53E8F)
+- [deployedNftMarketplace](https://rinkeby.etherscan.io/address/)
   - implementation => 0x9a47cFd45718dB5BEEA2aA200BE50E157023469c
 
 ### Pre Requisites

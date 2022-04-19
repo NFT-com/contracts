@@ -18,6 +18,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @dev validateSingleAssetMatch1 makes sure two assets can be matched (same index in LibSignature array)
      *  @param buyTakeAsset what the buyer is hoping to take
      *  @param sellMakeAsset what the seller is hoping to make
+     *  @return true if valid
      */
     function validateSingleAssetMatch1(LibAsset.Asset calldata buyTakeAsset, LibAsset.Asset calldata sellMakeAsset)
         internal
@@ -39,6 +40,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @param sellTakeAssetClass (bytes4 of type in LibAsset)
      *  @param buyMakeAssetTypeData assetTypeData for makeAsset on buyOrder
      *  @param sellTakeAssetTypeData assetTypeData for takeAsset on sellOrder
+     *  @return true if valid
      */
     function validAssetTypeData(
         bytes4 sellTakeAssetClass,
@@ -79,9 +81,10 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     }
 
     /**
-     * @dev validateSingleAssetMatch2 makes sure two assets can be matched (same index in LibSignature array)
+     *  @dev validateSingleAssetMatch2 makes sure two assets can be matched (same index in LibSignature array)
      *  @param sellTakeAsset what the seller is hoping to take
      *  @param buyMakeAsset what the buyer is hoping to make
+     *  @return true if valid
      */
     function validateSingleAssetMatch2(LibAsset.Asset calldata sellTakeAsset, LibAsset.Asset calldata buyMakeAsset)
         internal
@@ -108,22 +111,26 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     }
 
     /**
-     * @dev validateMatch makes sure two orders (on sell side and buy side) match correctly
-     * @param sellOrder the listing
-     * @param buyOrder bid for a listing
+     *  @dev validateMatch makes sure two orders (on sell side and buy side) match correctly
+     *  @param sellOrder the listing
+     *  @param buyOrder bid for a listing
+     *  @param sender person sending the transaction
+     *  @param viewOnly true for viewOnly (primarily for testing purposes)
+     *  @return true if orders can match
      */
     function validateMatch(
         LibSignature.Order calldata sellOrder,
         LibSignature.Order calldata buyOrder,
+        address sender,
         bool viewOnly
     ) internal view returns (bool) {
         // flag to ensure ETH is not used multiple timese
         bool ETH_ASSET_USED = false;
 
         require(
-            sellOrder.auctionType == LibSignature.AuctionType.English &&
-                buyOrder.auctionType == LibSignature.AuctionType.English,
-            "!english"
+            (sellOrder.auctionType == LibSignature.AuctionType.English) &&
+                (buyOrder.auctionType == LibSignature.AuctionType.English),
+            "vm auctionType"
         );
 
         // sellOrder taker must be valid
@@ -145,12 +152,6 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
             "vm assets > 0"
         );
 
-        require(
-            (sellOrder.auctionType == LibSignature.AuctionType.English) &&
-                (buyOrder.auctionType == LibSignature.AuctionType.English),
-            "vm auctionType"
-        );
-
         // check if seller maker and buyer take match on every corresponding index
         for (uint256 i = 0; i < sellOrder.makeAssets.length; i++) {
             if (!validateSingleAssetMatch1(buyOrder.takeAssets[i], sellOrder.makeAssets[i])) {
@@ -160,7 +161,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
             // if ETH, seller must be sending ETH / calling
             if (sellOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                 require(!ETH_ASSET_USED, "vm eth");
-                require(viewOnly || msg.sender == sellOrder.maker, "vm sellerEth"); // seller must pay ETH
+                require(viewOnly || sender == sellOrder.maker, "vma sellerEth"); // seller must pay ETH
                 ETH_ASSET_USED = true;
             }
         }
@@ -178,7 +179,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
                 // if ETH, buyer must be sending ETH / calling
                 if (buyOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                     require(!ETH_ASSET_USED, "vm eth2");
-                    require(viewOnly || msg.sender == buyOrder.maker, "vm buyerEth"); // buyer must pay ETH
+                    require(viewOnly || sender == buyOrder.maker, "vmb buyerEth"); // buyer must pay ETH
                     ETH_ASSET_USED = true;
                 }
             }
@@ -197,9 +198,10 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     }
 
     /**
-     * @dev validateBuyNow makes sure a buyer can fulfill the sellOrder and that the sellOrder is formatted properly
-     * @param sellOrder the listing
-     * @param buyer potential executor of sellOrder
+     *  @dev validateBuyNow makes sure a buyer can fulfill the sellOrder and that the sellOrder is formatted properly
+     *  @param sellOrder the listing
+     *  @param buyer potential executor of sellOrder
+     *  @return true if validBuyNow
      */
     function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) public view override returns (bool) {
         require((sellOrder.taker == address(0) || sellOrder.taker == buyer), "vbn !match");
@@ -217,19 +219,26 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     }
 
     /**
-     * @dev public facing function to make sure orders can execute
-     * @param sellOrder the listing
-     * @param buyOrder bid for a listing
+     *  @dev public facing function to make sure orders can execute
+     *  @param sellOrder the listing
+     *  @param buyOrder bid for a listing
+     *  @param viewOnly true for viewOnly (primarily for testing purposes)
+     *  @return true if valid match
      */
-    function validateMatch_(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder)
-        public
-        view
-        override
-        returns (bool)
-    {
-        return validateMatch(sellOrder, buyOrder, true);
+    function validateMatch_(
+        LibSignature.Order calldata sellOrder,
+        LibSignature.Order calldata buyOrder,
+        address sender,
+        bool viewOnly
+    ) public view override returns (bool) {
+        return validateMatch(sellOrder, buyOrder, sender, viewOnly);
     }
 
+    /**
+     *  @dev public facing function to get current price of a decreasing price auction
+     *  @param sellOrder the listing
+     *  @return current price denominated in the asset specified
+     */
     function getDecreasingPrice(LibSignature.Order calldata sellOrder) public view override returns (uint256) {
         require(sellOrder.auctionType == LibSignature.AuctionType.Decreasing, "gdp !decreasing");
         decreasingValidation(sellOrder);
