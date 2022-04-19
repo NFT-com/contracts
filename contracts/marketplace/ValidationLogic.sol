@@ -118,8 +118,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      */
     function validateMatch(
         LibSignature.Order calldata sellOrder,
-        LibSignature.Order calldata buyOrder,
-        bool viewOnly
+        LibSignature.Order calldata buyOrder
     ) internal view returns (bool) {
         // flag to ensure ETH is not used multiple timese
         bool ETH_ASSET_USED = false;
@@ -227,7 +226,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         override
         returns (bool)
     {
-        return validateMatch(sellOrder, buyOrder, true);
+        return validateMatch(sellOrder, buyOrder);
     }
     
     /**
