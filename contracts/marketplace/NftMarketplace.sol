@@ -258,7 +258,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         require(validationLogic.validateMatch_(sellOrder, buyOrder));
 
         if (sellOrder.end != 0) {
-            require(block.timestamp >= (sellOrder.end - 86400), "!exe");
+            require(block.timestamp >= (sellOrder.end - 24 hours), "!exe");
         }
 
         // effects
