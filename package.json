@@ -99,6 +99,8 @@
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
   },
   "dependencies": {
+    "csv-parse": "^5.0.4",
+    "csvtojson": "^2.0.10",
     "delay": "^5.0.0",
     "ethereumjs-abi": "^0.6.8"
   }

@@ -36,8 +36,8 @@ contract Vesting is Initializable, UUPSUpgradeable {
         bool revokedVestor;
     }
 
-    uint256 public constant MONTH_SECONDS = 30 days;
-    uint256 public constant QUARTER_SECONDS = 91 days;
+    uint256 public constant MONTH_SECONDS = 30 days; // 2592000
+    uint256 public constant QUARTER_SECONDS = 91 days; // 7862400
 
     address public nftToken;
     address public multiSig;
@@ -143,38 +143,42 @@ contract Vesting is Initializable, UUPSUpgradeable {
     }
 
     function claim(address recipient) public returns (uint256 remaining) {
+        require((msg.sender == recipient) || (msg.sender == multiSig), "Vesting::claim: sender must be allowed");
         require(initializedVestor[recipient], "Vesting::claim: recipient not initialized");
         require(!revokedVestor[recipient], "Vesting::claim: recipient already revoked");
 
-        require(block.timestamp >= vestingCliff[recipient], "Vesting::claim: cliff not met");
-        uint256 amount;
-        if (block.timestamp >= vestingEnd[recipient]) {
-            amount = vestingAmount[recipient].sub(claimedAmount[recipient]);
+        if (block.timestamp < vestingCliff[recipient]) {
+            remaining = 0;
         } else {
-            VestingInstallments vInstallment = installment[recipient];
-
-            if (vInstallment == VestingInstallments.MONTHLY) {
-                uint256 elapsedMonths = (block.timestamp - lastUpdate[recipient]).div(MONTH_SECONDS);
-                uint256 totalMonths = (vestingEnd[recipient] - vestingBegin[recipient]).div(MONTH_SECONDS);
-
-                uint256 tokensPerMonth = vestingAmount[recipient].div(totalMonths);
-                amount = tokensPerMonth.mul(elapsedMonths);
-                lastUpdate[recipient] += elapsedMonths * MONTH_SECONDS;
-            } else if (vInstallment == VestingInstallments.QUARTERLY) {
-                uint256 elapsedQuarters = (block.timestamp - lastUpdate[recipient]).div(QUARTER_SECONDS);
-                uint256 totalQuarters = (vestingEnd[recipient] - vestingBegin[recipient]).div(QUARTER_SECONDS);
-
-                uint256 tokensPerQuarter = vestingAmount[recipient].div(totalQuarters);
-                amount = tokensPerQuarter.mul(elapsedQuarters);
-                lastUpdate[recipient] += elapsedQuarters * QUARTER_SECONDS;
+            uint256 amount;
+            if (block.timestamp >= vestingEnd[recipient]) {
+                amount = vestingAmount[recipient].sub(claimedAmount[recipient]);
             } else {
-                require(false, "Vesting::claim: invalid installment");
-            }
-        }
-        claimedAmount[recipient] += amount;
-        require(INft(nftToken).transfer(recipient, amount), "Vesting::claim: failed to transfer remaining tokens");
+                VestingInstallments vInstallment = installment[recipient];
 
-        remaining = vestingAmount[recipient].sub(claimedAmount[recipient]);
+                if (vInstallment == VestingInstallments.MONTHLY) {
+                    uint256 elapsedMonths = (block.timestamp - lastUpdate[recipient]).div(MONTH_SECONDS);
+                    uint256 totalMonths = (vestingEnd[recipient] - vestingBegin[recipient]).div(MONTH_SECONDS);
+
+                    uint256 tokensPerMonth = vestingAmount[recipient].div(totalMonths);
+                    amount = tokensPerMonth.mul(elapsedMonths);
+                    lastUpdate[recipient] += (elapsedMonths * MONTH_SECONDS);
+                } else if (vInstallment == VestingInstallments.QUARTERLY) {
+                    uint256 elapsedQuarters = (block.timestamp - lastUpdate[recipient]).div(QUARTER_SECONDS);
+                    uint256 totalQuarters = (vestingEnd[recipient] - vestingBegin[recipient]).div(QUARTER_SECONDS);
+
+                    uint256 tokensPerQuarter = vestingAmount[recipient].div(totalQuarters);
+                    amount = tokensPerQuarter.mul(elapsedQuarters);
+                    lastUpdate[recipient] += (elapsedQuarters * QUARTER_SECONDS);
+                } else {
+                    require(false, "Vesting::claim: invalid installment");
+                }
+            }
+            claimedAmount[recipient] += amount;
+            require(INft(nftToken).transfer(recipient, amount), "Vesting::claim: failed to transfer remaining tokens");
+
+            remaining = vestingAmount[recipient].sub(claimedAmount[recipient]);
+        }
     }
 
     function currentClaim(address user) external view returns (uint256) {
@@ -228,6 +232,7 @@ contract Vesting is Initializable, UUPSUpgradeable {
     }
 
     function multiClaim(address[] calldata recipients) public {
+        require(msg.sender == multiSig);
         for (uint256 i = 0; i < recipients.length; i++) {
             claim(recipients[i]);
         }
