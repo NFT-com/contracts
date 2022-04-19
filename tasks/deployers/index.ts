@@ -572,12 +572,11 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
 task("upgrade:Vesting").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
   const Vesting = await hre.ethers.getContractFactory("Vesting");
-  const vestingAddress = "0x058069538D35B3037bA373b3CAb9adc8e2388AdF";
 
-  const upgradedVesting = await hre.upgrades.upgradeProxy(vestingAddress, Vesting);
+  const upgradedVesting = await hre.upgrades.upgradeProxy((await getTokens(hre)).deployedVestingAddress, Vesting);
   console.log(chalk.green("upgraded vesting: ", upgradedVesting.address));
 
-  await delayedVerifyImp("upgradedVesting", vestingAddress, hre);
+  await delayedVerifyImp("upgradedVesting", (await getTokens(hre)).deployedVestingAddress, hre);
 });
 
 task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {

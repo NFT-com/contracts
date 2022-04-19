@@ -123,7 +123,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         LibSignature.Order calldata buyOrder,
         address sender,
         bool viewOnly
-    ) internal view returns (bool) {
+    ) internal pure returns (bool) {
         // flag to ensure ETH is not used multiple timese
         bool ETH_ASSET_USED = false;
 
@@ -230,7 +230,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         LibSignature.Order calldata buyOrder,
         address sender,
         bool viewOnly
-    ) public view override returns (bool) {
+    ) public pure override returns (bool) {
         return validateMatch(sellOrder, buyOrder, sender, viewOnly);
     }
 

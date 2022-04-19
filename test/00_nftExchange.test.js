@@ -1191,8 +1191,6 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedNftToken.balanceOf(deployedGenesisStake.address)).to.be.equal(0);
         expect(await deployedWETH.balanceOf(deployedNftBuyer.address)).to.be.equal(0);
 
-        console.log("======= 9 ");
-
         await deployedNftBuyer.connect(owner).convertETH();
 
         // UNIV2 POOL FUNDING
@@ -1201,8 +1199,6 @@ describe("NFT.com Marketplace", function () {
         await deployedWETH.connect(owner).approve(deployedUniV2Router.address, MAX_UINT);
 
         await deployedWETH.connect(owner).deposit({ value: convertNftToken(3) });
-
-        console.log("======= 10 ");
 
         await deployedUniV2Router
           .connect(owner)
@@ -1229,8 +1225,6 @@ describe("NFT.com Marketplace", function () {
             owner.address,
             Math.floor(new Date().getTime() / 1000) + 3600,
           );
-
-        console.log("======= 11 ");
 
         // WETH -> ETH
         expect(await deployedWETH.balanceOf(deployedNftBuyer.address)).to.be.equal(deployedNftBuyerETH);
