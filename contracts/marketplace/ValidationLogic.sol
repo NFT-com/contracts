@@ -157,7 +157,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
             // if ETH, seller must be sending ETH / calling
             if (sellOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                 require(!ETH_ASSET_USED, "vm eth");
-                require(viewOnly || msg.sender == sellOrder.maker, "vm sellerEth"); // seller must pay ETH
+                require(msg.sender == sellOrder.maker, "vm sellerEth"); // seller must pay ETH
                 ETH_ASSET_USED = true;
             }
         }
@@ -175,7 +175,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
                 // if ETH, buyer must be sending ETH / calling
                 if (buyOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                     require(!ETH_ASSET_USED, "vm eth2");
-                    require(viewOnly || msg.sender == buyOrder.maker, "vm buyerEth"); // buyer must pay ETH
+                    require(msg.sender == buyOrder.maker, "vm buyerEth"); // buyer must pay ETH
                     ETH_ASSET_USED = true;
                 }
             }
