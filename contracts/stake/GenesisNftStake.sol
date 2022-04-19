@@ -10,8 +10,8 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    address public nftToken;
-    address public nftKeyGenesis;
+    address public immutable nftToken;
+    address public immutable nftKeyGenesis;
     mapping(uint256 => address) public stakedKeys; // maps tokenId => address
     mapping(address => uint256) public stakedAddress; // maps address => number of keys staked
 
