@@ -228,7 +228,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 msg.sender,
                 0,
                 royaltyScore == ROYALTY.FUNGIBLE_MAKE_ASSETS,
-                sellOrder.takeAssets
+                sellOrder.takeAssets // nft asset for royalty calculation
             );
         }
 
@@ -282,7 +282,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 sellOrder.maker,
                 0,
                 royaltyScore == ROYALTY.FUNGIBLE_BUYER_MAKE_ASSETS,
-                sellOrder.makeAssets
+                sellOrder.makeAssets // nft asset for royalty calculation
             );
         }
 
@@ -295,7 +295,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 buyOrder.maker,
                 0,
                 royaltyScore == ROYALTY.FUNGIBLE_SELLER_MAKE_ASSETS,
-                buyOrder.makeAssets
+                buyOrder.makeAssets // nft asset for royalty calculation
             );
         }
 
