@@ -18,6 +18,17 @@ export const signHashPublicSale = (address: string): any => {
   };
 };
 
+export const signHashProfile = (address: string, profile: string): any => {
+  const hash = "0x" + abi.soliditySHA3(["address", "string"], [address, profile.toLowerCase()]).toString("hex");
+
+  const sigObj = web3.eth.accounts.sign(hash, process.env.PUBLIC_SALE_PK ?? "");
+
+  return {
+    hash: sigObj.messageHash,
+    signature: sigObj.signature,
+  };
+};
+
 export const sign = (digest: any, signer: ethers.Wallet): RSV => {
   return { ...signer._signingKey().signDigest(digest) };
 };

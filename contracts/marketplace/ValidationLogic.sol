@@ -114,11 +114,15 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @dev validateMatch makes sure two orders (on sell side and buy side) match correctly
      *  @param sellOrder the listing
      *  @param buyOrder bid for a listing
+     *  @param sender person sending the transaction
+     *  @param viewOnly true for viewOnly (primarily for testing purposes)
      *  @return true if orders can match
      */
     function validateMatch(
         LibSignature.Order calldata sellOrder,
-        LibSignature.Order calldata buyOrder
+        LibSignature.Order calldata buyOrder,
+        address sender,
+        bool viewOnly
     ) internal view returns (bool) {
         // flag to ensure ETH is not used multiple timese
         bool ETH_ASSET_USED = false;
@@ -157,7 +161,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
             // if ETH, seller must be sending ETH / calling
             if (sellOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                 require(!ETH_ASSET_USED, "vm eth");
-                require(msg.sender == sellOrder.maker, "vm sellerEth"); // seller must pay ETH
+                require(viewOnly || sender == sellOrder.maker, "vma sellerEth"); // seller must pay ETH
                 ETH_ASSET_USED = true;
             }
         }
@@ -175,7 +179,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
                 // if ETH, buyer must be sending ETH / calling
                 if (buyOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                     require(!ETH_ASSET_USED, "vm eth2");
-                    require(msg.sender == buyOrder.maker, "vm buyerEth"); // buyer must pay ETH
+                    require(viewOnly || sender == buyOrder.maker, "vmb buyerEth"); // buyer must pay ETH
                     ETH_ASSET_USED = true;
                 }
             }
@@ -218,17 +222,18 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @dev public facing function to make sure orders can execute
      *  @param sellOrder the listing
      *  @param buyOrder bid for a listing
+     *  @param viewOnly true for viewOnly (primarily for testing purposes)
      *  @return true if valid match
      */
-    function validateMatch_(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder)
-        public
-        view
-        override
-        returns (bool)
-    {
-        return validateMatch(sellOrder, buyOrder);
+    function validateMatch_(
+        LibSignature.Order calldata sellOrder,
+        LibSignature.Order calldata buyOrder,
+        address sender,
+        bool viewOnly
+    ) public view override returns (bool) {
+        return validateMatch(sellOrder, buyOrder, sender, viewOnly);
     }
-    
+
     /**
      *  @dev public facing function to get current price of a decreasing price auction
      *  @param sellOrder the listing

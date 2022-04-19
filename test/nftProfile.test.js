@@ -3,9 +3,9 @@ const { BigNumber } = require("ethers");
 const {
   convertBigNumber,
   convertSmallNumber,
-  sign,
   getDigest,
   getHash,
+  signHashProfile,
   GENESIS_KEY_TYPEHASH,
 } = require("./utils/sign-utils");
 
@@ -281,33 +281,48 @@ describe("NFT Profile Auction / Minting", function () {
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address);
+        const { hash: h0, signature: s0 } = signHashProfile(owner.address, "gavin");
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h0, s0);
 
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address);
+        const { hash: h1, signature: s1 } = signHashProfile(owner.address, "boled");
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address, h1, s1);
 
         // should go thru
-        await deployedProfileAuction.connect(second).genesisKeyClaimProfile("satoshi", 2, second.address);
+        const { hash: h2, signature: s2 } = signHashProfile(second.address, "satoshi");
+        await deployedProfileAuction.connect(second).genesisKeyClaimProfile("satoshi", 2, second.address, h2, s2);
 
         // no more merkle tree claims -> now general claims
         await deployedProfileAuction.connect(owner).setGenKeyWhitelistOnly(false);
 
         // reverts due to owner not having ownership over tokenId 1
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 2, owner.address)).to.be
+        const { hash: h3, signature: s3 } = signHashProfile(owner.address, "1");
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 2, owner.address, h3, s3)).to.be
           .reverted;
 
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 1, owner.address);
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address)).to.be
-          .reverted;
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address)).to.be
-          .reverted;
+        const { hash: h4, signature: s4 } = signHashProfile(owner.address, "profile0");
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 1, owner.address, h4, s4);
 
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 1, owner.address);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 1, owner.address);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 1, owner.address);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 1, owner.address);
+        const { hash: h5, signature: s5 } = signHashProfile(owner.address, "gavin");
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h5, s5)).to
+          .be.reverted;
 
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 1, owner.address)).to.be
-          .reverted;
+        const { hash: h6, signature: s6 } = signHashProfile(owner.address, "boled");
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address, h6, s6)).to
+          .be.reverted;
+
+        const { hash: h7, signature: s7 } = signHashProfile(owner.address, "profile1");
+        const { hash: h8, signature: s8 } = signHashProfile(owner.address, "profile2");
+        const { hash: h9, signature: s9 } = signHashProfile(owner.address, "profile3");
+        const { hash: h10, signature: s10 } = signHashProfile(owner.address, "profile4");
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 1, owner.address, h7, s7);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 1, owner.address, h8, s8);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 1, owner.address, h9, s9);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 1, owner.address, h10, s10);
+
+        const { hash: h11, signature: s11 } = signHashProfile(owner.address, "profile5");
+        await expect(
+          deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 1, owner.address, h11, s11),
+        ).to.be.reverted;
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
         // open public mint
@@ -316,11 +331,15 @@ describe("NFT Profile Auction / Minting", function () {
         // approve first
 
         await deployedNftToken.connect(owner).approve(deployedProfileAuction.address, MAX_UINT);
-        await deployedProfileAuction.connect(owner).publicMint("profile5", 0, 27, ZERO_BYTES, ZERO_BYTES);
+        const { hash: h12, signature: s12 } = signHashProfile(owner.address, "profile5");
+        const { hash: h13, signature: s13 } = signHashProfile(owner.address, "profile6");
+        const { hash: h14, signature: s14 } = signHashProfile(owner.address, "profile7");
 
-        await deployedProfileAuction.connect(owner).publicMint("profile6", 0, 27, ZERO_BYTES, ZERO_BYTES);
+        await deployedProfileAuction.connect(owner).publicMint("profile5", 0, 27, ZERO_BYTES, ZERO_BYTES, h12, s12);
 
-        await deployedProfileAuction.connect(owner).publicMint("profile7", 0, 27, ZERO_BYTES, ZERO_BYTES);
+        await deployedProfileAuction.connect(owner).publicMint("profile6", 0, 27, ZERO_BYTES, ZERO_BYTES, h13, s13);
+
+        await deployedProfileAuction.connect(owner).publicMint("profile7", 0, 27, ZERO_BYTES, ZERO_BYTES, h14, s14);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(11);
       });
