@@ -172,9 +172,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     /**
      * @dev functions that allows anyone to execute a sell order that has a specified price > 0
      * @param sellOrder the listing
-     * @param v vSig
-     * @param r rSig
-     * @param s sSig
+     * @param v vSig (optional if order is already approved)
+     * @param r rSig (optional if order is already approved)
+     * @param s sSig (optional if order is already approved)
      */
     function buyNow(
         LibSignature.Order calldata sellOrder,
