@@ -45,10 +45,10 @@ const getTokens = async (hre: any) => {
       : "";
   const deployedGenesisKeyAddress =
     network == "rinkeby" ? "0x20FC7ad1eE47245F0FEE579E1F4bEb2dC5380068" : network === "mainnet" ? "" : "";
-  const genesisKeyTeamDistributorAddress = 
+  const genesisKeyTeamDistributorAddress =
     network == "rinkeby" ? "0xE4B303b917c819b029e9b9ac5bd6d0ec6e7cB0bd" : network === "mainnet" ? "" : "";
   const deployedGenesisKeyTeamClaimAddress =
-  network == "rinkeby" ? "0x798d55538Fcc3c1666b0b28960bCdF38B817eaB4" : network === "mainnet" ? "" : "";
+    network == "rinkeby" ? "0x798d55538Fcc3c1666b0b28960bCdF38B817eaB4" : network === "mainnet" ? "" : "";
   const profileMetadataLink = `https://${
     network === "rinkeby" ? "staging-api" : network === "mainnet" ? "prod-api" : ""
   }.nft.com/uri/`;
@@ -72,7 +72,7 @@ const getTokens = async (hre: any) => {
     profileMetadataLink,
     deployedNftBuyer,
     ipfsHash,
-    deployedGenesisKeyTeamClaimAddress
+    deployedGenesisKeyTeamClaimAddress,
   };
 };
 
@@ -175,12 +175,10 @@ task("init:vest").setAction(async function (taskArguments, hre) {
     // Address,Amount,Parsed Token,Begin,,Cliff,,End,,Installment
     const jsonCSV = await csv().fromFile("./vesting.csv");
     const address = jsonCSV.map(row => row.Address);
-    const amount = jsonCSV.map(row => 
-      hre.ethers.BigNumber.from(
-        row.ParsedToken.replaceAll(',', '').replace('.00', '')
-      ).mul(
-        hre.ethers.BigNumber.from(10).pow(18)
-      )
+    const amount = jsonCSV.map(row =>
+      hre.ethers.BigNumber.from(row.ParsedToken.replaceAll(",", "").replace(".00", "")).mul(
+        hre.ethers.BigNumber.from(10).pow(18),
+      ),
     );
     const vestingBegin = jsonCSV.map(row => row.Begin);
     const vestingCliff = jsonCSV.map(row => row.Cliff);
@@ -526,22 +524,29 @@ task("deploy:4").setAction(async function (taskArguments, hre) {
     "0x59495589849423692778a8c5aaCA62CA80f875a4": "100",
   }`);
 
-  // TODO: use right address
-  const nftToken = "";
-
   // merkle result is what you need to post publicly and store on FE
   const merkleResult = parseBalanceMap(jsonInput);
   const { merkleRoot } = merkleResult;
 
   const MerkleDistributor = await hre.ethers.getContractFactory("MerkleDistributor");
 
-  const deployedNftTokenAirdrop = await MerkleDistributor.deploy(nftToken, merkleRoot);
+  const deployedNftTokenAirdrop = await MerkleDistributor.deploy(
+    (
+      await getTokens(hre)
+    ).deployedNftTokenAddress,
+    merkleRoot,
+  );
   console.log(chalk.green(`deployedNftTokenAirdrop: ${deployedNftTokenAirdrop.address}`));
 
   console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
   await delay(TIME_DELAY);
   console.log(chalk.green("verifying..."));
-  await verifyContract("deployedNftTokenAirdrop", deployedNftTokenAirdrop.address, [nftToken, merkleRoot], hre);
+  await verifyContract(
+    "deployedNftTokenAirdrop",
+    deployedNftTokenAirdrop.address,
+    [(await getTokens(hre)).deployedNftTokenAddress, merkleRoot],
+    hre,
+  );
 });
 
 // UPGRADES ============================================================================================
