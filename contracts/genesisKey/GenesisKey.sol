@@ -12,6 +12,10 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 error PausedTransfer();
 
+interface IGkTeamClaim {
+    function addTokenId(uint256 newTokenId) external;
+}
+
 contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, IGenesisKey {
     using SafeMathUpgradeable for uint256;
     using ECDSAUpgradeable for bytes32;
@@ -184,13 +188,13 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         if (
             remainingTeamAdvisorGrant != 0 &&
             (uint256(uint160(_recipient)) + block.timestamp) % 5 == 0 &&
-            lastClaimTime > 1 minutes &&
             randomClaimBool
         ) {
             remainingTeamAdvisorGrant -= 1;
             lastClaimTime = block.timestamp;
 
             _mint(gkTeamClaimContract, 1, "", false);
+            IGkTeamClaim(gkTeamClaimContract).addTokenId(totalSupply());
             emit ClaimedGenesisKey(gkTeamClaimContract, 0, block.number, false);
         }
     }

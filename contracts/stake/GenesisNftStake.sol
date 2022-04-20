@@ -74,7 +74,7 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
             permitXNFT(msg.sender, address(this), v, r, s); // approve xNFT token
         }
 
-        IERC20(nftToken).transferFrom(msg.sender, address(this), _amount);
+        IERC20(nftToken).safeTransferFrom(msg.sender, address(this), _amount);
 
         uint256 totalNftTokenLocked = IERC20(nftToken).balanceOf(address(this));
         uint256 totalSupply = totalSupply();
@@ -94,7 +94,7 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
 
         uint256 nftAmount = (_xNftAmount * (IERC20(nftToken).balanceOf(address(this)))) / totalSupply;
         _burn(msg.sender, _xNftAmount);
-        IERC20(nftToken).transfer(msg.sender, nftAmount);
+        IERC20(nftToken).safeTransfer(msg.sender, nftAmount);
     }
 
     function leave(uint256 _xNftAmount, uint256 _tokenId) public nonReentrant {
@@ -108,7 +108,7 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
         uint256 totalSupply = totalSupply();
         uint256 nftAmount = (_xNftAmount * (IERC20(nftToken).balanceOf(address(this)))) / totalSupply;
         _burn(msg.sender, _xNftAmount);
-        IERC20(nftToken).transfer(msg.sender, nftAmount);
+        IERC20(nftToken).safeTransfer(msg.sender, nftAmount);
         IERC721(nftKeyGenesis).transferFrom(address(this), msg.sender, _tokenId);
     }
 }

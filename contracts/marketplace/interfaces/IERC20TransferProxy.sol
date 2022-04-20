@@ -4,6 +4,8 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 interface IERC20TransferProxy {
+    event OperatorChange(address indexed contractAddress, address indexed operator, bool value);
+    
     function erc20safeTransferFrom(
         IERC20Upgradeable token,
         address from,

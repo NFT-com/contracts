@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./lib/SignedSafeMath.sol";
@@ -11,6 +12,8 @@ import "./lib/SignedSafeMath.sol";
 contract LpStake is ReentrancyGuard, Ownable {
     using SignedSafeMath for int256;
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
+
     /// @notice Info of each LpStake user.
     /// `amount` LP token amount the user has provided.
     /// `rewardDebt` The amount of rewards tokens entitled to the user.
@@ -217,7 +220,7 @@ contract LpStake is ReentrancyGuard, Ownable {
         user.rewardDebt = user.rewardDebt.add(int256(amount.mul(pool.accRewardTokensPerShare) / ACC_TOKEN_PRECISION));
 
         // Interactions
-        lpToken[pid].transferFrom(msg.sender, address(this), amount);
+        lpToken[pid].safeTransferFrom(msg.sender, address(this), amount);
 
         emit Deposit(msg.sender, pid, amount, to);
     }
@@ -241,7 +244,7 @@ contract LpStake is ReentrancyGuard, Ownable {
         user.amount = user.amount.sub(amount);
 
         // Interactions
-        lpToken[pid].transfer(to, amount);
+        lpToken[pid].safeTransfer(to, amount);
 
         emit Withdraw(msg.sender, pid, amount, to);
     }
@@ -261,7 +264,7 @@ contract LpStake is ReentrancyGuard, Ownable {
 
         // Interactions
         if (_pendingRewardTokens > 0) {
-            REWARD_TOKEN.transfer(to, _pendingRewardTokens);
+            REWARD_TOKEN.safeTransfer(to, _pendingRewardTokens);
         }
 
         emit Harvest(msg.sender, pid, _pendingRewardTokens);
@@ -277,7 +280,7 @@ contract LpStake is ReentrancyGuard, Ownable {
         user.amount = 0;
         user.rewardDebt = 0;
         // Note: transfer can fail or succeed if `amount` is zero.
-        lpToken[pid].transfer(to, amount);
+        lpToken[pid].safeTransfer(to, amount);
         emit EmergencyWithdraw(msg.sender, pid, amount, to);
     }
 }

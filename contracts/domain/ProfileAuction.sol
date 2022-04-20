@@ -2,7 +2,6 @@
 pragma solidity >=0.8.4;
 
 import "../interface/INftProfileHelper.sol";
-import "../interface/INftProfile.sol";
 import "../interface/IGenesisKeyStake.sol";
 import "./StringUtils.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -12,6 +11,32 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721Enume
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+
+interface INftProfile {
+    function createProfile(
+        address receiver,
+        string memory _profileURI,
+        uint256 _expiry
+    ) external;
+
+    function totalSupply() external view returns (uint256);
+
+    function extendLicense(
+        string memory _profileURI,
+        uint256 _duration,
+        address _licensee
+    ) external;
+
+    function purchaseExpiredProfile(
+        string memory _profileURI,
+        uint256 _duration,
+        address _receiver
+    ) external;
+
+    function tokenUsed(string memory _string) external view returns (bool);
+
+    function profileOwner(string memory _string) external view returns (address);
+}
 
 contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     using StringUtils for *;
@@ -27,7 +52,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     address public genesisKeyContract;
 
     uint256 public yearlyFee; // public fee in nft token for mint price
-    uint256 public yearsToOwn; // number of years of rent to pay to own a profile
+    uint256 public yearsToOwn; // number of years of license to pay to own a profile
     bool public publicMintBool; // true to allow public mint
     bool public genKeyWhitelistOnly; // true to only allow merkle claims
 
@@ -39,9 +64,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
 
     event UpdatedProfileStake(string _profileUrl, uint256 _stake);
-    event MintedProfile(address _user, string _val, uint256 _duration, uint256 _fee);
+    event MintedProfile(address _user, string _val, uint256 tokenId, uint256 _duration, uint256 _fee);
 
-    event ExtendRent(address _receiver, string _profileUrl, uint256 _duration, uint256 _fee, bool _expired);
+    event ExtendLicense(address _receiver, string _profileUrl, uint256 _duration, uint256 _fee, bool _expired);
 
     modifier validAndUnusedURI(string memory _profileURI) {
         require(validURI(_profileURI));
@@ -194,7 +219,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             genesisKeyClaimNumber[tokenId] <= 2 ? 365 days * 1000 : 365 days
         );
 
-        emit MintedProfile(recipient, profileUrl, 365 days, 0);
+        emit MintedProfile(recipient, profileUrl, INftProfile(nftProfile).totalSupply() - 1, 365 days, 0);
     }
 
     function publicMint(
@@ -221,7 +246,13 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         INftProfile(nftProfile).createProfile(msg.sender, profileUrl, duration);
 
-        emit MintedProfile(msg.sender, profileUrl, duration, getFee(profileUrl, duration));
+        emit MintedProfile(
+            msg.sender,
+            profileUrl,
+            INftProfile(nftProfile).totalSupply() - 1,
+            duration,
+            getFee(profileUrl, duration)
+        );
     }
 
     function getFee(string memory profileUrl, uint256 duration) public view returns (uint256) {
@@ -237,7 +268,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
      * @param profileUrl profileUrl to extend
      * @param duration number of seconds to extend
      */
-    function extendRent(
+    function extendLicense(
         string memory profileUrl,
         uint256 duration,
         uint8 v,
@@ -250,9 +281,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         require(transferNftTokens(msg.sender, getFee(profileUrl, duration)), "pa: insufficient funds");
 
-        INftProfile(nftProfile).extendRent(profileUrl, duration, msg.sender);
+        INftProfile(nftProfile).extendLicense(profileUrl, duration, msg.sender);
 
-        emit ExtendRent(msg.sender, profileUrl, duration, getFee(profileUrl, duration), false);
+        emit ExtendLicense(msg.sender, profileUrl, duration, getFee(profileUrl, duration), false);
     }
 
     function purchaseExpiredProfile(
@@ -276,7 +307,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         INftProfile(nftProfile).purchaseExpiredProfile(profileUrl, duration, msg.sender);
 
-        emit ExtendRent(msg.sender, profileUrl, duration, getFee(profileUrl, duration), true);
+        emit ExtendLicense(msg.sender, profileUrl, duration, getFee(profileUrl, duration), true);
     }
 
     function ownProfile(string memory profileUrl) external nonReentrant {

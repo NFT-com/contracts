@@ -6,8 +6,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 interface IGK {
-    function tokenIdsOwned(address user) external view returns (bool[] memory);
-
     function transferFrom(
         address from,
         address to,
@@ -21,6 +19,7 @@ contract GenesisKeyTeamClaim is Initializable, UUPSUpgradeable {
     address public owner;
     address public genesisKeyMerkle;
     IGK public GK;
+    uint256[] public ownedTokenIds;
     event ClaimedGenesisKey(address indexed _user, uint256 _amount, uint256 _blockNum, bool _whitelist);
 
     modifier onlyOwner() {
@@ -46,6 +45,15 @@ contract GenesisKeyTeamClaim is Initializable, UUPSUpgradeable {
         genesisKeyMerkle = _newMK;
     }
 
+    function addOwedTokenIds(uint256 newTokenId) external onlyOwner {
+        ownedTokenIds.push(newTokenId);
+    }
+
+    function addTokenId(uint256 newTokenId) external {
+        require(msg.sender == address(GK));
+        ownedTokenIds.push(newTokenId);
+    }
+
     // =========POST WHITELIST CLAIM KEY ==========================================================================
     /**
      @notice allows winning keys to be self-minted by winners
@@ -56,14 +64,17 @@ contract GenesisKeyTeamClaim is Initializable, UUPSUpgradeable {
 
         // effects
         // interactions
-        bool[] memory ownedIds = GK.tokenIdsOwned(address(this));
+        if (ownedTokenIds.length != 0) {
+            GK.transferFrom(address(this), recipient, ownedTokenIds[0]);
 
-        for (uint256 i = 0; i < ownedIds.length; i++) {
-            if (ownedIds[i]) {
-                GK.transferFrom(address(this), recipient, i);
-                emit ClaimedGenesisKey(recipient, 0, block.number, true);
-                return true;
+            if (ownedTokenIds.length > 1) {
+                ownedTokenIds[0] = ownedTokenIds[ownedTokenIds.length - 1];
             }
+
+            ownedTokenIds.pop();
+
+            emit ClaimedGenesisKey(recipient, 0, block.number, true);
+            return true;
         }
 
         return false;

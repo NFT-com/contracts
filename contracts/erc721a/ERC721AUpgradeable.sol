@@ -302,11 +302,7 @@ contract ERC721AUpgradeable is
     function _baseURI() internal view virtual returns (string memory) {
         return defaultBaseURI;
     }
-
-    function setBaseURI(string memory defaultBaseURI_) external {
-        defaultBaseURI = defaultBaseURI_;
-    }
-
+    
     /**
      * @dev See {IERC721-approve}.
      */
