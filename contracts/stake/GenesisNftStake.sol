@@ -15,6 +15,8 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
     mapping(uint256 => address) public stakedKeys; // maps tokenId => address
     mapping(address => uint256) public stakedAddress; // maps address => number of keys staked
 
+    event NewStakedKey(uint256 indexed tokenId, address indexed staker, uint256 totalStakedKeys);
+
     constructor(address _nftToken, address _nftKeyGenesis)
         ERC20Permit("Staked NFT.com Genesis Key")
         ERC20("Staked NFT.com Genesis Key", "sNFT")
@@ -67,6 +69,8 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
 
             // interactions
             IERC721(nftKeyGenesis).transferFrom(msg.sender, address(this), _tokenId);
+
+            emit NewStakedKey(_tokenId, msg.sender, stakedAddress[msg.sender]);
         }
 
         // only apply approve permit for first time

@@ -14,7 +14,10 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     mapping(uint256 => string) internal _tokenURIs;
     mapping(string => uint256) internal _tokenUsedURIs;
+<<<<<<< HEAD
     mapping(string => uint256) internal _expiryTimeline;
+=======
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
     uint256 public protocolFee;
     address public profileAuctionContract;
@@ -70,7 +73,11 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         _transfer(ERC721AUpgradeable.ownerOf(tokenId), _to, tokenId);
     }
 
+<<<<<<< HEAD
     function profileOwner(string memory _string) external view override returns (address) {
+=======
+    function profileOwner(string memory _string) external view returns (address) {
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         return ownerOf(_tokenUsedURIs[_string].sub(1));
     }
 
@@ -108,6 +115,7 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
      @notice helper function used to mint profile, set URI, bid details
      @param _receiver the user who bought the profile
      @param _profileURI profile username
+<<<<<<< HEAD
      @param _duration seconds to add to expiry
     */
     function createProfile(
@@ -115,10 +123,15 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         string memory _profileURI,
         uint256 _duration
     ) external override {
+=======
+    */
+    function createProfile(address _receiver, string memory _profileURI) external override {
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         require(msg.sender == profileAuctionContract);
         uint256 preSupply = totalSupply();
         _mint(_receiver, 1, "", false);
         setTokenURI(preSupply, _profileURI);
+<<<<<<< HEAD
         _expiryTimeline[_profileURI] = block.timestamp + _duration;
         emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
     }
@@ -161,6 +174,8 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         _transfer(ERC721AUpgradeable.ownerOf(tokenId), _receiver, tokenId);
 
         emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
+=======
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 
     /**

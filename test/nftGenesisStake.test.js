@@ -16,10 +16,15 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
     let NftToken, NftStake;
     let deployedNftToken, deployedNftGenesisStake;
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
+<<<<<<< HEAD
+=======
+    const RINKEBY_WETH = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
     let GenesisKey;
     let deployedGenesisKey;
     let deployedWETH;
+<<<<<<< HEAD
     let GenesisKeyTeamClaim;
     let deployedGenesisKeyTeamClaim;
     let GenesisKeyTeamDistributor;
@@ -27,6 +32,11 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
     const name = "NFT.com Genesis Key";
     const symbol = "NFTKEY";
     let wethAddress;
+=======
+    const name = "NFT.com Genesis Key";
+    const symbol = "NFTKEY";
+    const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     const auctionSeconds = "604800"; // seconds in 1 week
 
     // `beforeEach` will run before each test, re-deploying the contract every
@@ -41,6 +51,7 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
       GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
       const multiSig = addr1.address;
 
+<<<<<<< HEAD
       deployedWETH = await NftToken.deploy();
       wethAddress = deployedWETH.address;
 
@@ -70,6 +81,23 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
       const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
       const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
 
+=======
+      deployedGenesisKey = await hre.upgrades.deployProxy(
+        GenesisKey,
+        [name, symbol, wethAddress, multiSig, auctionSeconds, "ipfs//"],
+        { kind: "uups" },
+      );
+
+      const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+      const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
+
+      deployedWETH = new ethers.Contract(
+        wethAddress,
+        `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"guy","type":"address"},{"name":"wad","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"src","type":"address"},{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"wad","type":"uint256"}],"name":"withdraw","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"guy","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Withdrawal","type":"event"}]`,
+        ethers.provider,
+      );
+
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
       // approve WETH
       await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
       await deployedWETH.connect(second).approve(deployedGenesisKey.address, MAX_UINT);
@@ -117,6 +145,7 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
       await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
 
+<<<<<<< HEAD
       await deployedGenesisKeyDistributor
         .connect(owner)
         .claim(
@@ -136,12 +165,42 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
           merkleResult.claims[`${secondSigner.address}`].proof,
           { value: wethMin },
         );
+=======
+      await expect(
+        deployedGenesisKeyDistributor
+          .connect(owner)
+          .claim(
+            merkleResult.claims[`${ownerSigner.address}`].index,
+            ownerSigner.address,
+            merkleResult.claims[`${ownerSigner.address}`].amount,
+            merkleResult.claims[`${ownerSigner.address}`].proof,
+          ),
+      )
+        .to.emit(deployedWETH, "Transfer")
+        .withArgs(ownerSigner.address, addr1.address, convertTinyNumber(1));
+
+      await expect(
+        deployedGenesisKeyDistributor
+          .connect(second)
+          .claim(
+            merkleResult.claims[`${secondSigner.address}`].index,
+            secondSigner.address,
+            merkleResult.claims[`${secondSigner.address}`].amount,
+            merkleResult.claims[`${secondSigner.address}`].proof,
+          ),
+      )
+        .to.emit(deployedWETH, "Transfer")
+        .withArgs(secondSigner.address, addr1.address, convertTinyNumber(1));
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
       NftStake = await ethers.getContractFactory("GenesisNftStake");
       deployedNftGenesisStake = await NftStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
 
+<<<<<<< HEAD
       await deployedGenesisKey.setWhitelist(deployedNftGenesisStake.address, true);
 
+=======
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
       await owner.sendTransaction({ to: addr1.address, value: convertTinyNumber(1) });
 
       await deployedWETH.connect(addr1).transfer(ownerSigner.address, await deployedWETH.balanceOf(addr1.address));

@@ -10,7 +10,11 @@ interface IGenesisKeyDistributor {
     function merkleRoot() external view returns (bytes32);
 
     // Returns the profile auction contract address.
+<<<<<<< HEAD
     function ethAmount() external view returns (uint256);
+=======
+    function wethAmount() external view returns (uint256);
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
     // Returns true if the index has been marked claimed.
     function isClaimed(uint256 index) external view returns (bool);
@@ -21,7 +25,11 @@ interface IGenesisKeyDistributor {
         address account,
         uint256 tokenId,
         bytes32[] calldata merkleProof
+<<<<<<< HEAD
     ) external payable;
+=======
+    ) external;
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
     // This event is triggered whenever a call to #claim succeeds.
     event Claimed(uint256 index, address account, uint256 tokenId);

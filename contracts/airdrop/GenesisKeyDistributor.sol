@@ -11,7 +11,11 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 contract GenesisKeyDistributor is IGenesisKeyDistributor {
     address public immutable override genesisKey;
     bytes32 public immutable override merkleRoot;
+<<<<<<< HEAD
     uint256 public immutable override ethAmount;
+=======
+    uint256 public immutable override wethAmount;
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
     // This is a packed array of booleans.
     mapping(uint256 => uint256) private claimedBitMap;
@@ -19,11 +23,19 @@ contract GenesisKeyDistributor is IGenesisKeyDistributor {
     constructor(
         address genesisKey_,
         bytes32 merkleRoot_,
+<<<<<<< HEAD
         uint256 ethAmount_
     ) {
         genesisKey = genesisKey_;
         merkleRoot = merkleRoot_;
         ethAmount = ethAmount_;
+=======
+        uint256 wethAmount_
+    ) {
+        genesisKey = genesisKey_;
+        merkleRoot = merkleRoot_;
+        wethAmount = wethAmount_;
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 
     function isClaimed(uint256 index) public view override returns (bool) {
@@ -45,7 +57,11 @@ contract GenesisKeyDistributor is IGenesisKeyDistributor {
         address account,
         uint256 tokenId,
         bytes32[] calldata merkleProof
+<<<<<<< HEAD
     ) external payable override {
+=======
+    ) external override {
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         require(msg.sender == account);
         require(!isClaimed(index), "GenesisKeyDistributor: Drop already claimed.");
 
@@ -55,7 +71,11 @@ contract GenesisKeyDistributor is IGenesisKeyDistributor {
 
         // Mark it claimed and send the token.
         _setClaimed(index);
+<<<<<<< HEAD
         IGenesisKey(genesisKey).claimKey{ value: ethAmount }(account, ethAmount);
+=======
+        IGenesisKey(genesisKey).claimKey(account, wethAmount);
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
         emit Claimed(index, account, tokenId);
     }

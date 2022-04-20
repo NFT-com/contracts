@@ -36,12 +36,20 @@ contract NftTransferProxy is INftTransferProxy, Initializable, UUPSUpgradeable, 
 
     function addOperator(address operator) external onlyOwner {
         operators[operator] = true;
+<<<<<<< HEAD
         emit OperatorChange(address(this), operator, true);
+=======
+        emit AddOperator(operator);
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 
     function removeOperator(address operator) external onlyOwner {
         operators[operator] = false;
+<<<<<<< HEAD
         emit OperatorChange(address(this), operator, false);
+=======
+        emit RemoveOperator(operator);
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 
     modifier onlyOperator() {

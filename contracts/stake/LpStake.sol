@@ -3,7 +3,10 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+<<<<<<< HEAD
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+=======
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./lib/SignedSafeMath.sol";
@@ -12,8 +15,11 @@ import "./lib/SignedSafeMath.sol";
 contract LpStake is ReentrancyGuard, Ownable {
     using SignedSafeMath for int256;
     using SafeMath for uint256;
+<<<<<<< HEAD
     using SafeERC20 for IERC20;
 
+=======
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     /// @notice Info of each LpStake user.
     /// `amount` LP token amount the user has provided.
     /// `rewardDebt` The amount of rewards tokens entitled to the user.
@@ -211,7 +217,10 @@ contract LpStake is ReentrancyGuard, Ownable {
         address to
     ) external nonReentrant {
         require(to != address(0x0));
+<<<<<<< HEAD
         require(poolInfo[pid].lastRewardBlock != 0);
+=======
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][to];
 
@@ -220,7 +229,11 @@ contract LpStake is ReentrancyGuard, Ownable {
         user.rewardDebt = user.rewardDebt.add(int256(amount.mul(pool.accRewardTokensPerShare) / ACC_TOKEN_PRECISION));
 
         // Interactions
+<<<<<<< HEAD
         lpToken[pid].safeTransferFrom(msg.sender, address(this), amount);
+=======
+        lpToken[pid].transferFrom(msg.sender, address(this), amount);
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
         emit Deposit(msg.sender, pid, amount, to);
     }
@@ -235,7 +248,10 @@ contract LpStake is ReentrancyGuard, Ownable {
         address to
     ) external nonReentrant {
         require(to != address(0x0));
+<<<<<<< HEAD
         require(poolInfo[pid].lastRewardBlock != 0);
+=======
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][msg.sender];
 
@@ -244,7 +260,11 @@ contract LpStake is ReentrancyGuard, Ownable {
         user.amount = user.amount.sub(amount);
 
         // Interactions
+<<<<<<< HEAD
         lpToken[pid].safeTransfer(to, amount);
+=======
+        lpToken[pid].transfer(to, amount);
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
         emit Withdraw(msg.sender, pid, amount, to);
     }
@@ -253,7 +273,10 @@ contract LpStake is ReentrancyGuard, Ownable {
     /// @param pid The index of the pool. See `poolInfo`.
     /// @param to Receiver of the rewards.
     function harvest(uint256 pid, address to) external nonReentrant {
+<<<<<<< HEAD
         require(poolInfo[pid].lastRewardBlock != 0);
+=======
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         PoolInfo memory pool = updatePool(pid);
         UserInfo storage user = userInfo[pid][msg.sender];
         int256 accumulatedRewardTokens = int256(user.amount.mul(pool.accRewardTokensPerShare) / ACC_TOKEN_PRECISION);
@@ -264,7 +287,11 @@ contract LpStake is ReentrancyGuard, Ownable {
 
         // Interactions
         if (_pendingRewardTokens > 0) {
+<<<<<<< HEAD
             REWARD_TOKEN.safeTransfer(to, _pendingRewardTokens);
+=======
+            REWARD_TOKEN.transfer(to, _pendingRewardTokens);
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         }
 
         emit Harvest(msg.sender, pid, _pendingRewardTokens);
@@ -273,14 +300,22 @@ contract LpStake is ReentrancyGuard, Ownable {
     /// @notice Withdraw without caring about rewards. EMERGENCY ONLY.
     /// @param pid The index of the pool. See `poolInfo`.
     /// @param to Receiver of the LP tokens.
+<<<<<<< HEAD
     function emergencyWithdraw(uint256 pid, address to) public nonReentrant {
+=======
+    function emergencyWithdraw(uint256 pid, address to) public {
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         require(address(0) != to, "LpStake::can't withdraw to address zero");
         UserInfo storage user = userInfo[pid][msg.sender];
         uint256 amount = user.amount;
         user.amount = 0;
         user.rewardDebt = 0;
         // Note: transfer can fail or succeed if `amount` is zero.
+<<<<<<< HEAD
         lpToken[pid].safeTransfer(to, amount);
+=======
+        lpToken[pid].transfer(to, amount);
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         emit EmergencyWithdraw(msg.sender, pid, amount, to);
     }
 }

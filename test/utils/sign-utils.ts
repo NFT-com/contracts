@@ -1,4 +1,5 @@
 import { BigNumber, ethers, BigNumberish, BytesLike } from "ethers";
+<<<<<<< HEAD
 import { keccak256, defaultAbiCoder, toUtf8Bytes, solidityPack, _TypedDataEncoder } from "ethers/lib/utils";
 import { getChainId, RSV, signData } from "./rpc";
 import abi from "ethereumjs-abi";
@@ -28,6 +29,10 @@ export const signHashProfile = (address: string, profile: string): any => {
     signature: sigObj.signature,
   };
 };
+=======
+import { keccak256, defaultAbiCoder, toUtf8Bytes, solidityPack, Bytes, _TypedDataEncoder } from "ethers/lib/utils";
+import { getChainId, RSV, signData } from "./rpc";
+>>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
 export const sign = (digest: any, signer: ethers.Wallet): RSV => {
   return { ...signer._signingKey().signDigest(digest) };
