@@ -10,10 +10,10 @@ interface INftProfile {
         uint256 _expiry
     ) external;
 
-    function extendRent(
+    function extendLicense(
         string memory _profileURI,
-        uint256 _expiry,
-        address renter
+        uint256 _duration,
+        address _licensee
     ) external;
 
     function purchaseExpiredProfile(

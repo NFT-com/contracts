@@ -9,6 +9,7 @@ struct Sig {
 }
 
 interface IMarketplaceEvent {
+    event NewMarketplace(address indexed marketPlace);
     event BuyNowInfo(bytes32 indexed makerStructHash, address takerAddress);
     event Match(
         bytes32 indexed makerStructHash,

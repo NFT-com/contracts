@@ -136,6 +136,6 @@ contract NftBuyer {
         address to,
         uint256 amount
     ) internal {
-        IERC20(token).transfer(to, amount);
+        IERC20(token).safeTransfer(to, amount);
     }
 }

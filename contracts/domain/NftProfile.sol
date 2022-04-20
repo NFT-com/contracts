@@ -127,17 +127,18 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
      @notice helper function used to extend existing profile registration
      @param _profileURI profile username
      @param _duration seconds to add to expiry
+     @param _licensee seconds to add to expiry
     */
-    function extendRent(
+    function extendLicense(
         string memory _profileURI,
         uint256 _duration,
-        address renter
+        address _licensee
     ) external override {
         require(_exists(_tokenUsedURIs[_profileURI]));
         require(msg.sender == profileAuctionContract);
         require(_expiryTimeline[_profileURI] >= block.timestamp);
         uint256 tokenId = _tokenUsedURIs[_profileURI].sub(1);
-        require(ownerOf(tokenId) == renter);
+        require(ownerOf(tokenId) == _licensee);
 
         _expiryTimeline[_profileURI] += _duration;
         emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);

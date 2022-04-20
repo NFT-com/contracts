@@ -19,9 +19,9 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 ## Mainnet Tokens
 
 - [deployedNftToken](https://etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F)
-- [vesting](https://etherscan.io/address/0xE13d298F713bFFd40D011e577AeBE7F31260E5Fa)
+- [vesting](https://etherscan.io/address/0x774c2204D9e50CD9d6A579D194c067360604933f)
 
-  - implementation => 0xbC0F959867730b017BdB46BAE1D203A7a3d9518B
+  - implementation => 0xC3A7cE08ADBFbfce8b79Bf8d0A6Df16265d1cE3a
 
 - [deployedGkTeamDistributor](https://etherscan.io/address/)
 - [deployedGenesisKeyTeamClaim](https://etherscan.io/address/)
@@ -59,12 +59,12 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
   - implementation => 0x2E83F28F8C464A71Cac19d6842A3690EcfD5D6F2
 
-- [deployedGkTeamDistributor](https://rinkeby.etherscan.io/address/0x3Acb935D800c3a11c64b0E3e509C673F1bff4C0E)
+- [deployedGkTeamDistributor](https://rinkeby.etherscan.io/address/0xE4B303b917c819b029e9b9ac5bd6d0ec6e7cB0bd)
 - [deployedGenesisKeyTeamClaim](https://rinkeby.etherscan.io/address/0x798d55538Fcc3c1666b0b28960bCdF38B817eaB4)
-  - implementation => 0x05d277DE3642ee03738Be2ce260B2a206Ae43d6A
+  - implementation => 0xc705875032980dce626118a62A2a8a76609ED50D
 - [deployedGenesisKey](https://rinkeby.etherscan.io/address/0x20FC7ad1eE47245F0FEE579E1F4bEb2dC5380068)
 
-  - implementation => 0xc906f1FF1EA6D19Ed156fDC95e32A96bA887C343
+  - implementation => 0xa84DFD339fdaC3Ef468Bc73Ea91030F58bD25446
 
 - [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0xca7355Bc1aa2886400f25D82D530cEdEBc362Ae8)
 - [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0xD3b1c64F8F5c6b3dc614ccb7E7a754a8A5607Dee)
@@ -73,7 +73,7 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 - [deployedNftBuyer](https://rinkeby.etherscan.io/address/0x05f24AD428B99e54EA85fB3D54c34eBd655A195B)
 - [deployedProfileAuction](https://rinkeby.etherscan.io/address/0xc49134c613dcF782F4df562A828cf623Eec7ff82)
 
-  - implementation => 0x89bcEB33FAd5fb02b5B7F9B9408530B9878Ed43C
+  - implementation => 0x899591d63be57c070602e66b31B691e04D78Ea32
 
 - [nftTransferProxy](https://rinkeby.etherscan.io/address/)
   - implementation => 0xDfA0914E53b3C222fCBf67cD3cD89474e7B63bef

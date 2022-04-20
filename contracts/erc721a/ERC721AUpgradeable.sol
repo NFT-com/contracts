@@ -303,10 +303,6 @@ contract ERC721AUpgradeable is
         return defaultBaseURI;
     }
 
-    function setBaseURI(string memory defaultBaseURI_) external {
-        defaultBaseURI = defaultBaseURI_;
-    }
-
     /**
      * @dev See {IERC721-approve}.
      */

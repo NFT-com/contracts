@@ -12,6 +12,10 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 error PausedTransfer();
 
+interface IGkTeamClaim {
+    function addTokenId(uint256 newTokenId) external;
+}
+
 contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, IGenesisKey {
     using SafeMathUpgradeable for uint256;
     using ECDSAUpgradeable for bytes32;
@@ -55,7 +59,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         _;
     }
 
-    // TODO: make sure ipfs hash is set
     function initialize(
         string memory name,
         string memory symbol,
@@ -131,15 +134,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         return 1;
     }
 
-    // TODO: delete for PROD!!!
-    function resetPublicSale() external {
-        require(startPublicSale, "GEN_KEY: sale must have started already");
-        initialWethPrice = 0;
-        finalWethPrice = 0;
-        publicSaleStartSecond = 0;
-        startPublicSale = false;
-    }
-
     function verifySignature(bytes32 hash, bytes memory signature) public view returns (bool) {
         return signerAddress == hash.recover(signature);
     }
@@ -184,13 +178,13 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         if (
             remainingTeamAdvisorGrant != 0 &&
             (uint256(uint160(_recipient)) + block.timestamp) % 5 == 0 &&
-            lastClaimTime > 1 minutes &&
             randomClaimBool
         ) {
             remainingTeamAdvisorGrant -= 1;
             lastClaimTime = block.timestamp;
 
             _mint(gkTeamClaimContract, 1, "", false);
+            IGkTeamClaim(gkTeamClaimContract).addTokenId(totalSupply());
             emit ClaimedGenesisKey(gkTeamClaimContract, 0, block.number, false);
         }
     }
@@ -275,10 +269,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         randomTeamGrant(msg.sender);
 
         emit ClaimedGenesisKey(msg.sender, currentWethPrice, block.number, false);
-    }
-
-    function bigMint(uint256 amount) external {
-        _mint(msg.sender, amount, "", false);
     }
 
     // public function for returning the current price

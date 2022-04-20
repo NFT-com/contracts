@@ -148,7 +148,7 @@ contract Vesting is Initializable, UUPSUpgradeable {
         require(!revokedVestor[recipient], "Vesting::claim: recipient already revoked");
 
         if (block.timestamp < vestingCliff[recipient]) {
-            remaining = 0;
+            remaining = vestingAmount[recipient].sub(claimedAmount[recipient]);
         } else {
             uint256 amount;
             if (block.timestamp >= vestingEnd[recipient]) {

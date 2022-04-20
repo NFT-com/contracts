@@ -1119,8 +1119,9 @@ describe("NFT.com Marketplace", function () {
         ).to.be.true;
 
         // should revert because eth is used twice
-        await expect(deployedValidationLogic.validateMatch_(incorrect_sellOrder, incorrect_buyOrder, owner.address, true)).to.be
-          .reverted;
+        await expect(
+          deployedValidationLogic.validateMatch_(incorrect_sellOrder, incorrect_buyOrder, owner.address, true),
+        ).to.be.reverted;
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
@@ -1395,8 +1396,9 @@ describe("NFT.com Marketplace", function () {
         ).to.be.true;
 
         // should revert because eth is used twice
-        await expect(deployedValidationLogic.validateMatch_(incorrect_sellOrder, incorrect_buyOrder, owner.address, true)).to.be
-          .reverted;
+        await expect(
+          deployedValidationLogic.validateMatch_(incorrect_sellOrder, incorrect_buyOrder, owner.address, true),
+        ).to.be.reverted;
 
         expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
 
