@@ -21,6 +21,7 @@ contract GenesisKeyTeamClaim is Initializable, UUPSUpgradeable {
     IGK public GK;
     uint256[] public ownedTokenIds;
     event ClaimedGenesisKey(address indexed _user, uint256 _amount, uint256 _blockNum, bool _whitelist);
+    event TeamGK(uint256 tokenId);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "!owner");
@@ -52,6 +53,7 @@ contract GenesisKeyTeamClaim is Initializable, UUPSUpgradeable {
     function addTokenId(uint256 newTokenId) external {
         require(msg.sender == address(GK));
         ownedTokenIds.push(newTokenId);
+        emit TeamGK(newTokenId);
     }
 
     // =========POST WHITELIST CLAIM KEY ==========================================================================

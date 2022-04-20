@@ -589,7 +589,7 @@ task("upgrade:Vesting").setAction(async function (taskArguments, hre) {
   const Vesting = await hre.ethers.getContractFactory("Vesting");
 
   const upgradedVesting = await hre.upgrades.upgradeProxy((await getTokens(hre)).deployedVestingAddress, Vesting);
-  console.log(chalk.green("upgraded vesting: ", upgradedVesting));
+  console.log(chalk.green("upgraded vesting: ", upgradedVesting.address));
 
   await delayedVerifyImp("upgradedVesting", (await getTokens(hre)).deployedVestingAddress, hre);
 });

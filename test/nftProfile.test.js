@@ -205,6 +205,7 @@ describe("NFT Profile Auction / Minting", function () {
 
       // ===============================================================
       deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
+      await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
 
       // allow upgrades
       const upgradedProfileAuction = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2);
