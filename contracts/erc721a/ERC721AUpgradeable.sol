@@ -212,7 +212,6 @@ contract ERC721AUpgradeable is
         return addrBalances;
     }
 
-<<<<<<< HEAD
     function tokenIdsOwned(
         address user,
         uint256 startIndex,
@@ -227,14 +226,6 @@ contract ERC721AUpgradeable is
             if (ownerOf(i + _startTokenId()) == user) {
                 tokenIdUser[seen] = i + _startTokenId();
                 seen += 1;
-=======
-    function tokenIdsOwned(address user) external view returns (bool[] memory) {
-        bool[] memory tokenIdUser = new bool[](totalSupply() + _startTokenId());
-
-        for (uint256 i = 0; i < totalSupply(); i++) {
-            if (ownerOf(i + _startTokenId()) == user) {
-                tokenIdUser[i + _startTokenId()] = true;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
             }
         }
 
@@ -311,11 +302,7 @@ contract ERC721AUpgradeable is
     function _baseURI() internal view virtual returns (string memory) {
         return defaultBaseURI;
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     /**
      * @dev See {IERC721-approve}.
      */
@@ -706,9 +693,5 @@ contract ERC721AUpgradeable is
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-<<<<<<< HEAD
     uint256[43] private __gap;
-=======
-    uint256[42] private __gap;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 }

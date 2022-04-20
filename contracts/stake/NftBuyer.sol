@@ -20,29 +20,11 @@ contract NftBuyer {
     using SafeERC20 for IERC20;
 
     IUniswapV2Factory public factory;
-<<<<<<< HEAD
     address public immutable genesisStaking;
     address public immutable nft;
     address public immutable weth;
     uint256 public constant MAX_PERCENT = 10000; // 10000 = 100%
 
-=======
-    address public genesisStaking;
-    address public nft;
-    address public weth;
-    uint256 public constant MAX_PERCENT = 10000;
-
-    address public DAO;
-
-    event NewDAO(address indexed dao);
-
-    modifier onlyDAO() {
-        require(msg.sender == DAO, "!DAO");
-        _;
-    }
-
-    // staking contract = nftStake
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     constructor(
         IUniswapV2Factory _factory,
         address _genesisStaking,
@@ -58,24 +40,11 @@ contract NftBuyer {
         nft = _nft;
         genesisStaking = _genesisStaking;
         weth = _weth;
-<<<<<<< HEAD
-=======
-
-        DAO = msg.sender;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 
     // important to receive ETH
     receive() external payable {}
 
-<<<<<<< HEAD
-=======
-    function changeDAO(address newDAO) external onlyDAO {
-        DAO = newDAO;
-        emit NewDAO(newDAO);
-    }
-
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     function isContract(address account) internal view returns (bool) {
         // This method relies on extcodesize, which returns 0 for contracts in
         // construction, since the code is only stored at the end of the
@@ -167,10 +136,6 @@ contract NftBuyer {
         address to,
         uint256 amount
     ) internal {
-<<<<<<< HEAD
         IERC20(token).safeTransfer(to, amount);
-=======
-        IERC20(token).transfer(to, amount);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 }

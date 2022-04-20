@@ -2,13 +2,10 @@
 
 This repository covers logic for NFT.com profile bidding, and the NFT.com marketplace itself. Further developments will be added here in the future.
 
-<<<<<<< HEAD
 See `.env.example` for necessary secrets.
 
 You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being a new wallet for local signing and testing.
 
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 ### Tools Used
 
 - [Hardhat](https://github.com/nomiclabs/hardhat): compile and run the smart contracts on a local development network
@@ -19,13 +16,12 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 - [Solcover](https://github.com/sc-forks/solidity-coverage): code coverage
 - [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
 
-<<<<<<< HEAD
 ## Mainnet Tokens
 
 - [deployedNftToken](https://etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F)
 - [vesting](https://etherscan.io/address/0x774c2204D9e50CD9d6A579D194c067360604933f)
 
-  - implementation => 0x1AB28ab377f3bbbe6EA7871Fffe0d6Cce4208D83
+  - implementation => 0xC3A7cE08ADBFbfce8b79Bf8d0A6Df16265d1cE3a
 
 - [deployedGkTeamDistributor](https://etherscan.io/address/)
 - [deployedGenesisKeyTeamClaim](https://etherscan.io/address/)
@@ -91,36 +87,6 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
   - implementation => 0xDdE3E8BeEb4aE8345df3a3B9aB524979bD9f8463
 - [deployedNftMarketplace](https://rinkeby.etherscan.io/address/)
   - implementation => 0x9a47cFd45718dB5BEEA2aA200BE50E157023469c
-=======
-## Rinkeby Address
-
-- [deployedGenesisKey](https://rinkeby.etherscan.io/address/0xbEeB7221B6058B9529e0bde13A072f17c63CD372)
-  - implementation => 0xa4f94ad599578cdccbf4d3fe1510439a007a8235 / 0xf04a008c35c6e168661189bcf8bfdeede8fc7309 (setBaseURI)
-- [deployedNftToken](https://rinkeby.etherscan.io/address/0x0F38751eA1bD10B373Cf9f61794426a251f43f99)
-- [deployedNftGenesisStake](https://rinkeby.etherscan.io/address/0x3C35A978826A49Fb276357bFE0C489eD32940CCa)
-- [deployedNftProfileHelper](https://rinkeby.etherscan.io/address/0x53055289B76640fb00bD2E9C63b3974810744B3E)
-- [deployedNftProfileProxy](https://rinkeby.etherscan.io/address/0xaa7F30a10D3E259ae9B14308C77dFe5aA2f5D9Df)
-  - implementation => 0x096d239d9F6CD10BFE9fE53d4d52AB16c9B88ded
-- [deployedNftBuyer](https://rinkeby.etherscan.io/address/0xce04Ee11831899784598b221249C6609D8D8322F)
-- [deployedProfileAuctionProxy](https://rinkeby.etherscan.io/address/0xc53884b5E8B9f29635D865FBBccFd7Baf103B6eC)
-  - implementation => 0x771802dDc03173D0284ee7B046cf02A6e802F5cc
-
-## Rinkeby Marketplace
-
-- [nftTransferProxy](https://rinkeby.etherscan.io/address/0x2302004af147967a99449d36e12B4831Af99b23E)
-  - implementation => 0xDfA0914E53b3C222fCBf67cD3cD89474e7B63bef
-- [deployedERC20TransferProxy](https://rinkeby.etherscan.io/address/0xAF09BE1A161E85808199000269c252267c15690E)
-  - implementation => 0xfecf248854c3a4e36a37ce04e7f025f718873509
-- [deployedCryptoKittyTransferProxy](https://rinkeby.etherscan.io/address/0x20D02512FaAa170cB553E7B469af2a05856ef77C)
-  - implementation => 0x67a59654e2ec02f12fbbcb6a2a758c7ab7c2c8e5
-- [deployedValidationLogic](https://rinkeby.etherscan.io/address/0xce789D5C9DfDdEBA2AA87b37f2dE25e26a767023)
-  - implementation => 0x487fd7c7b3869b50bb7e155891cdf8eefa822f13
-- [deployedMarketplaceEvent](https://rinkeby.etherscan.io/address/0x8D42A1Af22ac1287aabFEb5D7BEEa956210Cf197)
-  - implementation => 0xDdE3E8BeEb4aE8345df3a3B9aB524979bD9f8463
-- [deployedNftMarketplace](https://rinkeby.etherscan.io/address/0xC6F83d1D6D5a2aC7EE034483F8Ebe29646467Db7)
-  - implementation => 0x9556449F3a9F06196A01E92d34e42Efb466073c0
-- [deployedGenesisKeyDistributor](https://rinkeby.etherscan.io/address/0x97e46FfEACfC60c9e50f635FE41f483036f269C9)
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
 ### Pre Requisites
 

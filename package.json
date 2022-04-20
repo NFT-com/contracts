@@ -98,14 +98,10 @@
     "test": "hardhat test",
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
   },
-<<<<<<< HEAD
   "dependencies": {
     "csv-parse": "^5.0.4",
     "csvtojson": "^2.0.10",
     "delay": "^5.0.0",
     "ethereumjs-abi": "^0.6.8"
   }
-=======
-  "dependencies": {}
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 }

@@ -3,15 +3,9 @@ const { BigNumber } = require("ethers");
 const {
   convertBigNumber,
   convertSmallNumber,
-<<<<<<< HEAD
   getDigest,
   getHash,
   signHashProfile,
-=======
-  sign,
-  getDigest,
-  getHash,
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
   GENESIS_KEY_TYPEHASH,
 } = require("./utils/sign-utils");
 
@@ -39,7 +33,6 @@ describe("NFT Profile Auction / Minting", function () {
     let deployedWETH;
     let GenesisStake;
     let deployedNftGenesisStake;
-<<<<<<< HEAD
     let GenesisKeyTeamClaim;
     let deployedGenesisKeyTeamClaim;
     let GenesisKeyTeamDistributor;
@@ -47,11 +40,6 @@ describe("NFT Profile Auction / Minting", function () {
     const name = "NFT.com Genesis Key";
     const symbol = "NFTKEY";
     let wethAddress;
-=======
-    const name = "NFT.com Genesis Key";
-    const symbol = "NFTKEY";
-    const wethAddress = "0xc778417e063141139fce010982780140aa0cd5ab"; // rinkeby weth
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     const auctionSeconds = "604800"; // seconds in 1 week
     let secondSigner;
 
@@ -79,7 +67,6 @@ describe("NFT Profile Auction / Minting", function () {
       const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
       secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
 
-<<<<<<< HEAD
       // mock token
       deployedWETH = await NftToken.deploy();
       wethAddress = deployedWETH.address;
@@ -107,20 +94,6 @@ describe("NFT Profile Auction / Minting", function () {
       await deployedGenesisKey.setWhitelist(second.address, true);
       await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
 
-=======
-      deployedWETH = new ethers.Contract(
-        wethAddress,
-        `[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"guy","type":"address"},{"name":"wad","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"src","type":"address"},{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"wad","type":"uint256"}],"name":"withdraw","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"dst","type":"address"},{"name":"wad","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"deposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"guy","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"dst","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Deposit","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Withdrawal","type":"event"}]`,
-        ethers.provider,
-      );
-
-      deployedGenesisKey = await hre.upgrades.deployProxy(
-        GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds, "ipfs//"],
-        { kind: "uups" },
-      );
-
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
       // approve WETH
       await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
       await deployedWETH.connect(second).approve(deployedGenesisKey.address, MAX_UINT);
@@ -168,7 +141,6 @@ describe("NFT Profile Auction / Minting", function () {
 
       await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
 
-<<<<<<< HEAD
       await deployedGenesisKeyDistributor
         .connect(owner)
         .claim(
@@ -188,33 +160,6 @@ describe("NFT Profile Auction / Minting", function () {
           merkleResult.claims[`${secondSigner.address}`].proof,
           { value: wethMin },
         );
-=======
-      await expect(
-        deployedGenesisKeyDistributor
-          .connect(owner)
-          .claim(
-            merkleResult.claims[`${ownerSigner.address}`].index,
-            ownerSigner.address,
-            merkleResult.claims[`${ownerSigner.address}`].amount,
-            merkleResult.claims[`${ownerSigner.address}`].proof,
-          ),
-      )
-        .to.emit(deployedWETH, "Transfer")
-        .withArgs(ownerSigner.address, addr1.address, convertSmallNumber(1));
-
-      await expect(
-        deployedGenesisKeyDistributor
-          .connect(second)
-          .claim(
-            merkleResult.claims[`${secondSigner.address}`].index,
-            secondSigner.address,
-            merkleResult.claims[`${secondSigner.address}`].amount,
-            merkleResult.claims[`${secondSigner.address}`].proof,
-          ),
-      )
-        .to.emit(deployedWETH, "Transfer")
-        .withArgs(secondSigner.address, addr1.address, convertSmallNumber(1));
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
       deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
 
@@ -336,7 +281,6 @@ describe("NFT Profile Auction / Minting", function () {
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
-<<<<<<< HEAD
         const { hash: h0, signature: s0 } = signHashProfile(owner.address, "gavin");
         await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h0, s0);
 
@@ -346,20 +290,11 @@ describe("NFT Profile Auction / Minting", function () {
         // should go thru
         const { hash: h2, signature: s2 } = signHashProfile(second.address, "satoshi");
         await deployedProfileAuction.connect(second).genesisKeyClaimProfile("satoshi", 2, second.address, h2, s2);
-=======
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address);
-
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address);
-
-        // should go thru
-        await deployedProfileAuction.connect(second).genesisKeyClaimProfile("satoshi", 2, second.address);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
         // no more merkle tree claims -> now general claims
         await deployedProfileAuction.connect(owner).setGenKeyWhitelistOnly(false);
 
         // reverts due to owner not having ownership over tokenId 1
-<<<<<<< HEAD
         const { hash: h3, signature: s3 } = signHashProfile(owner.address, "1");
         await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 2, owner.address, h3, s3)).to.be
           .reverted;
@@ -388,24 +323,6 @@ describe("NFT Profile Auction / Minting", function () {
         await expect(
           deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 1, owner.address, h11, s11),
         ).to.be.reverted;
-=======
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 2, owner.address)).to.be
-          .reverted;
-
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 1, owner.address);
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address)).to.be
-          .reverted;
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address)).to.be
-          .reverted;
-
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 1, owner.address);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 1, owner.address);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 1, owner.address);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 1, owner.address);
-
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 1, owner.address)).to.be
-          .reverted;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
         // open public mint
@@ -414,7 +331,6 @@ describe("NFT Profile Auction / Minting", function () {
         // approve first
 
         await deployedNftToken.connect(owner).approve(deployedProfileAuction.address, MAX_UINT);
-<<<<<<< HEAD
         const { hash: h12, signature: s12 } = signHashProfile(owner.address, "profile5");
         const { hash: h13, signature: s13 } = signHashProfile(owner.address, "profile6");
         const { hash: h14, signature: s14 } = signHashProfile(owner.address, "profile7");
@@ -424,13 +340,6 @@ describe("NFT Profile Auction / Minting", function () {
         await deployedProfileAuction.connect(owner).publicMint("profile6", 0, 27, ZERO_BYTES, ZERO_BYTES, h13, s13);
 
         await deployedProfileAuction.connect(owner).publicMint("profile7", 0, 27, ZERO_BYTES, ZERO_BYTES, h14, s14);
-=======
-        await deployedProfileAuction.connect(owner).publicMint("profile5", 27, ZERO_BYTES, ZERO_BYTES);
-
-        await deployedProfileAuction.connect(owner).publicMint("profile6", 27, ZERO_BYTES, ZERO_BYTES);
-
-        await deployedProfileAuction.connect(owner).publicMint("profile7", 27, ZERO_BYTES, ZERO_BYTES);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(11);
       });

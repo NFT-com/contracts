@@ -18,10 +18,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @dev validateSingleAssetMatch1 makes sure two assets can be matched (same index in LibSignature array)
      *  @param buyTakeAsset what the buyer is hoping to take
      *  @param sellMakeAsset what the seller is hoping to make
-<<<<<<< HEAD
      *  @return true if valid
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
      */
     function validateSingleAssetMatch1(LibAsset.Asset calldata buyTakeAsset, LibAsset.Asset calldata sellMakeAsset)
         internal
@@ -43,10 +40,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @param sellTakeAssetClass (bytes4 of type in LibAsset)
      *  @param buyMakeAssetTypeData assetTypeData for makeAsset on buyOrder
      *  @param sellTakeAssetTypeData assetTypeData for takeAsset on sellOrder
-<<<<<<< HEAD
      *  @return true if valid
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
      */
     function validAssetTypeData(
         bytes4 sellTakeAssetClass,
@@ -87,16 +81,10 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     }
 
     /**
-<<<<<<< HEAD
      *  @dev validateSingleAssetMatch2 makes sure two assets can be matched (same index in LibSignature array)
      *  @param sellTakeAsset what the seller is hoping to take
      *  @param buyMakeAsset what the buyer is hoping to make
      *  @return true if valid
-=======
-     * @dev validateSingleAssetMatch2 makes sure two assets can be matched (same index in LibSignature array)
-     *  @param sellTakeAsset what the seller is hoping to take
-     *  @param buyMakeAsset what the buyer is hoping to make
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
      */
     function validateSingleAssetMatch2(LibAsset.Asset calldata sellTakeAsset, LibAsset.Asset calldata buyMakeAsset)
         internal
@@ -123,43 +111,26 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     }
 
     /**
-<<<<<<< HEAD
      *  @dev validateMatch makes sure two orders (on sell side and buy side) match correctly
      *  @param sellOrder the listing
      *  @param buyOrder bid for a listing
      *  @param sender person sending the transaction
      *  @param viewOnly true for viewOnly (primarily for testing purposes)
      *  @return true if orders can match
-=======
-     * @dev validateMatch makes sure two orders (on sell side and buy side) match correctly
-     * @param sellOrder the listing
-     * @param buyOrder bid for a listing
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
      */
     function validateMatch(
         LibSignature.Order calldata sellOrder,
         LibSignature.Order calldata buyOrder,
-<<<<<<< HEAD
         address sender,
         bool viewOnly
     ) internal pure returns (bool) {
-=======
-        bool viewOnly
-    ) internal view returns (bool) {
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         // flag to ensure ETH is not used multiple timese
         bool ETH_ASSET_USED = false;
 
         require(
-<<<<<<< HEAD
             (sellOrder.auctionType == LibSignature.AuctionType.English) &&
                 (buyOrder.auctionType == LibSignature.AuctionType.English),
             "vm auctionType"
-=======
-            sellOrder.auctionType == LibSignature.AuctionType.English &&
-                buyOrder.auctionType == LibSignature.AuctionType.English,
-            "!english"
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         );
 
         // sellOrder taker must be valid
@@ -172,26 +143,13 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
 
         // must be selling something and make and take must match
         require(
-<<<<<<< HEAD
             sellOrder.makeAssets.length != 0 && buyOrder.takeAssets.length == sellOrder.makeAssets.length,
-=======
-            (sellOrder.makeAssets.length != 0 && buyOrder.takeAssets.length == sellOrder.makeAssets.length) ||
-                ((sellOrder.taker == address(0)) &&
-                    (buyOrder.taker == address(0)) &&
-                    (buyOrder.makeAssets.length == sellOrder.makeAssets.length)),
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
             "vm assets > 0"
         );
 
         require(
-<<<<<<< HEAD
             buyOrder.makeAssets.length != 0 && sellOrder.takeAssets.length == buyOrder.makeAssets.length,
             "vm assets > 0"
-=======
-            (sellOrder.auctionType == LibSignature.AuctionType.English) &&
-                (buyOrder.auctionType == LibSignature.AuctionType.English),
-            "vm auctionType"
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         );
 
         // check if seller maker and buyer take match on every corresponding index
@@ -203,11 +161,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
             // if ETH, seller must be sending ETH / calling
             if (sellOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                 require(!ETH_ASSET_USED, "vm eth");
-<<<<<<< HEAD
                 require(viewOnly || sender == sellOrder.maker, "vma sellerEth"); // seller must pay ETH
-=======
-                require(viewOnly || msg.sender == sellOrder.maker, "vm sellerEth"); // seller must pay ETH
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
                 ETH_ASSET_USED = true;
             }
         }
@@ -225,11 +179,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
                 // if ETH, buyer must be sending ETH / calling
                 if (buyOrder.makeAssets[i].assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
                     require(!ETH_ASSET_USED, "vm eth2");
-<<<<<<< HEAD
                     require(viewOnly || sender == buyOrder.maker, "vmb buyerEth"); // buyer must pay ETH
-=======
-                    require(viewOnly || msg.sender == buyOrder.maker, "vm buyerEth"); // buyer must pay ETH
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
                     ETH_ASSET_USED = true;
                 }
             }
@@ -248,16 +198,10 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     }
 
     /**
-<<<<<<< HEAD
      *  @dev validateBuyNow makes sure a buyer can fulfill the sellOrder and that the sellOrder is formatted properly
      *  @param sellOrder the listing
      *  @param buyer potential executor of sellOrder
      *  @return true if validBuyNow
-=======
-     * @dev validateBuyNow makes sure a buyer can fulfill the sellOrder and that the sellOrder is formatted properly
-     * @param sellOrder the listing
-     * @param buyer potential executor of sellOrder
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
      */
     function validateBuyNow(LibSignature.Order calldata sellOrder, address buyer) public view override returns (bool) {
         require((sellOrder.taker == address(0) || sellOrder.taker == buyer), "vbn !match");
@@ -275,7 +219,6 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
     }
 
     /**
-<<<<<<< HEAD
      *  @dev public facing function to make sure orders can execute
      *  @param sellOrder the listing
      *  @param buyOrder bid for a listing
@@ -296,21 +239,6 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
      *  @param sellOrder the listing
      *  @return current price denominated in the asset specified
      */
-=======
-     * @dev public facing function to make sure orders can execute
-     * @param sellOrder the listing
-     * @param buyOrder bid for a listing
-     */
-    function validateMatch_(LibSignature.Order calldata sellOrder, LibSignature.Order calldata buyOrder)
-        public
-        view
-        override
-        returns (bool)
-    {
-        return validateMatch(sellOrder, buyOrder, true);
-    }
-
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     function getDecreasingPrice(LibSignature.Order calldata sellOrder) public view override returns (uint256) {
         require(sellOrder.auctionType == LibSignature.AuctionType.Decreasing, "gdp !decreasing");
         decreasingValidation(sellOrder);

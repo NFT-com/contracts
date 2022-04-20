@@ -22,7 +22,6 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
 
     mapping(bytes4 => address) public proxies;
-<<<<<<< HEAD
     mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s
     mapping(address => RoyaltyInfo) public royaltyInfo; // mapping of NFT to their royalties
 
@@ -35,17 +34,6 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     event WhitelistChange(address indexed token, bool value);
     event ProtocolFeeChange(uint256 fee);
     event RoyaltyInfoChange(address indexed token, address indexed owner, uint256 percent);
-=======
-    mapping(address => bool) public whitelistERC20; // whitelist of supported ERC20s (to ensure easy of fee calculation)
-    mapping(address => RoyaltyInfo) public royaltyInfo; // mapping of NFT to their royalties
-
-    address public nftToken;
-
-    event ProxyChange(bytes4 indexed assetType, address proxy);
-    event WhitelistChange(address token, bool value);
-    event ProtocolFeeChange(uint256 fee);
-    event RoyaltyInfoChange(address token, address owner, uint256 percent);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
     function __TransferExecutor_init_unchained(
         INftTransferProxy _transferProxy,
@@ -69,11 +57,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         address recipient,
         uint256 amount
     ) external onlyOwner {
-<<<<<<< HEAD
         require(amount <= MAX_ROYALTY);
-=======
-        require(amount <= 10000);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         royaltyInfo[nftContract].owner = recipient;
         royaltyInfo[nftContract].percent = uint96(amount);
 
@@ -81,11 +65,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     }
 
     function changeProtocolFee(uint256 _fee) external onlyOwner {
-<<<<<<< HEAD
         require(_fee <= MAX_PROTOCOL_FEE);
-=======
-        require(_fee <= 2000);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         protocolFee = _fee;
         emit ProtocolFeeChange(_fee);
     }
@@ -143,15 +123,9 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
 
     /**
      * @dev multi-asset transfer function
-<<<<<<< HEAD
      * @param auctionType type of auction
      * @param asset the asset being transferred
      * @param from address where asset is being sent from
-=======
-     * @param asset the asset being transferred
-     * @param from address where asset is being sent from
-     * @param auctionType type of auction
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
      * @param to address receiving said asset
      * @param decreasingPriceValue value only used for decreasing price auction
      * @param validRoyalty true if singular NFT asset paired with only fungible token(s) trade

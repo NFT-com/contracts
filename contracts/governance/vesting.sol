@@ -1,14 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-<<<<<<< HEAD
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-=======
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "hardhat/console.sol";
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
 interface INft {
     function balanceOf(address account) external view returns (uint256);
@@ -22,22 +17,14 @@ interface INft {
     ) external returns (bool);
 }
 
-<<<<<<< HEAD
 contract Vesting is Initializable, UUPSUpgradeable {
     using SafeMathUpgradeable for uint256;
 
-=======
-contract Vesting {
-    using SafeMath for uint256;
-
-    // post 1 year cliff
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     enum VestingInstallments {
         MONTHLY,
         QUARTERLY
     }
 
-<<<<<<< HEAD
     struct VestingInfo {
         uint256 claimedAmount;
         uint256 vestingAmount;
@@ -51,15 +38,10 @@ contract Vesting {
 
     uint256 public constant MONTH_SECONDS = 30 days; // 2592000
     uint256 public constant QUARTER_SECONDS = 91 days; // 7862400
-=======
-    uint256 public constant MONTH_SECONDS = 30 days;
-    uint256 public constant QUARTER_SECONDS = 91 days;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
     address public nftToken;
     address public multiSig;
 
-<<<<<<< HEAD
     mapping(address => uint256) private claimedAmount;
     mapping(address => uint256) private vestingAmount;
     mapping(address => uint256) private vestingBegin;
@@ -67,45 +49,26 @@ contract Vesting {
     mapping(address => uint256) private vestingEnd;
     mapping(address => uint256) private lastUpdate;
     mapping(address => VestingInstallments) private installment;
-=======
-    mapping(address => uint256) public claimedAmount;
-    mapping(address => uint256) public vestingAmount;
-    mapping(address => uint256) public vestingBegin;
-    mapping(address => uint256) public vestingCliff;
-    mapping(address => uint256) public vestingEnd;
-    mapping(address => uint256) public lastUpdate;
-    mapping(address => VestingInstallments) public installment;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
     mapping(address => bool) public initializedVestor;
     mapping(address => bool) public revokedVestor;
 
-<<<<<<< HEAD
     event NewMultiSig(address oldMultiSig, address newMultiSig);
 
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     modifier onlyMultiSig() {
         require(msg.sender == multiSig, "Vesting::onlyMultiSig: Only multisig can call this function");
         _;
     }
 
-<<<<<<< HEAD
     function initialize(address nftToken_, address multiSig_) public initializer {
         __UUPSUpgradeable_init();
 
-=======
-    constructor(address nftToken_, address multiSig_) {
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         nftToken = nftToken_;
         multiSig = multiSig_;
     }
 
-<<<<<<< HEAD
     function _authorizeUpgrade(address) internal override onlyMultiSig {}
 
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     function initializeVesting(
         address[] memory recipients_,
         uint256[] memory vestingAmounts_,
@@ -123,12 +86,6 @@ contract Vesting {
             "Vesting::initializeVesting: length of all arrays must be equal"
         );
 
-<<<<<<< HEAD
-=======
-        console.log("MONTH_SECONDS: ", MONTH_SECONDS);
-        console.log("QUARTER_SECONDS: ", QUARTER_SECONDS);
-
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         uint256 totalAmount;
         for (uint256 i = 0; i < recipients_.length; i++) {
             address recipient_ = recipients_[i];
@@ -168,20 +125,16 @@ contract Vesting {
         INft(nftToken).transferFrom(multiSig, address(this), totalAmount);
     }
 
-<<<<<<< HEAD
     function changeMultiSig(address multiSig_) external onlyMultiSig {
         multiSig = multiSig_;
         emit NewMultiSig(msg.sender, multiSig);
     }
 
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     function revokeVesting(address recipient) external onlyMultiSig {
         require(initializedVestor[recipient], "Vesting::revokeVesting: recipient not initialized");
         require(!revokedVestor[recipient], "Vesting::revokeVesting: recipient already revoked");
 
         uint256 remaining = claim(recipient);
-<<<<<<< HEAD
         revokedVestor[recipient] = true;
         require(
             INft(nftToken).transfer(multiSig, remaining),
@@ -195,7 +148,7 @@ contract Vesting {
         require(!revokedVestor[recipient], "Vesting::claim: recipient already revoked");
 
         if (block.timestamp < vestingCliff[recipient]) {
-            remaining = 0;
+            remaining = vestingAmount[recipient].sub(claimedAmount[recipient]);
         } else {
             uint256 amount;
             if (block.timestamp >= vestingEnd[recipient]) {
@@ -283,47 +236,5 @@ contract Vesting {
         for (uint256 i = 0; i < recipients.length; i++) {
             claim(recipients[i]);
         }
-=======
-
-        revokedVestor[recipient] = true;
-        INft(nftToken).transfer(multiSig, remaining);
-    }
-
-    function claim(address recipient) public returns (uint256 remaining) {
-        require(initializedVestor[recipient], "Vesting::claim: recipient not initialized");
-        require(!revokedVestor[recipient], "Vesting::claim: recipient already revoked");
-
-        require(block.timestamp >= vestingCliff[recipient], "Vesting::claim: cliff not met");
-        uint256 amount;
-        if (block.timestamp >= vestingEnd[recipient]) {
-            amount = vestingAmount[recipient].sub(claimedAmount[recipient]);
-        } else {
-            VestingInstallments vInstallment = installment[recipient];
-
-            // ADVISOR
-            if (vInstallment == VestingInstallments.MONTHLY) {
-                uint256 elapsedMonths = (block.timestamp - lastUpdate[recipient]).div(MONTH_SECONDS);
-                uint256 totalMonths = (vestingEnd[recipient] - vestingBegin[recipient]).div(MONTH_SECONDS);
-
-                uint256 tokensPerMonth = vestingAmount[recipient].div(totalMonths);
-
-                amount = tokensPerMonth.mul(elapsedMonths);
-                lastUpdate[recipient] += elapsedMonths * MONTH_SECONDS;
-            } else {
-                // QUARTERLY
-                uint256 elapsedQuarters = (block.timestamp - vestingBegin[recipient]).div(QUARTER_SECONDS);
-                uint256 totalQuarters = (vestingEnd[recipient] - vestingBegin[recipient]).div(QUARTER_SECONDS);
-
-                uint256 tokensPerQuarter = vestingAmount[recipient].div(totalQuarters);
-
-                amount = tokensPerQuarter.mul(elapsedQuarters);
-                lastUpdate[recipient] += elapsedQuarters * MONTH_SECONDS;
-            }
-        }
-        claimedAmount[recipient] += amount;
-        INft(nftToken).transfer(recipient, amount);
-
-        remaining = vestingAmount[recipient].sub(claimedAmount[recipient]);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 }

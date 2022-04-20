@@ -2,20 +2,14 @@
 pragma solidity >=0.8.4;
 
 import "../interface/INftProfileHelper.sol";
-<<<<<<< HEAD
 import "../interface/IGenesisKeyStake.sol";
 import "./StringUtils.sol";
-=======
-import "../interface/INftProfile.sol";
-import "../interface/IGenesisKeyStake.sol";
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721EnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
-<<<<<<< HEAD
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 
 interface INftProfile {
@@ -51,44 +45,30 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     address public governor;
     address public owner;
     address public nftErc20Contract;
-=======
-
-contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
-    address public governor;
-    address public owner;
-    address public nftToken;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     address public nftProfile;
     address public genesisStakingContract;
     address public nftBuyer;
     address public nftProfileHelperAddress;
     address public genesisKeyContract;
 
-<<<<<<< HEAD
-    uint256 public yearlyFee; // public fee in nft token for mint price
+    uint256 public yearlyFee; // public fee for mint price
     uint256 public yearsToOwn; // number of years of license to pay to own a profile
-=======
-    uint256 public publicFee; // public fee in nft token for mint price
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     bool public publicMintBool; // true to allow public mint
     bool public genKeyWhitelistOnly; // true to only allow merkle claims
 
     mapping(uint256 => uint256) public genesisKeyClaimNumber; // genKey tokenId => number of profiles claimed
-<<<<<<< HEAD
     mapping(uint256 => uint256) public lengthPremium; // premium multiple for profile length
-    mapping(string => uint256) public ownedProfileStake; // genKey tokenId => xNftKey staked
+    mapping(string => uint256) public ownedProfileStake; // genKey tokenId => staked token
     address public signerAddress;
 
     mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
 
     event UpdatedProfileStake(string _profileUrl, uint256 _stake);
     event MintedProfile(address _user, string _val, uint256 tokenId, uint256 _duration, uint256 _fee);
-
     event ExtendLicense(address _receiver, string _profileUrl, uint256 _duration, uint256 _fee, bool _expired);
-=======
-
-    event MintedProfile(address _user, string _val);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
+    event NewLengthPremium(uint256 _length, uint256 _premium);
+    event NewYearlyFee(uint256 _fee);
+    event YearsToOwn(uint256 _years);
 
     modifier validAndUnusedURI(string memory _profileURI) {
         require(validURI(_profileURI));
@@ -107,11 +87,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     }
 
     function initialize(
-<<<<<<< HEAD
         address _nftErc20Contract,
-=======
-        address _nftToken,
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         address _nftProfile,
         address _governor,
         address _nftProfileHelperAddress,
@@ -122,11 +98,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
-<<<<<<< HEAD
         nftErc20Contract = _nftErc20Contract;
-=======
-        nftToken = _nftToken;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         nftProfile = _nftProfile;
         nftProfileHelperAddress = _nftProfileHelperAddress;
 
@@ -136,7 +108,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         genesisKeyContract = _genesisKeyContract;
         genesisStakingContract = _genesisStakingContract;
         genKeyWhitelistOnly = true;
-<<<<<<< HEAD
 
         lengthPremium[1] = 1024;
         lengthPremium[2] = 512;
@@ -145,27 +116,17 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         yearsToOwn = 2;
 
         signerAddress = 0xB6D66FcF587D68b8058f03b88d35B36E38C5344f;
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
     /**
-<<<<<<< HEAD
-     @notice helper function transfer NFT tokens
-=======
-     @notice helper function transfer NFT tokens to reduce contract size
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
+     @notice helper function transfer tokens
      @param _user user transferring tokens
-     @param _amount number of NFT tokens being transferred
+     @param _amount number of tokens being transferred
     */
     function transferNftTokens(address _user, uint256 _amount) private returns (bool) {
-<<<<<<< HEAD
         return IERC20Upgradeable(nftErc20Contract).transferFrom(_user, nftBuyer, _amount);
-=======
-        return IERC20Upgradeable(nftToken).transferFrom(_user, nftBuyer, _amount);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 
     /**
@@ -178,11 +139,16 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         bytes32 r,
         bytes32 s
     ) private {
-<<<<<<< HEAD
-        return IERC20PermitUpgradeable(nftErc20Contract).permit(_owner, spender, 2**256 - 1, 2**256 - 1, v, r, s);
-=======
-        return IERC20PermitUpgradeable(nftToken).permit(_owner, spender, 2**256 - 1, 2**256 - 1, v, r, s);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
+        return
+            IERC20PermitUpgradeable(nftErc20Contract).permit(
+                _owner,
+                spender,
+                type(uint256).max,
+                type(uint256).max,
+                v,
+                r,
+                s
+            );
     }
 
     function validURI(string memory _name) private view returns (bool) {
@@ -194,7 +160,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         owner = _new;
     }
 
-<<<<<<< HEAD
     function setSigner(address _signer) external onlyOwner {
         signerAddress = _signer;
     }
@@ -205,18 +170,17 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
     function setLengthPremium(uint256 _length, uint256 _premium) external onlyGovernor {
         lengthPremium[_length] = _premium;
+        emit NewLengthPremium(_length, _premium);
     }
 
     function setYearlyFee(uint256 _fee) external onlyGovernor {
         yearlyFee = _fee;
+        emit NewYearlyFee(_fee);
     }
 
     function setYearsToOwn(uint256 _years) external onlyGovernor {
         yearsToOwn = _years;
-=======
-    function setPublicFee(uint256 _fee) external onlyGovernor {
-        publicFee = _fee;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
+        emit YearsToOwn(_years);
     }
 
     function setGenKeyWhitelistOnly(bool _genKeyWhitelistOnly) external onlyGovernor {
@@ -227,7 +191,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         publicMintBool = _val;
     }
 
-<<<<<<< HEAD
     function hashTransaction(address sender, string memory profileUrl) private pure returns (bytes32) {
         bytes32 hash = keccak256(
             abi.encodePacked("\x19Ethereum Signed Message:\n32", keccak256(abi.encodePacked(sender, profileUrl)))
@@ -236,8 +199,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         return hash;
     }
 
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     // CLAIM FUNCTIONS
     /**
      * @dev allows gen key holder to claim a profile
@@ -248,24 +209,17 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     function genesisKeyClaimProfile(
         string memory profileUrl,
         uint256 tokenId,
-<<<<<<< HEAD
         address recipient,
         bytes32 hash,
         bytes memory signature
-=======
-        address recipient
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     ) external validAndUnusedURI(profileUrl) nonReentrant {
         // checks
         require(
             IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient,
             "nft.com: must be genkey owner"
         );
-<<<<<<< HEAD
         require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "Invalid signature");
         require(hashTransaction(msg.sender, profileUrl) == hash, "Hash mismatch");
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         uint256 profilesAllowed = genKeyWhitelistOnly ? 2 : 7;
         require(genesisKeyClaimNumber[tokenId] != profilesAllowed);
 
@@ -273,7 +227,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         genesisKeyClaimNumber[tokenId] += 1;
 
         // interactions
-<<<<<<< HEAD
         INftProfile(nftProfile).createProfile(
             recipient,
             profileUrl,
@@ -281,16 +234,10 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         );
 
         emit MintedProfile(recipient, profileUrl, INftProfile(nftProfile).totalSupply() - 1, 365 days, 0);
-=======
-        INftProfile(nftProfile).createProfile(recipient, profileUrl);
-
-        emit MintedProfile(recipient, profileUrl);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 
     function publicMint(
         string memory profileUrl,
-<<<<<<< HEAD
         uint256 duration,
         uint8 v,
         bytes32 r,
@@ -416,24 +363,5 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         ownedProfileStake[profileUrl] = 0;
         emit UpdatedProfileStake(profileUrl, 0);
-=======
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external nonReentrant validAndUnusedURI(profileUrl) {
-        // checks
-        require(publicMintBool, "nft.com: public minting is disabled");
-        // effects
-        // interactions
-        if (IERC20Upgradeable(nftToken).allowance(msg.sender, address(this)) == 0) {
-            permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
-        }
-
-        require(transferNftTokens(msg.sender, publicFee), "nft.com: insufficient funds");
-
-        INftProfile(nftProfile).createProfile(msg.sender, profileUrl);
-
-        emit MintedProfile(msg.sender, profileUrl);
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 }

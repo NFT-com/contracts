@@ -14,10 +14,6 @@ import "./MarketplaceEvent.sol";
 contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, TransferExecutor {
     using AddressUpgradeable for address;
 
-<<<<<<< HEAD
-=======
-    uint256 private constant UINT256_MAX = 2**256 - 1;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     bytes4 internal constant MAGICVALUE = 0x1626ba7e; // bytes4(keccak256("isValidSignature(bytes32,bytes)")
     mapping(bytes32 => bool) public cancelledOrFinalized; // Cancelled / finalized order, by hash
     mapping(bytes32 => uint256) private _approvedOrdersByNonce;
@@ -30,7 +26,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     event Approval(bytes32 structHash, address indexed maker);
     event NonceIncremented(address indexed maker, uint256 newNonce);
 
-<<<<<<< HEAD
     enum ROYALTY {
         FUNGIBLE_MAKE_ASSETS,
         FUNGIBLE_TAKE_ASSETS,
@@ -39,8 +34,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         NEITHER
     }
 
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     function initialize(
         INftTransferProxy _transferProxy,
         IERC20TransferProxy _erc20TransferProxy,
@@ -71,10 +64,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @dev internal functions for returning struct hash, after verifying it is valid
      * @param order the order itself
      * @param sig the struct sig (contains VRS)
-<<<<<<< HEAD
      * @return hash of order and nonce
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
      */
     function requireValidOrder(
         LibSignature.Order calldata order,
@@ -92,18 +82,11 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         emit NonceIncremented(msg.sender, newNonce);
     }
 
-<<<<<<< HEAD
-    function orderApproved(bytes32 hash) public view returns (bool approved) {
-        return _approvedOrdersByNonce[hash] != 0;
-=======
-    function orderApproved(
-        LibSignature.Order calldata order
-    ) public view returns (bool approved) {
+    function orderApproved(LibSignature.Order calldata order) public view returns (bool approved) {
         require(order.salt != 0);
         bytes32 hash = LibSignature.getStructHash(order, nonces[order.maker]);
 
         return _approvedOrdersByNonce[hash] != 0 && !cancelledOrFinalized[hash];
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
     }
 
     /**
@@ -111,10 +94,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param hash the struct hash for a bid
      * @param order the order itself
      * @param sig the struct sig (contains VRS)
-<<<<<<< HEAD
      * @return true if signature matches has of order; also checks for contract signature
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
      */
     function validateOrder(
         bytes32 hash,
@@ -158,10 +138,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
      * @param v sigV
      * @param r sigR
      * @param s sigS
-<<<<<<< HEAD
      * @return tuple, index 0 = true if order is valid and index 1 = hash of order
-=======
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
      */
     function validateOrder_(
         LibSignature.Order calldata order,
@@ -176,10 +153,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     function cancel(LibSignature.Order calldata order) external nonReentrant {
         require(msg.sender == order.maker);
         require(order.salt != 0);
-<<<<<<< HEAD
-=======
-
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
         bytes32 hash = LibSignature.getStructHash(order, nonces[order.maker]);
         cancelledOrFinalized[hash] = true;
         emit Cancel(hash, msg.sender);
@@ -209,15 +182,9 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     /**
      * @dev functions that allows anyone to execute a sell order that has a specified price > 0
      * @param sellOrder the listing
-<<<<<<< HEAD
      * @param v vSig (optional if order is already approved)
      * @param r rSig (optional if order is already approved)
      * @param s sSig (optional if order is already approved)
-=======
-     * @param v vSig
-     * @param r rSig
-     * @param s sSig
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
      */
     function buyNow(
         LibSignature.Order calldata sellOrder,
@@ -227,7 +194,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     ) external payable nonReentrant {
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s), nonces[sellOrder.maker]);
-<<<<<<< HEAD
         require(validationLogic.validateBuyNow(sellOrder, msg.sender));
         require(msg.sender != sellOrder.maker, "!maker");
 
@@ -239,18 +205,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             : (LibAsset.isSingularNft(sellOrder.makeAssets) && LibAsset.isOnlyFungible(sellOrder.takeAssets))
             ? ROYALTY.FUNGIBLE_TAKE_ASSETS
             : ROYALTY.NEITHER;
-=======
-
-        require(validationLogic.validateBuyNow(sellOrder, msg.sender));
-        require(msg.sender != sellOrder.maker);
-
-        uint256 royaltyScore = (LibAsset.isSingularNft(sellOrder.takeAssets) &&
-            LibAsset.isOnlyFungible(sellOrder.makeAssets))
-            ? 1
-            : (LibAsset.isSingularNft(sellOrder.makeAssets) && LibAsset.isOnlyFungible(sellOrder.takeAssets))
-            ? 2
-            : 0;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
         // interactions (i.e. perform swap, fees and royalties)
         for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
@@ -263,11 +217,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 sellOrder.auctionType == LibSignature.AuctionType.Decreasing
                     ? validationLogic.getDecreasingPrice(sellOrder)
                     : 0,
-<<<<<<< HEAD
                 royaltyScore == ROYALTY.FUNGIBLE_TAKE_ASSETS,
-=======
-                royaltyScore == 2,
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
                 sellOrder.makeAssets
             );
         }
@@ -280,13 +230,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 sellOrder.maker,
                 msg.sender,
                 0,
-<<<<<<< HEAD
                 royaltyScore == ROYALTY.FUNGIBLE_MAKE_ASSETS,
                 sellOrder.takeAssets // nft asset for royalty calculation
-=======
-                royaltyScore == 1,
-                sellOrder.takeAssets
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
             );
         }
 
@@ -311,7 +256,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v[0], r[0], s[0]), nonces[sellOrder.maker]);
         bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]), nonces[buyOrder.maker]);
-<<<<<<< HEAD
         require(msg.sender == sellOrder.maker || msg.sender == buyOrder.maker, "!maker");
         require(validationLogic.validateMatch_(sellOrder, buyOrder, msg.sender, false));
 
@@ -329,29 +273,6 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             : (LibAsset.isSingularNft(sellOrder.makeAssets) && LibAsset.isOnlyFungible(buyOrder.makeAssets))
             ? ROYALTY.FUNGIBLE_BUYER_MAKE_ASSETS
             : ROYALTY.NEITHER;
-=======
-        require(validationLogic.validateMatch_(sellOrder, buyOrder));
-
-        // make sure execution window begins 24 hours before end of sellOrder
-        if (sellOrder.end != 0) {
-            require(block.timestamp >= (sellOrder.end - 86400), "!exe");
-        }
-
-        // effects
-        if (msg.sender != buyOrder.maker) {
-            cancelledOrFinalized[buyHash] = true;
-        }
-        if (msg.sender != sellOrder.maker) {
-            cancelledOrFinalized[sellHash] = true;
-        }
-
-        uint256 royaltyScore = (LibAsset.isSingularNft(buyOrder.makeAssets) &&
-            LibAsset.isOnlyFungible(sellOrder.makeAssets))
-            ? 1
-            : (LibAsset.isSingularNft(sellOrder.makeAssets) && LibAsset.isOnlyFungible(buyOrder.makeAssets))
-            ? 2
-            : 0;
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
 
         // interactions (i.e. perform swap, fees and royalties)
         for (uint256 i = 0; i < buyOrder.makeAssets.length; i++) {
@@ -362,13 +283,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 buyOrder.maker,
                 sellOrder.maker,
                 0,
-<<<<<<< HEAD
                 royaltyScore == ROYALTY.FUNGIBLE_BUYER_MAKE_ASSETS,
                 sellOrder.makeAssets // nft asset for royalty calculation
-=======
-                royaltyScore == 2,
-                sellOrder.makeAssets
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
             );
         }
 
@@ -380,13 +296,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 sellOrder.maker,
                 buyOrder.maker,
                 0,
-<<<<<<< HEAD
                 royaltyScore == ROYALTY.FUNGIBLE_SELLER_MAKE_ASSETS,
                 buyOrder.makeAssets // nft asset for royalty calculation
-=======
-                royaltyScore == 1,
-                buyOrder.makeAssets
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
             );
         }
 

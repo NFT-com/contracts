@@ -52,7 +52,7 @@ function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
     accounts: [`${mainnetPK}`],
     chainId: chainIds[network],
     url,
-    gasPrice: 37 * 1000000000
+    gasPrice: 37 * 1000000000,
   };
 }
 
@@ -98,11 +98,7 @@ const config: HardhatUserConfig = {
   contractSizer: {
     alphaSort: true,
     disambiguatePaths: false,
-<<<<<<< HEAD
     runOnCompile: false,
-=======
-    runOnCompile: true,
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
   },
   paths: {
     artifacts: "./artifacts",
@@ -111,11 +107,7 @@ const config: HardhatUserConfig = {
     tests: "./test",
   },
   mocha: {
-<<<<<<< HEAD
     timeout: 1000000,
-=======
-    timeout: 100000,
->>>>>>> 3bfee0511d5793cfe0ac5063583238539ef34398
   },
   solidity: {
     version: "0.8.6",
