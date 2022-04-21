@@ -115,7 +115,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         lengthPremium[4] = 32;
         yearsToOwn = 2;
 
-        signerAddress = 0xB6D66FcF587D68b8058f03b88d35B36E38C5344f;
+        signerAddress = 0x9EfcD5075cDfB7f58C26e3fB3F22Bb498C6E3174;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -125,7 +125,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
      @param _user user transferring tokens
      @param _amount number of tokens being transferred
     */
-    function transferNftTokens(address _user, uint256 _amount) private returns (bool) {
+    function transferTokens(address _user, uint256 _amount) private returns (bool) {
         return IERC20Upgradeable(nftErc20Contract).transferFrom(_user, nftBuyer, _amount);
     }
 
@@ -256,7 +256,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
         }
 
-        require(transferNftTokens(msg.sender, getFee(profileUrl, duration)), "nft.com: insufficient funds");
+        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "nft.com: insufficient funds");
 
         INftProfile(nftProfile).createProfile(msg.sender, profileUrl, duration);
 
@@ -289,11 +289,13 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         bytes32 r,
         bytes32 s
     ) external nonReentrant {
+        require(publicMintBool, "pa: public minting is disabled");
+
         if (IERC20Upgradeable(nftErc20Contract).allowance(msg.sender, address(this)) == 0) {
             permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
         }
 
-        require(transferNftTokens(msg.sender, getFee(profileUrl, duration)), "pa: insufficient funds");
+        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pa: insufficient funds");
 
         INftProfile(nftProfile).extendLicense(profileUrl, duration, msg.sender);
 
@@ -317,7 +319,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
         }
 
-        require(transferNftTokens(msg.sender, getFee(profileUrl, duration)), "pa: insufficient funds");
+        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pa: insufficient funds");
 
         INftProfile(nftProfile).purchaseExpiredProfile(profileUrl, duration, msg.sender);
 

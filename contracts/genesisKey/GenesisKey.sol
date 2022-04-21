@@ -94,7 +94,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         remainingTeamAdvisorGrant = 250; // 250 genesis keys allocated
         lastClaimTime = uint96(block.timestamp);
         randomClaimBool = _randomClaimBool;
-        signerAddress = 0xB6D66FcF587D68b8058f03b88d35B36E38C5344f;
+        signerAddress = 0x9EfcD5075cDfB7f58C26e3fB3F22Bb498C6E3174;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}

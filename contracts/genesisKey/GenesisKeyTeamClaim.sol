@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 interface IGK {
+    function ownerOf(uint256 tokenId) external view returns (address);
     function transferFrom(
         address from,
         address to,
@@ -47,11 +48,21 @@ contract GenesisKeyTeamClaim is Initializable, UUPSUpgradeable {
     }
 
     function addOwedTokenIds(uint256 newTokenId) external onlyOwner {
+        require(GK.ownerOf(newTokenId) == address(this));
         ownedTokenIds.push(newTokenId);
+        emit TeamGK(newTokenId);
+    }
+
+    function emitEvent(uint256[] calldata ids) external onlyOwner {
+        for (uint256 i = 0; i < ids.length; i++) {
+            require(GK.ownerOf(ids[i]) == address(this));
+            emit TeamGK(ids[i]);
+        }
     }
 
     function addTokenId(uint256 newTokenId) external {
         require(msg.sender == address(GK));
+        require(GK.ownerOf(newTokenId) == address(this));
         ownedTokenIds.push(newTokenId);
         emit TeamGK(newTokenId);
     }

@@ -9,6 +9,11 @@ import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 const UNI_V2_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 const TIME_DELAY = 20000; // 20 seconds
 
+const mainnetBool = (hre: any) => {
+  const chainId = hre.network.config.chainId;
+  return chainId === 1;
+}
+
 const getTokens = async (hre: any) => {
   const chainId = hre.network.config.chainId;
   const network = chainId === 4 ? "rinkeby" : chainId === 1 ? "mainnet" : chainId;
@@ -33,22 +38,22 @@ const getTokens = async (hre: any) => {
       : "";
   const deployedNftTokenAddress =
     network == "rinkeby"
-      ? "0xBB67d85a69FCB6a200439E15e2E2c53Cfb6b0680"
+      ? "0x6b683aE60483124EDCAd68351Cdb90c697d5Fd9E"
       : network === "mainnet"
       ? "0x8C42428a747281B03F10C80e978C107D4d85E37F"
       : "";
   const deployedVestingAddress =
     network == "rinkeby"
-      ? "0x1DD4121DA7dbA0266726f211BA006210CA111F5E"
+      ? "0x6466b3a1A6826E97e18083Fe13FD05d9A14C62Fb"
       : network === "mainnet"
       ? "0x774c2204D9e50CD9d6A579D194c067360604933f"
       : "";
   const deployedGenesisKeyAddress =
-    network == "rinkeby" ? "0x20FC7ad1eE47245F0FEE579E1F4bEb2dC5380068" : network === "mainnet" ? "" : "";
+    network == "rinkeby" ? "0x5a889cfed56101A994Ef01b98318EB6e47328703" : network === "mainnet" ? "" : "";
   const genesisKeyTeamDistributorAddress =
-    network == "rinkeby" ? "0xE4B303b917c819b029e9b9ac5bd6d0ec6e7cB0bd" : network === "mainnet" ? "" : "";
+    network == "rinkeby" ? "0x03D3A743997c02195A376cB9a6c23459611e8Cb6" : network === "mainnet" ? "" : "";
   const deployedGenesisKeyTeamClaimAddress =
-    network == "rinkeby" ? "0x798d55538Fcc3c1666b0b28960bCdF38B817eaB4" : network === "mainnet" ? "" : "";
+    network == "rinkeby" ? "0x6aca5606f9418fe663465390BFda47ce3a1aFEC5" : network === "mainnet" ? "" : "";
   const profileMetadataLink = `https://${
     network === "rinkeby" ? "staging-api" : network === "mainnet" ? "prod-api" : ""
   }.nft.com/uri/`;
@@ -236,6 +241,10 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
 
   // only set pause transfer until public sale is over
+  if (!mainnetBool(hre)) {
+    await deployedGenesisKey.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
+  }
+
   await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
   await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
 
@@ -425,6 +434,10 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
   );
   console.log(chalk.green(`deployedProfileAuction: ${deployedProfileAuction.address}`));
   await deployedNftProfileProxy.setProfileAuction(deployedProfileAuction.address);
+  
+  if (!mainnetBool(hre)) {
+    await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
+  }
 
   // VERIFICATION =====================================================================================
   console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
