@@ -12,7 +12,7 @@ const TIME_DELAY = 20000; // 20 seconds
 const mainnetBool = (hre: any) => {
   const chainId = hre.network.config.chainId;
   return chainId === 1;
-}
+};
 
 const getTokens = async (hre: any) => {
   const chainId = hre.network.config.chainId;
@@ -23,6 +23,12 @@ const getTokens = async (hre: any) => {
       ? "0x59495589849423692778a8c5aaCA62CA80f875a4"
       : network === "mainnet"
       ? "0xbCe52D4698fdE9484901121A7Feb0741BA6d4dF3" // 0x19942318a866606e1CC652644186A4e1f9c34277 gnosis
+      : "";
+  const multiSig =
+    network === "rinkeby"
+      ? "0x59495589849423692778a8c5aaCA62CA80f875a4"
+      : network === "mainnet"
+      ? "0x19942318a866606e1CC652644186A4e1f9c34277"
       : "";
   const wethAddress =
     network === "rinkeby"
@@ -78,6 +84,7 @@ const getTokens = async (hre: any) => {
     deployedNftBuyer,
     ipfsHash,
     deployedGenesisKeyTeamClaimAddress,
+    multiSig,
   };
 };
 
@@ -210,7 +217,7 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   const name = "NFT.com Genesis Key";
   const symbol = "NFTKEY";
   const auctionSeconds = "604800"; // seconds in 1 week
-  const multiSig = (await getTokens(hre)).governor;
+  const multiSig = (await getTokens(hre)).multiSig;
   const randomTeamAssignBool = true;
 
   const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
@@ -264,6 +271,16 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   await getImplementation("deployedGenesisKey", deployedGenesisKey.address, hre);
   await getImplementation("deployedGenesisKeyTeamClaim", deployedGenesisKeyTeamClaim.address, hre);
 });
+
+task("gk:startPublic").setAction(async function (taskArguments, hre) {
+  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+  const deployedGenesisKeyContract = await GenesisKey.attach((await getTokens(hre)).deployedGenesisKeyAddress);
+
+  await deployedGenesisKeyContract.initializePublicSale(
+    hre.ethers.BigNumber.from("10000000000000000"),
+    hre.ethers.BigNumber.from("10000000000000000")
+  );
+})
 
 // gen key whitelist claim INSIDER
 task("deploy:1b").setAction(async function (taskArguments, hre) {
@@ -434,7 +451,7 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
   );
   console.log(chalk.green(`deployedProfileAuction: ${deployedProfileAuction.address}`));
   await deployedNftProfileProxy.setProfileAuction(deployedProfileAuction.address);
-  
+
   if (!mainnetBool(hre)) {
     await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
   }

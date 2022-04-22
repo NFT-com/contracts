@@ -320,6 +320,11 @@ describe("NFT Profile Auction / Minting", function () {
         await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 1, owner.address, h9, s9);
         await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 1, owner.address, h10, s10);
 
+        // reverts due to expiry
+        await expect(
+          deployedProfileAuction.connect(owner).purchaseExpiredProfile("profile4", 86400, 27, ZERO_BYTES, ZERO_BYTES),
+        ).to.be.reverted;
+
         const { hash: h11, signature: s11 } = signHashProfile(owner.address, "profile5");
         await expect(
           deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 1, owner.address, h11, s11),
@@ -330,8 +335,8 @@ describe("NFT Profile Auction / Minting", function () {
         await deployedProfileAuction.connect(owner).setPublicMint(true);
 
         // approve first
-
         await deployedNftToken.connect(owner).approve(deployedProfileAuction.address, MAX_UINT);
+        await deployedNftToken.connect(second).approve(deployedProfileAuction.address, MAX_UINT);
         const { hash: h12, signature: s12 } = signHashProfile(owner.address, "profile5");
         const { hash: h13, signature: s13 } = signHashProfile(owner.address, "profile6");
         const { hash: h14, signature: s14 } = signHashProfile(owner.address, "profile7");
@@ -341,6 +346,16 @@ describe("NFT Profile Auction / Minting", function () {
         await deployedProfileAuction.connect(owner).publicMint("profile6", 0, 27, ZERO_BYTES, ZERO_BYTES, h13, s13);
 
         await deployedProfileAuction.connect(owner).publicMint("profile7", 0, 27, ZERO_BYTES, ZERO_BYTES, h14, s14);
+
+        // should this work?
+        await deployedProfileAuction.connect(owner).extendLicense("profile5", 86400, 27, ZERO_BYTES, ZERO_BYTES);
+        await deployedNftToken.connect(owner).transfer(second.address, convertBigNumber(10000));
+
+        expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
+        await deployedProfileAuction
+          .connect(second)
+          .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES);
+        expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(second.address);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(11);
       });
