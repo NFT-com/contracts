@@ -2,14 +2,14 @@
 pragma solidity >=0.8.4;
 
 import "../interface/INftProfile.sol";
-import "../erc721a/ERC721AUpgradeable.sol";
+import "../erc721a/ERC721AProfileUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
-contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, INftProfile {
+contract NftProfile is Initializable, ERC721AProfileUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, INftProfile {
     using SafeMathUpgradeable for uint256;
 
     mapping(uint256 => string) internal _tokenURIs;
@@ -67,7 +67,7 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(_tokenUsedURIs[_profile] != 0);
         uint256 tokenId = _tokenUsedURIs[_profile].sub(1);
 
-        _transferAdmin(ERC721AUpgradeable.ownerOf(tokenId), _to, tokenId);
+        _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _to, tokenId);
     }
 
     function profileOwner(string memory _string) external view override returns (address) {
@@ -168,7 +168,7 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
         _expiryTimeline[_profileURI] = block.timestamp + _duration;
 
-        _transferAdmin(ERC721AUpgradeable.ownerOf(tokenId), _receiver, tokenId);
+        _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _receiver, tokenId);
 
         emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
     }
