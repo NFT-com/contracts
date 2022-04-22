@@ -73,7 +73,7 @@ describe("NFT Profile Auction / Minting", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, wethAddress, multiSig, auctionSeconds, false, "ipfs://"],
+        [name, symbol, multiSig, auctionSeconds, false, "ipfs://"],
         { kind: "uups" },
       );
 

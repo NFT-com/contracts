@@ -47,6 +47,7 @@ contract GenesisKeyDistributor is IGenesisKeyDistributor {
         bytes32[] calldata merkleProof
     ) external payable override {
         require(msg.sender == account);
+        require(msg.value == ethAmount);
         require(!isClaimed(index), "GenesisKeyDistributor: Drop already claimed.");
 
         // Verify the merkle proof.

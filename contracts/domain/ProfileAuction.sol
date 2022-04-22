@@ -162,6 +162,10 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         owner = _new;
     }
 
+    function setGovernor(address _new) external onlyGovernor {
+        governor = _new;
+    }
+
     function setSigner(address _signer) external onlyOwner {
         signerAddress = _signer;
     }

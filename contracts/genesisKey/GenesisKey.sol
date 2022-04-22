@@ -35,20 +35,17 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         bytes32 s;
     }
 
-    address public wethAddress; // 160 bytes
-    uint96 public publicSaleStartSecond; // second public sale starts
-
     address public owner;
     uint96 public publicSaleDurationSeconds; // length of public sale in seconds
 
     address public multiSig;
-    uint96 public initialWethPrice; // initial price of genesis keys in Weth
+    uint96 public initialEthPrice; // initial price of genesis keys in Weth
 
     address public genesisKeyMerkle;
-    uint96 public finalWethPrice; // final price of genesis keys in Weth
+    uint96 public finalEthPrice; // final price of genesis keys in Weth
 
     address public gkTeamClaimContract;
-    uint96 public lastClaimTime; // Last time a key was claimed
+    uint96 public publicSaleStartSecond; // second public sale starts
 
     address public signerAddress;
     bool public startPublicSale; // global state indicator if public sale is happening
@@ -63,8 +60,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     uint256 public constant MAX_SUPPLY = 10000;
 
-    event BidCancelled(bytes32 indexed hash);
-    event NewClaimableGenKey(address indexed _user, uint256 _amount, uint256 _blockNum);
     event ClaimedGenesisKey(address indexed _user, uint256 _amount, uint256 _blockNum, bool _whitelist);
 
     modifier onlyOwner() {
@@ -75,7 +70,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     function initialize(
         string memory name,
         string memory symbol,
-        address _wethAddress,
         address _multiSig,
         uint256 _auctionSeconds,
         bool _randomClaimBool,
@@ -85,13 +79,11 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         __ERC721A_init(name, symbol, baseURI);
         __UUPSUpgradeable_init();
 
-        wethAddress = _wethAddress;
         startPublicSale = false;
         publicSaleDurationSeconds = uint96(_auctionSeconds);
         owner = msg.sender;
         multiSig = _multiSig;
         remainingTeamAdvisorGrant = 250; // 250 genesis keys allocated
-        lastClaimTime = uint96(block.timestamp);
         randomClaimBool = _randomClaimBool;
         signerAddress = 0x9EfcD5075cDfB7f58C26e3fB3F22Bb498C6E3174;
     }
@@ -177,10 +169,10 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     // initial weth price is the high price (starting point)
     // final weth price is the lowest floor price we allow
     // num keys for sale is total keys allowed to mint
-    function initializePublicSale(uint96 _initialWethPrice, uint96 _finalWethPrice) external onlyOwner {
+    function initializePublicSale(uint96 _initialEthPrice, uint96 _finalEthPrice) external onlyOwner {
         require(!startPublicSale, "GEN_KEY: sale already initialized");
-        initialWethPrice = _initialWethPrice;
-        finalWethPrice = _finalWethPrice;
+        initialEthPrice = _initialEthPrice;
+        finalEthPrice = _finalEthPrice;
         publicSaleStartSecond = uint96(block.timestamp);
         startPublicSale = true;
     }
@@ -192,17 +184,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     function verifySignature(bytes32 hash, bytes memory signature) public view returns (bool) {
         return signerAddress == hash.recover(signature);
     }
-
-    /**
-     @notice helper function transfer WETH tokens to reduce contract size
-     @param _user user transferring tokens
-     @param _amount number of WETH tokens being transferred
-    */
-    function transferWethTokens(address _user, uint256 _amount) private returns (bool) {
-        require(_amount != 0);
-        return IERC20Upgradeable(wethAddress).transferFrom(_user, multiSig, _amount);
-    }
-
     // =========POST WHITELIST CLAIM KEY ==========================================================================
     /**
      @notice allows winning keys to be self-minted by winners
@@ -239,7 +220,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
             randomClaimBool
         ) {
             remainingTeamAdvisorGrant -= 1;
-            lastClaimTime = uint96(block.timestamp);
 
             _mint(gkTeamClaimContract, 1, "", false);
             IGkTeamClaim(gkTeamClaimContract).addTokenId(totalSupply());
@@ -302,34 +282,18 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "GEN_KEY: INVALID SIG");
         require(startPublicSale, "GEN_KEY: invalid time");
         if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();
-
-        uint256 currentWethPrice = getCurrentPrice();
+        uint256 currPrice = getCurrentPrice();
+        require(msg.value == currPrice, "GEN_KEY: INSUFFICIENT FUNDS");
+    
+        // effects
         cancelledOrFinalized[hash] = true;
 
-        // if ETH is sent, we use it
-        if (msg.value >= currentWethPrice) {
-            // send extra ETH back to user
-            if (msg.value > currentWethPrice) {
-                safeTransferETH(msg.sender, msg.value.sub(currentWethPrice));
-            }
-        } else {
-            // otherwise, take WETH
-            require(transferWethTokens(msg.sender, currentWethPrice), "GEN_KEY: !weth");
-
-            // send extra ETH back to user
-            if (msg.value > 0) {
-                safeTransferETH(msg.sender, msg.value);
-            }
-        }
-
         // interactions
+        safeTransferETH(multiSig, address(this).balance);
         _mint(msg.sender, 1, "", false);
-
         randomTeamGrant(msg.sender);
 
-        safeTransferETH(multiSig, address(this).balance);
-
-        emit ClaimedGenesisKey(msg.sender, currentWethPrice, block.number, false);
+        emit ClaimedGenesisKey(msg.sender, currPrice, block.number, false);
     }
 
     // public function for returning the current price
@@ -340,11 +304,11 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         secondsPassed = block.timestamp - publicSaleStartSecond;
 
         if (secondsPassed >= publicSaleDurationSeconds) {
-            return finalWethPrice;
+            return finalEthPrice;
         } else {
-            uint256 totalPriceChange = initialWethPrice - finalWethPrice;
+            uint256 totalPriceChange = initialEthPrice - finalEthPrice;
             uint256 currentPriceChange = totalPriceChange.mul(secondsPassed).div(publicSaleDurationSeconds);
-            uint256 currentPrice = initialWethPrice - currentPriceChange;
+            uint256 currentPrice = initialEthPrice - currentPriceChange;
 
             return currentPrice;
         }

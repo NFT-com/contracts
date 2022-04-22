@@ -69,7 +69,7 @@ const getTokens = async (hre: any) => {
     network == "rinkeby"
       ? "ipfs://QmdzBQBCoFxkrtkh3gkQ6U59VmvwEh4c6VUf7LHyYjqqBL/"
       : network == "mainnet"
-      ? "ipfs://{insert}/"
+      ? "ipfs://QmWjL5P4P9324pNDfDTHpwwNLWrwXEFUNuaR2r93sxd7mF/"
       : "";
 
   return {
@@ -226,7 +226,6 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
     [
       name,
       symbol,
-      (await getTokens(hre)).wethAddress,
       multiSig,
       auctionSeconds,
       randomTeamAssignBool,
