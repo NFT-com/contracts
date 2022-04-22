@@ -12,6 +12,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 error PausedTransfer();
 error MaxSupply();
+error LockUpUnavailable();
 
 interface IGkTeamClaim {
     function addTokenId(uint256 newTokenId) external;
@@ -23,8 +24,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     // 2^128 is more than enough to store unix timestamp
     struct LockupInfo {
-        uint128 totalLockup;    // total lockup of this GK
-        uint128 currentLockup;  // unlocked when currentLock is 0
+        uint128 totalLockup; // total lockup of this GK
+        uint128 currentLockup; // unlocked when currentLock is 0
     }
 
     /* An ECDSA signature. */
@@ -34,7 +35,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         bytes32 s;
     }
 
-    address public wethAddress;          // 160 bytes
+    address public wethAddress; // 160 bytes
     uint96 public publicSaleStartSecond; // second public sale starts
 
     address public owner;
@@ -45,22 +46,20 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     address public genesisKeyMerkle;
     uint96 public finalWethPrice; // final price of genesis keys in Weth
-    
+
     address public gkTeamClaimContract;
     uint96 public lastClaimTime; // Last time a key was claimed
 
     address public signerAddress;
-    // 96 bytes
-    mapping(bytes32 => bool) public cancelledOrFinalized;       // used hash
-    mapping(address => bool) public whitelistedTransfer;        // Whitelisted transfer (true / false)
-    mapping(uint256 => LockupInfo) private _genesisKeyLockUp;
+    bool public startPublicSale; // global state indicator if public sale is happening
+    bool public pausedTransfer; // true transfers are paused
+    bool public randomClaimBool; // true if random claim is enabled for team (only used for testing consistency)
+    bool public lockupBoolean; // true if GK holders can lockup, false if not
+    uint64 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
 
-    // 256 bytes
-    // 24 bytes
-    bool public startPublicSale;    // global state indicator if public sale is happening
-    bool public pausedTransfer;     // true transfers are paused
-    bool public randomClaimBool;    // true if random claim is enabled for team (only used for testing consistency)
-    uint232 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
+    mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
+    mapping(address => bool) public whitelistedTransfer; // Whitelisted transfer (true / false)
+    mapping(uint256 => LockupInfo) private _genesisKeyLockUp;
 
     uint256 public constant MAX_SUPPLY = 10000;
 
@@ -94,7 +93,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         remainingTeamAdvisorGrant = 250; // 250 genesis keys allocated
         lastClaimTime = uint96(block.timestamp);
         randomClaimBool = _randomClaimBool;
-        signerAddress = 0xB6D66FcF587D68b8058f03b88d35B36E38C5344f;
+        signerAddress = 0x9EfcD5075cDfB7f58C26e3fB3F22Bb498C6E3174;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -104,11 +103,15 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         owner = _owner;
     }
 
-    function currentXP(uint256 tokenId) external view returns (
-        bool locked,
-        uint256 current,
-        uint256 total
-    ) {
+    function currentXP(uint256 tokenId)
+        external
+        view
+        returns (
+            bool locked,
+            uint256 current,
+            uint256 total
+        )
+    {
         uint256 start = _genesisKeyLockUp[tokenId].currentLockup;
         if (start != 0) {
             locked = true;
@@ -117,12 +120,11 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         total = current + _genesisKeyLockUp[tokenId].totalLockup;
     }
 
-    function toggleLockup(uint256 tokenId)
-        internal
-    {
+    function toggleLockup(uint256 tokenId) internal {
         require(msg.sender == ownerOf(tokenId));
         uint256 start = _genesisKeyLockUp[tokenId].currentLockup;
         if (start == 0) {
+            if (!lockupBoolean) revert LockUpUnavailable();
             _genesisKeyLockUp[tokenId].currentLockup = uint128(block.timestamp);
         } else {
             _genesisKeyLockUp[tokenId].totalLockup += uint128(block.timestamp - start);
@@ -150,6 +152,10 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     function setMultiSig(address _newMS) external onlyOwner {
         multiSig = _newMS;
+    }
+
+    function toggleLockupBoolean() external onlyOwner {
+        lockupBoolean = !lockupBoolean;
     }
 
     function setGenesisKeyMerkle(address _newMK) external onlyOwner {
@@ -218,6 +224,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
             safeTransferETH(recipient, msg.value - _eth);
         }
 
+        safeTransferETH(multiSig, address(this).balance);
+
         emit ClaimedGenesisKey(recipient, _eth, block.number, true);
 
         return true;
@@ -251,7 +259,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(remainingTeamAdvisorGrant >= receivers.length);
         if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();
 
-        remainingTeamAdvisorGrant -= uint232(receivers.length);
+        remainingTeamAdvisorGrant -= uint64(receivers.length);
 
         for (uint256 i = 0; i < receivers.length; i++) {
             _mint(receivers[i], 1, "", false);
@@ -318,6 +326,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         _mint(msg.sender, 1, "", false);
 
         randomTeamGrant(msg.sender);
+
+        safeTransferETH(multiSig, address(this).balance);
 
         emit ClaimedGenesisKey(msg.sender, currentWethPrice, block.number, false);
     }

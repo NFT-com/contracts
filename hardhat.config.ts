@@ -46,18 +46,23 @@ if (!infuraApiKey) {
   throw new Error("Please set your INFURA_API_KEY in a .env file");
 }
 
+const alchemyApiKey: string | undefined = process.env.ALCHEMY_API_KEY;
+if (!infuraApiKey) {
+  throw new Error("Please set your ALCHEMY_API_KEY in a .env file");
+}
+
 function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
   return {
     accounts: [`${mainnetPK}`],
     chainId: chainIds[network],
     url,
-    gasPrice: 37 * 1000000000,
+    gasPrice: 55 * 1000000000,
   };
 }
 
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
+  const url: string = `https://eth-rinkeby.alchemyapi.io/v2/${alchemyApiKey}`; // "https://" + network + ".infura.io/v3/" + infuraApiKey;
   return {
     accounts: {
       count: 10,

@@ -2,24 +2,32 @@
 pragma solidity >=0.8.4;
 
 import "../interface/INftProfile.sol";
-import "../erc721a/ERC721AUpgradeable.sol";
+import "../erc721a/ERC721AProfileUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
-contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, INftProfile {
+contract NftProfile is
+    Initializable,
+    ERC721AProfileUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable,
+    INftProfile
+{
     using SafeMathUpgradeable for uint256;
 
     mapping(uint256 => string) internal _tokenURIs;
     mapping(string => uint256) internal _tokenUsedURIs;
     mapping(string => uint256) internal _expiryTimeline;
 
-    uint256 public protocolFee;
     address public profileAuctionContract;
+    uint96 public protocolFee;
     address public nftErc20Contract;
     address public owner;
+
+    event NewFee(uint256 _fee);
 
     modifier onlyOwner() {
         require(msg.sender == owner);
@@ -67,7 +75,7 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(_tokenUsedURIs[_profile] != 0);
         uint256 tokenId = _tokenUsedURIs[_profile].sub(1);
 
-        _transfer(ERC721AUpgradeable.ownerOf(tokenId), _to, tokenId);
+        _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _to, tokenId);
     }
 
     function profileOwner(string memory _string) external view override returns (address) {
@@ -93,6 +101,15 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     }
 
     /**
+     @notice returns the expiry timeline of a profile
+     @param _string profile URI
+     @return the unix timestamp of the expiry
+    */
+    function getExpiryTimeline(string memory _string) external view returns (uint256) {
+        return _expiryTimeline[_string];
+    }
+
+    /**
      @notice helper function that sets the profile auction (split deployment)
      @param _profileAuctionContract address of the profile auction contract
     */
@@ -102,6 +119,12 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     function setOwner(address _new) external onlyOwner {
         owner = _new;
+    }
+
+    function setProtocolFee(uint96 _fee) external onlyOwner {
+        require(_fee <= 2000); // 20%
+        protocolFee = _fee;
+        emit NewFee(_fee);
     }
 
     /**
@@ -134,13 +157,15 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         uint256 _duration,
         address _licensee
     ) external override {
-        require(_exists(_tokenUsedURIs[_profileURI]));
-        require(msg.sender == profileAuctionContract);
-        require(_expiryTimeline[_profileURI] >= block.timestamp);
-        uint256 tokenId = _tokenUsedURIs[_profileURI].sub(1);
-        require(ownerOf(tokenId) == _licensee);
+        require(_exists(_tokenUsedURIs[_profileURI]), "!exists");
+        require(msg.sender == profileAuctionContract, "only auction");
+        require(ownerOf(_tokenUsedURIs[_profileURI].sub(1)) == _licensee, "!owner");
 
-        _expiryTimeline[_profileURI] += _duration;
+        if (_expiryTimeline[_profileURI] >= block.timestamp) {
+            _expiryTimeline[_profileURI] += _duration;
+        } else {
+            _expiryTimeline[_profileURI] = block.timestamp + _duration;
+        }
         emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
     }
 
@@ -149,16 +174,15 @@ contract NftProfile is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         uint256 _duration,
         address _receiver
     ) external override {
-        require(msg.sender == profileAuctionContract);
+        require(msg.sender == profileAuctionContract, "only auction");
         require(_exists(_tokenUsedURIs[_profileURI]));
-        require(_expiryTimeline[_profileURI] < block.timestamp);
-        require(_tokenUsedURIs[_profileURI] != 0);
+        require(_expiryTimeline[_profileURI] < block.timestamp, "!expired");
         uint256 tokenId = _tokenUsedURIs[_profileURI].sub(1);
-        require(ownerOf(tokenId) != _receiver);
+        require(ownerOf(tokenId) != _receiver, "!receiver");
 
         _expiryTimeline[_profileURI] = block.timestamp + _duration;
 
-        _transfer(ERC721AUpgradeable.ownerOf(tokenId), _receiver, tokenId);
+        _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _receiver, tokenId);
 
         emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
     }

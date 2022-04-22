@@ -45,7 +45,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       [owner, second, addr1, addr2, ...addrs] = await ethers.getSigners();
 
       const name = "NFT.com Genesis Key";
-      const symbol = "NFTKEY";
+      const symbol = "GENESISKEY";
       const multiSig = addr1.address;
 
       NftProfileHelper = await ethers.getContractFactory("NftProfileHelper");
@@ -217,7 +217,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         const gkEth1 = await web3.eth.getBalance(deployedGenesisKey.address);
         console.log("gkEth1: ", gkEth1);
-        await expect(gkEth1).to.be.equal(convertTinyNumber(1));
+        await expect(gkEth1).to.be.equal(convertTinyNumber(0));
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
@@ -259,7 +259,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         const gkEth2 = await web3.eth.getBalance(deployedGenesisKey.address);
         console.log("gkEth2: ", gkEth2);
-        await expect(gkEth2).to.be.equal(convertTinyNumber(2));
+        await expect(gkEth2).to.be.equal(convertTinyNumber(0));
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
@@ -276,25 +276,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await deployedGenesisKey.setApprovalForAll(deployedGenesisKey.address, true);
       });
 
-      // start public auction
-      it("should allow users to cancel bids", async function () {
-        const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
-
-        // approve WETH
-        await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
-
-        // domain separator V4
-        const genesisKeyBid = await getDigest(
-          ethers.provider,
-          "NFT.com Genesis Key",
-          deployedGenesisKey.address,
-          getHash(
-            ["bytes32", "uint256", "address"],
-            [GENESIS_KEY_TYPEHASH, convertTinyNumber(1), ownerSigner.address], // 1 WETH
-          ),
-        );
-      });
-
       it("should allow the multisig to allocate team and advisor grants for genesis keys", async function () {
         expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(0);
         expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(0);
@@ -308,7 +289,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(1);
       });
 
-      it("should allow useres to lock key", async function () {
+      it("should allow users to lock key", async function () {
         await deployedGenesisKey.connect(owner).setWhitelist(owner.address, false);
         await deployedGenesisKey.connect(owner).setWhitelist(second.address, false);
         await deployedGenesisKey.connect(owner).setWhitelist(addr1.address, false);
@@ -317,7 +298,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
         expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(2);
-      
 
         // reverts due to !10000 keys
         await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 1)).to.be.reverted;
@@ -349,13 +329,30 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
         expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(248);
 
+        expect(await deployedGenesisKey.lockupBoolean()).to.be.false;
+        // reverts due to lockUp booelan being false
+        await expect(deployedGenesisKey.connect(owner).toggleLockup([2])).to.be.reverted;
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
         // owner != ownerOf(2)
         await expect(deployedGenesisKey.connect(owner).toggleLockup([2])).to.be.reverted;
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
+        await expect(deployedGenesisKey.connect(owner).toggleLockup([1])).to.be.reverted;
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
         await deployedGenesisKey.connect(owner).toggleLockup([1]);
+        expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
         await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 1)).to.be.reverted;
 
-        console.log('currentXP 1: ', await deployedGenesisKey.currentXP(1));
-        console.log('currentXP 2: ', await deployedGenesisKey.currentXP(2));
+        console.log("currentXP 1: ", await deployedGenesisKey.currentXP(1));
+        console.log("currentXP 2: ", await deployedGenesisKey.currentXP(2));
+
+        await deployedGenesisKey.connect(owner).toggleLockup([1]);
+        await deployedGenesisKey.transferFrom(owner.address, second.address, 1);
+        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(0);
+        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(2);
+        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(248);
+
+        console.log("currentXP after 2: ", await deployedGenesisKey.currentXP(2));
+        console.log("currentXP after 1: ", await deployedGenesisKey.currentXP(1));
       });
 
       // start public auction
