@@ -51,18 +51,15 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     uint96 public lastClaimTime; // Last time a key was claimed
 
     address public signerAddress;
-    // 96 bytes
+    bool public startPublicSale; // global state indicator if public sale is happening
+    bool public pausedTransfer; // true transfers are paused
+    bool public randomClaimBool; // true if random claim is enabled for team (only used for testing consistency)
+    bool public lockupBoolean; // true if GK holders can lockup, false if not
+    uint64 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
+
     mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
     mapping(address => bool) public whitelistedTransfer; // Whitelisted transfer (true / false)
     mapping(uint256 => LockupInfo) private _genesisKeyLockUp;
-
-    // 256 bytes
-    // 24 bytes
-    bool public startPublicSale;    // global state indicator if public sale is happening
-    bool public pausedTransfer;     // true transfers are paused
-    bool public randomClaimBool;    // true if random claim is enabled for team (only used for testing consistency)
-    bool public lockupBoolean;      // true if GK holders can lockup, false if not
-    uint224 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
 
     uint256 public constant MAX_SUPPLY = 10000;
 
@@ -262,7 +259,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(remainingTeamAdvisorGrant >= receivers.length);
         if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();
 
-        remainingTeamAdvisorGrant -= uint224(receivers.length);
+        remainingTeamAdvisorGrant -= uint64(receivers.length);
 
         for (uint256 i = 0; i < receivers.length; i++) {
             _mint(receivers[i], 1, "", false);

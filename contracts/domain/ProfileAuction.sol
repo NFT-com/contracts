@@ -43,24 +43,25 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     using ECDSAUpgradeable for bytes32;
 
     address public governor;
+    uint96 public yearlyFee; // public fee for mint price
+
     address public owner;
+    uint96 public yearsToOwn; // number of years of license to pay to own a profile
+
     address public nftErc20Contract;
+    bool public publicMintBool; // true to allow public mint
+    bool public genKeyWhitelistOnly; // true to only allow merkle claims
+
     address public nftProfile;
     address public genesisStakingContract;
     address public nftBuyer;
     address public nftProfileHelperAddress;
     address public genesisKeyContract;
-
-    uint256 public yearlyFee; // public fee for mint price
-    uint256 public yearsToOwn; // number of years of license to pay to own a profile
-    bool public publicMintBool; // true to allow public mint
-    bool public genKeyWhitelistOnly; // true to only allow merkle claims
+    address public signerAddress;
 
     mapping(uint256 => uint256) public genesisKeyClaimNumber; // genKey tokenId => number of profiles claimed
     mapping(uint256 => uint256) public lengthPremium; // premium multiple for profile length
     mapping(string => uint256) public ownedProfileStake; // genKey tokenId => staked token
-    address public signerAddress;
-
     mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
 
     event UpdatedProfileStake(string _profileUrl, uint256 _stake);
@@ -113,6 +114,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         lengthPremium[2] = 512;
         lengthPremium[3] = 128;
         lengthPremium[4] = 32;
+        yearlyFee = 100 * 10**18;
         yearsToOwn = 2;
 
         signerAddress = 0x9EfcD5075cDfB7f58C26e3fB3F22Bb498C6E3174;
@@ -173,12 +175,12 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         emit NewLengthPremium(_length, _premium);
     }
 
-    function setYearlyFee(uint256 _fee) external onlyGovernor {
+    function setYearlyFee(uint96 _fee) external onlyGovernor {
         yearlyFee = _fee;
         emit NewYearlyFee(_fee);
     }
 
-    function setYearsToOwn(uint256 _years) external onlyGovernor {
+    function setYearsToOwn(uint96 _years) external onlyGovernor {
         yearsToOwn = _years;
         emit YearsToOwn(_years);
     }
@@ -214,12 +216,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         bytes memory signature
     ) external validAndUnusedURI(profileUrl) nonReentrant {
         // checks
-        require(
-            IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient,
-            "nft.com: must be genkey owner"
-        );
-        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "Invalid signature");
-        require(hashTransaction(msg.sender, profileUrl) == hash, "Hash mismatch");
+        require(IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient, "gkp: !owner");
+        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "gkp: !sig");
+        require(hashTransaction(msg.sender, profileUrl) == hash, "gkp: !hash");
         uint256 profilesAllowed = genKeyWhitelistOnly ? 2 : 7;
         require(genesisKeyClaimNumber[tokenId] != profilesAllowed);
 
@@ -246,9 +245,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         bytes memory signature
     ) external nonReentrant validAndUnusedURI(profileUrl) {
         // checks
-        require(publicMintBool, "nft.com: public minting is disabled");
-        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "Invalid signature");
-        require(hashTransaction(msg.sender, profileUrl) == hash, "Hash mismatch");
+        require(publicMintBool, "pm: !publicMint");
+        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pm: !sig");
+        require(hashTransaction(msg.sender, profileUrl) == hash, "pm: !hash");
 
         // effects
         // interactions
@@ -256,7 +255,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
         }
 
-        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "nft.com: insufficient funds");
+        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pm: !funds");
 
         INftProfile(nftProfile).createProfile(msg.sender, profileUrl, duration);
 
@@ -289,13 +288,13 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         bytes32 r,
         bytes32 s
     ) external nonReentrant {
-        require(publicMintBool, "pa: public minting is disabled");
+        require(publicMintBool, "el: public minting is disabled");
 
         if (IERC20Upgradeable(nftErc20Contract).allowance(msg.sender, address(this)) == 0) {
             permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
         }
 
-        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pa: insufficient funds");
+        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "el: insufficient funds");
 
         INftProfile(nftProfile).extendLicense(profileUrl, duration, msg.sender);
 
@@ -310,8 +309,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         bytes32 s
     ) external nonReentrant {
         // checks
-        require(publicMintBool, "pa: public minting is disabled");
-        require(ownedProfileStake[profileUrl] == 0, "pa: profile is already staked");
+        require(publicMintBool, "pe: public minting is disabled");
+        require(ownedProfileStake[profileUrl] == 0, "pe: profile is already staked");
 
         // effects
         // interactions
@@ -319,7 +318,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
         }
 
-        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pa: insufficient funds");
+        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pe: insufficient funds");
 
         INftProfile(nftProfile).purchaseExpiredProfile(profileUrl, duration, msg.sender);
 
@@ -349,11 +348,13 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
     function redeemProfile(string memory profileUrl) public nonReentrant {
         // checks
-        require(publicMintBool, "pa: public minting is disabled");
-        require(ownedProfileStake[profileUrl] != 0, "op: profile is not staked");
-        require(INftProfile(nftProfile).profileOwner(profileUrl) == msg.sender, "op: profile is not owned by user");
+        require(publicMintBool, "rp: public minting is disabled");
+        require(ownedProfileStake[profileUrl] != 0, "rp: profile is not staked");
+        require(INftProfile(nftProfile).profileOwner(profileUrl) == msg.sender, "rp: profile is not owned by user");
 
         // effects
+        ownedProfileStake[profileUrl] = 0;
+
         // interactions
         require(
             IERC20Upgradeable(genesisStakingContract).transferFrom(
@@ -363,7 +364,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             )
         );
 
-        ownedProfileStake[profileUrl] = 0;
         emit UpdatedProfileStake(profileUrl, 0);
     }
 }

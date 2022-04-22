@@ -215,7 +215,7 @@ task("init:vest").setAction(async function (taskArguments, hre) {
 // STEP 1 (deploy:GenesisKey)
 task("deploy:1").setAction(async function (taskArguments, hre) {
   const name = "NFT.com Genesis Key";
-  const symbol = "NFTKEY";
+  const symbol = "GENESISKEY";
   const auctionSeconds = "604800"; // seconds in 1 week
   const multiSig = (await getTokens(hre)).multiSig;
   const randomTeamAssignBool = true;
@@ -278,9 +278,9 @@ task("gk:startPublic").setAction(async function (taskArguments, hre) {
 
   await deployedGenesisKeyContract.initializePublicSale(
     hre.ethers.BigNumber.from("10000000000000000"),
-    hre.ethers.BigNumber.from("10000000000000000")
+    hre.ethers.BigNumber.from("10000000000000000"),
   );
-})
+});
 
 // gen key whitelist claim INSIDER
 task("deploy:1b").setAction(async function (taskArguments, hre) {
@@ -459,22 +459,22 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
   // VERIFICATION =====================================================================================
   console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
   await delay(TIME_DELAY);
-  await verifyContract(
-    "deployedNftGenesisStake",
-    deployedNftGenesisStake.address,
-    [deployedNftToken.address, (await getTokens(hre)).deployedGenesisKeyAddress],
-    hre,
-  );
+  // await verifyContract(
+  //   "deployedNftGenesisStake",
+  //   deployedNftGenesisStake.address,
+  //   [deployedNftToken.address, (await getTokens(hre)).deployedGenesisKeyAddress],
+  //   hre,
+  // );
   await verifyContract("deployedNftProfileHelper", deployedNftProfileHelper.address, [], hre);
 
   await getImplementation("deployedNftProfile", deployedNftProfileProxy.address, hre);
 
-  await verifyContract(
-    "deployedNftBuyer",
-    deployedNftBuyer.address,
-    [UNI_V2_FACTORY, deployedNftGenesisStake.address, deployedNftToken.address, (await getTokens(hre)).wethAddress],
-    hre,
-  );
+  // await verifyContract(
+  //   "deployedNftBuyer",
+  //   deployedNftBuyer.address,
+  //   [UNI_V2_FACTORY, deployedNftGenesisStake.address, deployedNftToken.address, (await getTokens(hre)).wethAddress],
+  //   hre,
+  // );
 
   await getImplementation("deployedProfileAuction", deployedProfileAuction.address, hre);
 });

@@ -38,7 +38,7 @@ describe("NFT Profile Auction / Minting", function () {
     let GenesisKeyTeamDistributor;
     let deployedGkTeamDistributor;
     const name = "NFT.com Genesis Key";
-    const symbol = "NFTKEY";
+    const symbol = "GENESISKEY";
     let wethAddress;
     const auctionSeconds = "604800"; // seconds in 1 week
     let secondSigner;
@@ -356,6 +356,8 @@ describe("NFT Profile Auction / Minting", function () {
           .connect(second)
           .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES);
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(second.address);
+        await deployedNftProfile.connect(owner).tradeMarkTransfer("profile6", owner.address);
+        expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(11);
       });

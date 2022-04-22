@@ -25,7 +25,7 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
     let GenesisKeyTeamDistributor;
     let deployedGkTeamDistributor;
     const name = "NFT.com Genesis Key";
-    const symbol = "NFTKEY";
+    const symbol = "GENESISKEY";
     let wethAddress;
     const auctionSeconds = "604800"; // seconds in 1 week
 

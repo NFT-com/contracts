@@ -45,7 +45,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       [owner, second, addr1, addr2, ...addrs] = await ethers.getSigners();
 
       const name = "NFT.com Genesis Key";
-      const symbol = "NFTKEY";
+      const symbol = "GENESISKEY";
       const multiSig = addr1.address;
 
       NftProfileHelper = await ethers.getContractFactory("NftProfileHelper");

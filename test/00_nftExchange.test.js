@@ -107,7 +107,7 @@ describe("NFT.com Marketplace", function () {
       [owner, buyer, addr2, royaltyReceiver, ...addrs] = await ethers.getSigners();
 
       const name = "NFT.com Genesis Key";
-      const symbol = "NFTKEY";
+      const symbol = "GENESISKEY";
       const multiSig = buyer.address;
       const auctionSeconds = "604800"; // seconds in 1 week
       ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);

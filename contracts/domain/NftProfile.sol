@@ -9,17 +9,25 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
-contract NftProfile is Initializable, ERC721AProfileUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, INftProfile {
+contract NftProfile is
+    Initializable,
+    ERC721AProfileUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable,
+    INftProfile
+{
     using SafeMathUpgradeable for uint256;
 
     mapping(uint256 => string) internal _tokenURIs;
     mapping(string => uint256) internal _tokenUsedURIs;
     mapping(string => uint256) internal _expiryTimeline;
 
-    uint256 public protocolFee;
     address public profileAuctionContract;
+    uint96 public protocolFee;
     address public nftErc20Contract;
     address public owner;
+
+    event NewFee(uint256 _fee);
 
     modifier onlyOwner() {
         require(msg.sender == owner);
@@ -111,6 +119,12 @@ contract NftProfile is Initializable, ERC721AProfileUpgradeable, ReentrancyGuard
 
     function setOwner(address _new) external onlyOwner {
         owner = _new;
+    }
+
+    function setProtocolFee(uint96 _fee) external onlyOwner {
+        require(_fee <= 2000); // 20%
+        protocolFee = _fee;
+        emit NewFee(_fee);
     }
 
     /**
