@@ -48,13 +48,13 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     address public owner;
     uint96 public yearsToOwn; // number of years of license to pay to own a profile
 
-    address public nftErc20Contract;
+    address public usdc_;
     bool public publicMintBool; // true to allow public mint
     bool public genKeyWhitelistOnly; // true to only allow merkle claims
 
     address public nftProfile;
-    address public genesisStakingContract;
-    address public nftBuyer;
+    address public contract2;
+    address public contract1;
     address public nftProfileHelperAddress;
     address public genesisKeyContract;
     address public signerAddress;
@@ -88,26 +88,20 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     }
 
     function initialize(
-        address _nftErc20Contract,
         address _nftProfile,
         address _governor,
         address _nftProfileHelperAddress,
-        address _nftBuyer,
-        address _genesisKeyContract,
-        address _genesisStakingContract
+        address _genesisKeyContract
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
-        nftErc20Contract = _nftErc20Contract;
         nftProfile = _nftProfile;
         nftProfileHelperAddress = _nftProfileHelperAddress;
 
-        nftBuyer = _nftBuyer;
         owner = msg.sender;
         governor = _governor;
         genesisKeyContract = _genesisKeyContract;
-        genesisStakingContract = _genesisStakingContract;
         genKeyWhitelistOnly = true;
 
         lengthPremium[1] = 1024;
@@ -128,7 +122,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
      @param _amount number of tokens being transferred
     */
     function transferTokens(address _user, uint256 _amount) private returns (bool) {
-        return IERC20Upgradeable(nftErc20Contract).transferFrom(_user, nftBuyer, _amount);
+        return IERC20Upgradeable(usdc_).transferFrom(_user, contract1, _amount);
     }
 
     /**
@@ -141,16 +135,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         bytes32 r,
         bytes32 s
     ) private {
-        return
-            IERC20PermitUpgradeable(nftErc20Contract).permit(
-                _owner,
-                spender,
-                type(uint256).max,
-                type(uint256).max,
-                v,
-                r,
-                s
-            );
+        return IERC20PermitUpgradeable(usdc_).permit(_owner, spender, type(uint256).max, type(uint256).max, v, r, s);
     }
 
     function validURI(string memory _name) private view returns (bool) {
@@ -168,6 +153,18 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
     function setSigner(address _signer) external onlyOwner {
         signerAddress = _signer;
+    }
+
+    function setUsdc(address _usdc) external onlyOwner {
+        usdc_ = _usdc;
+    }
+
+    function setContract1(address _new) external onlyOwner {
+        contract1 = _new;
+    }
+
+    function setContract2(address _new) external onlyOwner {
+        contract2 = _new;
     }
 
     function verifySignature(bytes32 hash, bytes memory signature) public view returns (bool) {
@@ -233,10 +230,16 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         INftProfile(nftProfile).createProfile(
             recipient,
             profileUrl,
-            genesisKeyClaimNumber[tokenId] <= 2 ? 365 days * 1000 : 365 days
+            genesisKeyClaimNumber[tokenId] <= 2 ? 1000 * (365 days) : 365 days
         );
 
-        emit MintedProfile(recipient, profileUrl, INftProfile(nftProfile).totalSupply() - 1, 365 days, 0);
+        emit MintedProfile(
+            recipient,
+            profileUrl,
+            INftProfile(nftProfile).totalSupply() - 1,
+            genesisKeyClaimNumber[tokenId] <= 2 ? 1000 * (365 days) : 365 days,
+            0
+        );
     }
 
     function publicMint(
@@ -255,7 +258,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         // effects
         // interactions
-        if (IERC20Upgradeable(nftErc20Contract).allowance(msg.sender, address(this)) == 0) {
+        if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
             permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
         }
 
@@ -294,7 +297,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     ) external nonReentrant {
         require(publicMintBool, "el: public minting is disabled");
 
-        if (IERC20Upgradeable(nftErc20Contract).allowance(msg.sender, address(this)) == 0) {
+        if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
             permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
         }
 
@@ -318,7 +321,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         // effects
         // interactions
-        if (IERC20Upgradeable(nftErc20Contract).allowance(msg.sender, address(this)) == 0) {
+        if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
             permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
         }
 
@@ -332,10 +335,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     function ownProfile(string memory profileUrl) external nonReentrant {
         // checks
         require(publicMintBool, "op: public minting is disabled");
-        uint256 xNftKeyReq = (getFee(profileUrl, 365 days) *
-            yearsToOwn *
-            IGenesisKeyStake(genesisStakingContract).totalSupply()) /
-            IGenesisKeyStake(genesisStakingContract).totalStakedNftCoin();
+        uint256 xNftKeyReq = (getFee(profileUrl, 365 days) * yearsToOwn * IGenesisKeyStake(contract2).totalSupply()) /
+            IGenesisKeyStake(contract2).totalStakedNftCoin();
         require(xNftKeyReq != 0, "op: !0");
 
         // effects
@@ -343,7 +344,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         // interactions
         require(
-            IERC20Upgradeable(genesisStakingContract).transferFrom(msg.sender, address(this), xNftKeyReq),
+            IERC20Upgradeable(contract2).transferFrom(msg.sender, address(this), xNftKeyReq),
             "op: insufficient funds"
         );
 
@@ -360,13 +361,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         ownedProfileStake[profileUrl] = 0;
 
         // interactions
-        require(
-            IERC20Upgradeable(genesisStakingContract).transferFrom(
-                address(this),
-                msg.sender,
-                ownedProfileStake[profileUrl]
-            )
-        );
+        require(IERC20Upgradeable(contract2).transferFrom(address(this), msg.sender, ownedProfileStake[profileUrl]));
 
         emit UpdatedProfileStake(profileUrl, 0);
     }

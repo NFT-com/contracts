@@ -184,6 +184,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     function verifySignature(bytes32 hash, bytes memory signature) public view returns (bool) {
         return signerAddress == hash.recover(signature);
     }
+
     // =========POST WHITELIST CLAIM KEY ==========================================================================
     /**
      @notice allows winning keys to be self-minted by winners
@@ -283,12 +284,15 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(startPublicSale, "GEN_KEY: invalid time");
         if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();
         uint256 currPrice = getCurrentPrice();
-        require(msg.value == currPrice, "GEN_KEY: INSUFFICIENT FUNDS");
-    
+        require(msg.value >= currPrice, "GEN_KEY: INSUFFICIENT FUNDS");
+
         // effects
         cancelledOrFinalized[hash] = true;
 
         // interactions
+        if (msg.value > currPrice) {
+            safeTransferETH(multiSig, msg.value - currPrice);
+        }
         safeTransferETH(multiSig, address(this).balance);
         _mint(msg.sender, 1, "", false);
         randomTeamGrant(msg.sender);

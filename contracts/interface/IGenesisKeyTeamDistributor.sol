@@ -11,9 +11,6 @@ interface IGenesisKeyTeamDistributor {
 
     function owner() external view returns (address);
 
-    // Returns true if the index has been marked claimed.
-    function isClaimed(uint256 index) external view returns (bool);
-
     // Claim the given amount of the token to the given address. Reverts if the inputs are invalid.
     function claim(
         uint256 index,

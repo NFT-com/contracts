@@ -41,8 +41,6 @@ interface IERC721Upgradeable is IERC165Upgradeable {
 
     function multiOwnerOf(uint256 startIndex, uint256 endIndex) external view returns (address[] memory);
 
-    function tokenIdsOwned(address user) external view returns (bool[] memory);
-
     /**
      * @dev Transfers `tokenId` token from `from` to `to`.
      *
