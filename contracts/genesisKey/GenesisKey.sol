@@ -325,9 +325,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     // ========= PUBLIC SALE =================================================================
     // external function for public sale of genesis keys
-    function publicExecuteBid(
-        uint256 amount
-    ) external payable nonReentrant {
+    function publicExecuteBid(uint256 amount) external payable nonReentrant {
         // checks
         require(startPublicSale, "GEN_KEY: invalid time");
         require(block.timestamp <= 1651705200, "Q.E.D"); // 5/4/22 11pm utc

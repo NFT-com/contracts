@@ -58,7 +58,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, multiSig, auctionSeconds, true, "ipfs://"],
+        [name, symbol, multiSig, auctionSeconds, false, "ipfs://"],
         { kind: "uups" },
       );
 
@@ -386,7 +386,8 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
         // reverts due to insufficient funds
-        await expect(deployedGenesisKey.connect(owner).publicExecuteBid(10, { value: convertTinyNumber(20) })).to.be.reverted;
+        await expect(deployedGenesisKey.connect(owner).publicExecuteBid(10, { value: convertTinyNumber(20) })).to.be
+          .reverted;
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
@@ -399,6 +400,41 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         console.log("ETH sent: ", ownerBalanceBefore - ownerBalanceAfter);
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
+
+        for (let i = 0; i < 97; i++) {
+          await deployedGenesisKey.connect(owner).publicExecuteBid(100, { value: convertTinyNumber(300) });
+          console.log(i + " totalSupply: " + Number(await deployedGenesisKey.totalSupply()));
+        }
+
+        console.log(
+          "await deployedGenesisKey.remainingTeamAdvisorGrant(): ",
+          Number(await deployedGenesisKey.remainingTeamAdvisorGrant()),
+        );
+
+        // exceeds 9750 (250 reserved)
+        await expect(deployedGenesisKey.connect(owner).publicExecuteBid(100, { value: convertTinyNumber(300) })).to.be
+          .reverted;
+
+        // 9722 + 250 + 20 = 9992
+        await deployedGenesisKey.connect(owner).publicExecuteBid(10, { value: convertTinyNumber(300) });
+        await deployedGenesisKey.connect(owner).publicExecuteBid(10, { value: convertTinyNumber(300) });
+
+        await deployedGenesisKey.connect(owner).publicExecuteBid(8, { value: convertTinyNumber(300) });
+
+        expect(await deployedGenesisKey.totalSupply()).to.be.equal(BigNumber.from(9750));
+        await expect(deployedGenesisKey.connect(owner).publicExecuteBid(1, { value: convertTinyNumber(300) })).to.be
+          .reverted;
+
+        // 10000 keys already
+        expect(
+          BigNumber.from(await deployedGenesisKey.totalSupply()).add(
+            BigNumber.from(await deployedGenesisKey.remainingTeamAdvisorGrant()),
+          ),
+        ).to.be.equal(BigNumber.from(10000));
+
+        // reverts > 10000
+        await expect(deployedGenesisKey.connect(owner).publicExecuteBid(1, { value: convertTinyNumber(300) })).to.be
+          .reverted;
 
         await deployedGenesisKey.connect(owner).transferETH();
       });
