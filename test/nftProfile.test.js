@@ -190,12 +190,7 @@ describe("NFT Profile Auction / Minting", function () {
       ProfileAuction = await ethers.getContractFactory("ProfileAuction");
       deployedProfileAuction = await upgrades.deployProxy(
         ProfileAuction,
-        [
-          deployedNftProfile.address,
-          owner.address,
-          deployedNftProfileHelper.address,
-          deployedGenesisKey.address,
-        ],
+        [deployedNftProfile.address, owner.address, deployedNftProfileHelper.address, deployedGenesisKey.address],
         { kind: "uups" },
       );
 

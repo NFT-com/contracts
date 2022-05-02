@@ -106,12 +106,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       ProfileAuction = await ethers.getContractFactory("ProfileAuction");
       deployedProfileAuction = await upgrades.deployProxy(
         ProfileAuction,
-        [
-          deployedNftProfile.address,
-          owner.address,
-          deployedNftProfileHelper.address,
-          deployedGenesisKey.address,
-        ],
+        [deployedNftProfile.address, owner.address, deployedNftProfileHelper.address, deployedGenesisKey.address],
         { kind: "uups" },
       );
 
@@ -360,7 +355,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       // start public auction
       it("should allow a public auction to start, and not allow new blind auction bids", async function () {
         const initialWethPrice = convertTinyNumber(3); // 0.03 eth starting price
-        const finalWethPrice = convertTinyNumber(1); // 0.01 eth floor
+        const finalWethPrice = convertTinyNumber(3); // 0.03 eth floor
 
         // initialized public auction
         await deployedGenesisKey.initializePublicSale(initialWethPrice, finalWethPrice);
@@ -374,13 +369,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         console.log("current eth price: ", Number(currentPrice) / 10 ** 18);
         expect(await deployedGenesisKey.totalSupply()).to.eq(0);
 
-        const { hash, signature } = signHashPublicSale(owner.address);
-        await deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, { value: convertTinyNumber(30) });
-
-        // reverts due to signature and hash being used again
-        await expect(
-          deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, { value: convertTinyNumber(30) }),
-        ).to.be.reverted;
+        await deployedGenesisKey.connect(owner).publicExecuteBid(1, { value: convertTinyNumber(30) });
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
@@ -388,8 +377,26 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await deployedGenesisKey.setMultiSig(ownerSigner.address); // send to self
         await deployedGenesisKey.connect(owner).transferETH();
 
-        const { hash: hash1, signature: signature1 } = signHashPublicSale(owner.address);
-        await deployedGenesisKey.connect(owner).publicExecuteBid(hash1, signature1, { value: convertTinyNumber(30) });
+        await deployedGenesisKey.connect(owner).publicExecuteBid(1, { value: convertTinyNumber(30) });
+
+        console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
+
+        await deployedGenesisKey.connect(owner).publicExecuteBid(10, { value: convertTinyNumber(300) });
+
+        console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
+
+        // reverts due to insufficient funds
+        await expect(deployedGenesisKey.connect(owner).publicExecuteBid(10, { value: convertTinyNumber(20) })).to.be.reverted;
+
+        console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
+
+        const ownerBalanceBefore = await web3.eth.getBalance(owner.address);
+        console.log("ownerBalanceBefore: ", ownerBalanceBefore);
+        await deployedGenesisKey.connect(owner).publicExecuteBid(10, { value: convertTinyNumber(500) });
+
+        const ownerBalanceAfter = await web3.eth.getBalance(owner.address);
+        console.log("ownerBalanceAfter: ", ownerBalanceAfter);
+        console.log("ETH sent: ", ownerBalanceBefore - ownerBalanceAfter);
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
@@ -410,7 +417,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
       //   for (let i = 0; i < 9750; i++) {
       //     const { hash, signature } = signHashPublicSale(owner.address);
-      //     await deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, { value: convertTinyNumber(30) });
+      //     await deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, 1, { value: convertTinyNumber(30) });
       //     console.log(`key ${i} / 9750`);
       //   }
 
@@ -418,7 +425,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
       //   const { hash, signature } = signHashPublicSale(owner.address);
       //   // reverts due to 250 + totalSupply == 10,000
-      //   await expect(deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, { value: convertTinyNumber(30) })).to.be.reverted;
+      //   await expect(deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, 1, { value: convertTinyNumber(30) })).to.be.reverted;
       // });
     });
 

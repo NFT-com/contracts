@@ -136,9 +136,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         address to,
         uint256 tokenId
     ) public override {
-        if (totalSupply() != MAX_SUPPLY &&
-            !whitelistedTransfer[from] &&
-            block.timestamp <= 1651705200 // 5/4/22 11pm utc
+        if (
+            totalSupply() != MAX_SUPPLY && !whitelistedTransfer[from] && block.timestamp <= 1651705200 // 5/4/22 11pm utc
         ) revert PausedTransfer();
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
 
@@ -150,12 +149,11 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         address to,
         uint256 tokenId
     ) public override {
-        if (totalSupply() != MAX_SUPPLY &&
-            !whitelistedTransfer[from] && 
-            block.timestamp <= 1651705200 // 5/4/22 11pm utc
+        if (
+            totalSupply() != MAX_SUPPLY && !whitelistedTransfer[from] && block.timestamp <= 1651705200 // 5/4/22 11pm utc
         ) revert PausedTransfer();
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
-        
+
         safeTransferFrom(from, to, tokenId, "");
     }
 
@@ -168,9 +166,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         uint256 tokenId,
         bytes memory _data
     ) public override {
-        if (totalSupply() != MAX_SUPPLY &&
-            !whitelistedTransfer[from] && 
-            block.timestamp <= 1651705200 // 5/4/22 11pm utc
+        if (
+            totalSupply() != MAX_SUPPLY && !whitelistedTransfer[from] && block.timestamp <= 1651705200 // 5/4/22 11pm utc
         ) revert PausedTransfer();
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
 
@@ -291,7 +288,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     function mintLeftOver(uint256 quantity) external {
         require(msg.sender == multiSig, "GEN_KEY: !AUTH");
         require(block.timestamp > 1651705200, "Q.E.D"); // 5/4/22 11pm utc
-        require (quantity + remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY);
+        require(quantity + remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY);
 
         for (uint256 i = 0; i < quantity; i++) {
             _mint(msg.sender, 1, "", false);
@@ -328,28 +325,32 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     // ========= PUBLIC SALE =================================================================
     // external function for public sale of genesis keys
-    function publicExecuteBid(bytes32 hash, bytes memory signature) external payable nonReentrant {
+    function publicExecuteBid(
+        uint256 amount
+    ) external payable nonReentrant {
         // checks
-        require(!isContract(msg.sender), "GEN_KEY: !CONTRACT");
-        require(block.timestamp <= 1651705200, "Q.E.D"); // 5/4/22 11pm utc
-        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "GEN_KEY: INVALID SIG");
         require(startPublicSale, "GEN_KEY: invalid time");
-        if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();
+        require(block.timestamp <= 1651705200, "Q.E.D"); // 5/4/22 11pm utc
+        require(!isContract(msg.sender), "GEN_KEY: !CONTRACT");
+        require(amount != 0 && amount <= 100, "GEN_KEY: !AMOUNT");
+        if (amount + remainingTeamAdvisorGrant + totalSupply() > MAX_SUPPLY) revert MaxSupply();
         uint256 currPrice = getCurrentPrice();
-        require(msg.value >= currPrice, "GEN_KEY: INSUFFICIENT FUNDS");
+        uint256 totalETH = currPrice * amount;
+        require(msg.value >= totalETH, "GEN_KEY: INSUFFICIENT FUNDS");
 
         // effects
-        cancelledOrFinalized[hash] = true;
-
         // interactions
-        if (msg.value > currPrice) {
-            safeTransferETH(multiSig, msg.value - currPrice);
+        if (msg.value > totalETH) {
+            safeTransferETH(msg.sender, msg.value - totalETH);
         }
+
         safeTransferETH(multiSig, address(this).balance);
-        _mint(msg.sender, 1, "", false);
+        _mint(msg.sender, amount, "", false);
         randomTeamGrant(msg.sender);
 
-        emit ClaimedGenesisKey(msg.sender, currPrice, block.number, false);
+        for (uint256 i = 0; i < amount; i++) {
+            emit ClaimedGenesisKey(msg.sender, currPrice, block.number, false);
+        }
     }
 
     // public function for returning the current price
