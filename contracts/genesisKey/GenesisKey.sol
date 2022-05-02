@@ -216,10 +216,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         return 1;
     }
 
-    function verifySignature(bytes32 hash, bytes memory signature) public view returns (bool) {
-        return signerAddress == hash.recover(signature);
-    }
-
     // =========POST WHITELIST CLAIM KEY ==========================================================================
     /**
      @notice allows winning keys to be self-minted by winners
