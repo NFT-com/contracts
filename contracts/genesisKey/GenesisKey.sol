@@ -142,6 +142,28 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         _transfer(from, to, tokenId);
     }
 
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override {
+        if (totalSupply() != MAX_SUPPLY && !whitelistedTransfer[from]) revert PausedTransfer();
+        if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
+    }
+
+    /**
+     * @dev See {IERC721-safeTransferFrom}.
+     */
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory _data
+    ) public override {
+        if (totalSupply() != MAX_SUPPLY && !whitelistedTransfer[from]) revert PausedTransfer();
+        if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
+    }
+
     function setMultiSig(address _newMS) external onlyOwner {
         multiSig = _newMS;
     }
@@ -184,6 +206,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     function verifySignature(bytes32 hash, bytes memory signature) public view returns (bool) {
         return signerAddress == hash.recover(signature);
     }
+
     // =========POST WHITELIST CLAIM KEY ==========================================================================
     /**
      @notice allows winning keys to be self-minted by winners
@@ -284,7 +307,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();
         uint256 currPrice = getCurrentPrice();
         require(msg.value == currPrice, "GEN_KEY: INSUFFICIENT FUNDS");
-    
+
         // effects
         cancelledOrFinalized[hash] = true;
 
