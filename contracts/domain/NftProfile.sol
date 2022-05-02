@@ -7,7 +7,6 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
 contract NftProfile is
     Initializable,
@@ -24,7 +23,6 @@ contract NftProfile is
 
     address public profileAuctionContract;
     uint96 public protocolFee;
-    address public nftErc20Contract;
     address public owner;
 
     event NewFee(uint256 _fee);
@@ -37,7 +35,6 @@ contract NftProfile is
     function initialize(
         string memory name,
         string memory symbol,
-        address _nftErc20Contract,
         string memory baseURI
     ) public initializer {
         __ReentrancyGuard_init();
@@ -46,7 +43,6 @@ contract NftProfile is
         protocolFee = 200; // 2% fee
 
         owner = msg.sender;
-        nftErc20Contract = _nftErc20Contract;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -185,19 +181,6 @@ contract NftProfile is
         _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _receiver, tokenId);
 
         emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
-    }
-
-    /**
-     @notice helper function to add permit
-    */
-    function permitNFT(
-        address _owner,
-        address spender,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) private {
-        return IERC20PermitUpgradeable(nftErc20Contract).permit(_owner, spender, 2**256 - 1, 2**256 - 1, v, r, s);
     }
 
     /**

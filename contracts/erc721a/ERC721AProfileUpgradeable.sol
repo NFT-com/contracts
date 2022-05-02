@@ -212,26 +212,6 @@ contract ERC721AProfileUpgradeable is
         return addrBalances;
     }
 
-    function tokenIdsOwned(
-        address user,
-        uint256 startIndex,
-        uint256 endIndex
-    ) external view returns (uint256[] memory) {
-        require(startIndex < endIndex);
-        uint256[] memory tokenIdUser = new uint256[](balanceOf(user));
-        uint256 seen = 0;
-
-        // totalSupply()
-        for (uint256 i = startIndex; i < endIndex; i++) {
-            if (ownerOf(i + _startTokenId()) == user) {
-                tokenIdUser[seen] = i + _startTokenId();
-                seen += 1;
-            }
-        }
-
-        return tokenIdUser;
-    }
-
     /**
      * Gas spent here starts off proportional to the maximum mint batch size.
      * It gradually moves to O(1) as tokens get transferred around in the collection over time.

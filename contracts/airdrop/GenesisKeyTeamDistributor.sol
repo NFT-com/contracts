@@ -18,6 +18,7 @@ contract GenesisKeyTeamDistributor is IGenesisKeyTeamDistributor {
 
     // This is a packed array of booleans.
     mapping(uint256 => uint256) private claimedBitMap;
+    mapping(address => bool) private addressClaimed;
 
     constructor(address gkTeam_) {
         gkTeam = gkTeam_;
@@ -34,20 +35,6 @@ contract GenesisKeyTeamDistributor is IGenesisKeyTeamDistributor {
         merkleRoot = _newRoot;
     }
 
-    function isClaimed(uint256 index) public view override returns (bool) {
-        uint256 claimedWordIndex = index / 256;
-        uint256 claimedBitIndex = index % 256;
-        uint256 claimedWord = claimedBitMap[claimedWordIndex];
-        uint256 mask = (1 << claimedBitIndex);
-        return claimedWord & mask == mask;
-    }
-
-    function _setClaimed(uint256 index) private {
-        uint256 claimedWordIndex = index / 256;
-        uint256 claimedBitIndex = index % 256;
-        claimedBitMap[claimedWordIndex] = claimedBitMap[claimedWordIndex] | (1 << claimedBitIndex);
-    }
-
     function claim(
         uint256 index,
         address account,
@@ -55,14 +42,14 @@ contract GenesisKeyTeamDistributor is IGenesisKeyTeamDistributor {
         bytes32[] calldata merkleProof
     ) external payable override {
         require(msg.sender == account);
-        require(!isClaimed(index), "GKTeamDistributor: Drop already claimed.");
+        require(!addressClaimed[account], "GKTeamDistributor: Drop already claimed.");
 
         // Verify the merkle proof.
         bytes32 node = keccak256(abi.encodePacked(index, account, tokenId));
         require(MerkleProof.verify(merkleProof, merkleRoot, node), "GKTeamDistributor: Invalid proof.");
 
         // Mark it claimed and send the token.
-        _setClaimed(index);
+        addressClaimed[account] = true;
         require(IGkTeam(gkTeam).teamClaim(account), "GKTeamDistributor: No team keys available");
 
         emit Claimed(index, account, tokenId);
