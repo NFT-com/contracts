@@ -6,8 +6,8 @@ import Web3 from "web3";
 
 const web3 = new Web3();
 
-export const signHashPublicSale = (hash: string): any => {
-  const hash = "0x" + abi.soliditySHA3(["string"], [hash]).toString("hex");
+export const signHashPublicSale = (inputHash: string): any => {
+  const hash = "0x" + abi.soliditySHA3(["string"], [inputHash + new Date().getTime().toString()]).toString("hex");
 
   const sigObj = web3.eth.accounts.sign(hash, process.env.PUBLIC_SALE_PK ?? "");
 

@@ -607,7 +607,7 @@ contract ERC721AUpgradeable is
         address to,
         uint256 tokenId,
         bytes memory _data
-    ) private returns (bool) {
+    ) internal returns (bool) {
         try IERC721ReceiverUpgradeable(to).onERC721Received(_msgSender(), from, tokenId, _data) returns (
             bytes4 retval
         ) {

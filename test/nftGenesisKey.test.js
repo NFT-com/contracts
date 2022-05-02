@@ -70,7 +70,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         [
           "NFT.com", // string memory name,
           "NFT.com", // string memory symbol,
-          deployedNftToken.address, // address _nftCashAddress,
           "https://api.nft.com/uri/",
         ],
         { kind: "uups" },
@@ -108,18 +107,21 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       deployedProfileAuction = await upgrades.deployProxy(
         ProfileAuction,
         [
-          deployedNftToken.address,
           deployedNftProfile.address,
           owner.address,
           deployedNftProfileHelper.address,
-          deployedNftBuyer.address,
           deployedGenesisKey.address,
-          deployedNftGenesisStake.address,
         ],
         { kind: "uups" },
       );
 
-      deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
+      // contract 2 = genesis stake
+      await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
+      await deployedProfileAuction.setUsdc(deployedNftToken.address);
+      await deployedProfileAuction.setContract1(deployedNftBuyer.address);
+      await deployedProfileAuction.setContract2(deployedNftGenesisStake.address);
+
+      await deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
     });
 
     describe("Deployment", function () {

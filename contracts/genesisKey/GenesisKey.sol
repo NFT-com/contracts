@@ -136,10 +136,48 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         address to,
         uint256 tokenId
     ) public override {
-        if (totalSupply() != MAX_SUPPLY && !whitelistedTransfer[from]) revert PausedTransfer();
+        if (totalSupply() != MAX_SUPPLY &&
+            !whitelistedTransfer[from] &&
+            block.timestamp <= 1651705200 // 5/4/22 11pm utc
+        ) revert PausedTransfer();
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
 
         _transfer(from, to, tokenId);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override {
+        if (totalSupply() != MAX_SUPPLY &&
+            !whitelistedTransfer[from] && 
+            block.timestamp <= 1651705200 // 5/4/22 11pm utc
+        ) revert PausedTransfer();
+        if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
+        
+        safeTransferFrom(from, to, tokenId, "");
+    }
+
+    /**
+     * @dev See {IERC721-safeTransferFrom}.
+     */
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory _data
+    ) public override {
+        if (totalSupply() != MAX_SUPPLY &&
+            !whitelistedTransfer[from] && 
+            block.timestamp <= 1651705200 // 5/4/22 11pm utc
+        ) revert PausedTransfer();
+        if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
+
+        _transfer(from, to, tokenId);
+        if (isContract(to) && !_checkContractOnERC721Received(from, to, tokenId, _data)) {
+            revert TransferToNonERC721ReceiverImplementer();
+        }
     }
 
     function setMultiSig(address _newMS) external onlyOwner {
@@ -193,13 +231,13 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         // checks
         require(msg.sender == genesisKeyMerkle);
         require(!startPublicSale, "GEN_KEY: only during blind");
+        require(block.timestamp <= 1651705200, "Q.E.D"); // 5/4/22 11pm utc
+        require(msg.value >= _eth);
         if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();
 
         // effects
         // interactions
-        require(msg.value >= _eth); // transfer WETH token
         _mint(recipient, 1, "", false);
-
         randomTeamGrant(recipient);
 
         if (msg.value > _eth) {
@@ -249,6 +287,19 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         }
     }
 
+    // mint leftover for DAO
+    function mintLeftOver(uint256 quantity) external {
+        require(msg.sender == multiSig, "GEN_KEY: !AUTH");
+        require(block.timestamp > 1651705200, "Q.E.D"); // 5/4/22 11pm utc
+        require (quantity + remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY);
+
+        for (uint256 i = 0; i < quantity; i++) {
+            _mint(msg.sender, 1, "", false);
+
+            emit ClaimedGenesisKey(msg.sender, 0, block.number, false);
+        }
+    }
+
     /// @notice Transfers ETH to the recipient address
     /// @dev Fails with `STE`
     /// @param to The destination of the transfer
@@ -280,6 +331,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     function publicExecuteBid(bytes32 hash, bytes memory signature) external payable nonReentrant {
         // checks
         require(!isContract(msg.sender), "GEN_KEY: !CONTRACT");
+        require(block.timestamp <= 1651705200, "Q.E.D"); // 5/4/22 11pm utc
         require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "GEN_KEY: INVALID SIG");
         require(startPublicSale, "GEN_KEY: invalid time");
         if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();

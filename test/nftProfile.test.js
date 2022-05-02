@@ -172,7 +172,6 @@ describe("NFT Profile Auction / Minting", function () {
         [
           "NFT.com", // string memory name,
           "NFT.com", // string memory symbol,
-          deployedNftToken.address, // address _nftCashAddress,
           "https://api.nft.com/uri/",
         ],
         { kind: "uups" },
@@ -192,16 +191,17 @@ describe("NFT Profile Auction / Minting", function () {
       deployedProfileAuction = await upgrades.deployProxy(
         ProfileAuction,
         [
-          deployedNftToken.address,
           deployedNftProfile.address,
           owner.address,
           deployedNftProfileHelper.address,
-          deployedNftBuyer.address,
           deployedGenesisKey.address,
-          deployedNftGenesisStake.address,
         ],
         { kind: "uups" },
       );
+
+      deployedProfileAuction.setUsdc(deployedNftToken.address);
+      deployedProfileAuction.setContract1(deployedNftBuyer.address);
+      deployedProfileAuction.setContract2(deployedNftGenesisStake.address);
 
       // ===============================================================
       deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
