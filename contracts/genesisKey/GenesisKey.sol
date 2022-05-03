@@ -266,17 +266,16 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     /**
      @notice sends grant key to end user for team / advisors / grants
     */
-    function claimGrantKey(address[] calldata receivers) external {
-        require(msg.sender == multiSig, "GEN_KEY: !AUTH");
-        require(remainingTeamAdvisorGrant >= receivers.length);
+    function claimGrantKey(uint256 amount) external onlyOwner {
+        require(amount != 0);
+        require(remainingTeamAdvisorGrant >= amount);
         if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();
 
-        remainingTeamAdvisorGrant -= uint64(receivers.length);
+        remainingTeamAdvisorGrant -= uint64(amount);
+        _mint(gkTeamClaimContract, amount, "", false);
 
-        for (uint256 i = 0; i < receivers.length; i++) {
-            _mint(receivers[i], 1, "", false);
-
-            emit ClaimedGenesisKey(receivers[i], 0, block.number, false);
+        for (uint256 i = 0; i < amount; i++) {
+            emit ClaimedGenesisKey(gkTeamClaimContract, 0, block.number, false);
         }
     }
 
@@ -285,10 +284,9 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(msg.sender == multiSig, "GEN_KEY: !AUTH");
         require(block.timestamp > 1651705200, "Q.E.D"); // 5/4/22 11pm utc
         require(quantity + remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY);
+        _mint(msg.sender, quantity, "", false);
 
         for (uint256 i = 0; i < quantity; i++) {
-            _mint(msg.sender, 1, "", false);
-
             emit ClaimedGenesisKey(msg.sender, 0, block.number, false);
         }
     }

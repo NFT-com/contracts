@@ -279,77 +279,31 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(0);
 
         // addr1.address = multisig
-        await deployedGenesisKey.connect(addr1).claimGrantKey([owner.address, second.address, addr1.address]);
+        await deployedGenesisKey.connect(owner).claimGrantKey(3);
 
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(1);
+        expect(await deployedGenesisKey.balanceOf(deployedGenesisKeyTeamClaim.address)).to.be.equal(3);
       });
 
       it("should allow users to lock key", async function () {
         await deployedGenesisKey.connect(owner).setWhitelist(owner.address, false);
         await deployedGenesisKey.connect(owner).setWhitelist(second.address, false);
         await deployedGenesisKey.connect(owner).setWhitelist(addr1.address, false);
-        await deployedGenesisKey.connect(addr1).claimGrantKey([owner.address, second.address]);
+        await deployedGenesisKey.connect(owner).claimGrantKey(2);
 
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
+        expect(await deployedGenesisKey.balanceOf(deployedGenesisKeyTeamClaim.address)).to.be.equal(2);
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(2);
 
         // reverts due to !10000 keys
         await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 1)).to.be.reverted;
 
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(2);
 
         for (let i = 0; i < 248; i++) {
-          await deployedGenesisKey.connect(addr1).claimGrantKey([addr1.address]);
+          await deployedGenesisKey.connect(owner).claimGrantKey(1);
         }
 
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(248);
+        expect(await deployedGenesisKey.balanceOf(deployedGenesisKeyTeamClaim.address)).to.be.equal(250);
         expect(await deployedGenesisKey.totalSupply()).to.be.equal(250);
-
-        await deployedGenesisKey.connect(owner).setWhitelist(owner.address, true);
-        await deployedGenesisKey.connect(owner).setWhitelist(second.address, true);
-        await deployedGenesisKey.connect(owner).setWhitelist(addr1.address, true);
-
-        await deployedGenesisKey.connect(owner).transferFrom(owner.address, second.address, 1);
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(0);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(2);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(248);
-
-        await deployedGenesisKey.connect(second).transferFrom(second.address, owner.address, 1);
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(248);
-
-        expect(await deployedGenesisKey.lockupBoolean()).to.be.false;
-        // reverts due to lockUp booelan being false
-        await expect(deployedGenesisKey.connect(owner).toggleLockup([2])).to.be.reverted;
-        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
-        // owner != ownerOf(2)
-        await expect(deployedGenesisKey.connect(owner).toggleLockup([2])).to.be.reverted;
-        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
-        await expect(deployedGenesisKey.connect(owner).toggleLockup([1])).to.be.reverted;
-        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
-        await deployedGenesisKey.connect(owner).toggleLockup([1]);
-        expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
-        await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 1)).to.be.reverted;
-
-        console.log("currentXP 1: ", await deployedGenesisKey.currentXP(1));
-        console.log("currentXP 2: ", await deployedGenesisKey.currentXP(2));
-
-        await deployedGenesisKey.connect(owner).toggleLockup([1]);
-        await deployedGenesisKey.transferFrom(owner.address, second.address, 1);
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(0);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(2);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(248);
-
-        console.log("currentXP after 2: ", await deployedGenesisKey.currentXP(2));
-        console.log("currentXP after 1: ", await deployedGenesisKey.currentXP(1));
       });
 
       // start public auction
@@ -437,6 +391,36 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           .reverted;
 
         await deployedGenesisKey.connect(owner).transferETH();
+
+        await deployedGenesisKey.connect(owner).setWhitelist(owner.address, true);
+        await deployedGenesisKey.connect(owner).setWhitelist(second.address, true);
+        await deployedGenesisKey.connect(owner).setWhitelist(addr1.address, true);
+
+        await deployedGenesisKey.connect(owner).transferFrom(owner.address, second.address, 25);
+        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
+
+        expect(await deployedGenesisKey.lockupBoolean()).to.be.false;
+        // reverts due to lockUp booelan being false
+        await expect(deployedGenesisKey.connect(owner).toggleLockup([25])).to.be.reverted;
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
+        // owner != ownerOf(2)
+        await expect(deployedGenesisKey.connect(owner).toggleLockup([25])).to.be.reverted;
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
+        await expect(deployedGenesisKey.connect(owner).toggleLockup([21])).to.be.reverted;
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
+        await deployedGenesisKey.connect(owner).toggleLockup([21]);
+        expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
+        await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 21)).to.be.reverted;
+
+        console.log("currentXP 1: ", await deployedGenesisKey.currentXP(21));
+        console.log("currentXP 2: ", await deployedGenesisKey.currentXP(25));
+
+        await deployedGenesisKey.connect(owner).toggleLockup([21]);
+        await deployedGenesisKey.transferFrom(owner.address, second.address, 21);
+        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(2);
+
+        console.log("currentXP after 2: ", await deployedGenesisKey.currentXP(21));
+        console.log("currentXP after 1: ", await deployedGenesisKey.currentXP(25));
       });
 
       // SANITY CHECK
