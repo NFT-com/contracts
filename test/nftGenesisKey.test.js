@@ -355,7 +355,8 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
 
-        for (let i = 0; i < 97; i++) {
+        // 4722 total + 250 = 4972 (28 left)
+        for (let i = 0; i < 47; i++) {
           await deployedGenesisKey.connect(owner).publicExecuteBid(100, { value: convertTinyNumber(300) });
           console.log(i + " totalSupply: " + Number(await deployedGenesisKey.totalSupply()));
         }
@@ -365,31 +366,58 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           Number(await deployedGenesisKey.remainingTeamAdvisorGrant()),
         );
 
-        // exceeds 9750 (250 reserved)
-        await expect(deployedGenesisKey.connect(owner).publicExecuteBid(100, { value: convertTinyNumber(300) })).to.be
-          .reverted;
+        // reverts due to remainingTeamAdvisorGrant() != 0
+        await expect(deployedGenesisKey.mintLeftOver(28, 5000)).to.be.reverted;
+        await deployedGenesisKey.connect(owner).claimGrantKey(250);
 
-        // 9722 + 250 + 20 = 9992
-        await deployedGenesisKey.connect(owner).publicExecuteBid(10, { value: convertTinyNumber(300) });
-        await deployedGenesisKey.connect(owner).publicExecuteBid(10, { value: convertTinyNumber(300) });
+        console.log("totalSupply: " + Number(await deployedGenesisKey.totalSupply()));
+        console.log(
+          "await deployedGenesisKey.remainingTeamAdvisorGrant(): ",
+          Number(await deployedGenesisKey.remainingTeamAdvisorGrant()),
+        );
 
-        await deployedGenesisKey.connect(owner).publicExecuteBid(8, { value: convertTinyNumber(300) });
+        // reverts due to not selling out 10,000 at a time
+        await expect(deployedGenesisKey.mintLeftOver(27, 5000)).to.be.reverted;
+        await expect(deployedGenesisKey.mintLeftOver(28, 4999)).to.be.reverted;
+        await expect(deployedGenesisKey.mintLeftOver(28, 5001)).to.be.reverted;
 
-        expect(await deployedGenesisKey.totalSupply()).to.be.equal(BigNumber.from(9750));
-        await expect(deployedGenesisKey.connect(owner).publicExecuteBid(1, { value: convertTinyNumber(300) })).to.be
-          .reverted;
+        const beforeBalance = await deployedGenesisKey.balanceOf(owner.address);
+        console.log('beforeBalance: ', Number(beforeBalance));
 
-        // 10000 keys already
-        expect(
-          BigNumber.from(await deployedGenesisKey.totalSupply()).add(
-            BigNumber.from(await deployedGenesisKey.remainingTeamAdvisorGrant()),
-          ),
-        ).to.be.equal(BigNumber.from(10000));
+        // should go through
+        await deployedGenesisKey.mintLeftOver(28, 5000);
+        await deployedGenesisKey.connect(owner).setMultiSig(addr1.address);
+        expect(await deployedGenesisKey.balanceOf(deployedGenesisKey.address)).to.be.equal(28);
+        const afterBalance = await deployedGenesisKey.balanceOf(owner.address);
+        console.log('afterBalance: ', Number(afterBalance));
+        expect(afterBalance - beforeBalance).to.be.equal(5000);
+        expect(await deployedGenesisKey.totalSupply()).to.be.equal(10000);
+        expect(await deployedGenesisKey.latestClaimTokenId()).to.be.equal(4972);
 
-        // reverts > 10000
-        await expect(deployedGenesisKey.connect(owner).publicExecuteBid(1, { value: convertTinyNumber(300) })).to.be
-          .reverted;
+        // exceeds 4750 (250 reserved)
+        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(0);
 
+        // insufficient balance
+        await expect(deployedGenesisKey.connect(addr1).publicBuyKey({ value: convertTinyNumber(2) })).to.be.reverted;
+
+        await owner.sendTransaction({ to: addr1.address, value: convertTinyNumber(1000) });
+
+        let bal = 1;
+        let starting = Number(await deployedGenesisKey.latestClaimTokenId());
+        console.log('starting: ', starting);
+        for (let i = starting; i < 5000; i++) {
+          await deployedGenesisKey.connect(addr1).publicBuyKey({ value: convertTinyNumber(3) });
+          expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(bal);
+          expect(await deployedGenesisKey.ownerOf(await deployedGenesisKey.latestClaimTokenId())).to.be.equal(addr1.address);
+          bal += 1;
+        }
+
+        console.log('ending: ', Number(await deployedGenesisKey.latestClaimTokenId()));
+
+        expect(await deployedGenesisKey.ownerOf(5001)).to.be.equal(owner.address);
+        await expect(deployedGenesisKey.publicBuyKey({ value: convertTinyNumber(3) })).to.be.reverted;
+        await expect(deployedGenesisKey.connect(owner).publicExecuteBid(1, { value: convertTinyNumber(30) })).to.be.reverted;
+       
         await deployedGenesisKey.connect(owner).transferETH();
 
         await deployedGenesisKey.connect(owner).setWhitelist(owner.address, true);

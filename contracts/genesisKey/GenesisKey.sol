@@ -59,6 +59,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     mapping(uint256 => LockupInfo) private _genesisKeyLockUp;
 
     uint256 public constant MAX_SUPPLY = 10000;
+    uint256 public latestClaimTokenId;
 
     event ClaimedGenesisKey(address indexed _user, uint256 _amount, uint256 _blockNum, bool _whitelist);
 
@@ -280,13 +281,19 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     }
 
     // mint leftover for DAO
-    function mintLeftOver(uint256 quantity) external {
-        require(msg.sender == multiSig, "GEN_KEY: !AUTH");
+    function mintLeftOver(uint256 quantityToClaim, uint256 quantityToTreasury) external onlyOwner {
+        require(quantityToClaim != 0 && quantityToTreasury != 0);
+        require(remainingTeamAdvisorGrant == 0);
         require(block.timestamp > 1651705200, "Q.E.D"); // 5/4/22 11pm utc
-        require(quantity + remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY);
-        _mint(msg.sender, quantity, "", false);
+        require(quantityToClaim + quantityToTreasury + remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY);
 
-        for (uint256 i = 0; i < quantity; i++) {
+        latestClaimTokenId = totalSupply();
+
+        _mint(address(this), quantityToClaim, "", false);
+
+        _mint(multiSig, quantityToTreasury, "", false);
+
+        for (uint256 i = 0; i < quantityToClaim + quantityToTreasury; i++) {
             emit ClaimedGenesisKey(msg.sender, 0, block.number, false);
         }
     }
@@ -325,7 +332,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         require(block.timestamp <= 1651705200, "Q.E.D"); // 5/4/22 11pm utc
         require(!isContract(msg.sender), "GEN_KEY: !CONTRACT");
         require(amount != 0 && amount <= 100, "GEN_KEY: !AMOUNT");
-        if (amount + remainingTeamAdvisorGrant + totalSupply() > MAX_SUPPLY) revert MaxSupply();
+        if (amount + remainingTeamAdvisorGrant + totalSupply() > 5000) revert MaxSupply();
         uint256 currPrice = getCurrentPrice();
         uint256 totalETH = currPrice * amount;
         require(msg.value >= totalETH, "GEN_KEY: INSUFFICIENT FUNDS");
@@ -343,6 +350,29 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         for (uint256 i = 0; i < amount; i++) {
             emit ClaimedGenesisKey(msg.sender, currPrice, block.number, false);
         }
+    }
+
+    function publicBuyKey() external payable nonReentrant {
+        // checks
+        require(startPublicSale, "GEN_KEY: invalid time");
+        require(block.timestamp > 1651705200, "Q.E.D"); // 5/4/22 11pm utc
+        require(!isContract(msg.sender), "GEN_KEY: !CONTRACT");
+        if (totalSupply() != MAX_SUPPLY) revert MaxSupply();
+        if (latestClaimTokenId == 5000) revert MaxSupply();
+
+        uint256 currPrice = getCurrentPrice();
+        require(msg.value >= currPrice, "GEN_KEY: INSUFFICIENT FUNDS");
+
+        // effects
+        latestClaimTokenId += 1;
+
+        // interactions
+        if (msg.value > currPrice) {
+            safeTransferETH(msg.sender, msg.value - currPrice);
+        }
+
+        safeTransferETH(multiSig, address(this).balance);
+        _adminTransfer(address(this), msg.sender, latestClaimTokenId);
     }
 
     // public function for returning the current price
