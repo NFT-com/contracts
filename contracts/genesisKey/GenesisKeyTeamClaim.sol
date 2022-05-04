@@ -74,15 +74,24 @@ contract GenesisKeyTeamClaim is Initializable, UUPSUpgradeable {
         // effects
         // interactions
         if (ownedTokenIds.length != 0) {
+            while (GK.ownerOf(ownedTokenIds[0]) != address(this)) {
+                if (ownedTokenIds.length > 1) {
+                    ownedTokenIds[0] = ownedTokenIds[ownedTokenIds.length - 1];
+                }
+                ownedTokenIds.pop();
+            }
+            if (ownedTokenIds.length == 0) {
+                return false;
+            }
+
             GK.transferFrom(address(this), recipient, ownedTokenIds[0]);
+            emit ClaimedGenesisKey(recipient, 0, block.number, true);
 
             if (ownedTokenIds.length > 1) {
                 ownedTokenIds[0] = ownedTokenIds[ownedTokenIds.length - 1];
             }
-
             ownedTokenIds.pop();
 
-            emit ClaimedGenesisKey(recipient, 0, block.number, true);
             return true;
         }
 
