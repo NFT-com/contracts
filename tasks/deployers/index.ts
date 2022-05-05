@@ -78,6 +78,12 @@ const getTokens = async (hre: any) => {
       : network === "mainnet"
       ? "0xfc99E6b4447a17EA0C6162854fcb572ddC8FbB37"
       : "";
+  const deployedProfileAuction =
+    network == "rinkeby"
+      ? "0x1338A9ec2Ef9906B57082dB0F67ED9E6E661F4A7"
+      : network === "mainnet"
+      ? "0x30f649D418AF7358f9c8CB036219fC7f1B646309"
+      : "";
   const profileMetadataLink = `https://${
     network === "rinkeby" ? "staging-api" : network === "mainnet" ? "prod-api" : ""
   }.nft.com/uri/`;
@@ -103,6 +109,7 @@ const getTokens = async (hre: any) => {
     ipfsHash,
     deployedGenesisKeyTeamClaimAddress,
     multiSig,
+    deployedProfileAuction,
   };
 };
 
@@ -526,7 +533,13 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
     "0xCe90a7949bb78892F159F428D0dC23a8E3584d75": "1",
     "0x5aEfCB0F364AdbAFC197f91c8496a488bA90C3d1": "1",
     "0xA0493410c8EAb06CbE48418021DcbacDB04303Ab": "1",
-    "0x5257B8a48Ff01182617f2Fd25E9C1dB0b2dD6475": "1"
+    "0x5257B8a48Ff01182617f2Fd25E9C1dB0b2dD6475": "1",
+    "0xAd5B657416fbA43CAF6C65Ec8e8DD847d6700286": "1",
+    "0xa6EFa954d13ABCe7786b2C65C356c8Ae46aaD261": "1",
+    "0x6F41a9ab54f7665314768Ebd72AF6bB97c6D85dA": "1",
+    "0x1623e9C3dE4D23e6dDF408Dcfa895AD64a63b6c4": "1",
+    "0x7C594337490Fab2f846b87E4016ECc8893A0659c": "1",
+    "0xB807D0789E5086bDf7D0A66d12406dB40fc8Bc90": "1"
   }`);
 
   const merkleResultInsider = parseBalanceMap(insiderGKClaimJSON);
@@ -3825,19 +3838,6 @@ task("upgrade:NftMarketplace").setAction(async function (taskArguments, hre) {
   await delayedVerifyImp("upgradedNftMarketplace", upgradedNftMarketplace.address, hre);
 });
 
-task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
-  console.log(chalk.green("starting to upgrade..."));
-  const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
-
-  const upgradedProfileAuction = await hre.upgrades.upgradeProxy(
-    "0xc49134c613dcF782F4df562A828cf623Eec7ff82",
-    ProfileAuction,
-  );
-  console.log(chalk.green("upgraded profile auction: ", upgradedProfileAuction.address));
-
-  await delayedVerifyImp("upgradedProfileAuction", upgradedProfileAuction.address, hre);
-});
-
 task("upgrade:Vesting").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
   const Vesting = await hre.ethers.getContractFactory("Vesting");
@@ -3861,6 +3861,21 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 
   await delayedVerifyImp("upgradedGenesisKey", upgradedGenesisKey.address, hre);
+});
+
+task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("starting to upgrade..."));
+  const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
+
+  const upgradedProfileAuction = await hre.upgrades.upgradeProxy(
+    (
+      await getTokens(hre)
+    ).deployedProfileAuction,
+    ProfileAuction,
+  );
+  console.log(chalk.green("upgraded profile auction: ", upgradedProfileAuction.address));
+
+  await delayedVerifyImp("upgradedProfileAuction", upgradedProfileAuction.address, hre);
 });
 
 task("upgrade:GenesisKeyTeamClaim").setAction(async function (taskArguments, hre) {
