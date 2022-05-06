@@ -550,7 +550,8 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
     "0x9416fEe527DB7Cb6fABEeeED4623cE372BE13Fd6": "1",
     "0x7F8C6BC33e482dbA5f2Ba175Cf1F3dDe25406493": "1",
     "0xD48727Db439d84fb0a76B4ffa27022e97f127e40": "1",
-    "0x1BD11705B5fAbC289CD86185c713F1bb312CF6cF": "1"
+    "0x1BD11705B5fAbC289CD86185c713F1bb312CF6cF": "1",
+    "0xeCa48e391E4eA76CD52328C73A549BE86Ce99f8D": "1"
   }`);
 
   const merkleResultInsider = parseBalanceMap(insiderGKClaimJSON);
