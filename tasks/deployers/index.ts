@@ -3888,7 +3888,7 @@ task("upgrade:GenesisKeyTeamClaim").setAction(async function (taskArguments, hre
     ).deployedGenesisKeyTeamClaimAddress,
     GenesisKeyTeamClaim,
   );
-  console.log(chalk.green("upgraded genesis key taem claim: ", upgradedGenesisKeyTeamClaim.address));
+  console.log(chalk.green("upgraded genesis key team claim: ", upgradedGenesisKeyTeamClaim.address));
 
   await delayedVerifyImp("upgradedGenesisKeyTeamClaim", upgradedGenesisKeyTeamClaim.address, hre);
 });

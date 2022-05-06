@@ -56,6 +56,21 @@ contract GenesisKeyTeamClaim is Initializable, UUPSUpgradeable {
         }
     }
 
+    function removeOwedTokenIds(uint256 duplicateTokenId) external onlyOwner {
+        bool seen = false;
+        for (uint256 i = 0; i < ownedTokenIds.length; i++) {
+            if (ownedTokenIds[i] == duplicateTokenId) {
+                if (seen) {
+                    ownedTokenIds[i] = ownedTokenIds[ownedTokenIds.length - 1];
+                    ownedTokenIds.pop();
+                    break;
+                } else {
+                    seen = true;
+                }
+            }
+        }
+    }
+
     function addTokenId(uint256 newTokenId) external {
         require(msg.sender == address(GK));
         require(GK.ownerOf(newTokenId) == address(this));

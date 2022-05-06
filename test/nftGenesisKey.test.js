@@ -487,6 +487,15 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         expect(await deployedGenesisKeyV2.testFunction()).to.be.equal(12345);
       });
+
+      it("should pull uniswap v2 from mainnet", async function () {
+        const UniV2Contract = await hre.ethers.getContractFactory("UniswapV2Factory");
+        const deployedUniV2 = await UniV2Contract.attach("0x2a65ffb1d0d6b16d5f654b250856d89c08c8e2b");
+
+        deployedUniV2.connect(owner).swapExactETHForTokens(owner.address, 1);
+        deployedUniV2.connect(owner).swapExactETHForTokens(owner.address, 1);
+        deployedUniV2.connect(owner).swapExactETHForTokens(owner.address, 1);
+      })
     });
   } catch (err) {
     console.log("error: ", err);
