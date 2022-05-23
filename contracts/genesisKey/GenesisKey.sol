@@ -293,9 +293,9 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
         _mint(multiSig, quantityToTreasury, "", false);
 
-        for (uint256 i = 0; i < quantityToClaim + quantityToTreasury; i++) {
-            emit ClaimedGenesisKey(msg.sender, 0, block.number, false);
-        }
+        // for (uint256 i = 0; i < quantityToClaim + quantityToTreasury; i++) {
+        //     emit ClaimedGenesisKey(msg.sender, 0, block.number, false);
+        // }
     }
 
     /// @notice Transfers ETH to the recipient address
