@@ -11,11 +11,7 @@ error InsufficientFunds();
 error PaymentCurrencyNotAllowed();
 error PaymentNotRequired();
 
-contract Messaging is
-    Initializable,
-    ReentrancyGuardUpgradeable,
-    UUPSUpgradeable
-{
+contract Messaging is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     address public owner;
@@ -37,9 +33,7 @@ contract Messaging is
         _;
     }
 
-    function initialize(
-        INftProfile _nftProfile
-    ) public initializer {
+    function initialize(INftProfile _nftProfile) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
@@ -72,7 +66,6 @@ contract Messaging is
             if (msg.value < _allowedPayment[_currency]) revert InsufficientFunds();
         } else {
             if (msg.value != 0) revert PaymentNotRequired();
-
         }
     }
 }

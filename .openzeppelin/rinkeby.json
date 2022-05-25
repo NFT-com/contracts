@@ -15545,10 +15545,7 @@
           },
           "t_enum(VestingInstallments)13302": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16255,10 +16252,7 @@
           },
           "t_enum(VestingInstallments)13302": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16383,10 +16377,7 @@
           },
           "t_enum(VestingInstallments)1224": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16511,10 +16502,7 @@
           },
           "t_enum(VestingInstallments)13302": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16639,10 +16627,7 @@
           },
           "t_enum(VestingInstallments)13520": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -20629,10 +20614,7 @@
           },
           "t_enum(VestingInstallments)13978": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -22493,10 +22475,7 @@
           },
           "t_enum(VestingInstallments)14257": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
