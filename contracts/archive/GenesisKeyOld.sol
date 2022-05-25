@@ -323,7 +323,7 @@ contract GenesisKeyOld is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgr
         }
     }
 
-     function mintLeftOver(uint256 quantityToClaim, uint256 quantityToTreasury) external onlyOwner {
+    function mintLeftOver(uint256 quantityToClaim, uint256 quantityToTreasury) external onlyOwner {
         require(quantityToClaim != 0 && quantityToTreasury != 0);
         require(remainingTeamAdvisorGrant == 0);
         require(quantityToClaim + quantityToTreasury + remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY);

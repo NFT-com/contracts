@@ -1,11 +1,6 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const {
-  convertTinyNumber,
-  getDigest,
-  getHash,
-  GENESIS_KEY_TYPEHASH,
-} = require("../utils/sign-utils");
+const { convertTinyNumber, getDigest, getHash, GENESIS_KEY_TYPEHASH } = require("../utils/sign-utils");
 const { parseBalanceMap } = require("../utils/parse-balance-map");
 
 const DECIMALS = 18;

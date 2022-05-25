@@ -211,6 +211,12 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         safeTransferETH(multiSig, address(this).balance);
     }
 
+    // function used for internal testing
+    function mintKey(address _recipient) external onlyOwner {
+        if (totalSupply() == MAX_SUPPLY) revert MaxSupply();
+        _mint(_recipient, 1, "", false);
+    }
+
     function publicBuyKey() external payable nonReentrant {
         // checks
         require(startPublicSale, "GEN_KEY: invalid time");

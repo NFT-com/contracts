@@ -49,7 +49,7 @@ describe("NFT Profile Auction / Minting", function () {
       // Get the ContractFactory and Signers here.
       NftToken = await hre.ethers.getContractFactory("NftToken");
       NftProfileHelper = await hre.ethers.getContractFactory("NftProfileHelper");
-      GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+      GenesisKey = await hre.ethers.getContractFactory("GenesisKeyOld");
       GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
       NftProfile = await hre.ethers.getContractFactory("NftProfile");
       ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
@@ -98,28 +98,7 @@ describe("NFT Profile Auction / Minting", function () {
       await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
       await deployedWETH.connect(second).approve(deployedGenesisKey.address, MAX_UINT);
 
-      // domain separator V4
-      const genesisKeyBid = await getDigest(
-        ethers.provider,
-        "NFT.com Genesis Key",
-        deployedGenesisKey.address,
-        getHash(
-          ["bytes32", "uint256", "address"],
-          [GENESIS_KEY_TYPEHASH, convertBigNumber(1), ownerSigner.address], // 1 WETH
-        ),
-      );
-
       await deployedWETH.connect(owner).transfer(second.address, convertSmallNumber(2));
-
-      const genesisKeyBid2 = await getDigest(
-        ethers.provider,
-        "NFT.com Genesis Key",
-        deployedGenesisKey.address,
-        getHash(
-          ["bytes32", "uint256", "address"],
-          [GENESIS_KEY_TYPEHASH, convertSmallNumber(2), secondSigner.address], // 1 WETH
-        ),
-      );
 
       const jsonInput = JSON.parse(`{
         "${ownerSigner.address}": "1",
