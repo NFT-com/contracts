@@ -448,7 +448,7 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
     "0xf1657BF67c1D9eb603687b495584aCab0B456E76": "1",
     "0x2765f720b98e5AFE501f7d190af575d2232273da": "1",
     "0x0363769D5F71918B2dC6676145579b190c734cAF": "1",
-    "0xdC39a97f375beF995e8DD417182F77dae95f26C5": "1",
+    "0xdC39a97f375beF995e8DD417182F77dae95f26C5": "1"
 
   }`);
 
