@@ -1,15 +1,6 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const {
-  convertTinyNumber,
-  sign,
-  getDigest,
-  getHash,
-  ERC20_PERMIT_TYPEHASH,
-  GENESIS_KEY_TYPEHASH,
-} = require("./utils/sign-utils");
-
-const { parseBalanceMap } = require("./utils/parse-balance-map");
+const { convertTinyNumber, sign, getDigest, getHash, ERC20_PERMIT_TYPEHASH } = require("./utils/sign-utils");
 
 describe("NFT Token Genesis Staking (Localnet)", function () {
   try {
@@ -23,10 +14,8 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
     let GenesisKeyTeamClaim;
     let deployedGenesisKeyTeamClaim;
     let GenesisKeyTeamDistributor;
-    let deployedGkTeamDistributor;
     const name = "NFT.com Genesis Key";
     const symbol = "GENESISKEY";
-    let wethAddress;
     const auctionSeconds = "604800"; // seconds in 1 week
 
     // `beforeEach` will run before each test, re-deploying the contract every
@@ -58,89 +47,19 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
       GenesisKeyTeamDistributor = await ethers.getContractFactory("GenesisKeyTeamDistributor");
       deployedGkTeamDistributor = await GenesisKeyTeamDistributor.deploy(deployedGenesisKeyTeamClaim.address);
 
-      await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
-
-      // only set pause transfer until public sale is over
-      await deployedGenesisKey.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
-      await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
-      await deployedGenesisKey.setWhitelist(owner.address, true);
-      await deployedGenesisKey.setWhitelist(second.address, true);
-      await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
-
       const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
       const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
 
       // approve WETH
       await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
       await deployedWETH.connect(second).approve(deployedGenesisKey.address, MAX_UINT);
-
-      // domain separator V4
-      const genesisKeyBid = await getDigest(
-        ethers.provider,
-        "NFT.com Genesis Key",
-        deployedGenesisKey.address,
-        getHash(
-          ["bytes32", "uint256", "address"],
-          [GENESIS_KEY_TYPEHASH, convertTinyNumber(1), ownerSigner.address], // 1 WETH
-        ),
-      );
-
       await deployedWETH.connect(owner).transfer(second.address, convertTinyNumber(2));
 
-      const genesisKeyBid2 = await getDigest(
-        ethers.provider,
-        "NFT.com Genesis Key",
-        deployedGenesisKey.address,
-        getHash(
-          ["bytes32", "uint256", "address"],
-          [GENESIS_KEY_TYPEHASH, convertTinyNumber(2), secondSigner.address], // 1 WETH
-        ),
-      );
-
-      const jsonInput = JSON.parse(`{
-        "${ownerSigner.address}": "1",
-        "${secondSigner.address}": "2"
-      }`);
-
-      const wethMin = convertTinyNumber(1);
-
-      // merkle result is what you need to post publicly and store on FE
-      const merkleResult = parseBalanceMap(jsonInput);
-      const { merkleRoot } = merkleResult;
-
-      const GenesisKeyDistributor = await ethers.getContractFactory("GenesisKeyDistributor");
-      const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(
-        deployedGenesisKey.address,
-        merkleRoot,
-        wethMin,
-      );
-
-      await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
-
-      await deployedGenesisKeyDistributor
-        .connect(owner)
-        .claim(
-          merkleResult.claims[`${ownerSigner.address}`].index,
-          ownerSigner.address,
-          merkleResult.claims[`${ownerSigner.address}`].amount,
-          merkleResult.claims[`${ownerSigner.address}`].proof,
-          { value: wethMin },
-        );
-
-      await deployedGenesisKeyDistributor
-        .connect(second)
-        .claim(
-          merkleResult.claims[`${secondSigner.address}`].index,
-          secondSigner.address,
-          merkleResult.claims[`${secondSigner.address}`].amount,
-          merkleResult.claims[`${secondSigner.address}`].proof,
-          { value: wethMin },
-        );
+      await deployedGenesisKey.connect(owner).mintKey(owner.address);
+      await deployedGenesisKey.connect(owner).mintKey(secondSigner.address);
 
       NftStake = await ethers.getContractFactory("GenesisNftStake");
       deployedNftGenesisStake = await NftStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
-
-      await deployedGenesisKey.setWhitelist(deployedNftGenesisStake.address, true);
 
       await owner.sendTransaction({ to: addr1.address, value: convertTinyNumber(1) });
 

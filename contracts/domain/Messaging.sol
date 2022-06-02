@@ -1,0 +1,71 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.4;
+
+import "../interface/INftProfile.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
+error InsufficientFunds();
+error PaymentCurrencyNotAllowed();
+error PaymentNotRequired();
+
+contract Messaging is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+    using SafeMathUpgradeable for uint256;
+
+    address public owner;
+    INftProfile public nftProfile;
+
+    // erc20s with associated amount required to send a message
+    // 0x0000000000000000000000000000000000000000 is ETH
+    // if value = 0, do not allow
+    mapping(address => uint256) private _allowedPayment;
+
+    // receiver (inbox) -> bitpacked sender + index -> message
+    mapping(address => mapping(uint256 => bytes)) private _messages;
+
+    event NewOwner(address _owner);
+    event UpdatedPayment(address indexed _erc20, uint256 _amount);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    function initialize(INftProfile _nftProfile) public initializer {
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+
+        owner = msg.sender;
+        nftProfile = _nftProfile;
+        _allowedPayment[0x0000000000000000000000000000000000000000] = 0.01 ether;
+    }
+
+    function _authorizeUpgrade(address) internal override onlyOwner {}
+
+    function setOwner(address _new) external onlyOwner {
+        owner = _new;
+        emit NewOwner(_new);
+    }
+
+    function setAllowedPayment(address _erc20, uint256 value) external onlyOwner {
+        _allowedPayment[_erc20] = value;
+        emit UpdatedPayment(_erc20, value);
+    }
+
+    function sendMessage(
+        address _to,
+        address _currency,
+        uint256 _value,
+        bytes calldata _data
+    ) external payable nonReentrant {
+        if (_allowedPayment[_currency] == 0) revert PaymentCurrencyNotAllowed();
+
+        if (_currency == 0x0000000000000000000000000000000000000000) {
+            if (msg.value < _allowedPayment[_currency]) revert InsufficientFunds();
+        } else {
+            if (msg.value != 0) revert PaymentNotRequired();
+        }
+    }
+}

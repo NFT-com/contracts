@@ -1,13 +1,6 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const {
-  convertTinyNumber,
-  sign,
-  getDigest,
-  signHashPublicSale,
-  getHash,
-  GENESIS_KEY_TYPEHASH,
-} = require("./utils/sign-utils");
+const { convertTinyNumber, getDigest, getHash, GENESIS_KEY_TYPEHASH } = require("./utils/sign-utils");
 const { parseBalanceMap } = require("./utils/parse-balance-map");
 
 const DECIMALS = 18;
@@ -58,7 +51,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
       deployedGenesisKey = await hre.upgrades.deployProxy(
         GenesisKey,
-        [name, symbol, multiSig, auctionSeconds, true, "ipfs://"],
+        [name, symbol, multiSig, auctionSeconds, false, "ipfs://"],
         { kind: "uups" },
       );
 
@@ -86,14 +79,8 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       GenesisKeyTeamDistributor = await ethers.getContractFactory("GenesisKeyTeamDistributor");
       deployedGkTeamDistributor = await GenesisKeyTeamDistributor.deploy(deployedGenesisKeyTeamClaim.address);
 
-      await deployedGenesisKey.setGkTeamClaim(deployedGenesisKeyTeamClaim.address);
-
       // only set pause transfer until public sale is over
       await deployedGenesisKey.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
-      await deployedGenesisKey.setWhitelist(deployedGenesisKeyTeamClaim.address, true);
-      await deployedGenesisKey.setWhitelist(owner.address, true);
-      await deployedGenesisKey.setWhitelist(second.address, true);
-      await deployedGenesisKeyTeamClaim.setGenesisKeyMerkle(deployedGkTeamDistributor.address);
 
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       deployedNftBuyer = await NftBuyer.deploy(
@@ -106,12 +93,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       ProfileAuction = await ethers.getContractFactory("ProfileAuction");
       deployedProfileAuction = await upgrades.deployProxy(
         ProfileAuction,
-        [
-          deployedNftProfile.address,
-          owner.address,
-          deployedNftProfileHelper.address,
-          deployedGenesisKey.address,
-        ],
+        [deployedNftProfile.address, owner.address, deployedNftProfileHelper.address, deployedGenesisKey.address],
         { kind: "uups" },
       );
 
@@ -161,265 +143,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await deployedGenesisKey.setPublicSaleDuration(Number(auctionSeconds) + 100);
         expect(await deployedGenesisKey.publicSaleDurationSeconds()).to.eq(Number(auctionSeconds) + 100);
       });
-    });
-
-    describe("Blind Auction and Decreasing Price Sale for Genesis Keys", async function () {
-      it("should allow users to submit a signed signature for a genesis key", async function () {
-        const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
-        const secondSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
-
-        // approve WETH
-        await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
-        await deployedWETH.connect(second).approve(deployedGenesisKey.address, MAX_UINT);
-
-        // domain separator V4
-        const genesisKeyBid = await getDigest(
-          ethers.provider,
-          "NFT.com Genesis Key",
-          deployedGenesisKey.address,
-          getHash(
-            ["bytes32", "uint256", "address"],
-            [GENESIS_KEY_TYPEHASH, convertTinyNumber(1), ownerSigner.address], // 1 WETH
-          ),
-        );
-
-        await deployedWETH.connect(owner).transfer(second.address, convertTinyNumber(2));
-
-        const jsonInput = JSON.parse(`{
-          "${ownerSigner.address}": "1",
-          "${secondSigner.address}": "2"
-        }`);
-
-        const ethMin = convertTinyNumber(1);
-
-        // merkle result is what you need to post publicly and store on FE
-        const merkleResult = parseBalanceMap(jsonInput);
-        const { merkleRoot } = merkleResult;
-
-        const GenesisKeyDistributor = await ethers.getContractFactory("GenesisKeyDistributor");
-        const deployedGenesisKeyDistributor = await GenesisKeyDistributor.deploy(
-          deployedGenesisKey.address,
-          merkleRoot,
-          ethMin,
-        );
-
-        await deployedGenesisKey.connect(owner).setGenesisKeyMerkle(deployedGenesisKeyDistributor.address);
-
-        await deployedGenesisKeyDistributor
-          .connect(owner)
-          .claim(
-            merkleResult.claims[`${ownerSigner.address}`].index,
-            ownerSigner.address,
-            merkleResult.claims[`${ownerSigner.address}`].amount,
-            merkleResult.claims[`${ownerSigner.address}`].proof,
-            {
-              value: ethMin,
-            },
-          );
-
-        const gkEth1 = await web3.eth.getBalance(deployedGenesisKey.address);
-        console.log("gkEth1: ", gkEth1);
-        await expect(gkEth1).to.be.equal(convertTinyNumber(0));
-
-        console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
-
-        // reverts bc owner != secondSigner
-        await expect(
-          deployedGenesisKeyDistributor
-            .connect(owner)
-            .claim(
-              merkleResult.claims[`${secondSigner.address}`].index,
-              secondSigner.address,
-              merkleResult.claims[`${secondSigner.address}`].amount,
-              merkleResult.claims[`${secondSigner.address}`].proof,
-            ),
-        ).to.be.reverted;
-
-        // reverts due to no ETH passed in
-        await expect(
-          deployedGenesisKeyDistributor
-            .connect(second)
-            .claim(
-              merkleResult.claims[`${secondSigner.address}`].index,
-              secondSigner.address,
-              merkleResult.claims[`${secondSigner.address}`].amount,
-              merkleResult.claims[`${secondSigner.address}`].proof,
-            ),
-        ).to.be.reverted;
-
-        await deployedGenesisKeyDistributor
-          .connect(second)
-          .claim(
-            merkleResult.claims[`${secondSigner.address}`].index,
-            secondSigner.address,
-            merkleResult.claims[`${secondSigner.address}`].amount,
-            merkleResult.claims[`${secondSigner.address}`].proof,
-            {
-              value: ethMin,
-            },
-          );
-
-        const gkEth2 = await web3.eth.getBalance(deployedGenesisKey.address);
-        console.log("gkEth2: ", gkEth2);
-        await expect(gkEth2).to.be.equal(convertTinyNumber(0));
-
-        console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
-
-        console.log("owners 1 - 2", await deployedGenesisKey.multiOwnerOf(1, 2));
-        await expect(deployedGenesisKey.multiOwnerOf(3, 2)).to.be.reverted;
-
-        expect(await deployedGenesisKey.tokenURI(1)).to.be.equal("ipfs://1");
-        expect(await deployedGenesisKey.tokenURI(2)).to.be.equal("ipfs://2");
-
-        // reverts bc ownerSigner == msg.sender
-        await expect(deployedGenesisKey.setApprovalForAll(ownerSigner.address, true)).to.be.reverted;
-
-        // just testing
-        await deployedGenesisKey.setApprovalForAll(deployedGenesisKey.address, true);
-      });
-
-      it("should allow the multisig to allocate team and advisor grants for genesis keys", async function () {
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(0);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(0);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(0);
-
-        // addr1.address = multisig
-        await deployedGenesisKey.connect(addr1).claimGrantKey([owner.address, second.address, addr1.address]);
-
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(1);
-      });
-
-      it("should allow users to lock key", async function () {
-        await deployedGenesisKey.connect(owner).setWhitelist(owner.address, false);
-        await deployedGenesisKey.connect(owner).setWhitelist(second.address, false);
-        await deployedGenesisKey.connect(owner).setWhitelist(addr1.address, false);
-        await deployedGenesisKey.connect(addr1).claimGrantKey([owner.address, second.address]);
-
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.totalSupply()).to.be.equal(2);
-
-        // reverts due to !10000 keys
-        await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 1)).to.be.reverted;
-
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.totalSupply()).to.be.equal(2);
-
-        for (let i = 0; i < 248; i++) {
-          await deployedGenesisKey.connect(addr1).claimGrantKey([addr1.address]);
-        }
-
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(248);
-        expect(await deployedGenesisKey.totalSupply()).to.be.equal(250);
-
-        await deployedGenesisKey.connect(owner).setWhitelist(owner.address, true);
-        await deployedGenesisKey.connect(owner).setWhitelist(second.address, true);
-        await deployedGenesisKey.connect(owner).setWhitelist(addr1.address, true);
-
-        await deployedGenesisKey.connect(owner).transferFrom(owner.address, second.address, 1);
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(0);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(2);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(248);
-
-        await deployedGenesisKey.connect(second).transferFrom(second.address, owner.address, 1);
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(248);
-
-        expect(await deployedGenesisKey.lockupBoolean()).to.be.false;
-        // reverts due to lockUp booelan being false
-        await expect(deployedGenesisKey.connect(owner).toggleLockup([2])).to.be.reverted;
-        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
-        // owner != ownerOf(2)
-        await expect(deployedGenesisKey.connect(owner).toggleLockup([2])).to.be.reverted;
-        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
-        await expect(deployedGenesisKey.connect(owner).toggleLockup([1])).to.be.reverted;
-        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
-        await deployedGenesisKey.connect(owner).toggleLockup([1]);
-        expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
-        await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 1)).to.be.reverted;
-
-        console.log("currentXP 1: ", await deployedGenesisKey.currentXP(1));
-        console.log("currentXP 2: ", await deployedGenesisKey.currentXP(2));
-
-        await deployedGenesisKey.connect(owner).toggleLockup([1]);
-        await deployedGenesisKey.transferFrom(owner.address, second.address, 1);
-        expect(await deployedGenesisKey.balanceOf(owner.address)).to.be.equal(0);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(2);
-        expect(await deployedGenesisKey.balanceOf(addr1.address)).to.be.equal(248);
-
-        console.log("currentXP after 2: ", await deployedGenesisKey.currentXP(2));
-        console.log("currentXP after 1: ", await deployedGenesisKey.currentXP(1));
-      });
-
-      // start public auction
-      it("should allow a public auction to start, and not allow new blind auction bids", async function () {
-        const initialWethPrice = convertTinyNumber(3); // 0.03 eth starting price
-        const finalWethPrice = convertTinyNumber(1); // 0.01 eth floor
-
-        // initialized public auction
-        await deployedGenesisKey.initializePublicSale(initialWethPrice, finalWethPrice);
-
-        const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
-
-        // approve WETH
-        await deployedWETH.connect(owner).approve(deployedGenesisKey.address, MAX_UINT);
-
-        const currentPrice = await deployedGenesisKey.getCurrentPrice();
-        console.log("current eth price: ", Number(currentPrice) / 10 ** 18);
-        expect(await deployedGenesisKey.totalSupply()).to.eq(0);
-
-        const { hash, signature } = signHashPublicSale(owner.address);
-        await deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, { value: convertTinyNumber(30) });
-
-        // reverts due to signature and hash being used again
-        await expect(
-          deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, { value: convertTinyNumber(30) }),
-        ).to.be.reverted;
-
-        console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
-
-        // recycle ETH to re use for Testing
-        await deployedGenesisKey.setMultiSig(ownerSigner.address); // send to self
-        await deployedGenesisKey.connect(owner).transferETH();
-
-        const { hash: hash1, signature: signature1 } = signHashPublicSale(owner.address);
-        await deployedGenesisKey.connect(owner).publicExecuteBid(hash1, signature1, { value: convertTinyNumber(30) });
-
-        console.log("await deployedGenesisKey.totalSupply(): ", Number(await deployedGenesisKey.totalSupply()));
-
-        await deployedGenesisKey.connect(owner).transferETH();
-      });
-
-      // SANITY CHECK
-      // it("should stop at 10,000 keys max", async function () {
-      //   const initialWethPrice = BigNumber.from(1).mul(BigNumber.from(10).pow(BigNumber.from(15)));
-      //   const finalWethPrice = BigNumber.from(1).mul(BigNumber.from(10).pow(BigNumber.from(15)));
-
-      //   // initialized public auction
-      //   await deployedGenesisKey.initializePublicSale(initialWethPrice, finalWethPrice);
-
-      //   const currentPrice = await deployedGenesisKey.getCurrentPrice();
-      //   console.log("current eth price: ", Number(currentPrice) / 10 ** 18);
-      //   expect(await deployedGenesisKey.totalSupply()).to.eq(0);
-
-      //   for (let i = 0; i < 9750; i++) {
-      //     const { hash, signature } = signHashPublicSale(owner.address);
-      //     await deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, { value: convertTinyNumber(30) });
-      //     console.log(`key ${i} / 9750`);
-      //   }
-
-      //   console.log('total supply now: ', Number(await deployedGenesisKey.totalSupply()));
-
-      //   const { hash, signature } = signHashPublicSale(owner.address);
-      //   // reverts due to 250 + totalSupply == 10,000
-      //   await expect(deployedGenesisKey.connect(owner).publicExecuteBid(hash, signature, { value: convertTinyNumber(30) })).to.be.reverted;
-      // });
     });
 
     describe("Protocol Upgrades", function () {

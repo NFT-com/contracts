@@ -2,8 +2,8 @@
 pragma solidity >=0.8.4;
 
 import "../erc721a/ERC721AUpgradeable.sol";
+import "../interface/IGenesisKey.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -14,9 +14,12 @@ error PausedTransfer();
 error MaxSupply();
 error LockUpUnavailable();
 
-contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+interface IGkTeamClaim {
+    function addTokenId(uint256 newTokenId) external;
+}
+
+contract GenesisKeyOld is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, IGenesisKey {
     using SafeMathUpgradeable for uint256;
-    using AddressUpgradeable for address;
     using ECDSAUpgradeable for bytes32;
 
     // 2^128 is more than enough to store unix timestamp
@@ -38,7 +41,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     address public multiSig;
     uint96 public initialEthPrice; // initial price of genesis keys in Weth
 
-    address public genesisKeyMerkle; // Deprecated
+    address public genesisKeyMerkle;
     uint96 public finalEthPrice; // final price of genesis keys in Weth
 
     address public gkTeamClaimContract;
@@ -46,13 +49,13 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     address public signerAddress;
     bool public startPublicSale; // global state indicator if public sale is happening
-    bool public pausedTransfer; // Deprecated
-    bool public randomClaimBool; // Deprecated
+    bool public pausedTransfer; // true transfers are paused
+    bool public randomClaimBool; // true if random claim is enabled for team (only used for testing consistency)
     bool public lockupBoolean; // true if GK holders can lockup, false if not
-    uint64 public remainingTeamAdvisorGrant; // Deprecated (0 left)
+    uint64 public remainingTeamAdvisorGrant; // Genesis Keys reserved for team / advisors / grants
 
-    mapping(bytes32 => bool) public cancelledOrFinalized; // Deprecated
-    mapping(address => bool) public whitelistedTransfer; // Deperecated
+    mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
+    mapping(address => bool) public whitelistedTransfer; // Whitelisted transfer (true / false)
     mapping(uint256 => LockupInfo) private _genesisKeyLockUp;
 
     uint256 public constant MAX_SUPPLY = 10000;
@@ -161,7 +164,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
 
         _transfer(from, to, tokenId);
-        if (to.isContract() && !_checkContractOnERC721Received(from, to, tokenId, _data)) {
+        if (isContract(to) && !_checkContractOnERC721Received(from, to, tokenId, _data)) {
             revert TransferToNonERC721ReceiverImplementer();
         }
     }
@@ -174,8 +177,16 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         lockupBoolean = !lockupBoolean;
     }
 
+    function setGenesisKeyMerkle(address _newMK) external onlyOwner {
+        genesisKeyMerkle = _newMK;
+    }
+
     function setPublicSaleDuration(uint96 _seconds) external onlyOwner {
         publicSaleDurationSeconds = _seconds;
+    }
+
+    function setWhitelist(address _address, bool _val) external onlyOwner {
+        whitelistedTransfer[_address] = _val;
     }
 
     function setSigner(address _signer) external onlyOwner {
@@ -197,6 +208,68 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         return 1;
     }
 
+    // =========POST WHITELIST CLAIM KEY ==========================================================================
+    /**
+     @notice allows winning keys to be self-minted by winners
+    */
+    function claimKey(address recipient, uint256 _eth) external payable override nonReentrant returns (bool) {
+        // checks
+        require(msg.sender == genesisKeyMerkle);
+        require(!startPublicSale, "GEN_KEY: only during blind");
+        require(msg.value >= _eth);
+        if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();
+
+        // effects
+        // interactions
+        _mint(recipient, 1, "", false);
+        randomTeamGrant(recipient);
+
+        if (msg.value > _eth) {
+            safeTransferETH(recipient, msg.value - _eth);
+        }
+
+        safeTransferETH(multiSig, address(this).balance);
+
+        emit ClaimedGenesisKey(recipient, _eth, block.number, true);
+
+        return true;
+    }
+
+    // pseudo-randomly assign a team to a key
+    function randomTeamGrant(address _recipient) private {
+        if (
+            remainingTeamAdvisorGrant != 0 &&
+            (uint256(uint160(_recipient)) + block.timestamp) % 5 == 0 &&
+            randomClaimBool
+        ) {
+            remainingTeamAdvisorGrant -= 1;
+
+            _mint(gkTeamClaimContract, 1, "", false);
+            IGkTeamClaim(gkTeamClaimContract).addTokenId(totalSupply());
+            emit ClaimedGenesisKey(gkTeamClaimContract, 0, block.number, false);
+        }
+    }
+
+    function setGkTeamClaim(address _gkTeamClaimContract) external onlyOwner {
+        gkTeamClaimContract = _gkTeamClaimContract;
+    }
+
+    /**
+     @notice sends grant key to end user for team / advisors / grants
+    */
+    function claimGrantKey(uint256 amount) external onlyOwner {
+        require(amount != 0);
+        require(remainingTeamAdvisorGrant >= amount);
+        if (remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY) revert MaxSupply();
+
+        remainingTeamAdvisorGrant -= uint64(amount);
+        _mint(gkTeamClaimContract, amount, "", false);
+
+        for (uint256 i = 0; i < amount; i++) {
+            emit ClaimedGenesisKey(gkTeamClaimContract, 0, block.number, false);
+        }
+    }
+
     /// @notice Transfers ETH to the recipient address
     /// @dev Fails with `STE`
     /// @param to The destination of the transfer
@@ -211,16 +284,65 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         safeTransferETH(multiSig, address(this).balance);
     }
 
-    // function used for internal testing
-    function mintKey(address _recipient) external onlyOwner {
-        if (totalSupply() == MAX_SUPPLY) revert MaxSupply();
-        _mint(_recipient, 1, "", false);
+    function isContract(address account) internal view returns (bool) {
+        // This method relies on extcodesize, which returns 0 for contracts in
+        // construction, since the code is only stored at the end of the
+        // constructor execution.
+
+        uint256 size;
+        assembly {
+            size := extcodesize(account)
+        }
+        return size > 0;
+    }
+
+    // ========= PUBLIC SALE =================================================================
+    // external function for public sale of genesis keys
+    function publicExecuteBid(uint256 amount) external payable nonReentrant {
+        // checks
+        require(startPublicSale, "GEN_KEY: invalid time");
+        require(!isContract(msg.sender), "GEN_KEY: !CONTRACT");
+        require(amount != 0 && amount <= 100, "GEN_KEY: !AMOUNT");
+        if (amount + remainingTeamAdvisorGrant + totalSupply() > 5000) revert MaxSupply();
+        uint256 currPrice = getCurrentPrice();
+        uint256 totalETH = currPrice * amount;
+        require(msg.value >= totalETH, "GEN_KEY: INSUFFICIENT FUNDS");
+
+        // effects
+        // interactions
+        if (msg.value > totalETH) {
+            safeTransferETH(msg.sender, msg.value - totalETH);
+        }
+
+        safeTransferETH(multiSig, address(this).balance);
+        _mint(msg.sender, amount, "", false);
+        randomTeamGrant(msg.sender);
+
+        for (uint256 i = 0; i < amount; i++) {
+            emit ClaimedGenesisKey(msg.sender, currPrice, block.number, false);
+        }
+    }
+
+    function mintLeftOver(uint256 quantityToClaim, uint256 quantityToTreasury) external onlyOwner {
+        require(quantityToClaim != 0 && quantityToTreasury != 0);
+        require(remainingTeamAdvisorGrant == 0);
+        require(quantityToClaim + quantityToTreasury + remainingTeamAdvisorGrant + totalSupply() == MAX_SUPPLY);
+
+        latestClaimTokenId = totalSupply();
+
+        _mint(address(this), quantityToClaim, "", false);
+
+        _mint(multiSig, quantityToTreasury, "", false);
+
+        for (uint256 i = 0; i < quantityToClaim + quantityToTreasury; i++) {
+            emit ClaimedGenesisKey(msg.sender, 0, block.number, false);
+        }
     }
 
     function publicBuyKey() external payable nonReentrant {
         // checks
         require(startPublicSale, "GEN_KEY: invalid time");
-        require(block.timestamp > 1651705200, "Q.E.D"); // 5/4/22 11pm utc
+        require(!isContract(msg.sender), "GEN_KEY: !CONTRACT");
         if (totalSupply() != MAX_SUPPLY) revert MaxSupply();
         if (latestClaimTokenId == 5000) revert MaxSupply();
 

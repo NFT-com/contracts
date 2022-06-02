@@ -220,7 +220,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         require(IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient, "gkp: !owner");
         require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "gkp: !sig");
         require(hashTransaction(msg.sender, profileUrl) == hash, "gkp: !hash");
-        uint256 profilesAllowed = genKeyWhitelistOnly ? 2 : 7;
+        uint256 profilesAllowed = genKeyWhitelistOnly ? 4 : 7;
         require(genesisKeyClaimNumber[tokenId] != profilesAllowed);
 
         // effects
@@ -230,14 +230,14 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         INftProfile(nftProfile).createProfile(
             recipient,
             profileUrl,
-            genesisKeyClaimNumber[tokenId] <= 2 ? 1000 * (365 days) : 365 days
+            genesisKeyClaimNumber[tokenId] <= 4 ? 1000 * (365 days) : 365 days
         );
 
         emit MintedProfile(
             recipient,
             profileUrl,
             INftProfile(nftProfile).totalSupply() - 1,
-            genesisKeyClaimNumber[tokenId] <= 2 ? 1000 * (365 days) : 365 days,
+            genesisKeyClaimNumber[tokenId] <= 4 ? 1000 * (365 days) : 365 days,
             0
         );
     }
