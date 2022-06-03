@@ -92,6 +92,11 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 - [deployedNftMarketplace](https://rinkeby.etherscan.io/address/)
   - implementation => 0x9a47cFd45718dB5BEEA2aA200BE50E157023469c
 
+### Regex Generation
+
+1. npm install -g solregex2
+2. solregex2 --name RegexContractName '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]{2,}'
+
 ### Pre Requisites
 
 Before running any command, you need to create a `.env` file and set a BIP-39 compatible mnemonic as an environment

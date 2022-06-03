@@ -8,6 +8,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+error NotOwner();
+error InvalidAddress();
+
+// onchain regex https://github.com/gnidan/solregex
+interface IRegex {
+    function matches(string input) external view returns (bool);
+}
+
 contract NftProfile is
     Initializable,
     ERC721AProfileUpgradeable,
@@ -17,6 +25,11 @@ contract NftProfile is
 {
     using SafeMathUpgradeable for uint256;
 
+    struct AddressTuple {
+        uint8 chainId;
+        string chainAddress;
+    }
+
     mapping(uint256 => string) internal _tokenURIs;
     mapping(string => uint256) internal _tokenUsedURIs;
     mapping(string => uint256) internal _expiryTimeline;
@@ -24,6 +37,11 @@ contract NftProfile is
     address public profileAuctionContract;
     uint96 public protocolFee;
     address public owner;
+
+    // uint8 represents the blockchain
+    // tokenId => bytes (abi.encode(uint8,string))
+    mapping(uint256 => bytes[]) internal _associatedAddresses;
+    mapping(uint8 => IRegex) internal _chainToRegex;
 
     event NewFee(uint256 _fee);
 
@@ -76,6 +94,46 @@ contract NftProfile is
 
     function profileOwner(string memory _string) external view override returns (address) {
         return ownerOf(_tokenUsedURIs[_string].sub(1));
+    }
+
+    function validateAddress(Blockchain chainId, string memory chainAddress) internal pure {
+        if ((chainId == Blockchain.ETHEREUM || chainId == Blockchain.POLYGON) && chainAddress.strlen() != 64)
+            revert InvalidAddress();
+        else if (chainId == Blockchain.SOLANA && (chainAddress.strlen() < 32 || chainAddress.strlen() > 44))
+            revert InvalidAddress();
+        else if (chainId == Blockchain.TEZOS && chainAddress.strlen() != 32) revert InvalidAddress();
+    }
+
+    function setAssociatedAddresses(bytes[] calldata inputBytes, uint256 tokenId) external {
+        if (ownerOf(tokenId) != msg.sender) revert NotOwner();
+        uint256 l1 = inputBytes.length;
+        for (uint256 i = 0; i < l1; ) {
+            (Blockchain chainId, string memory chainAddress) = abi.decode(inputBytes[i], (Blockchain, string));
+            validateAddress(chainId, chainAddress);
+            unchecked {
+                ++i;
+            }
+        }
+
+        _associatedAddresses[tokenId] = inputBytes;
+    }
+
+    function associatedAddress(uint256 tokenId) external view returns (AddressTuple[] memory) {
+        uint256 l1 = _associatedAddresses[tokenId].length;
+        AddressTuple[] memory tuples = new AddressTuple[](l1);
+
+        for (uint256 i = 0; i < l1; ) {
+            (Blockchain chainId, string memory chainAddress) = abi.decode(
+                _associatedAddresses[tokenId][i],
+                (Blockchain, string)
+            );
+            tuples[i] = AddressTuple(chainId, chainAddress);
+            unchecked {
+                ++i;
+            }
+        }
+
+        return tuples;
     }
 
     /**
