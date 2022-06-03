@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-library EthereumRegex {
+contract EthereumRegex {
     struct State {
         bool accepts;
         function(bytes1) internal pure returns (State memory) func;

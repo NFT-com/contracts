@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-library SolanaRegex {
+contract SolanaRegex {
     struct State {
         bool accepts;
         function(bytes1) internal pure returns (State memory) func;
     }
 
-    string public constant regex = "[0-9a-zA-Z]{32,44}";
+    string public constant regex = "[1-9A-HJ-NP-Za-km-z]{32,44}";
 
     function s0(bytes1 c) internal pure returns (State memory) {
         c = c;
@@ -17,7 +17,14 @@ library SolanaRegex {
     function s1(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s2);
         }
 
@@ -27,7 +34,14 @@ library SolanaRegex {
     function s2(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s3);
         }
 
@@ -37,7 +51,14 @@ library SolanaRegex {
     function s3(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s4);
         }
 
@@ -47,7 +68,14 @@ library SolanaRegex {
     function s4(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s5);
         }
 
@@ -57,7 +85,14 @@ library SolanaRegex {
     function s5(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s6);
         }
 
@@ -67,7 +102,14 @@ library SolanaRegex {
     function s6(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s7);
         }
 
@@ -77,7 +119,14 @@ library SolanaRegex {
     function s7(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s8);
         }
 
@@ -87,7 +136,14 @@ library SolanaRegex {
     function s8(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s9);
         }
 
@@ -97,7 +153,14 @@ library SolanaRegex {
     function s9(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s10);
         }
 
@@ -107,7 +170,14 @@ library SolanaRegex {
     function s10(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s11);
         }
 
@@ -117,7 +187,14 @@ library SolanaRegex {
     function s11(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s12);
         }
 
@@ -127,7 +204,14 @@ library SolanaRegex {
     function s12(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s13);
         }
 
@@ -137,7 +221,14 @@ library SolanaRegex {
     function s13(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s14);
         }
 
@@ -147,7 +238,14 @@ library SolanaRegex {
     function s14(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s15);
         }
 
@@ -157,7 +255,14 @@ library SolanaRegex {
     function s15(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s16);
         }
 
@@ -167,7 +272,14 @@ library SolanaRegex {
     function s16(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s17);
         }
 
@@ -177,7 +289,14 @@ library SolanaRegex {
     function s17(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s18);
         }
 
@@ -187,7 +306,14 @@ library SolanaRegex {
     function s18(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s19);
         }
 
@@ -197,7 +323,14 @@ library SolanaRegex {
     function s19(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s20);
         }
 
@@ -207,7 +340,14 @@ library SolanaRegex {
     function s20(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s21);
         }
 
@@ -217,7 +357,14 @@ library SolanaRegex {
     function s21(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s22);
         }
 
@@ -227,7 +374,14 @@ library SolanaRegex {
     function s22(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s23);
         }
 
@@ -237,7 +391,14 @@ library SolanaRegex {
     function s23(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s24);
         }
 
@@ -247,7 +408,14 @@ library SolanaRegex {
     function s24(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s25);
         }
 
@@ -257,7 +425,14 @@ library SolanaRegex {
     function s25(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s26);
         }
 
@@ -267,7 +442,14 @@ library SolanaRegex {
     function s26(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s27);
         }
 
@@ -277,7 +459,14 @@ library SolanaRegex {
     function s27(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s28);
         }
 
@@ -287,7 +476,14 @@ library SolanaRegex {
     function s28(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s29);
         }
 
@@ -297,7 +493,14 @@ library SolanaRegex {
     function s29(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s30);
         }
 
@@ -307,7 +510,14 @@ library SolanaRegex {
     function s30(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s31);
         }
 
@@ -317,7 +527,14 @@ library SolanaRegex {
     function s31(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(false, s32);
         }
 
@@ -327,7 +544,14 @@ library SolanaRegex {
     function s32(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s33);
         }
 
@@ -337,7 +561,14 @@ library SolanaRegex {
     function s33(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s34);
         }
 
@@ -347,7 +578,14 @@ library SolanaRegex {
     function s34(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s35);
         }
 
@@ -357,7 +595,14 @@ library SolanaRegex {
     function s35(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s36);
         }
 
@@ -367,7 +612,14 @@ library SolanaRegex {
     function s36(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s37);
         }
 
@@ -377,7 +629,14 @@ library SolanaRegex {
     function s37(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s38);
         }
 
@@ -387,7 +646,14 @@ library SolanaRegex {
     function s38(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s39);
         }
 
@@ -397,7 +663,14 @@ library SolanaRegex {
     function s39(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s40);
         }
 
@@ -407,7 +680,14 @@ library SolanaRegex {
     function s40(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s41);
         }
 
@@ -417,7 +697,14 @@ library SolanaRegex {
     function s41(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s42);
         }
 
@@ -427,7 +714,14 @@ library SolanaRegex {
     function s42(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s43);
         }
 
@@ -437,7 +731,14 @@ library SolanaRegex {
     function s43(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s44);
         }
 
@@ -447,7 +748,14 @@ library SolanaRegex {
     function s44(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if ((_cint >= 48 && _cint <= 57) || (_cint >= 65 && _cint <= 90) || (_cint >= 97 && _cint <= 122)) {
+        if (
+            (_cint >= 49 && _cint <= 57) ||
+            (_cint >= 65 && _cint <= 72) ||
+            (_cint >= 74 && _cint <= 78) ||
+            (_cint >= 80 && _cint <= 90) ||
+            (_cint >= 97 && _cint <= 107) ||
+            (_cint >= 109 && _cint <= 122)
+        ) {
             return State(true, s45);
         }
 

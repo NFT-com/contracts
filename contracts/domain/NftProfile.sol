@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "./regex/EthereumRegex.sol";
-import "./regex/HederaRegex.sol";
-import "./regex/SolanaRegex.sol";
-import "./regex/TezosRegex.sol";
-import "./regex/FlowRegex.sol";
 import "../interface/INftProfile.sol";
 import "../erc721a/ERC721AProfileUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
@@ -15,6 +10,10 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 error NotOwner();
 error InvalidAddress();
+
+interface IRegex {
+    function matches(string memory input) external pure returns (bool);
+}
 
 contract NftProfile is
     Initializable,
@@ -35,8 +34,8 @@ contract NftProfile is
     }
 
     struct AddressTuple {
-        Blockchain chainId;
-        string chainAddress;
+        Blockchain cid;
+        string chainAddr;
     }
 
     mapping(uint256 => string) internal _tokenURIs;
@@ -50,8 +49,10 @@ contract NftProfile is
     // uint8 represents the blockchain
     // tokenId => bytes (abi.encode(uint8,string))
     mapping(uint256 => bytes[]) internal _associatedAddresses;
+    mapping(Blockchain => IRegex) internal _associatedRegex;
 
     event NewFee(uint256 _fee);
+    event UpdatedRegex(Blockchain _cid, IRegex _regexAddress);
 
     modifier onlyOwner() {
         require(msg.sender == owner);
@@ -104,21 +105,25 @@ contract NftProfile is
         return ownerOf(_tokenUsedURIs[_string].sub(1));
     }
 
-    function validateAddress(Blockchain chainId, string memory chainAddress) internal pure {
-        if ((chainId == Blockchain.ETHEREUM || chainId == Blockchain.POLYGON) && !EthereumRegex.matches(chainAddress))
+    function validRegex(Blockchain cid, string memory chainAddr) private view returns (bool) {
+        return _associatedRegex[cid].matches(chainAddr);
+    }
+
+    function validateAddress(Blockchain cid, string memory chainAddr) private view {
+        if ((cid == Blockchain.ETHEREUM || cid == Blockchain.POLYGON) && validRegex(cid, chainAddr))
             revert InvalidAddress();
-        else if (chainId == Blockchain.SOLANA && !SolanaRegex.matches(chainAddress)) revert InvalidAddress();
-        else if (chainId == Blockchain.TEZOS && !TezosRegex.matches(chainAddress)) revert InvalidAddress();
-        else if (chainId == Blockchain.HEDERA && !HederaRegex.matches(chainAddress)) revert InvalidAddress();
-        else if (chainId == Blockchain.FLOW && !FlowRegex.matches(chainAddress)) revert InvalidAddress();
+        else if (cid == Blockchain.SOLANA && validRegex(cid, chainAddr)) revert InvalidAddress();
+        else if (cid == Blockchain.TEZOS && validRegex(cid, chainAddr)) revert InvalidAddress();
+        else if (cid == Blockchain.HEDERA && validRegex(cid, chainAddr)) revert InvalidAddress();
+        else if (cid == Blockchain.FLOW && validRegex(cid, chainAddr)) revert InvalidAddress();
     }
 
     function setAssociatedAddresses(bytes[] memory inputBytes, uint256 tokenId) external {
         if (ownerOf(tokenId) != msg.sender) revert NotOwner();
         uint256 l1 = inputBytes.length;
         for (uint256 i = 0; i < l1; ) {
-            (Blockchain chainId, string memory chainAddress) = abi.decode(inputBytes[i], (Blockchain, string));
-            validateAddress(chainId, chainAddress);
+            (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes[i], (Blockchain, string));
+            validateAddress(cid, chainAddr);
             unchecked {
                 ++i;
             }
@@ -132,11 +137,11 @@ contract NftProfile is
         AddressTuple[] memory tuples = new AddressTuple[](l1);
 
         for (uint256 i = 0; i < l1; ) {
-            (Blockchain chainId, string memory chainAddress) = abi.decode(
+            (Blockchain cid, string memory chainAddr) = abi.decode(
                 _associatedAddresses[tokenId][i],
                 (Blockchain, string)
             );
-            tuples[i] = AddressTuple(chainId, chainAddress);
+            tuples[i] = AddressTuple(cid, chainAddr);
             unchecked {
                 ++i;
             }
@@ -178,6 +183,11 @@ contract NftProfile is
     */
     function setProfileAuction(address _profileAuctionContract) external onlyOwner {
         profileAuctionContract = _profileAuctionContract;
+    }
+
+    function setRegex(Blockchain _cid, IRegex _regexContract) external onlyOwner {
+        _associatedRegex[_cid] = _regexContract;
+        emit UpdatedRegex(_cid, _regexContract);
     }
 
     function setOwner(address _new) external onlyOwner {
