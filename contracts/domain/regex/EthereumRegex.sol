@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-library EthereumAddress {
+library EthereumRegex {
     struct State {
         bool accepts;
         function(bytes1) internal pure returns (State memory) func;
@@ -438,7 +438,7 @@ library EthereumAddress {
         uint8 _cint = uint8(c);
 
         // silence unused var warning
-        c = c;
+        _cint = _cint;
 
         return State(false, s0);
     }

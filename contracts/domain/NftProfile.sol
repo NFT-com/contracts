@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+import "./regex/EthereumRegex.sol";
+import "./regex/HederaRegex.sol";
+import "./regex/SolanaRegex.sol";
+import "./regex/TezosRegex.sol";
+import "./regex/FlowRegex.sol";
 import "../interface/INftProfile.sol";
 import "../erc721a/ERC721AProfileUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
@@ -11,11 +16,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 error NotOwner();
 error InvalidAddress();
 
-// onchain regex https://github.com/gnidan/solregex
-interface IRegex {
-    function matches(string input) external view returns (bool);
-}
-
 contract NftProfile is
     Initializable,
     ERC721AProfileUpgradeable,
@@ -25,8 +25,17 @@ contract NftProfile is
 {
     using SafeMathUpgradeable for uint256;
 
+    enum Blockchain {
+        ETHEREUM,
+        HEDERA,
+        POLYGON,
+        SOLANA,
+        TEZOS,
+        FLOW
+    }
+
     struct AddressTuple {
-        uint8 chainId;
+        Blockchain chainId;
         string chainAddress;
     }
 
@@ -41,7 +50,6 @@ contract NftProfile is
     // uint8 represents the blockchain
     // tokenId => bytes (abi.encode(uint8,string))
     mapping(uint256 => bytes[]) internal _associatedAddresses;
-    mapping(uint8 => IRegex) internal _chainToRegex;
 
     event NewFee(uint256 _fee);
 
@@ -97,14 +105,15 @@ contract NftProfile is
     }
 
     function validateAddress(Blockchain chainId, string memory chainAddress) internal pure {
-        if ((chainId == Blockchain.ETHEREUM || chainId == Blockchain.POLYGON) && chainAddress.strlen() != 64)
+        if ((chainId == Blockchain.ETHEREUM || chainId == Blockchain.POLYGON) && !EthereumRegex.matches(chainAddress))
             revert InvalidAddress();
-        else if (chainId == Blockchain.SOLANA && (chainAddress.strlen() < 32 || chainAddress.strlen() > 44))
-            revert InvalidAddress();
-        else if (chainId == Blockchain.TEZOS && chainAddress.strlen() != 32) revert InvalidAddress();
+        else if (chainId == Blockchain.SOLANA && !SolanaRegex.matches(chainAddress)) revert InvalidAddress();
+        else if (chainId == Blockchain.TEZOS && !TezosRegex.matches(chainAddress)) revert InvalidAddress();
+        else if (chainId == Blockchain.HEDERA && !HederaRegex.matches(chainAddress)) revert InvalidAddress();
+        else if (chainId == Blockchain.FLOW && !FlowRegex.matches(chainAddress)) revert InvalidAddress();
     }
 
-    function setAssociatedAddresses(bytes[] calldata inputBytes, uint256 tokenId) external {
+    function setAssociatedAddresses(bytes[] memory inputBytes, uint256 tokenId) external {
         if (ownerOf(tokenId) != msg.sender) revert NotOwner();
         uint256 l1 = inputBytes.length;
         for (uint256 i = 0; i < l1; ) {

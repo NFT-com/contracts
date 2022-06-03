@@ -458,7 +458,7 @@ library SolanaRegex {
         uint8 _cint = uint8(c);
 
         // silence unused var warning
-        c = c;
+        _cint = _cint;
 
         return State(false, s0);
     }
