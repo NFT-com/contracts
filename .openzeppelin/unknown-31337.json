@@ -12058,12 +12058,12 @@
     },
     {
       "address": "0x540d45e3040Bfa48CF45B2Fbc8b5A523bEe24496",
-      "txHash": "0xfb963caf9c14829dfba201d6e1c65ed1ac0099baf77f26ce1239c406592ab003",
+      "txHash": "0xe6018a41a6787e19083989d30d39796ee0a61d9e2d6e9ac890236324f78f3ddd",
       "kind": "uups"
     },
     {
       "address": "0xa982496268a66F7a649Cbb726576AF05a54dc72A",
-      "txHash": "0xbc0e911055be9db9d82ffd4a456c6709b76d8cc258627d64b9c0605904ce6bdb",
+      "txHash": "0x0286db56b943e14f5a9a5ac1760375f8292522e254bd4f69e7afe85753997367",
       "kind": "uups"
     },
     {
@@ -48336,7 +48336,7 @@
     },
     "4d2aae6bfc4a2e96aebca6f48f5c063c14c5c0681bf6e06fe1607241f55f4e41": {
       "address": "0x42655C9fdEF6Ea460a724854568c81Ce703AfeB4",
-      "txHash": "0x74206186c8178bed03c5eb37e8438ca24a1dbb85ac89c46f8ab943c1bfe1bdf9",
+      "txHash": "0x6e09d085066bf5e101e8843e5aa68d7e7a4af839e3a718fac7294c24991050a1",
       "layout": {
         "storage": [
           {
@@ -49164,7 +49164,7 @@
     },
     "afef4bc1e073bbae54d259cedbfb0f6ddfb372f4bbefd8c0c64e95858f0d1435": {
       "address": "0x26755A2183998693A59d171bd9534c1a508346Bd",
-      "txHash": "0x50717a948367f26344115fb611ccd38613bb5953430711c70140bc4dda6f4ead",
+      "txHash": "0x68c702e578874ee131fafbf5f798e8beb7b6e5fcaa2d2a5310e8c5932f9e9110",
       "layout": {
         "storage": [
           {

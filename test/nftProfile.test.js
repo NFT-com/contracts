@@ -354,23 +354,23 @@ describe("NFT Profile Auction / Minting", function () {
       // });
 
       it("should allow proper regex association of cross chain addresses", async function () {
+        expect(await deployedHederaRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
+        expect(await deployedHederaRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
+        expect(await deployedHederaRegex.matches("0x956Ae058bb6fF5C5784050526142006327D5186a")).to.be.equal(false);
+
+        expect(await deployedHederaRegex.matches("0.0.1")).to.be.equal(true);
+        expect(await deployedHederaRegex.matches("0.0.99")).to.be.equal(true);
+        expect(await deployedHederaRegex.matches("0.0.112233")).to.be.equal(true);
+        expect(await deployedHederaRegex.matches("0.0.12")).to.be.equal(true);
+        expect(await deployedHederaRegex.matches("0.0.991")).to.be.equal(true);
+        expect(await deployedHederaRegex.matches("0.0.112203")).to.be.equal(true);
+        
         expect(await deployedEthereumRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(true);
         expect(await deployedEthereumRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(true);
         expect(await deployedEthereumRegex.matches("0x956Ae058bb6fF5C5784050526142006327D5186a")).to.be.equal(true);
         expect(await deployedEthereumRegex.matches("0.0.1")).to.be.equal(false);
         expect(await deployedEthereumRegex.matches("0.0.23")).to.be.equal(false);
         expect(await deployedEthereumRegex.matches("0123123")).to.be.equal(false);
-
-        // expect(await deployedHederaRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
-        // expect(await deployedHederaRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
-        // expect(await deployedHederaRegex.matches("0x956Ae058bb6fF5C5784050526142006327D5186a")).to.be.equal(false);
-
-        // expect(await deployedHederaRegex.matches("0.0.1")).to.be.equal(true);
-        // expect(await deployedHederaRegex.matches("0.0.99")).to.be.equal(true);
-        // expect(await deployedHederaRegex.matches("0.0.112233")).to.be.equal(true);
-        // expect(await deployedHederaRegex.matches("0.1.1")).to.be.equal(true);
-        // expect(await deployedHederaRegex.matches("1.0.99")).to.be.equal(true);
-        // expect(await deployedHederaRegex.matches("1.1.112233")).to.be.equal(true);
 
         expect(await deployedHederaRegex.matches("0.1.7777777")).to.be.equal(false);
         expect(await deployedHederaRegex.matches("1.0.")).to.be.equal(false);

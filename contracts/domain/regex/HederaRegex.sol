@@ -7,7 +7,7 @@ contract HederaRegex {
         function(bytes1) internal pure returns (State memory) func;
     }
 
-    string public constant regex = "0\\.0\\.\\d{1,6}";
+    string public constant regex = "0\\.0\\.[0-9]{1,6}";
 
     function s0(bytes1 c) internal pure returns (State memory) {
         c = c;
@@ -27,7 +27,7 @@ contract HederaRegex {
     function s2(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if (_cint == 92) {
+        if (_cint == 46) {
             return State(false, s3);
         }
 
@@ -37,7 +37,7 @@ contract HederaRegex {
     function s3(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if (_cint >= 0 && _cint <= 255) {
+        if (_cint == 48) {
             return State(false, s4);
         }
 
@@ -47,7 +47,7 @@ contract HederaRegex {
     function s4(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if (_cint == 48) {
+        if (_cint == 46) {
             return State(false, s5);
         }
 
@@ -57,8 +57,8 @@ contract HederaRegex {
     function s5(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if (_cint == 92) {
-            return State(false, s6);
+        if (_cint >= 48 && _cint <= 57) {
+            return State(true, s6);
         }
 
         return State(false, s0);
@@ -67,8 +67,8 @@ contract HederaRegex {
     function s6(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if (_cint >= 0 && _cint <= 255) {
-            return State(false, s7);
+        if (_cint >= 48 && _cint <= 57) {
+            return State(true, s7);
         }
 
         return State(false, s0);
@@ -77,8 +77,8 @@ contract HederaRegex {
     function s7(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if (_cint == 92) {
-            return State(false, s8);
+        if (_cint >= 48 && _cint <= 57) {
+            return State(true, s8);
         }
 
         return State(false, s0);
@@ -87,7 +87,7 @@ contract HederaRegex {
     function s8(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if (_cint == 100) {
+        if (_cint >= 48 && _cint <= 57) {
             return State(true, s9);
         }
 
@@ -97,7 +97,7 @@ contract HederaRegex {
     function s9(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if (_cint == 100) {
+        if (_cint >= 48 && _cint <= 57) {
             return State(true, s10);
         }
 
@@ -107,7 +107,7 @@ contract HederaRegex {
     function s10(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
-        if (_cint == 100) {
+        if (_cint >= 48 && _cint <= 57) {
             return State(true, s11);
         }
 
@@ -115,36 +115,6 @@ contract HederaRegex {
     }
 
     function s11(bytes1 c) internal pure returns (State memory) {
-        uint8 _cint = uint8(c);
-
-        if (_cint == 100) {
-            return State(true, s12);
-        }
-
-        return State(false, s0);
-    }
-
-    function s12(bytes1 c) internal pure returns (State memory) {
-        uint8 _cint = uint8(c);
-
-        if (_cint == 100) {
-            return State(true, s13);
-        }
-
-        return State(false, s0);
-    }
-
-    function s13(bytes1 c) internal pure returns (State memory) {
-        uint8 _cint = uint8(c);
-
-        if (_cint == 100) {
-            return State(true, s14);
-        }
-
-        return State(false, s0);
-    }
-
-    function s14(bytes1 c) internal pure returns (State memory) {
         uint8 _cint = uint8(c);
 
         // silence unused var warning
