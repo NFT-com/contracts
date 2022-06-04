@@ -8,6 +8,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+error AddressNotFound();
+error DuplicateAddress();
 error NotOwner();
 error InvalidAddress();
 
@@ -105,25 +107,64 @@ contract NftProfile is
         return ownerOf(_tokenUsedURIs[_string].sub(1));
     }
 
-    function validRegex(Blockchain cid, string memory chainAddr) private view returns (bool) {
-        return _associatedRegex[cid].matches(chainAddr);
-    }
-
+    // validation helper function for different chains
     function validateAddress(Blockchain cid, string memory chainAddr) private view {
-        if ((cid == Blockchain.ETHEREUM || cid == Blockchain.POLYGON) && validRegex(cid, chainAddr))
-            revert InvalidAddress();
-        else if (cid == Blockchain.SOLANA && validRegex(cid, chainAddr)) revert InvalidAddress();
-        else if (cid == Blockchain.TEZOS && validRegex(cid, chainAddr)) revert InvalidAddress();
-        else if (cid == Blockchain.HEDERA && validRegex(cid, chainAddr)) revert InvalidAddress();
-        else if (cid == Blockchain.FLOW && validRegex(cid, chainAddr)) revert InvalidAddress();
+        if (!_associatedRegex[cid].matches(chainAddr)) revert InvalidAddress();
     }
 
+    // adds multiple addresses at a time while checking for duplicates
+    function addAssociatedAddresses(bytes[] memory inputBytes, uint256 tokenId) external {
+        if (ownerOf(tokenId) != msg.sender) revert NotOwner();
+        uint256 l1 = inputBytes.length;
+        uint256 l2 = _associatedAddresses[tokenId].length;
+        for (uint256 i = 0; i < l1; ) {
+            (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes[i], (Blockchain, string));
+            validateAddress(cid, chainAddr);
+
+            for (uint256 j = 0; j < l2; ) {
+                if (keccak256(_associatedAddresses[tokenId][j]) == keccak256(inputBytes[i])) revert DuplicateAddress();
+                else _associatedAddresses[tokenId].push(inputBytes[i]);
+
+                unchecked {
+                    ++j;
+                }
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    // removes 1 address at a time
+    function removeAssociatedAddress(bytes memory inputBytes, uint256 tokenId) external {
+        if (ownerOf(tokenId) != msg.sender) revert NotOwner();
+        uint256 l1 = _associatedAddresses[tokenId].length;
+        for (uint256 i = 0; i < l1; ) {
+            (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes, (Blockchain, string));
+            validateAddress(cid, chainAddr);
+
+            if (keccak256(_associatedAddresses[tokenId][i]) == keccak256(inputBytes)) {
+                _associatedAddresses[tokenId][i] = _associatedAddresses[tokenId][l1 - 1];
+                _associatedAddresses[tokenId].pop();
+                break;
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        revert AddressNotFound();
+    }
+
+    // can be used to clear mapping OR more gas efficient to remove multiple addresses
     function setAssociatedAddresses(bytes[] memory inputBytes, uint256 tokenId) external {
         if (ownerOf(tokenId) != msg.sender) revert NotOwner();
         uint256 l1 = inputBytes.length;
         for (uint256 i = 0; i < l1; ) {
             (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes[i], (Blockchain, string));
             validateAddress(cid, chainAddr);
+
             unchecked {
                 ++i;
             }
