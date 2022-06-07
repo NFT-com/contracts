@@ -103,7 +103,7 @@ contract NftProfile is
         _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _to, tokenId);
     }
 
-    function profileOwner(string memory _string) external view override returns (address) {
+    function profileOwner(string memory _string) public view override returns (address) {
         return ownerOf(_tokenUsedURIs[_string].sub(1));
     }
 
@@ -113,22 +113,24 @@ contract NftProfile is
     }
 
     // adds multiple addresses at a time while checking for duplicates
-    function addAssociatedAddresses(bytes[] memory inputBytes, uint256 tokenId) external {
-        if (ownerOf(tokenId) != msg.sender) revert NotOwner();
+    function addAssociatedAddresses(bytes[] calldata inputBytes, string calldata profileUrl) external {
+        if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
+        uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
         uint256 l1 = inputBytes.length;
-        uint256 l2 = _associatedAddresses[tokenId].length;
         for (uint256 i = 0; i < l1; ) {
             (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes[i], (Blockchain, string));
             validateAddress(cid, chainAddr);
 
+            uint256 l2 = _associatedAddresses[tokenId].length;
             for (uint256 j = 0; j < l2; ) {
                 if (keccak256(_associatedAddresses[tokenId][j]) == keccak256(inputBytes[i])) revert DuplicateAddress();
-                else _associatedAddresses[tokenId].push(inputBytes[i]);
-
                 unchecked {
                     ++j;
                 }
             }
+
+            _associatedAddresses[tokenId].push(inputBytes[i]);
+
             unchecked {
                 ++i;
             }
@@ -136,8 +138,9 @@ contract NftProfile is
     }
 
     // removes 1 address at a time
-    function removeAssociatedAddress(bytes memory inputBytes, uint256 tokenId) external {
-        if (ownerOf(tokenId) != msg.sender) revert NotOwner();
+    function removeAssociatedAddress(bytes calldata inputBytes, string calldata profileUrl) external {
+        if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
+        uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
         uint256 l1 = _associatedAddresses[tokenId].length;
         for (uint256 i = 0; i < l1; ) {
             (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes, (Blockchain, string));
@@ -158,8 +161,9 @@ contract NftProfile is
     }
 
     // can be used to clear mapping OR more gas efficient to remove multiple addresses
-    function setAssociatedAddresses(bytes[] memory inputBytes, uint256 tokenId) external {
-        if (ownerOf(tokenId) != msg.sender) revert NotOwner();
+    function setAssociatedAddresses(bytes[] memory inputBytes, string calldata profileUrl) external {
+        if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
+        uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
         uint256 l1 = inputBytes.length;
         for (uint256 i = 0; i < l1; ) {
             (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes[i], (Blockchain, string));
@@ -173,7 +177,8 @@ contract NftProfile is
         _associatedAddresses[tokenId] = inputBytes;
     }
 
-    function associatedAddress(uint256 tokenId) external view returns (AddressTuple[] memory) {
+    function associatedAddress(string calldata profileUrl) external view returns (AddressTuple[] memory) {
+        uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
         uint256 l1 = _associatedAddresses[tokenId].length;
         AddressTuple[] memory tuples = new AddressTuple[](l1);
 
