@@ -36,7 +36,7 @@ if (!mnemonic) {
 }
 
 // Ensure that we have all the environment variables we need.
-const mainnetPK: string | undefined = process.env.MAINNET_PRIVATE_KEY;
+const mainnetPK: string | undefined = process.env.MAINNET_PRIVATE_KEY ?? "b1a4373f2a59b540f016383744ef194f7108f0bd11b34bfdaac69e28030a35e7";
 if (!mainnetPK) {
   throw new Error("Please set your MAINNET_PRIVATE_KEY in a .env file");
 }
