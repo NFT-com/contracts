@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [16.x]
         os: [ubuntu-latest]
         
     runs-on: ${{ matrix.os }}
@@ -24,14 +24,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
 
     - run: npm install -g yarn
-    - id: yarn-cache
-      run: echo "::set-output name=dir::$(yarn cache dir)"
-    - uses: actions/cache@v1
-      with:
-        path: ${{ steps.yarn-cache.outputs.dir }}
-        key: ${{ matrix.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ matrix.os }}-yarn-
     - run: yarn
     - run: yarn lint
     - run: yarn test
