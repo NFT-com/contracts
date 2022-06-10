@@ -30,7 +30,7 @@ const chainIds = {
 };
 
 // Ensure that we have all the environment variables we need.
-const mnemonic: string | undefined = process.env.MNEMONIC;
+const mnemonic: string | undefined = process.env.MNEMONIC ?? "test test test test test test test test test test test test";
 if (!mnemonic) {
   throw new Error("Please set your MNEMONIC in a .env file");
 }
@@ -41,12 +41,12 @@ if (!mainnetPK) {
   throw new Error("Please set your MAINNET_PRIVATE_KEY in a .env file");
 }
 
-const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
+const infuraApiKey: string | undefined = process.env.INFURA_API_KEY ?? "460ed70fa7394604a709b7dff23f1641";
 if (!infuraApiKey) {
   throw new Error("Please set your INFURA_API_KEY in a .env file");
 }
 
-const alchemyApiKey: string | undefined = process.env.ALCHEMY_API_KEY;
+const alchemyApiKey: string | undefined = process.env.ALCHEMY_API_KEY ?? "_H3tl1xfDKddnitmisPE4_0trJiEEaG4";
 if (!infuraApiKey) {
   throw new Error("Please set your ALCHEMY_API_KEY in a .env file");
 }
