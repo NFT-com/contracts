@@ -29,6 +29,7 @@ jobs:
         envkey_MAINNET_PRIVATE_KEY: "0xb1a4373f2a59b540f016383744ef194f7108f0bd11b34bfdaac69e28030a35e7"
         envkey_INFURA_API_KEY: "460ed70fa7394604a709b7dff23f1641"
         envkey_ALCHEMY_API_KEY: "_H3tl1xfDKddnitmisPE4_0trJiEEaG4"
+        envkey_PUBLIC_SALE_SIGNER_ADDRESS: "0xB6D66FcF587D68b8058f03b88d35B36E38C5344f"
         file_name: .env
         fail_on_empty: false
         
