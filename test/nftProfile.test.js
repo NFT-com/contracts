@@ -410,9 +410,7 @@ describe("NFT Profile Auction / Minting", function () {
         expect((await deployedNftProfile.associatedAddress("profile6"))[0][1]).to.be.equal("0x59495589849423692778a8c5aaCA62CA80f875a4");
         
         const encodedAddress2 = encode(["uint8", "string"], [0, "0x59495589849423692778a8c5aaCA62CA80f875a4"]);
-        const lowerCaseEncodedAddress2 = encode(["uint8", "string"], [0, "0x59495589849423692778a8c5aaca62ca80f875a4"]);
         await expect(deployedNftProfile.connect(owner).addAssociatedAddresses([encodedAddress2], "profile6")).to.be.reverted; // reverts due to duplicate address
-        await expect(deployedNftProfile.connect(owner).addAssociatedAddresses([lowerCaseEncodedAddress2], "profile6")).to.be.reverted; // reverts due to duplicate address (lowercase)
       });
 
       it("should upgrade profile contract to V2", async function () {
