@@ -44,4 +44,4 @@ jobs:
           ${{ matrix.os }}-yarn-
     - run: npm install -g yarn
     - run: yarn install
-    - run: yarn test test/*.js
+    - run: yarn coverage
