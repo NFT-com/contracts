@@ -103,6 +103,21 @@ contract NftProfile is
         _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _to, tokenId);
     }
 
+    function _toLower(string memory str) internal pure returns (string memory) {
+        bytes memory bStr = bytes(str);
+        bytes memory bLower = new bytes(bStr.length);
+        for (uint i = 0; i < bStr.length; i++) {
+            // Uppercase character...
+            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
+                // So we add 32 to make it lowercase
+                bLower[i] = bytes1(uint8(bStr[i]) + 32);
+            } else {
+                bLower[i] = bStr[i];
+            }
+        }
+        return string(bLower);
+    }
+
     function profileOwner(string memory _string) public view override returns (address) {
         return ownerOf(_tokenUsedURIs[_string].sub(1));
     }
@@ -161,20 +176,11 @@ contract NftProfile is
     }
 
     // can be used to clear mapping OR more gas efficient to remove multiple addresses
-    function setAssociatedAddresses(bytes[] memory inputBytes, string calldata profileUrl) external {
+    function clearAssociatedAddresses(string calldata profileUrl) external {
         if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
         uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
-        uint256 l1 = inputBytes.length;
-        for (uint256 i = 0; i < l1; ) {
-            (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes[i], (Blockchain, string));
-            validateAddress(cid, chainAddr);
 
-            unchecked {
-                ++i;
-            }
-        }
-
-        _associatedAddresses[tokenId] = inputBytes;
+        _associatedAddresses[tokenId] = new bytes[](0);
     }
 
     function associatedAddress(string calldata profileUrl) external view returns (AddressTuple[] memory) {
