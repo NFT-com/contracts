@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for stake/NftBuyer.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">stake/</a> NftBuyer.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">90.2% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>46/51</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">55.56% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>10/18</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>7/7</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">90.38% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>47/52</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">138×</span>
+<span class="cline-any cline-yes">138×</span>
+<span class="cline-any cline-yes">138×</span>
+<span class="cline-any cline-yes">138×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">138×</span>
+<span class="cline-any cline-yes">138×</span>
+<span class="cline-any cline-yes">138×</span>
+<span class="cline-any cline-yes">138×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity &gt;=0.8.4;
+&nbsp;
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./uniswapv2/interfaces/IUniswapV2ERC20.sol";
+import "./uniswapv2/interfaces/IUniswapV2Pair.sol";
+import "./uniswapv2/interfaces/IUniswapV2Factory.sol";
+&nbsp;
+interface IWETH {
+    function deposit() external payable;
+&nbsp;
+    function transfer(address to, uint256 value) external returns (bool);
+&nbsp;
+    function withdraw(uint256) external;
+}
+&nbsp;
+contract NftBuyer {
+    using SafeERC20 for IERC20;
+&nbsp;
+    IUniswapV2Factory public factory;
+    address public immutable genesisStaking;
+    address public immutable nft;
+    address public immutable weth;
+    uint256 public constant MAX_PERCENT = 10000; // 10000 = 100%
+&nbsp;
+    constructor(
+        IUniswapV2Factory _factory,
+        address _genesisStaking,
+        address _nft,
+        address _weth
+    ) {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(address(_factory) != address(0));
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(_genesisStaking != address(0));
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(_nft != address(0));
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(_weth != address(0));
+&nbsp;
+        factory = _factory;
+        nft = _nft;
+        genesisStaking = _genesisStaking;
+        weth = _weth;
+    }
+&nbsp;
+    // important to receive ETH
+    receive() external payable {}
+&nbsp;
+    function isContract(address account) internal view returns (bool) {
+        // This method relies on extcodesize, which returns 0 for contracts in
+        // construction, since the code is only stored at the end of the
+        // constructor execution.
+&nbsp;
+        uint256 size;
+        assembly {
+            size := extcodesize(account)
+        }
+        return size &gt; 0;
+    }
+&nbsp;
+    // converts erc20 to WETH -&gt; NFT token
+    function convert(address erc20) public {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(!isContract(msg.sender), "do not convert from contract");
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (erc20 == nft) {
+            // split proceeds
+<span class="cstat-no" title="statement not covered" >            _transfer(nft, genesisStaking, IERC20(nft).balanceOf(address(this)))</span>;
+        } else {
+            uint256 wethAmount = _toWETH(erc20);
+            // Then we convert the WETH to Nft
+            _toNFT(wethAmount);
+        }
+    }
+&nbsp;
+    function convertETH() public {
+        IWETH(weth).deposit{ value: address(this).balance }();
+    }
+&nbsp;
+    // Converts token passed as an argument to WETH
+    function _toWETH(address token) internal returns (uint256) {
+        // If the passed token is Nft, don't convert anything
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (token == nft) {
+<span class="cstat-no" title="statement not covered" >            uint256 amount = IERC20(token).balanceOf(address(this));</span>
+<span class="cstat-no" title="statement not covered" >            _transfer(token, genesisStaking, amount)</span>;
+<span class="cstat-no" title="statement not covered" >            return 0;</span>
+        }
+        // If the passed token is WETH, don't convert anything
+        if (token == weth) {
+            uint256 amount = IERC20(token).balanceOf(address(this));
+            _transfer(token, factory.getPair(weth, nft), amount);
+            return amount;
+        }
+        // If the target pair doesn't exist, don't convert anything
+        IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(token, weth));
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (address(pair) == address(0)) {
+<span class="cstat-no" title="statement not covered" >            return 0;</span>
+        }
+        // Choose the correct reserve to swap from
+        (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
+        address token0 = pair.token0();
+        (uint256 reserveIn, uint256 reserveOut) = token0 == token ? (reserve0, reserve1) : (reserve1, reserve0);
+        // Calculate information required to swap
+        uint256 amountIn = IERC20(token).balanceOf(address(this));
+        uint256 amountInWithFee = amountIn * 997;
+        uint256 numerator = amountInWithFee * reserveOut;
+        uint256 denominator = (reserveIn * 1000) + amountInWithFee;
+        uint256 amountOut = numerator / denominator;
+        (uint256 amount0Out, uint256 amount1Out) = token0 == token ? (uint256(0), amountOut) : (amountOut, uint256(0));
+        // Swap the token for WETH
+        _transfer(token, address(pair), amountIn);
+        pair.swap(amount0Out, amount1Out, factory.getPair(weth, nft), new bytes(0));
+        return amountOut;
+    }
+&nbsp;
+    // Converts WETH to Nft
+    function _toNFT(uint256 amountIn) internal {
+        IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(weth, nft));
+&nbsp;
+        // Choose WETH as input token
+        (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
+        address token0 = pair.token0();
+        (uint256 reserveIn, uint256 reserveOut) = token0 == weth ? (reserve0, reserve1) : (reserve1, reserve0);
+        // Calculate information required to swap
+        uint256 amountInWithFee = amountIn * 997;
+        uint256 numerator = amountInWithFee * reserveOut;
+        uint256 denominator = (reserveIn * 1000) + amountInWithFee;
+        uint256 amountOut = numerator / denominator;
+        (uint256 amount0Out, uint256 amount1Out) = token0 == weth ? (uint256(0), amountOut) : (amountOut, uint256(0));
+        // Swap WETH for Nft
+        pair.swap(amount0Out, amount1Out, address(this), new bytes(0));
+&nbsp;
+        // split proceeds
+        _transfer(nft, genesisStaking, IERC20(nft).balanceOf(address(this)));
+    }
+&nbsp;
+    function _transfer(
+        address token,
+        address to,
+        uint256 amount
+    ) internal {
+        IERC20(token).safeTransfer(to, amount);
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Jun 13 2022 19:15:50 GMT+0000 (Coordinated Universal Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>
