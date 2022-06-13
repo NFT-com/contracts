@@ -156,6 +156,8 @@ Generate the code coverage report:
 $ yarn coverage
 ```
 
+The resulting folder will be found inside `docs/*`
+
 ### Report Gas
 
 See the gas usage per unit test and average gas per method call:
