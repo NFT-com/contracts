@@ -17,6 +17,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -45,10 +47,11 @@ jobs:
     - run: npm install -g yarn
     - run: yarn install
     - run: yarn coverage
+
     - name: Commit changes
       uses: EndBug/add-and-commit@v9
       with:
         author_name: github-ci/cd
         author_email: engineering@nft.com
         message: 'Update Coverage in Doc/*'
-        add: '.'
+        add: 'docs/*'
