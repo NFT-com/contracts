@@ -406,11 +406,18 @@ describe("NFT Profile Auction / Minting", function () {
         // "should allow profiles minted to associate other associated addresses"
         const encodedAddress = encode(["uint8", "string"], [0, "0x59495589849423692778a8c5aaCA62CA80f875a4"]);
         await deployedNftProfile.connect(owner).addAssociatedAddresses([encodedAddress], "profile6");
-        expect((await deployedNftProfile.associatedAddress("profile6"))[0][0]).to.be.equal(0);
-        expect((await deployedNftProfile.associatedAddress("profile6"))[0][1]).to.be.equal("0x59495589849423692778a8c5aaCA62CA80f875a4");
+        expect((await deployedNftProfile.associatedAddress("profile6")).length).to.be.equal(1);
+        expect((await deployedNftProfile.associatedAddress("profile6"))[0][0]).to.be.equal(0); // chainId
+        expect((await deployedNftProfile.associatedAddress("profile6"))[0][1]).to.be.equal("0x59495589849423692778a8c5aaCA62CA80f875a4"); // associated address
         
         const encodedAddress2 = encode(["uint8", "string"], [0, "0x59495589849423692778a8c5aaCA62CA80f875a4"]);
+        const encodedAddress3 = encode(["uint8", "string"], [0, "0x59495589849423692778a8c5aaCA62CA80f875af"]);
         await expect(deployedNftProfile.connect(owner).addAssociatedAddresses([encodedAddress2], "profile6")).to.be.reverted; // reverts due to duplicate address
+        await deployedNftProfile.connect(owner).addAssociatedAddresses([encodedAddress3], "profile6");
+
+        expect((await deployedNftProfile.associatedAddress("profile6")).length).to.be.equal(2);
+        expect((await deployedNftProfile.associatedAddress("profile6"))[1][0]).to.be.equal(0); // chainId
+        expect((await deployedNftProfile.associatedAddress("profile6"))[1][1]).to.be.equal("0x59495589849423692778a8c5aaCA62CA80f875af"); // associated address
       });
 
       it("should upgrade profile contract to V2", async function () {

@@ -45,9 +45,6 @@ jobs:
     - run: npm install -g yarn
     - run: yarn install
     - run: yarn coverage
-    - name: Checkout repo
-      uses: actions/checkout@v2
-
     - name: Commit changes
       uses: EndBug/add-and-commit@v9
       with:
