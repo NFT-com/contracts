@@ -156,7 +156,7 @@ Generate the code coverage report:
 $ yarn coverage
 ```
 
-The resulting folder will be found inside `docs/*`
+[Live Coverage][https://prod-contracts-coverage.nft.com/] (only for member on NFT.com's Github)
 
 ### Report Gas
 

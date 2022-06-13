@@ -49,9 +49,10 @@ contract NftProfile is
     uint96 public protocolFee;
     address public owner;
 
-    // uint8 represents the blockchain
-    // tokenId => bytes (abi.encode(uint8,string))
+    // tokenId => bytes (abi.encode(uint8,string)), uint8 represents the blockchain,
+    // string = public key / address in string format (case sensitive)
     mapping(uint256 => bytes[]) internal _associatedAddresses;
+    mapping(uint256 => bytes) internal _associatedContract; // similar setup for associated contract
     mapping(Blockchain => IRegex) internal _associatedRegex;
 
     event NewFee(uint256 _fee);
@@ -112,6 +113,27 @@ contract NftProfile is
     function validateAddress(Blockchain cid, string memory chainAddr) private view {
         if (address(_associatedRegex[cid]) == 0x0000000000000000000000000000000000000000) revert InvalidRegex();
         if (!_associatedRegex[cid].matches(chainAddr)) revert InvalidAddress();
+    }
+
+    // TODO: add signature verification
+    function setAssociatedContract(
+        bytes calldata inputBytes,
+        string calldata profileUrl
+    ) external {
+        if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
+        uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
+
+        (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes, (Blockchain, string));
+        validateAddress(cid, chainAddr);
+
+        _associatedContract[tokenId] = inputBytes;
+    }
+
+    function clearAssociatedContract(string calldata profileUrl) external {
+        if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
+        uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
+
+        _associatedContract[tokenId] = "";
     }
 
     // adds multiple addresses at a time while checking for duplicates
