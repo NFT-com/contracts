@@ -415,7 +415,7 @@ describe("NFT Profile Auction / Minting", function () {
         await expect(deployedNftProfile.connect(owner).addAssociatedAddresses([encodedAddress2], "profile6")).to.be.reverted; // reverts due to duplicate address
         
         // reverts due to second not being owner
-        await deployedNftProfile.connect(second).addAssociatedAddresses([encodedAddress3], "profile6");
+        await expect(deployedNftProfile.connect(second).addAssociatedAddresses([encodedAddress3], "profile6")).to.be.reverted;
         await deployedNftProfile.connect(owner).addAssociatedAddresses([encodedAddress3], "profile6");
 
         expect((await deployedNftProfile.associatedAddress("profile6")).length).to.be.equal(2);
