@@ -7,12 +7,16 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 
 error AddressNotFound();
 error DuplicateAddress();
+error DuplicateEvmAddress();
 error NotOwner();
 error InvalidAddress();
+error InvalidAuth();
 error InvalidRegex();
+error InvalidSelf();
 
 interface IRegex {
     function matches(string memory input) external pure returns (bool);
@@ -26,6 +30,7 @@ contract NftProfile is
     INftProfile
 {
     using SafeMathUpgradeable for uint256;
+    using ECDSAUpgradeable for bytes32;
 
     enum Blockchain {
         ETHEREUM,
@@ -41,6 +46,12 @@ contract NftProfile is
         string chainAddr;
     }
 
+    // used for historical tracking and easy on-chain access for associations for verifier
+    struct RelatedProfiles {
+        address addr;
+        string profileUrl;
+    }
+
     mapping(uint256 => string) internal _tokenURIs;
     mapping(string => uint256) internal _tokenUsedURIs;
     mapping(string => uint256) internal _expiryTimeline;
@@ -49,10 +60,14 @@ contract NftProfile is
     uint96 public protocolFee;
     address public owner;
 
-    // tokenId => bytes (abi.encode(uint8,string)), uint8 represents the blockchain,
-    // string = public key / address in string format (case sensitive)
-    mapping(uint256 => bytes[]) internal _associatedAddresses;
-    mapping(uint256 => bytes) internal _associatedContract; // similar setup for associated contract
+    mapping(address => mapping(uint256 => AddressTuple[])) internal _associatedAddresses;
+    mapping(address => mapping(uint256 => AddressTuple)) internal _associatedContract;
+    // used for verification of ownership
+    mapping(address => mapping(uint256 => address[])) internal _approvedEvmAddresses;
+    // easy access for users to see what they are currently associated with
+    mapping(address => RelatedProfiles[]) internal _selfApprovedEvmList;
+    mapping(bytes => bool) internal _associatedMap;
+    mapping(bytes => bool) internal _selfApprovedMap;
     mapping(Blockchain => IRegex) internal _associatedRegex;
 
     event NewFee(uint256 _fee);
@@ -115,45 +130,126 @@ contract NftProfile is
         if (!_associatedRegex[cid].matches(chainAddr)) revert InvalidAddress();
     }
 
+    function verifySignature(
+        bytes32 hash,
+        bytes memory signature,
+        address owner
+    ) public pure returns (bool) {
+        return owner == hash.recover(signature);
+    }
+
+    function hashTransaction(
+        address signer,
+        string memory profileUrl,
+        uint256 timestamp
+    ) private pure returns (bytes32) {
+        bytes32 hash = keccak256(
+            abi.encodePacked(
+                "\x19Ethereum Signed Message:\n32",
+                keccak256(abi.encodePacked(signer, profileUrl, timestamp))
+            )
+        );
+
+        return hash;
+    }
+
     // TODO: add signature verification
     function setAssociatedContract(
-        bytes calldata inputBytes,
-        string calldata profileUrl
+        AddressTuple memory inputTuple,
+        string calldata profileUrl,
+        bytes32 hash,
+        bytes memory signature
     ) external {
         if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
         uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
 
-        (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes, (Blockchain, string));
-        validateAddress(cid, chainAddr);
+        validateAddress(inputTuple.cid, inputTuple.chainAddr);
 
-        _associatedContract[tokenId] = inputBytes;
+        if (!verifySignature(hash, signature, msg.sender)) revert InvalidAuth();
+        // if (!hashTransaction() != hash) revert InvalidAuth();
+
+        _associatedContract[msg.sender][tokenId] = inputTuple;
     }
 
     function clearAssociatedContract(string calldata profileUrl) external {
         if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
         uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
 
-        _associatedContract[tokenId] = "";
+        AddressTuple memory addressTuple;
+        _associatedContract[msg.sender][tokenId] = addressTuple;
+    }
+
+    // _s1 and _s2 are addresses stored in the form of strings
+    function _sameChecksum(string memory _s1, string memory _s2) private pure returns (bool) {
+        return _parseAddr(_s1) == _parseAddr(_s2);
+    }
+
+    function _sameHash(AddressTuple memory _t1, AddressTuple memory _t2) private pure returns (bool) {
+        return keccak256(abi.encode(_t1.cid, _t1.chainAddr)) == keccak256(abi.encode(_t2.cid, _t2.chainAddr));
+    }
+
+    function _evmBased(Blockchain cid) private pure returns (bool) {
+        if (cid == Blockchain.ETHEREUM || cid == Blockchain.POLYGON) return true;
+        return false;
     }
 
     // adds multiple addresses at a time while checking for duplicates
-    function addAssociatedAddresses(bytes[] calldata inputBytes, string calldata profileUrl) external {
+    function addAssociatedAddresses(AddressTuple[] calldata inputTuples, string calldata profileUrl) external {
         if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
         uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
-        uint256 l1 = inputBytes.length;
+        uint256 l1 = inputTuples.length;
         for (uint256 i = 0; i < l1; ) {
-            (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes[i], (Blockchain, string));
-            validateAddress(cid, chainAddr);
+            validateAddress(inputTuples[i].cid, inputTuples[i].chainAddr);
 
-            uint256 l2 = _associatedAddresses[tokenId].length;
+            if (_associatedMap[abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)])
+                revert DuplicateAddress();
+
+            uint256 l2 = _associatedAddresses[msg.sender][tokenId].length;
             for (uint256 j = 0; j < l2; ) {
-                if (keccak256(_associatedAddresses[tokenId][j]) == keccak256(inputBytes[i])) revert DuplicateAddress();
+                if (_evmBased(inputTuples[i].cid)) {
+                    if (
+                        _sameChecksum(inputTuples[i].chainAddr, _associatedAddresses[msg.sender][tokenId][j].chainAddr)
+                    ) {
+                        revert DuplicateEvmAddress();
+                    }
+                }
+
                 unchecked {
                     ++j;
                 }
             }
 
-            _associatedAddresses[tokenId].push(inputBytes[i]);
+            _associatedAddresses[msg.sender][tokenId].push(inputTuples[i]);
+            _associatedMap[abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)] = true;
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    // allows for bidirectional association
+    function associateSelfWithUsers(string[] calldata urls) external {
+        uint256 l1 = urls.length;
+
+        for (uint256 i = 0; i < l1; ) {
+            string memory url = urls[i];
+            address pOwner = profileOwner(url);
+            uint256 tokenId = _tokenUsedURIs[url].sub(1);
+
+            // CHECKS
+            if (pOwner == msg.sender) revert InvalidSelf();
+            if (_selfApprovedMap[abi.encode(pOwner, tokenId, msg.sender)] == true) {
+                revert DuplicateAddress();
+            }
+
+            // EFFECTS
+            // easy access for associator to see their profiles
+            _selfApprovedEvmList[msg.sender].push(RelatedProfiles({ addr: pOwner, profileUrl: url }));
+            // mapping for O(1) lookup
+            _selfApprovedMap[abi.encode(pOwner, tokenId, msg.sender)] = true;
+
+            // INTERACTIONS
 
             unchecked {
                 ++i;
@@ -162,17 +258,27 @@ contract NftProfile is
     }
 
     // removes 1 address at a time
-    function removeAssociatedAddress(bytes calldata inputBytes, string calldata profileUrl) external {
+    function removeAssociatedAddress(AddressTuple calldata inputTuple, string calldata profileUrl) external {
         if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
         uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
-        uint256 l1 = _associatedAddresses[tokenId].length;
-        for (uint256 i = 0; i < l1; ) {
-            (Blockchain cid, string memory chainAddr) = abi.decode(inputBytes, (Blockchain, string));
-            validateAddress(cid, chainAddr);
+        uint256 l1 = _associatedAddresses[msg.sender][tokenId].length;
 
-            if (keccak256(_associatedAddresses[tokenId][i]) == keccak256(inputBytes)) {
-                _associatedAddresses[tokenId][i] = _associatedAddresses[tokenId][l1 - 1];
-                _associatedAddresses[tokenId].pop();
+        for (uint256 i = 0; i < l1; ) {
+            validateAddress(inputTuple.cid, inputTuple.chainAddr);
+
+            // EVM based - checksum
+            if (_evmBased(inputTuple.cid)) {
+                if (_sameChecksum(_associatedAddresses[msg.sender][tokenId][i].chainAddr, inputTuple.chainAddr)) {
+                    _associatedAddresses[msg.sender][tokenId][i] = _associatedAddresses[msg.sender][tokenId][l1 - 1];
+                    _associatedAddresses[msg.sender][tokenId].pop();
+                    break;
+                }
+            } else if (
+                // non-evm
+                _sameHash(inputTuple, _associatedAddresses[msg.sender][tokenId][i])
+            ) {
+                _associatedAddresses[msg.sender][tokenId][i] = _associatedAddresses[msg.sender][tokenId][l1 - 1];
+                _associatedAddresses[msg.sender][tokenId].pop();
                 break;
             }
 
@@ -188,27 +294,68 @@ contract NftProfile is
     function clearAssociatedAddresses(string calldata profileUrl) external {
         if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
         uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
-
-        _associatedAddresses[tokenId] = new bytes[](0);
+        delete _associatedAddresses[msg.sender][tokenId];
     }
 
-    function associatedAddress(string calldata profileUrl) external view returns (AddressTuple[] memory) {
-        uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
-        uint256 l1 = _associatedAddresses[tokenId].length;
-        AddressTuple[] memory tuples = new AddressTuple[](l1);
+    function evmBased(Blockchain cid) external pure returns (bool) {
+        return _evmBased(cid);
+    }
 
-        for (uint256 i = 0; i < l1; ) {
-            (Blockchain cid, string memory chainAddr) = abi.decode(
-                _associatedAddresses[tokenId][i],
-                (Blockchain, string)
-            );
-            tuples[i] = AddressTuple(cid, chainAddr);
+    function parseAddr(string memory _a) external pure returns (address) {
+        return _parseAddr(_a);
+    }
+
+    function _parseAddr(string memory _a) private pure returns (address) {
+        bytes memory tmp = bytes(_a);
+        uint160 iaddr = 0;
+        uint160 b1;
+        uint160 b2;
+        for (uint256 i = 2; i < 2 + 2 * 20; i += 2) {
+            iaddr *= 256;
+            b1 = uint160(uint8(tmp[i]));
+            b2 = uint160(uint8(tmp[i + 1]));
+            if ((b1 >= 97) && (b1 <= 102)) {
+                b1 -= 87;
+            } else if ((b1 >= 65) && (b1 <= 70)) {
+                b1 -= 55;
+            } else if ((b1 >= 48) && (b1 <= 57)) {
+                b1 -= 48;
+            }
+            if ((b2 >= 97) && (b2 <= 102)) {
+                b2 -= 87;
+            } else if ((b2 >= 65) && (b2 <= 70)) {
+                b2 -= 55;
+            } else if ((b2 >= 48) && (b2 <= 57)) {
+                b2 -= 48;
+            }
+            iaddr += (b1 * 16 + b2);
+        }
+        return address(iaddr);
+    }
+
+    // makes sure ownerAddr + profileUrl + associated address is in mapping to allow association
+    function associatedAddresses(string calldata profileUrl) external view returns (AddressTuple[] memory) {
+        uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
+        address pOwner = profileOwner(profileUrl);
+        AddressTuple[] memory rawAssc = _associatedAddresses[pOwner][tokenId];
+        AddressTuple[] memory updatedAssc = new AddressTuple[](rawAssc.length);
+
+        for (uint256 i = 0; i < rawAssc.length; ) {
+            if (_evmBased(rawAssc[i].cid)) {
+                // if approved
+                if (_selfApprovedMap[abi.encode(pOwner, tokenId, _parseAddr(rawAssc[i].chainAddr))]) {
+                    updatedAssc[i] = rawAssc[i];
+                }
+            } else {
+                updatedAssc[i] = rawAssc[i];
+            }
+
             unchecked {
                 ++i;
             }
         }
 
-        return tuples;
+        return updatedAssc;
     }
 
     /**

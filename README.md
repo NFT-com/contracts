@@ -18,6 +18,8 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
 ## Mainnet Tokens
 
+- [udonft](https://etherscan/address/0xa16DD71dE047A086730a0E46Ea60251f2f4104c1)
+
 - [deployedNftToken](https://etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F)
 - [vesting](https://etherscan.io/address/0x774c2204D9e50CD9d6A579D194c067360604933f)
 

@@ -4,7 +4,7 @@ describe("Udo One Off NFT Drop (Rinkeby)", function () {
   try {
     let UdoDrop;
     let deployedUdoDrop;
-    let baseURI = 'ipfs://QmSFZCox4PY4y7ebFkUDzwVqnYVwKBrD5FtKsgX3dgciLC/';
+    let baseURI = "ipfs://QmP7gYT2WhsN7Hi1bMkxMfm71Dd2aNS6RL8sERnNgCrjiZ/";
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
