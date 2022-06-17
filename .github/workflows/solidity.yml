@@ -55,3 +55,7 @@ jobs:
         author_email: engineering@nft.com
         message: 'Update Coverage in Doc/*'
         add: 'docs/*'
+    - name: ✅ Upload coverage to Codecov
+      uses: codecov/codecov-action@v3.1.0
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
