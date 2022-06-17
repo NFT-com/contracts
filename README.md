@@ -1,5 +1,7 @@
 # NFT.com contracts
 
+[![codecov](https://codecov.io/gh/NFT-com/contracts/branch/main/graph/badge.svg?token=A91QO5LR7O)](https://codecov.io/gh/NFT-com/contracts)
+
 This repository covers logic for NFT.com profile bidding, and the NFT.com marketplace itself. Further developments will be added here in the future.
 
 See `.env.example` for necessary secrets.
