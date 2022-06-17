@@ -27,7 +27,9 @@ jobs:
     - name: Make envfile
       uses: SpicyPizza/create-envfile@v1.3
       with:
+        envkey_CICD: true
         envkey_MNEMONIC: "laptop demise champion palace grab vapor either number coast patient then priority"
+        envkey_MNEMONIC_PUBLIC_ADDR: "0xe9CDA06820Cd42E5Df7D2B6780e1C9c4cb719A93"
         envkey_MAINNET_PRIVATE_KEY: "0xb1a4373f2a59b540f016383744ef194f7108f0bd11b34bfdaac69e28030a35e7"
         envkey_INFURA_API_KEY: "460ed70fa7394604a709b7dff23f1641"
         envkey_ALCHEMY_API_KEY: "_H3tl1xfDKddnitmisPE4_0trJiEEaG4"
