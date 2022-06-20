@@ -501,6 +501,22 @@ describe("NFT Profile Auction / Minting", function () {
           expect((await deployedNftProfile.associatedAddresses("testminter"))[3][1]).to.be.equal(
             addr4.address
           );
+
+          // reset
+          await deployedNftProfile.connect(second).clearAssociatedAddresses("testminter");
+          expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(0);
+          await deployedNftProfile
+          .connect(second)
+          .addAssociatedAddresses([
+            [0, addr1.address],
+            [0, addr2.address],
+            [0, addr3.address],
+            [0, addr4.address],
+            [1, '0.0.4123'],
+            [3, 'HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE']
+          ], "testminter");
+
+          console.log('assc addr: ', await deployedNftProfile.associatedAddresses("testminter"));
       });
 
       it("should correctly diagnose evm based enums", async function() {

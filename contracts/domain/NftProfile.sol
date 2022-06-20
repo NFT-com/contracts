@@ -62,11 +62,13 @@ contract NftProfile is
 
     mapping(address => mapping(uint256 => AddressTuple[])) internal _associatedAddresses;
     mapping(address => mapping(uint256 => AddressTuple)) internal _associatedContract;
+    mapping(string => uint256) internal _nonce; // used for mapping
     // used for verification of ownership
     mapping(address => mapping(uint256 => address[])) internal _approvedEvmAddresses;
     // easy access for users to see what they are currently associated with
     mapping(address => RelatedProfiles[]) internal _selfApprovedEvmList;
-    mapping(bytes => bool) internal _associatedMap;
+    mapping(uint256 => mapping(bytes => bool)) internal _associatedNonEvmMap;   // profile nonce -> mapping
+    mapping(uint256 => mapping(address => bool)) internal _associatedEvmMap;    // profile nonce -> mapping
     mapping(bytes => bool) internal _selfApprovedMap;
     mapping(Blockchain => IRegex) internal _associatedRegex;
 
@@ -198,30 +200,28 @@ contract NftProfile is
         if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
         uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
         uint256 l1 = inputTuples.length;
+        uint256 nonce = _nonce[profileUrl];
+
         for (uint256 i = 0; i < l1; ) {
             validateAddress(inputTuples[i].cid, inputTuples[i].chainAddr);
 
-            if (_associatedMap[abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)])
-                revert DuplicateAddress();
+            if (
+                _associatedNonEvmMap[nonce][abi.encode(
+                    msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr
+                )]
+            ) revert DuplicateAddress();
 
-            uint256 l2 = _associatedAddresses[msg.sender][tokenId].length;
-            for (uint256 j = 0; j < l2; ) {
-                if (_evmBased(inputTuples[i].cid)) {
-                    if (
-                        _sameChecksum(inputTuples[i].chainAddr, _associatedAddresses[msg.sender][tokenId][j].chainAddr)
-                    ) {
-                        revert DuplicateEvmAddress();
-                    }
-                }
-
-                unchecked {
-                    ++j;
-                }
+            if (_evmBased(inputTuples[i].cid)) {
+                if (_associatedEvmMap[nonce][_parseAddr(inputTuples[i].chainAddr)]) revert DuplicateAddress();
+                _associatedEvmMap[nonce][_parseAddr(inputTuples[i].chainAddr)] = true;
+            } else {
+                _associatedNonEvmMap[nonce][abi.encode(
+                    msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr
+                )] = true;
             }
 
             _associatedAddresses[msg.sender][tokenId].push(inputTuples[i]);
-            _associatedMap[abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)] = true;
-
+            
             unchecked {
                 ++i;
             }
@@ -262,6 +262,7 @@ contract NftProfile is
         if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
         uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
         uint256 l1 = _associatedAddresses[msg.sender][tokenId].length;
+        uint256 nonce = _nonce[profileUrl];
 
         for (uint256 i = 0; i < l1; ) {
             validateAddress(inputTuple.cid, inputTuple.chainAddr);
@@ -271,6 +272,7 @@ contract NftProfile is
                 if (_sameChecksum(_associatedAddresses[msg.sender][tokenId][i].chainAddr, inputTuple.chainAddr)) {
                     _associatedAddresses[msg.sender][tokenId][i] = _associatedAddresses[msg.sender][tokenId][l1 - 1];
                     _associatedAddresses[msg.sender][tokenId].pop();
+                    _associatedEvmMap[nonce][_parseAddr(inputTuple.chainAddr)] = false;
                     break;
                 }
             } else if (
@@ -279,6 +281,11 @@ contract NftProfile is
             ) {
                 _associatedAddresses[msg.sender][tokenId][i] = _associatedAddresses[msg.sender][tokenId][l1 - 1];
                 _associatedAddresses[msg.sender][tokenId].pop();
+
+                _associatedNonEvmMap[nonce][abi.encode(
+                    msg.sender, tokenId, inputTuple.cid, inputTuple.chainAddr
+                )] = false;
+                
                 break;
             }
 
@@ -291,10 +298,15 @@ contract NftProfile is
     }
 
     // can be used to clear mapping OR more gas efficient to remove multiple addresses
+    // nonce increment clears the mapping without having to manually reset state
     function clearAssociatedAddresses(string calldata profileUrl) external {
         if (profileOwner(profileUrl) != msg.sender) revert NotOwner();
         uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
         delete _associatedAddresses[msg.sender][tokenId];
+
+        unchecked {
+            ++_nonce[profileUrl];
+        }
     }
 
     function evmBased(Blockchain cid) external pure returns (bool) {
@@ -310,7 +322,7 @@ contract NftProfile is
         uint160 iaddr = 0;
         uint160 b1;
         uint160 b2;
-        for (uint256 i = 2; i < 2 + 2 * 20; i += 2) {
+        for (uint256 i = 2; i < 2 + 2 * 20;) {
             iaddr *= 256;
             b1 = uint160(uint8(tmp[i]));
             b2 = uint160(uint8(tmp[i + 1]));
@@ -329,6 +341,11 @@ contract NftProfile is
                 b2 -= 48;
             }
             iaddr += (b1 * 16 + b2);
+
+            unchecked {
+                ++i;
+                ++i;
+            }
         }
         return address(iaddr);
     }

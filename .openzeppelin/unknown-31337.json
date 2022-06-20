@@ -48671,13 +48671,13 @@
           {
             "contract": "ERC721AUpgradeable",
             "label": "_ownerships",
-            "type": "t_mapping(t_uint256,t_struct(TokenOwnership)15472_storage)",
+            "type": "t_mapping(t_uint256,t_struct(TokenOwnership)15522_storage)",
             "src": "contracts/erc721a/ERC721AUpgradeable.sol:89"
           },
           {
             "contract": "ERC721AUpgradeable",
             "label": "_addressData",
-            "type": "t_mapping(t_address,t_struct(AddressData)15481_storage)",
+            "type": "t_mapping(t_address,t_struct(AddressData)15531_storage)",
             "src": "contracts/erc721a/ERC721AUpgradeable.sol:92"
           },
           {
@@ -48884,10 +48884,10 @@
           "t_string_storage": {
             "label": "string"
           },
-          "t_mapping(t_uint256,t_struct(TokenOwnership)15472_storage)": {
+          "t_mapping(t_uint256,t_struct(TokenOwnership)15522_storage)": {
             "label": "mapping(uint256 => struct ERC721AUpgradeable.TokenOwnership)"
           },
-          "t_struct(TokenOwnership)15472_storage": {
+          "t_struct(TokenOwnership)15522_storage": {
             "label": "struct ERC721AUpgradeable.TokenOwnership",
             "members": [
               {
@@ -48904,10 +48904,10 @@
               }
             ]
           },
-          "t_mapping(t_address,t_struct(AddressData)15481_storage)": {
+          "t_mapping(t_address,t_struct(AddressData)15531_storage)": {
             "label": "mapping(address => struct ERC721AUpgradeable.AddressData)"
           },
-          "t_struct(AddressData)15481_storage": {
+          "t_struct(AddressData)15531_storage": {
             "label": "struct ERC721AUpgradeable.AddressData",
             "members": [
               {
@@ -49241,7 +49241,7 @@
           {
             "contract": "GenesisKeyTeamClaim",
             "label": "GK",
-            "type": "t_contract(IGK)17729",
+            "type": "t_contract(IGK)17779",
             "src": "contracts/genesisKey/GenesisKeyTeamClaim.sol:23"
           },
           {
@@ -49255,7 +49255,7 @@
           "t_address": {
             "label": "address"
           },
-          "t_contract(IGK)17729": {
+          "t_contract(IGK)17779": {
             "label": "contract IGK"
           },
           "t_array(t_uint256)dyn_storage": {
@@ -49882,9 +49882,9 @@
         }
       }
     },
-    "027d5a1745a1c7f00b5b72900bbfc7de3c116b90bfbc0c1f77a9c2a49efc8f4f": {
+    "bc45fa21386e736d31ccfcaa1519f82dc26cc33acb670813934024cfae3a6804": {
       "address": "0x5B64419F19b7A742bd04374F2504FAB723370310",
-      "txHash": "0xd6ad6892ab637279b40b4665042628d030cdf680c3b0eb53ca8623ed70fa4499",
+      "txHash": "0x1cf283e69a40e6d9b1e827b994dfae135bd9d228b9b263cd9c6301a7ddf90694",
       "layout": {
         "storage": [
           {
@@ -49944,13 +49944,13 @@
           {
             "contract": "ERC721AProfileUpgradeable",
             "label": "_ownerships",
-            "type": "t_mapping(t_uint256,t_struct(TokenOwnership)13909_storage)",
+            "type": "t_mapping(t_uint256,t_struct(TokenOwnership)13959_storage)",
             "src": "contracts/erc721a/ERC721AProfileUpgradeable.sol:89"
           },
           {
             "contract": "ERC721AProfileUpgradeable",
             "label": "_addressData",
-            "type": "t_mapping(t_address,t_struct(AddressData)13918_storage)",
+            "type": "t_mapping(t_address,t_struct(AddressData)13968_storage)",
             "src": "contracts/erc721a/ERC721AProfileUpgradeable.sol:92"
           },
           {
@@ -50045,33 +50045,45 @@
           },
           {
             "contract": "NftProfile",
+            "label": "_nonce",
+            "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+            "src": "contracts/domain/NftProfile.sol:65"
+          },
+          {
+            "contract": "NftProfile",
             "label": "_approvedEvmAddresses",
             "type": "t_mapping(t_address,t_mapping(t_uint256,t_array(t_address)dyn_storage))",
-            "src": "contracts/domain/NftProfile.sol:66"
+            "src": "contracts/domain/NftProfile.sol:67"
           },
           {
             "contract": "NftProfile",
             "label": "_selfApprovedEvmList",
             "type": "t_mapping(t_address,t_array(t_struct(RelatedProfiles)10619_storage)dyn_storage)",
-            "src": "contracts/domain/NftProfile.sol:68"
+            "src": "contracts/domain/NftProfile.sol:69"
           },
           {
             "contract": "NftProfile",
-            "label": "_associatedMap",
-            "type": "t_mapping(t_bytes_memory_ptr,t_bool)",
-            "src": "contracts/domain/NftProfile.sol:69"
+            "label": "_associatedNonEvmMap",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes_memory_ptr,t_bool))",
+            "src": "contracts/domain/NftProfile.sol:70"
+          },
+          {
+            "contract": "NftProfile",
+            "label": "_associatedEvmMap",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_bool))",
+            "src": "contracts/domain/NftProfile.sol:71"
           },
           {
             "contract": "NftProfile",
             "label": "_selfApprovedMap",
             "type": "t_mapping(t_bytes_memory_ptr,t_bool)",
-            "src": "contracts/domain/NftProfile.sol:70"
+            "src": "contracts/domain/NftProfile.sol:72"
           },
           {
             "contract": "NftProfile",
             "label": "_associatedRegex",
             "type": "t_mapping(t_enum(Blockchain)10608,t_contract(IRegex)10585)",
-            "src": "contracts/domain/NftProfile.sol:71"
+            "src": "contracts/domain/NftProfile.sol:73"
           }
         ],
         "types": {
@@ -50160,6 +50172,9 @@
               }
             ]
           },
+          "t_mapping(t_uint256,t_mapping(t_bytes_memory_ptr,t_bool))": {
+            "label": "mapping(uint256 => mapping(bytes => bool))"
+          },
           "t_mapping(t_bytes_memory_ptr,t_bool)": {
             "label": "mapping(bytes => bool)"
           },
@@ -50168,6 +50183,12 @@
           },
           "t_bool": {
             "label": "bool"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_bool))": {
+            "label": "mapping(uint256 => mapping(address => bool))"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
           },
           "t_mapping(t_enum(Blockchain)10608,t_contract(IRegex)10585)": {
             "label": "mapping(enum NftProfile.Blockchain => contract IRegex)"
@@ -50181,10 +50202,10 @@
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]"
           },
-          "t_mapping(t_uint256,t_struct(TokenOwnership)13909_storage)": {
+          "t_mapping(t_uint256,t_struct(TokenOwnership)13959_storage)": {
             "label": "mapping(uint256 => struct ERC721AProfileUpgradeable.TokenOwnership)"
           },
-          "t_struct(TokenOwnership)13909_storage": {
+          "t_struct(TokenOwnership)13959_storage": {
             "label": "struct ERC721AProfileUpgradeable.TokenOwnership",
             "members": [
               {
@@ -50204,10 +50225,10 @@
           "t_uint64": {
             "label": "uint64"
           },
-          "t_mapping(t_address,t_struct(AddressData)13918_storage)": {
+          "t_mapping(t_address,t_struct(AddressData)13968_storage)": {
             "label": "mapping(address => struct ERC721AProfileUpgradeable.AddressData)"
           },
-          "t_struct(AddressData)13918_storage": {
+          "t_struct(AddressData)13968_storage": {
             "label": "struct ERC721AProfileUpgradeable.AddressData",
             "members": [
               {
@@ -50233,9 +50254,6 @@
           },
           "t_mapping(t_address,t_mapping(t_address,t_bool))": {
             "label": "mapping(address => mapping(address => bool))"
-          },
-          "t_mapping(t_address,t_bool)": {
-            "label": "mapping(address => bool)"
           },
           "t_array(t_uint256)43_storage": {
             "label": "uint256[43]"
