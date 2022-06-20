@@ -1,8 +1,10 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const { convertBigNumber, convertSmallNumber, encode, signHashProfile } = require("./utils/sign-utils");
+const { convertBigNumber, convertSmallNumber, signHashProfile } = require("./utils/sign-utils");
 
 const { parseBalanceMap } = require("./utils/parse-balance-map");
+
+const DECIMALS = 18;
 
 const Blockchain = {
   ETHEREUM: 0,
@@ -238,16 +240,13 @@ describe("NFT Profile Auction / Minting", function () {
           .withArgs(await owner.getAddress(), ethers.constants.AddressZero, burnAmount);
       });
 
-      it("profiles should have a initial supply of 0", async function () {
-        expect(await deployedNftProfile.totalSupply()).to.equal(0);
+      it("profiles should have a initial supply of 1", async function () {
+        expect(await deployedNftProfile.totalSupply()).to.equal(1); // minted in beforeEach
       });
 
       it("should call view functions in the nft profile", async function () {
         expect(await deployedNftProfile.name()).to.be.equal("NFT.com");
         expect(await deployedNftProfile.symbol()).to.be.equal("NFT.com");
-
-        // reverts since no profile exists
-        await expect(deployedNftProfile.tokenURI(0)).to.be.reverted;
       });
 
       it("profile url should be limited to a-z and 0-9", async function () {
@@ -335,7 +334,7 @@ describe("NFT Profile Auction / Minting", function () {
         expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(owner.address);
         expect(await deployedGenesisKey.ownerOf(2)).to.be.equal(secondSigner.address);
 
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
 
         const { hash: h0, signature: s0 } = signHashProfile(owner.address, "gavin");
         await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h0, s0);
@@ -385,7 +384,7 @@ describe("NFT Profile Auction / Minting", function () {
           deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 1, owner.address, h11, s11),
         ).to.be.reverted;
 
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(9);
         // open public mint
         await deployedProfileAuction.connect(owner).setPublicMint(true);
 
@@ -414,7 +413,7 @@ describe("NFT Profile Auction / Minting", function () {
         await deployedNftProfile.connect(owner).tradeMarkTransfer("profile6", owner.address);
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
 
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(11);
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(12);
       });
 
       it("should allow profiles to associate other addresses", async function () {
