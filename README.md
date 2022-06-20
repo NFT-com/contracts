@@ -1,5 +1,7 @@
 # NFT.com contracts
 
+[![codecov](https://codecov.io/gh/NFT-com/contracts/branch/main/graph/badge.svg?token=A91QO5LR7O)](https://codecov.io/gh/NFT-com/contracts)
+
 This repository covers logic for NFT.com profile bidding, and the NFT.com marketplace itself. Further developments will be added here in the future.
 
 See `.env.example` for necessary secrets.
@@ -17,6 +19,8 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 - [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
 
 ## Mainnet Tokens
+
+- [udonft](https://etherscan/address/0xa16DD71dE047A086730a0E46Ea60251f2f4104c1)
 
 - [deployedNftToken](https://etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F)
 - [vesting](https://etherscan.io/address/0x774c2204D9e50CD9d6A579D194c067360604933f)
@@ -92,6 +96,11 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 - [deployedNftMarketplace](https://rinkeby.etherscan.io/address/)
   - implementation => 0x9a47cFd45718dB5BEEA2aA200BE50E157023469c
 
+### Regex Generation
+
+1. npm install -g solregex2
+2. solregex2 --name RegexContractName '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]{2,}'
+
 ### Pre Requisites
 
 Before running any command, you need to create a `.env` file and set a BIP-39 compatible mnemonic as an environment
@@ -150,6 +159,8 @@ Generate the code coverage report:
 ```sh
 $ yarn coverage
 ```
+
+[Live Coverage][https://prod-contracts-coverage.nft.com/] (only for member on NFT.com's Github)
 
 ### Report Gas
 

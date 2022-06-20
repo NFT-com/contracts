@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for stake/GenesisNftStake.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">stake/</a> GenesisNftStake.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">78.13% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>25/32</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">57.14% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>8/14</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">80% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>4/5</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">78.13% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>25/32</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line medium'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">150×</span>
+<span class="cline-any cline-yes">150×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity &gt;=0.8.4;
+&nbsp;
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+&nbsp;
+contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+&nbsp;
+    address public immutable nftToken;
+    address public immutable nftKeyGenesis;
+    mapping(uint256 =&gt; address) public stakedKeys; // maps tokenId =&gt; address
+    mapping(address =&gt; uint256) public stakedAddress; // maps address =&gt; number of keys staked
+&nbsp;
+    event NewStakedKey(uint256 indexed tokenId, address indexed staker, uint256 totalStakedKeys);
+&nbsp;
+    constructor(address _nftToken, address _nftKeyGenesis)
+        ERC20Permit("Staked NFT.com Genesis Key")
+        ERC20("Staked NFT.com Genesis Key", "sNFT")
+    {
+        nftToken = _nftToken;
+        nftKeyGenesis = _nftKeyGenesis;
+    }
+&nbsp;
+    /**
+     @notice internal helper function to call allowance for a token
+     @param _owner user allowing permit
+     @param spender contract allowed to spent balance
+     @param v vSig
+     @param r rSig
+     @param s sSig
+    */
+    function permitXNFT(
+        address _owner,
+        address spender,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) private {
+        return IERC20Permit(nftToken).permit(_owner, spender, 2**256 - 1, 2**256 - 1, v, r, s);
+    }
+&nbsp;
+    /**
+     @notice function for allowing a user to stake
+     @param _amount amount of NFT tokens to stake
+     @param _tokenId of Genesis Key being staked
+     @param v optional vSig param for permit
+     @param r optional rSig param for permit
+     @param s optional sSig param for permit
+    */
+    function enter(
+        uint256 _amount,
+        uint256 _tokenId,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public nonReentrant {
+        // no stake yet
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (stakedKeys[_tokenId] != msg.sender) {
+            // checks
+            require(IERC721(nftKeyGenesis).ownerOf(_tokenId) == msg.sender, "!GK1");
+&nbsp;
+            // effects: assigned key to msg.sender
+            stakedKeys[_tokenId] = msg.sender;
+            stakedAddress[msg.sender] += 1;
+&nbsp;
+            // interactions
+            IERC721(nftKeyGenesis).transferFrom(msg.sender, address(this), _tokenId);
+&nbsp;
+            emit NewStakedKey(_tokenId, msg.sender, stakedAddress[msg.sender]);
+        }
+&nbsp;
+        // only apply approve permit for first time
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (IERC20(address(this)).allowance(msg.sender, address(this)) &lt; _amount) {
+            permitXNFT(msg.sender, address(this), v, r, s); // approve xNFT token
+        }
+&nbsp;
+        IERC20(nftToken).safeTransferFrom(msg.sender, address(this), _amount);
+&nbsp;
+        uint256 totalNftTokenLocked = IERC20(nftToken).balanceOf(address(this));
+        uint256 totalSupply = totalSupply();
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (totalSupply == 0 || totalNftTokenLocked == 0) {
+            _mint(msg.sender, _amount);
+        } else {
+<span class="cstat-no" title="statement not covered" >            uint256 xNftTokenAmount = (_amount * totalSupply) / totalNftTokenLocked;</span>
+<span class="cstat-no" title="statement not covered" >            _mint(msg.sender, xNftTokenAmount)</span>;
+        }
+    }
+&nbsp;
+    // simply collects NFT tokens without withdrawing Gen Key
+<span class="fstat-no" title="function not covered" >    function collectTokens(uint256 _xNftAmount, uint256 _tokenId) public nonReentrant {</span>
+<span class="cstat-no" title="statement not covered" >        require(stakedKeys[_tokenId] == msg.sender, "!GEN_KEY")</span>;
+<span class="cstat-no" title="statement not covered" >        uint256 totalSupply = totalSupply();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        uint256 nftAmount = (_xNftAmount * (IERC20(nftToken).balanceOf(address(this)))) / totalSupply;</span>
+<span class="cstat-no" title="statement not covered" >        _burn(msg.sender, _xNftAmount)</span>;
+<span class="cstat-no" title="statement not covered" >        IERC20(nftToken).safeTransfer(msg.sender, nftAmount)</span>;
+    }
+&nbsp;
+    function leave(uint256 _xNftAmount, uint256 _tokenId) public nonReentrant {
+        require(stakedKeys[_tokenId] == msg.sender, "!GEN_KEY");
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(stakedAddress[msg.sender] != 0, "GEN_KEY != 0");
+&nbsp;
+        // reset assignment
+        stakedKeys[_tokenId] = address(0x0);
+        stakedAddress[msg.sender] -= 1;
+&nbsp;
+        uint256 totalSupply = totalSupply();
+        uint256 nftAmount = (_xNftAmount * (IERC20(nftToken).balanceOf(address(this)))) / totalSupply;
+        _burn(msg.sender, _xNftAmount);
+        IERC20(nftToken).safeTransfer(msg.sender, nftAmount);
+        IERC721(nftKeyGenesis).transferFrom(address(this), msg.sender, _tokenId);
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Jun 13 2022 19:15:50 GMT+0000 (Coordinated Universal Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

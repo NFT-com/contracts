@@ -27,8 +27,12 @@ contract NftProfile is
 
     event NewFee(uint256 _fee);
 
-    modifier onlyOwner() {
+    function _onlyOwner() private view {
         require(msg.sender == owner);
+    }
+
+    modifier onlyOwner() {
+        _onlyOwner();
         _;
     }
 
@@ -74,7 +78,7 @@ contract NftProfile is
         _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _to, tokenId);
     }
 
-    function profileOwner(string memory _string) external view override returns (address) {
+    function profileOwner(string memory _string) public view override returns (address) {
         return ownerOf(_tokenUsedURIs[_string].sub(1));
     }
 
@@ -92,7 +96,7 @@ contract NftProfile is
      @param _string profile URI
      @return the tokenId associated with a profile NFT
     */
-    function getTokenId(string memory _string) external view returns (uint256) {
+    function getTokenId(string memory _string) external view override returns (uint256) {
         return _tokenUsedURIs[_string].sub(1);
     }
 

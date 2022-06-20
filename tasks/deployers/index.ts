@@ -191,6 +191,20 @@ task("init:deliver").setAction(async function (taskArguments, hre) {
   }
 });
 
+task("deploy:udo").setAction(async function (taskArguments, hre) {
+  try {
+    const baseURI = "ipfs://QmSqyfNBxHiHyvEuk23LKt2v7QDi3KivVLPsqhBJ7oxfRf/";
+    const UdoDrop = await hre.ethers.getContractFactory("UdoDrop");
+    const deployedUdo = await UdoDrop.deploy(baseURI);
+
+    console.log(chalk.green(`deployedUdo: ${deployedUdo.address}`));
+
+    await verifyContract("deployedUdo", deployedUdo.address, [baseURI], hre);
+  } catch (err) {
+    console.log("error: ", err);
+  }
+});
+
 task("init:vest").setAction(async function (taskArguments, hre) {
   const Vesting = await hre.ethers.getContractFactory("Vesting");
   const deployedVesting = await Vesting.attach((await getTokens(hre)).deployedVestingAddress);

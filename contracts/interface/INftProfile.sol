@@ -22,6 +22,8 @@ interface INftProfile {
         address _receiver
     ) external;
 
+    function getTokenId(string memory _string) external view returns (uint256);
+
     function tokenUsed(string memory _string) external view returns (bool);
 
     function profileOwner(string memory _string) external view returns (address);
