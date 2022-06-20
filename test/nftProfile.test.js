@@ -516,7 +516,31 @@ describe("NFT Profile Auction / Minting", function () {
             [3, 'HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE']
           ], "testminter");
 
-          console.log('assc addr: ', await deployedNftProfile.associatedAddresses("testminter"));
+          expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(6);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[0][1]).to.be.equal(
+            addr1.address
+          );
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[1][1]).to.be.equal(
+            addr2.address
+          );
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[2][1]).to.be.equal(
+            addr3.address
+          );
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[3][0]).to.be.equal(0);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[3][1]).to.be.equal(
+            addr4.address
+          );
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[4][0]).to.be.equal(1);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[4][1]).to.be.equal(
+            '0.0.4123'
+          );
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[5][0]).to.be.equal(3);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[5][1]).to.be.equal(
+            'HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE'
+          );
       });
 
       it("should correctly diagnose evm based enums", async function() {
