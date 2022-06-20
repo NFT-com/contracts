@@ -333,12 +333,45 @@ contract NftProfile is
         return address(iaddr);
     }
 
+    function validAddressSize(
+        uint256 tokenId,
+        address pOwner,
+        AddressTuple[] memory rawAssc
+    ) private view returns (uint256) {
+        uint256 size = 0;
+
+        for (uint256 i = 0; i < rawAssc.length; ) {
+            if (_evmBased(rawAssc[i].cid)) {
+                // if approved
+                if (_selfApprovedMap[abi.encode(pOwner, tokenId, _parseAddr(rawAssc[i].chainAddr))]) {
+                    unchecked {       
+                        ++size;
+                    }
+                }
+            } else {
+                unchecked {       
+                    ++size;
+                }
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return size;
+    }
+
     // makes sure ownerAddr + profileUrl + associated address is in mapping to allow association
     function associatedAddresses(string calldata profileUrl) external view returns (AddressTuple[] memory) {
         uint256 tokenId = _tokenUsedURIs[profileUrl].sub(1);
         address pOwner = profileOwner(profileUrl);
         AddressTuple[] memory rawAssc = _associatedAddresses[pOwner][tokenId];
-        AddressTuple[] memory updatedAssc = new AddressTuple[](rawAssc.length);
+        AddressTuple[] memory updatedAssc = new AddressTuple[](validAddressSize(
+            tokenId,
+            pOwner,
+            rawAssc
+        ));
 
         for (uint256 i = 0; i < rawAssc.length; ) {
             if (_evmBased(rawAssc[i].cid)) {

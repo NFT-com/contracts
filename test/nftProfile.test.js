@@ -4,7 +4,14 @@ const { convertBigNumber, convertSmallNumber, encode, signHashProfile } = requir
 
 const { parseBalanceMap } = require("./utils/parse-balance-map");
 
-const DECIMALS = 18;
+const Blockchain = {
+  ETHEREUM: 0,
+  HEDERA: 1,
+  POLYGON: 2,
+  SOLANA: 3,
+  TEZOS: 4,
+  FLOW: 5
+}
 const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 
 describe("NFT Profile Auction / Minting", function () {
@@ -53,7 +60,7 @@ describe("NFT Profile Auction / Minting", function () {
       ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
       ProfileAuctionV2 = await hre.ethers.getContractFactory("ProfileAuctionV2");
 
-      [owner, second, addr1, ...addrs] = await ethers.getSigners();
+      [owner, second, addr1, addr2, addr3, addr4, ...addrs] = await ethers.getSigners();
       let coldWallet = owner.address;
 
       deployedNftProfileHelper = await NftProfileHelper.deploy();
@@ -403,7 +410,6 @@ describe("NFT Profile Auction / Minting", function () {
       // });
 
       it("should allow profiles to associate other addresses", async function () {
-        console.log("==== 0");
         await deployedNftProfile
           .connect(second)
           .addAssociatedAddresses([[0, process.env.CICD ? process.env.MNEMONIC_PUBLIC_ADDR : "0x59495589849423692778a8c5aaca62ca80f875a4"]], "testminter");
@@ -416,9 +422,7 @@ describe("NFT Profile Auction / Minting", function () {
         ).to.be.reverted;
 
         // empty array since not found
-        expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(1);
-        expect((await deployedNftProfile.associatedAddresses("testminter"))[0][0]).to.be.equal(0); // chainId
-        expect((await deployedNftProfile.associatedAddresses("testminter"))[0][1]).to.be.equal(""); // associated address
+        expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(0);
 
         // bi-directional (owner verification)
         await deployedNftProfile.connect(owner).associateSelfWithUsers(["testminter"]);
@@ -428,8 +432,6 @@ describe("NFT Profile Auction / Minting", function () {
         expect((await deployedNftProfile.associatedAddresses("testminter"))[0][1]).to.be.equal(
           process.env.CICD ? process.env.MNEMONIC_PUBLIC_ADDR : "0x59495589849423692778a8c5aaca62ca80f875a4",
         );
-
-        console.log("==== 2");
 
         await expect(
           deployedNftProfile
@@ -441,11 +443,7 @@ describe("NFT Profile Auction / Minting", function () {
           .connect(second)
           .addAssociatedAddresses([[0, "0x59495589849423692778a8c5aaCA62CA80f875af"]], "testminter");
 
-        console.log("==== 3");
-
-        expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(2);
-        expect((await deployedNftProfile.associatedAddresses("testminter"))[1][0]).to.be.equal(0); // chainId
-        expect((await deployedNftProfile.associatedAddresses("testminter"))[1][1]).to.be.equal(""); // associated address
+        expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(1);
 
         console.log("testminter before clearing: ", await deployedNftProfile.associatedAddresses("testminter"));
 
@@ -453,14 +451,66 @@ describe("NFT Profile Auction / Minting", function () {
 
         console.log("testminter after clearing: ", await deployedNftProfile.associatedAddresses("testminter"));
         expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(0);
+      });
 
+      it("should allow multiple addresses to be added at the same time", async function() {
+        await deployedNftProfile
+          .connect(second)
+          .addAssociatedAddresses([
+            [0, addr1.address],
+            [0, addr2.address],
+            [0, addr3.address],
+            [0, addr4.address]
+          ], "testminter");
+
+          expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(0);
+
+          await expect(deployedNftProfile
+          .connect(second)
+          .addAssociatedAddresses([
+            [0, addr1.address],
+            [0, addr2.address],
+            [0, addr3.address],
+            [0, addr4.address]
+          ], "testminter")).to.be.reverted;
+
+          await deployedNftProfile.connect(addr1).associateSelfWithUsers(["testminter"]);
+          expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(1);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[0][1]).to.be.equal(
+            addr1.address
+          );
+
+          await deployedNftProfile.connect(addr2).associateSelfWithUsers(["testminter"]);
+          expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(2);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[1][1]).to.be.equal(
+            addr2.address
+          );
+
+          await deployedNftProfile.connect(addr3).associateSelfWithUsers(["testminter"]);
+          expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(3);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[2][1]).to.be.equal(
+            addr3.address
+          );
+
+          await deployedNftProfile.connect(addr4).associateSelfWithUsers(["testminter"]);
+          expect((await deployedNftProfile.associatedAddresses("testminter")).length).to.be.equal(4);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[3][0]).to.be.equal(0);
+          expect((await deployedNftProfile.associatedAddresses("testminter"))[3][1]).to.be.equal(
+            addr4.address
+          );
+      });
+
+      it("should correctly diagnose evm based enums", async function() {
         // unit tests for evm based system
-        expect(await deployedNftProfile.evmBased(0)).to.be.equal(true);
-        expect(await deployedNftProfile.evmBased(2)).to.be.equal(true);
-        expect(await deployedNftProfile.evmBased(1)).to.be.equal(false);
-        expect(await deployedNftProfile.evmBased(3)).to.be.equal(false);
-        expect(await deployedNftProfile.evmBased(4)).to.be.equal(false);
-        expect(await deployedNftProfile.evmBased(5)).to.be.equal(false);
+        expect(await deployedNftProfile.evmBased(Blockchain.ETHEREUM)).to.be.equal(true);
+        expect(await deployedNftProfile.evmBased(Blockchain.POLYGON)).to.be.equal(true);
+        expect(await deployedNftProfile.evmBased(Blockchain.HEDERA)).to.be.equal(false);
+        expect(await deployedNftProfile.evmBased(Blockchain.SOLANA)).to.be.equal(false);
+        expect(await deployedNftProfile.evmBased(Blockchain.TEZOS)).to.be.equal(false);
+        expect(await deployedNftProfile.evmBased(Blockchain.FLOW)).to.be.equal(false);
       });
 
       it("should upgrade profile contract to V2", async function () {
