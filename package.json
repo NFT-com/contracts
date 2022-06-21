@@ -84,7 +84,7 @@
     "commit": "git-cz",
     "precommit": "prettier --write --tab-width 2 \"test/*.js\"",
     "compile": "hardhat compile && yarn typechain",
-    "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.js\" && mv coverage docs",
+    "coverage": "rm -rf docs && hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.js\" && mv coverage docs",
     "deploy": "hardhat deploy:1 --network rinkeby",
     "airdrop:public": "ts-node ./test/utils/gen-merkle-root.ts --input ./test/utils/airdrop.json",
     "verify": "hardhat verify --network <network> <contract>",
