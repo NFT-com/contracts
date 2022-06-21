@@ -35,9 +35,9 @@
         <span class='fraction'>20/21</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">99.05% </span>
+        <span class="strong">98.11% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>104/105</span>
+        <span class='fraction'>104/106</span>
       </div>
     </div>
   </div>
@@ -323,31 +323,7 @@
 278
 279
 280
-281
-282
-283
-284
-285
-286
-287
-288
-289
-290
-291
-292
-293
-294
-295
-296
-297
-298
-299
-300</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+281</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -393,8 +369,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">54×</span>
 <span class="cline-any cline-yes">54×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -408,9 +382,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">32×</span>
 <span class="cline-any cline-yes">32×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -450,10 +421,7 @@
 <span class="cline-any cline-yes">15×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">15×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">15×</span>
 <span class="cline-any cline-yes">13×</span>
@@ -535,8 +503,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -603,10 +569,6 @@
 <span class="cline-any cline-yes">55×</span>
 <span class="cline-any cline-yes">55×</span>
 <span class="cline-any cline-yes">55×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">55×</span>
 <span class="cline-any cline-yes">229×</span>
@@ -652,12 +614,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 &nbsp;
-contract NftResolver is
-    Initializable,
-    ReentrancyGuardUpgradeable,
-    UUPSUpgradeable,
-    INftResolver
-{
+contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, INftResolver {
     using SafeMathUpgradeable for uint256;
 &nbsp;
     INftProfile nftProfile;
@@ -669,8 +626,8 @@ contract NftResolver is
     // Storage for owner of profile ======================================================================
     mapping(address =&gt; mapping(uint256 =&gt; AddressTuple[])) internal _ownerAddrList;
     mapping(address =&gt; mapping(uint256 =&gt; AddressTuple)) internal _ownerCtx;
-    mapping(uint256 =&gt; mapping(bytes =&gt; bool)) internal _ownerNonEvmMap;   // O(1) lookup non-evm
-    mapping(uint256 =&gt; mapping(address =&gt; bool)) internal _ownerEvmMap;    // O(1) lookup evm
+    mapping(uint256 =&gt; mapping(bytes =&gt; bool)) internal _ownerNonEvmMap; // O(1) lookup non-evm
+    mapping(uint256 =&gt; mapping(address =&gt; bool)) internal _ownerEvmMap; // O(1) lookup evm
     // ===================================================================================================
     mapping(address =&gt; RelatedProfiles[]) internal _approvedEvmList;
     mapping(bytes =&gt; bool) internal _approvedMap;
@@ -691,9 +648,7 @@ contract NftResolver is
         _;
     }
 &nbsp;
-    function initialize(
-        INftProfile _nftProfile
-    ) public initializer {
+    function initialize(INftProfile _nftProfile) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 &nbsp;
@@ -709,10 +664,7 @@ contract NftResolver is
         if (!_regexMap[cid].matches(chainAddr)) revert InvalidAddress();
     }
 &nbsp;
-    function setAssociatedContract(
-        AddressTuple memory inputTuple,
-        string calldata profileUrl
-    ) external {
+    function setAssociatedContract(AddressTuple memory inputTuple, string calldata profileUrl) external {
         _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
 &nbsp;
@@ -748,24 +700,21 @@ contract NftResolver is
         for (uint256 i = 0; i &lt; l1; ) {
             validateAddress(inputTuples[i].cid, inputTuples[i].chainAddr);
 &nbsp;
-            <span class="missing-if-branch" title="if path not taken" >I</span>if (
-                _ownerNonEvmMap[nonce][abi.encode(
-                    msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr
-                )]
-            ) revert DuplicateAddress();
+            <span class="missing-if-branch" title="if path not taken" >I</span>if (_ownerNonEvmMap[nonce][abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)])
+                revert DuplicateAddress();
 &nbsp;
             if (_evmBased(inputTuples[i].cid)) {
                 address parsed = Resolver._parseAddr(inputTuples[i].chainAddr);
                 if (_ownerEvmMap[nonce][parsed]) revert DuplicateAddress();
                 _ownerEvmMap[nonce][parsed] = true;
             } else {
-                _ownerNonEvmMap[nonce][abi.encode(
-                    msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr
-                )] = true;
+                _ownerNonEvmMap[nonce][
+                    abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)
+                ] = true;
             }
 &nbsp;
             _ownerAddrList[msg.sender][tokenId].push(inputTuples[i]);
-            
+&nbsp;
             unchecked {
                 ++i;
             }
@@ -802,10 +751,10 @@ contract NftResolver is
     }
 &nbsp;
     // removes 1 address at a time
-    function removeAssociatedAddress(
-        AddressTuple calldata inputTuple,
-        string calldata profileUrl
-    ) external returns (bool) {
+    function removeAssociatedAddress(AddressTuple calldata inputTuple, string calldata profileUrl)
+        external
+        returns (bool)
+    {
         _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
         uint256 l1 = _ownerAddrList[msg.sender][tokenId].length;
@@ -832,10 +781,8 @@ contract NftResolver is
                 _ownerAddrList[msg.sender][tokenId][i] = _ownerAddrList[msg.sender][tokenId][l1 - 1];
                 _ownerAddrList[msg.sender][tokenId].pop();
 &nbsp;
-                _ownerNonEvmMap[nonce][abi.encode(
-                    msg.sender, tokenId, inputTuple.cid, inputTuple.chainAddr
-                )] = false;
-                
+                _ownerNonEvmMap[nonce][abi.encode(msg.sender, tokenId, inputTuple.cid, inputTuple.chainAddr)] = false;
+&nbsp;
                 return true;
             }
 &nbsp;
@@ -878,12 +825,12 @@ contract NftResolver is
             if (_evmBased(rawAssc[i].cid)) {
                 // if approved
                 if (_approvedMap[abi.encode(pOwner, tokenId, Resolver._parseAddr(rawAssc[i].chainAddr))]) {
-                    unchecked {       
+                    unchecked {
                         ++size;
                     }
                 }
             } else {
-                unchecked {       
+                unchecked {
                     ++size;
                 }
             }
@@ -901,11 +848,7 @@ contract NftResolver is
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
         address pOwner = nftProfile.profileOwner(profileUrl);
         AddressTuple[] memory rawAssc = _ownerAddrList[pOwner][tokenId];
-        AddressTuple[] memory updatedAssc = new AddressTuple[](validAddressSize(
-            tokenId,
-            pOwner,
-            rawAssc
-        ));
+        AddressTuple[] memory updatedAssc = new AddressTuple[](validAddressSize(tokenId, pOwner, rawAssc));
 &nbsp;
         for (uint256 i = 0; i &lt; rawAssc.length; ) {
             if (_evmBased(rawAssc[i].cid)) {
@@ -946,7 +889,7 @@ contract NftResolver is
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jun 21 2022 18:11:37 GMT+0000 (Coordinated Universal Time)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jun 21 2022 19:22:55 GMT+0000 (Coordinated Universal Time)
 </div>
 </div>
 <script src="../prettify.js"></script>
