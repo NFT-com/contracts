@@ -36,7 +36,11 @@ contract NftResolver is
     event UpdatedRegex(Blockchain _cid, IRegex _regexAddress);
 
     function _onlyOwner() private view {
-        require(msg.sender == owner);
+        if (msg.sender != owner) revert NotOwner();
+    }
+
+    function _onlyProfileOwner(string memory profileUrl) private view {
+        if (nftProfile.profileOwner(profileUrl) != msg.sender) revert NotOwner();
     }
 
     modifier onlyOwner() {
@@ -66,7 +70,7 @@ contract NftResolver is
         AddressTuple memory inputTuple,
         string calldata profileUrl
     ) external {
-        if (nftProfile.profileOwner(profileUrl) != msg.sender) revert NotOwner();
+        _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
 
         validateAddress(inputTuple.cid, inputTuple.chainAddr);
@@ -75,7 +79,7 @@ contract NftResolver is
     }
 
     function clearAssociatedContract(string calldata profileUrl) external {
-        if (nftProfile.profileOwner(profileUrl) != msg.sender) revert NotOwner();
+        _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
 
         AddressTuple memory addressTuple;
@@ -93,7 +97,7 @@ contract NftResolver is
 
     // adds multiple addresses at a time while checking for duplicates
     function addAssociatedAddresses(AddressTuple[] calldata inputTuples, string calldata profileUrl) external {
-        if (nftProfile.profileOwner(profileUrl) != msg.sender) revert NotOwner();
+        _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
         uint256 l1 = inputTuples.length;
         uint256 nonce = _nonce[profileUrl];
@@ -155,8 +159,11 @@ contract NftResolver is
     }
 
     // removes 1 address at a time
-    function removeAssociatedAddress(AddressTuple calldata inputTuple, string calldata profileUrl) external {
-        if (nftProfile.profileOwner(profileUrl) != msg.sender) revert NotOwner();
+    function removeAssociatedAddress(
+        AddressTuple calldata inputTuple,
+        string calldata profileUrl
+    ) external returns (bool) {
+        _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
         uint256 l1 = _ownerAddrList[msg.sender][tokenId].length;
         uint256 nonce = _nonce[profileUrl];
@@ -165,13 +172,15 @@ contract NftResolver is
             validateAddress(inputTuple.cid, inputTuple.chainAddr);
 
             // EVM based - checksum
-            if (_evmBased(inputTuple.cid)) {
+            if (_evmBased(inputTuple.cid) && _evmBased(_ownerAddrList[msg.sender][tokenId][i].cid)) {
                 address parsed = Resolver._parseAddr(inputTuple.chainAddr);
-                if (_ownerEvmMap[nonce][parsed]) {
+                address parsedCmp = Resolver._parseAddr(_ownerAddrList[msg.sender][tokenId][i].chainAddr);
+                if (parsed == parsedCmp && _ownerEvmMap[nonce][parsed]) {
                     _ownerAddrList[msg.sender][tokenId][i] = _ownerAddrList[msg.sender][tokenId][l1 - 1];
                     _ownerAddrList[msg.sender][tokenId].pop();
                     _ownerEvmMap[nonce][parsed] = false;
-                    break;
+
+                    return true;
                 }
             } else if (
                 // non-evm
@@ -184,7 +193,7 @@ contract NftResolver is
                     msg.sender, tokenId, inputTuple.cid, inputTuple.chainAddr
                 )] = false;
                 
-                break;
+                return true;
             }
 
             unchecked {
@@ -198,7 +207,7 @@ contract NftResolver is
     // can be used to clear mapping OR more gas efficient to remove multiple addresses
     // nonce increment clears the mapping without having to manually reset state
     function clearAssociatedAddresses(string calldata profileUrl) external {
-        if (nftProfile.profileOwner(profileUrl) != msg.sender) revert NotOwner();
+        _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
         delete _ownerAddrList[msg.sender][tokenId];
 
@@ -271,6 +280,12 @@ contract NftResolver is
         }
 
         return updatedAssc;
+    }
+
+    function associatedContract(string calldata profileUrl) external view returns (AddressTuple memory) {
+        uint256 tokenId = nftProfile.getTokenId(profileUrl);
+        address pOwner = nftProfile.profileOwner(profileUrl);
+        return _ownerCtx[pOwner][tokenId];
     }
 
     function setRegex(Blockchain _cid, IRegex _regexContract) external onlyOwner {
