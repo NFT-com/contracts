@@ -9,12 +9,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract NftResolver is
-    Initializable,
-    ReentrancyGuardUpgradeable,
-    UUPSUpgradeable,
-    INftResolver
-{
+contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, INftResolver {
     using SafeMathUpgradeable for uint256;
 
     INftProfile nftProfile;
@@ -26,8 +21,8 @@ contract NftResolver is
     // Storage for owner of profile ======================================================================
     mapping(address => mapping(uint256 => AddressTuple[])) internal _ownerAddrList;
     mapping(address => mapping(uint256 => AddressTuple)) internal _ownerCtx;
-    mapping(uint256 => mapping(bytes => bool)) internal _ownerNonEvmMap;   // O(1) lookup non-evm
-    mapping(uint256 => mapping(address => bool)) internal _ownerEvmMap;    // O(1) lookup evm
+    mapping(uint256 => mapping(bytes => bool)) internal _ownerNonEvmMap; // O(1) lookup non-evm
+    mapping(uint256 => mapping(address => bool)) internal _ownerEvmMap; // O(1) lookup evm
     // ===================================================================================================
     mapping(address => RelatedProfiles[]) internal _approvedEvmList;
     mapping(bytes => bool) internal _approvedMap;
@@ -48,9 +43,7 @@ contract NftResolver is
         _;
     }
 
-    function initialize(
-        INftProfile _nftProfile
-    ) public initializer {
+    function initialize(INftProfile _nftProfile) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
@@ -66,10 +59,7 @@ contract NftResolver is
         if (!_regexMap[cid].matches(chainAddr)) revert InvalidAddress();
     }
 
-    function setAssociatedContract(
-        AddressTuple memory inputTuple,
-        string calldata profileUrl
-    ) external {
+    function setAssociatedContract(AddressTuple memory inputTuple, string calldata profileUrl) external {
         _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
 
@@ -105,24 +95,21 @@ contract NftResolver is
         for (uint256 i = 0; i < l1; ) {
             validateAddress(inputTuples[i].cid, inputTuples[i].chainAddr);
 
-            if (
-                _ownerNonEvmMap[nonce][abi.encode(
-                    msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr
-                )]
-            ) revert DuplicateAddress();
+            if (_ownerNonEvmMap[nonce][abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)])
+                revert DuplicateAddress();
 
             if (_evmBased(inputTuples[i].cid)) {
                 address parsed = Resolver._parseAddr(inputTuples[i].chainAddr);
                 if (_ownerEvmMap[nonce][parsed]) revert DuplicateAddress();
                 _ownerEvmMap[nonce][parsed] = true;
             } else {
-                _ownerNonEvmMap[nonce][abi.encode(
-                    msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr
-                )] = true;
+                _ownerNonEvmMap[nonce][
+                    abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)
+                ] = true;
             }
 
             _ownerAddrList[msg.sender][tokenId].push(inputTuples[i]);
-            
+
             unchecked {
                 ++i;
             }
@@ -159,10 +146,10 @@ contract NftResolver is
     }
 
     // removes 1 address at a time
-    function removeAssociatedAddress(
-        AddressTuple calldata inputTuple,
-        string calldata profileUrl
-    ) external returns (bool) {
+    function removeAssociatedAddress(AddressTuple calldata inputTuple, string calldata profileUrl)
+        external
+        returns (bool)
+    {
         _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
         uint256 l1 = _ownerAddrList[msg.sender][tokenId].length;
@@ -189,10 +176,8 @@ contract NftResolver is
                 _ownerAddrList[msg.sender][tokenId][i] = _ownerAddrList[msg.sender][tokenId][l1 - 1];
                 _ownerAddrList[msg.sender][tokenId].pop();
 
-                _ownerNonEvmMap[nonce][abi.encode(
-                    msg.sender, tokenId, inputTuple.cid, inputTuple.chainAddr
-                )] = false;
-                
+                _ownerNonEvmMap[nonce][abi.encode(msg.sender, tokenId, inputTuple.cid, inputTuple.chainAddr)] = false;
+
                 return true;
             }
 
@@ -235,12 +220,12 @@ contract NftResolver is
             if (_evmBased(rawAssc[i].cid)) {
                 // if approved
                 if (_approvedMap[abi.encode(pOwner, tokenId, Resolver._parseAddr(rawAssc[i].chainAddr))]) {
-                    unchecked {       
+                    unchecked {
                         ++size;
                     }
                 }
             } else {
-                unchecked {       
+                unchecked {
                     ++size;
                 }
             }
@@ -258,11 +243,7 @@ contract NftResolver is
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
         address pOwner = nftProfile.profileOwner(profileUrl);
         AddressTuple[] memory rawAssc = _ownerAddrList[pOwner][tokenId];
-        AddressTuple[] memory updatedAssc = new AddressTuple[](validAddressSize(
-            tokenId,
-            pOwner,
-            rawAssc
-        ));
+        AddressTuple[] memory updatedAssc = new AddressTuple[](validAddressSize(tokenId, pOwner, rawAssc));
 
         for (uint256 i = 0; i < rawAssc.length; ) {
             if (_evmBased(rawAssc[i].cid)) {

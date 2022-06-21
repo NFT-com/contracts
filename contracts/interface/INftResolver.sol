@@ -34,6 +34,4 @@ struct RelatedProfiles {
     string profileUrl;
 }
 
-interface INftResolver {
-    
-}
+interface INftResolver {}

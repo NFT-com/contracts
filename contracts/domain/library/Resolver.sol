@@ -7,7 +7,7 @@ library Resolver {
         uint160 iaddr = 0;
         uint160 b1;
         uint160 b2;
-        for (uint256 i = 2; i < 2 + 2 * 20;) {
+        for (uint256 i = 2; i < 2 + 2 * 20; ) {
             iaddr *= 256;
             b1 = uint160(uint8(tmp[i]));
             b2 = uint160(uint8(tmp[i + 1]));
