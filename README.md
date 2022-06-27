@@ -58,7 +58,51 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 - [deployedNftMarketplace](https://etherscan.io/address/)
   - implementation => x
 
-## Rinkeby ===============================================================================
+## Goerli ==========================================================================================
+
+- [deployedNftToken](https://goerli.etherscan.io/address/0x7ffe04f3213d893bb4ebe76fbb49ca2a8f9c4610)
+- [vesting](https://goerli.etherscan.io/address/0x0638A014c45BE910d4611bAfaBcC8219A075788B)
+
+  - implementation => 0x2Ddbe998e6868Bc929FDeD9B7442F10D32D520fa
+
+- [deployedGkTeamDistributor](https://goerli.etherscan.io/address/0x85c7fBFD62C4470Ee6C0Eb8a722c92d7cD840A11)
+- [deployedGenesisKeyTeamClaim](https://goerli.etherscan.io/address/0x7B7d88d7718294E27575aA7F4d1e2F25fF51b81c)
+  - implementation => 0x4a76adbfF8aA29e0B6E051660119768e0f870557
+- [deployedGenesisKey](https://goerli.etherscan.io/address/0xe0060010c2c81A817f4c52A9263d4Ce5c5B66D55)
+
+  - implementation => 0xf4D214C53762edFaB8a3744C9878466D9b1f1648
+
+- [deployedNftGenesisStake](https://goerli.etherscan.io/address/tbd)
+- [deployedNftProfileHelper](https://goerli.etherscan.io/address/0x3efb23c05DD34035fDb23cC74D85Ec586A2e7068)
+- [deployedNftProfile](https://goerli.etherscan.io/address/0x9Ef7A34dcCc32065802B1358129a226B228daB4E)
+  - implementation => 0x073272c91A741E453aE47c10Be2F7ab5131B0706
+- [deployedNftBuyer](https://goerli.etherscan.io/address/tbd)
+- [deployedProfileAuction](https://goerli.etherscan.io/address/0x40023d97Ca437B966C8f669C91a9740C639E21C3)
+
+  - implementation => 0xe91C327fE65e3A8826dC4DAAe5E84cA4c85b455B
+
+- [deployedEthereumRegex](https://goerli.etherscan.io/address/0x44Ab7157EA5aa43b538F00FF8E23B7cb9Bcd7C0D)
+- [deployedNftResolver](https://goerli.etherscan.io/address/0x45d296A1042248F48f484c6f2be01006D26fCBF0)
+
+  - implementation => 0x3B95F6236033d39C173E80a3E9b89936Fd0FaFbA
+
+
+- [deployedGenesisKeyDistributor](https://goerli.etherscan.io/address/)
+
+- [nftTransferProxy](https://goerli.etherscan.io/address/)
+  - implementation => tbd
+- [deployedERC20TransferProxy](https://goerli.etherscan.io/address/)
+  - implementation => tbd
+- [deployedCryptoKittyTransferProxy](https://goerli.etherscan.io/address/)
+  - implementation => tbd
+- [deployedValidationLogic](https://goerli.etherscan.io/address/)
+  - implementation => tbd
+- [deployedMarketplaceEvent](https://goerli.etherscan.io/address/)
+  - implementation => tbd
+- [deployedNftMarketplace](https://goerli.etherscan.io/address/)
+  - implementation => tbd
+  
+## [DEPRECATED] Rinkeby ============================================================================
 
 - [deployedNftToken](https://rinkeby.etherscan.io/address/0xd60054F74c9685e5F9E474F36344494D6a1DB3cF)
 - [vesting](https://rinkeby.etherscan.io/address/0x3b6b2ddC1878dACbC99b9Bfb099A7c3DcfB76da5)

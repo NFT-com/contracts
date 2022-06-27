@@ -15,81 +15,87 @@ const mainnetBool = (hre: any) => {
 
 const getNetwork = (hre: any) => {
   const chainId = hre.network.config.chainId;
-  const network = chainId === 4 ? "rinkeby" : chainId === 1 ? "mainnet" : chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
   return network;
 };
 
 const getTokens = async (hre: any) => {
   const chainId = hre.network.config.chainId;
-  const network = chainId === 4 ? "rinkeby" : chainId === 1 ? "mainnet" : chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
 
   const governor =
-    network === "rinkeby"
+    network === "goerli"
       ? "0x59495589849423692778a8c5aaCA62CA80f875a4"
       : network === "mainnet"
       ? "0xbCe52D4698fdE9484901121A7Feb0741BA6d4dF3" // 0xfD64d3f48BA28727608bD6E200AFeaca26Dd7e20 gnosis
       : "";
   const multiSig =
-    network === "rinkeby"
+    network === "goerli"
       ? "0x59495589849423692778a8c5aaCA62CA80f875a4"
       : network === "mainnet"
       ? "0xfD64d3f48BA28727608bD6E200AFeaca26Dd7e20"
       : "";
   const wethAddress =
-    network === "rinkeby"
-      ? "0xc778417e063141139fce010982780140aa0cd5ab"
+    network === "goerli"
+      ? "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
       : network === "mainnet"
       ? "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
       : "";
   const usdcAddress =
-    network === "rinkeby"
+    network === "goerli"
       ? "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
       : network === "mainnet"
       ? "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
       : "";
   const deployedNftTokenAddress =
-    network == "rinkeby"
-      ? "0xd60054F74c9685e5F9E474F36344494D6a1DB3cF"
+    network == "goerli"
+      ? "0x7ffe04f3213d893bb4ebe76fbb49ca2a8f9c4610"
       : network === "mainnet"
       ? "0x8C42428a747281B03F10C80e978C107D4d85E37F"
       : "";
   const deployedVestingAddress =
-    network == "rinkeby"
-      ? "0x3b6b2ddC1878dACbC99b9Bfb099A7c3DcfB76da5"
+    network == "goerli"
+      ? "0x0638A014c45BE910d4611bAfaBcC8219A075788B"
       : network === "mainnet"
       ? "0x774c2204D9e50CD9d6A579D194c067360604933f"
       : "";
   const deployedGenesisKeyAddress =
-    network == "rinkeby"
-      ? "0x530E404f51778F38249413264ac7807A16b88603"
+    network == "goerli"
+      ? "0xe0060010c2c81A817f4c52A9263d4Ce5c5B66D55"
       : network === "mainnet"
       ? "0x8fB5a7894AB461a59ACdfab8918335768e411414"
       : "";
   const genesisKeyTeamDistributorAddress =
-    network == "rinkeby"
-      ? "0x7a546F59e04Fff0b5eD3Ee13e30F38917C74741B"
+    network == "goerli"
+      ? "0x85c7fBFD62C4470Ee6C0Eb8a722c92d7cD840A11"
       : network === "mainnet"
       ? "0x5fb1941b5415b4817d9CC62f8039F7A4B366Ff8F"
       : "";
   const deployedGenesisKeyTeamClaimAddress =
-    network == "rinkeby"
-      ? "0x41E3E44e2Db9fFC7b69CF459441C80F95Cb25fCc"
+    network == "goerli"
+      ? "0x7B7d88d7718294E27575aA7F4d1e2F25fF51b81c"
       : network === "mainnet"
       ? "0xfc99E6b4447a17EA0C6162854fcb572ddC8FbB37"
       : "";
   const deployedProfileAuction =
-    network == "rinkeby"
-      ? "0x1338A9ec2Ef9906B57082dB0F67ED9E6E661F4A7"
+    network == "goerli"
+      ? "0x40023d97Ca437B966C8f669C91a9740C639E21C3"
       : network === "mainnet"
       ? "0x30f649D418AF7358f9c8CB036219fC7f1B646309"
       : "";
+  const deployedNftProfile =
+    network == "goerli"
+      ? "0x9Ef7A34dcCc32065802B1358129a226B228daB4E"
+      : network === "mainnet"
+      ? "0x7e229a305f26ce5C39AAB1d90271e1Ef03d764D5"
+      : "";
   const profileMetadataLink = `https://${
-    network === "rinkeby" ? "staging-api" : network === "mainnet" ? "prod-api" : ""
+    network === "goerli" ? "staging-api" : network === "mainnet" ? "prod-api" : ""
   }.nft.com/uri/`;
   const deployedNftBuyer =
-    network == "rinkeby" ? "0x1823c26FC21f124BB61256420000C3B531BF1D40" : network === "mainnet" ? "" : "";
+    network == "goerli" ? "0x1823c26FC21f124BB61256420000C3B531BF1D40" : network === "mainnet" ? "" : "";
   const ipfsHash =
-    network == "rinkeby"
+    network == "goerli"
       ? "ipfs://QmdzBQBCoFxkrtkh3gkQ6U59VmvwEh4c6VUf7LHyYjqqBL/"
       : network == "mainnet"
       ? "ipfs://QmWjL5P4P9324pNDfDTHpwwNLWrwXEFUNuaR2r93sxd7mF/"
@@ -109,6 +115,7 @@ const getTokens = async (hre: any) => {
     deployedGenesisKeyTeamClaimAddress,
     multiSig,
     deployedProfileAuction,
+    deployedNftProfile,
   };
 };
 
@@ -254,7 +261,11 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   const multiSig = (await getTokens(hre)).multiSig;
   const randomTeamAssignBool = true;
 
-  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+  const chainId = hre.network.config.chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
+
+  // Use old genesis key version (with auction flow)
+  const GenesisKey = await hre.ethers.getContractFactory(network === 'goerli' ? "GenesisKeyOld" : "GenesisKey");
   const deployedGenesisKey = await hre.upgrades.deployProxy(
     GenesisKey,
     [name, symbol, multiSig, auctionSeconds, randomTeamAssignBool, (await getTokens(hre)).ipfsHash],
@@ -308,8 +319,11 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
     ).genesisKeyTeamDistributorAddress,
   );
 
+  const chainId = hre.network.config.chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
+
   // INSIDER LIST FROM CORE.SERVICES
-  const insiderGKClaimJSON = JSON.parse(`{
+  const insiderGKClaimJSON_Mainnet = JSON.parse(`{
     "0xa06b01381c267318f2d65f05be343c7a2e224713": "1",
     "0xCDD6a63FeC8c5Dab5f10a139761aa5aCf729317E": "1",
     "0x9f0d3E5aA86c242DbAB469486Fa4C2Ec04974A9a": "1",
@@ -467,6 +481,18 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
     "0xd1D9F52d63e3736908c6e7D868f785d30Af5e3AC": "1"
   }`);
 
+  const insiderGKClaimJSON_Testnet = JSON.parse(`{
+    "0xBD3Feab37Eb7533B03bf77381D699aD8bA64A30B": "1",
+    "0x643367af2Ae07EBFbDE7599eB0855A19c24dca5F": "1",
+    "0x2f8ECC5A549638630C094a3DB3849f1ba27C31B1": "1",
+    "0x98375cB9Dc4a14b46a4C8b284880C7C277f4c8bc": "1",
+    "0x948c21e4e9e342e083424b6132fc29644c6c0a9f": "1",
+    "0x341dE5B426d3582f35357094Ae412cf4E41774Cd": "1",
+    "0x338eFdd45AE7D010da108f39d293565449C52682": "1"
+  }`);
+
+  const insiderGKClaimJSON = network === 'goerli' ? insiderGKClaimJSON_Testnet : insiderGKClaimJSON_Mainnet;
+
   const merkleResultInsider = parseBalanceMap(insiderGKClaimJSON);
   const merkleRootInsider = merkleResultInsider.merkleRoot;
   await deployedGenesisKeyTeamDistributor.changeMerkleRoot(merkleRootInsider);
@@ -567,6 +593,33 @@ task("deploy:2").setAction(async function (taskArguments, hre) {
   // );
 
   await getImplementation("deployedProfileAuction", deployedProfileAuction.address, hre);
+});
+
+// new code for nft resolvers
+task("deploy:2b").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("deploying resolvers"));
+
+  const deployedEthereumRegex = await (await hre.ethers.getContractFactory("EthereumRegex")).deploy();
+  console.log(chalk.green(`deployedEthereumRegex: ${deployedEthereumRegex.address}`));
+
+  const NftResolver = await hre.ethers.getContractFactory("NftResolver");
+  const deployedNftResolver = await hre.upgrades.deployProxy(
+    NftResolver,
+    [(await getTokens(hre)).deployedNftProfile],
+    { kind: "uups" },
+  );
+
+  console.log(chalk.green(`deployedNftResolver: ${deployedNftResolver.address}`));
+
+  await deployedNftResolver.setRegex(0, deployedEthereumRegex.address);
+
+  console.log(chalk.green(`${TIME_DELAY / 1000} second delay`));
+  await delay(TIME_DELAY);
+
+  await verifyContract("deployedEthereumRegex", deployedEthereumRegex.address, [], hre);
+
+  await getImplementation("deployedNftResolver", deployedNftResolver.address, hre);
+
 });
 
 // ========================================================

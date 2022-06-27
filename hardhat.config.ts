@@ -62,7 +62,7 @@ function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
 }
 
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = `https://eth-rinkeby.alchemyapi.io/v2/${alchemyApiKey}`; // "https://" + network + ".infura.io/v3/" + infuraApiKey;
+  const url: string = `https://eth-goerli.alchemyapi.io/v2/${alchemyApiKey}`; // "https://" + network + ".infura.io/v3/" + infuraApiKey;
   return {
     accounts: {
       count: 10,
@@ -86,8 +86,8 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-        // url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        url: `https://eth-goerli.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+        // url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
       accounts: {
         mnemonic,

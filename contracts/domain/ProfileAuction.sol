@@ -335,6 +335,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     function ownProfile(string memory profileUrl) external nonReentrant {
         // checks
         require(publicMintBool, "op: public minting is disabled");
+        require(ownedProfileStake[profileUrl] == 0);
         uint256 xNftKeyReq = (getFee(profileUrl, 365 days) * yearsToOwn * IGenesisKeyStake(contract2).totalSupply()) /
             IGenesisKeyStake(contract2).totalStakedNftCoin();
         require(xNftKeyReq != 0, "op: !0");
