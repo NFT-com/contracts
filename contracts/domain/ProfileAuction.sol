@@ -38,6 +38,8 @@ interface INftProfile {
     function profileOwner(string memory _string) external view returns (address);
 }
 
+error MaxProfiles();
+
 contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     using StringUtils for *;
     using ECDSAUpgradeable for bytes32;
@@ -63,13 +65,18 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     mapping(uint256 => uint256) public lengthPremium; // premium multiple for profile length
     mapping(string => uint256) public ownedProfileStake; // genKey tokenId => staked token
     mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
+    mapping(address => uint256) public publicMinted; // record of profiles public minted per user
+
+    address public emptySlot;   // empty slot for now, to be used in future
+    uint96 public maxProfilePerAddress; // max profiles that can be minted per address, set by DAO
 
     event UpdatedProfileStake(string _profileUrl, uint256 _stake);
     event MintedProfile(address _user, string _val, uint256 tokenId, uint256 _duration, uint256 _fee);
     event ExtendLicense(address _receiver, string _profileUrl, uint256 _duration, uint256 _fee, bool _expired);
     event NewLengthPremium(uint256 _length, uint256 _premium);
-    event NewYearlyFee(uint256 _fee);
-    event YearsToOwn(uint256 _years);
+    event NewYearlyFee(uint96 _fee);
+    event YearsToOwn(uint96 _years);
+    event NewMaxProfile(uint96 _max);
 
     modifier validAndUnusedURI(string memory _profileURI) {
         require(validURI(_profileURI));
@@ -181,6 +188,11 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         emit NewYearlyFee(_fee);
     }
 
+    function setMaxProfilePerAddress(uint96 _max) external onlyGovernor {
+        maxProfilePerAddress = _max;
+        emit NewMaxProfile(_max);
+    }
+
     function setYearsToOwn(uint96 _years) external onlyGovernor {
         yearsToOwn = _years;
         emit YearsToOwn(_years);
@@ -242,6 +254,33 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         );
     }
 
+    // used for profile factory
+    function publicClaim(
+        string memory profileUrl,
+        bytes32 hash,
+        bytes memory signature
+    ) external nonReentrant validAndUnusedURI(profileUrl) {
+        // checks
+        require(!publicMintBool, "pm: !publicMint");
+        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pm: !sig");
+        require(hashTransaction(msg.sender, profileUrl) == hash, "pm: !hash");
+        if (publicMinted[msg.sender] == maxProfilePerAddress) revert MaxProfiles();
+
+        // effects
+        publicMinted[msg.sender] += 1;
+
+        // grace period of 10 years (unless DAO intervention)
+        INftProfile(nftProfile).createProfile(msg.sender, profileUrl, 10 * 365 days);
+
+        emit MintedProfile(
+            msg.sender,
+            profileUrl,
+            INftProfile(nftProfile).totalSupply() - 1,
+            10 * 365 days,
+            0
+        );
+    }
+
     function publicMint(
         string memory profileUrl,
         uint256 duration,
@@ -256,10 +295,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pm: !sig");
         require(hashTransaction(msg.sender, profileUrl) == hash, "pm: !hash");
 
-        // effects
         // interactions
         if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
-            permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
+            permitNFT(msg.sender, address(this), v, r, s); // approve token
         }
 
         require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pm: !funds");
