@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for marketplace/helpers/TransferExecutor.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../index.html">all files</a> / <a href="index.html">marketplace/helpers/</a> TransferExecutor.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>65/65</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">69.57% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>32/46</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>7/7</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>60/60</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">48×</span>
+<span class="cline-any cline-yes">48×</span>
+<span class="cline-any cline-yes">48×</span>
+<span class="cline-any cline-yes">48×</span>
+<span class="cline-any cline-yes">48×</span>
+<span class="cline-any cline-yes">48×</span>
+<span class="cline-any cline-yes">48×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">21×</span>
+<span class="cline-any cline-yes">21×</span>
+<span class="cline-any cline-yes">21×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity &gt;=0.8.4;
+&nbsp;
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "../interfaces/IERC20TransferProxy.sol";
+import "../interfaces/INftTransferProxy.sol";
+import "../interfaces/ITransferProxy.sol";
+import "../interfaces/ITransferExecutor.sol";
+&nbsp;
+abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransferExecutor {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+&nbsp;
+    // bitpacked storage
+    struct RoyaltyInfo {
+        address owner;
+        uint96 percent; // 0 - 10000, where 10000 is 100%, 100 = 1%
+    }
+&nbsp;
+    address public nftBuyContract; // uint160
+    uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
+&nbsp;
+    mapping(bytes4 =&gt; address) public proxies;
+    mapping(address =&gt; bool) public whitelistERC20; // whitelist of supported ERC20s
+    mapping(address =&gt; RoyaltyInfo) public royaltyInfo; // mapping of NFT to their royalties
+&nbsp;
+    // bitpacked 256
+    address public nftToken; // same as uint160
+    uint48 public constant MAX_ROYALTY = 10000; // 10000 = 100%
+    uint48 public constant MAX_PROTOCOL_FEE = 2000; // 2000 = 20%
+&nbsp;
+    event ProxyChange(bytes4 indexed assetType, address proxy);
+    event WhitelistChange(address indexed token, bool value);
+    event ProtocolFeeChange(uint256 fee);
+    event RoyaltyInfoChange(address indexed token, address indexed owner, uint256 percent);
+&nbsp;
+    function __TransferExecutor_init_unchained(
+        INftTransferProxy _transferProxy,
+        IERC20TransferProxy _erc20TransferProxy,
+        address _cryptoKittyProxy,
+        address _nftBuyContract,
+        address _nftToken,
+        uint256 _protocolFee
+    ) internal {
+        proxies[LibAsset.ERC20_ASSET_CLASS] = address(_erc20TransferProxy);
+        proxies[LibAsset.ERC721_ASSET_CLASS] = address(_transferProxy);
+        proxies[LibAsset.ERC1155_ASSET_CLASS] = address(_transferProxy);
+        proxies[LibAsset.CRYPTO_KITTY] = _cryptoKittyProxy;
+        nftBuyContract = _nftBuyContract;
+        protocolFee = _protocolFee;
+        nftToken = _nftToken;
+    }
+&nbsp;
+    function setRoyalty(
+        address nftContract,
+        address recipient,
+        uint256 amount
+    ) external onlyOwner {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(amount &lt;= MAX_ROYALTY);
+        royaltyInfo[nftContract].owner = recipient;
+        royaltyInfo[nftContract].percent = uint96(amount);
+&nbsp;
+        emit RoyaltyInfoChange(nftContract, recipient, amount);
+    }
+&nbsp;
+    function changeProtocolFee(uint256 _fee) external onlyOwner {
+        require(_fee &lt;= MAX_PROTOCOL_FEE);
+        protocolFee = _fee;
+        emit ProtocolFeeChange(_fee);
+    }
+&nbsp;
+    function modifyWhitelist(address _token, bool _val) external onlyOwner {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(whitelistERC20[_token] != _val);
+        whitelistERC20[_token] = _val;
+        emit WhitelistChange(_token, _val);
+    }
+&nbsp;
+    function setTransferProxy(bytes4 assetType, address proxy) external onlyOwner {
+        proxies[assetType] = proxy;
+        emit ProxyChange(assetType, proxy);
+    }
+&nbsp;
+    /**
+     * @dev internal function for transferring ETH w/ fees
+     * @notice fees are being sent in addition to base ETH price
+     * @param to counterparty receiving ETH for transaction
+     * @param value base value of ETH in wei
+     * @param validRoyalty true if singular NFT asset paired with only fungible token(s) trade
+     * @param optionalNftAssets only used if validRoyalty is true, should be 1 asset =&gt; NFT collection being traded
+     */
+    function transferEth(
+        address to,
+        uint256 value,
+        bool validRoyalty,
+        LibAsset.Asset[] memory optionalNftAssets
+    ) internal {
+        uint256 royalty;
+&nbsp;
+        // handle royalty
+        if (validRoyalty) {
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(optionalNftAssets.length == 1, "NFT.com: Royalty not supported for multiple NFTs");
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(optionalNftAssets[0].assetType.assetClass == LibAsset.ERC721_ASSET_CLASS, "te !721");
+            (address nftRoyalty, , ) = abi.decode(optionalNftAssets[0].assetType.data, (address, uint256, bool));
+&nbsp;
+            // handle royalty
+            <span class="missing-if-branch" title="else path not taken" >E</span>if (royaltyInfo[nftRoyalty].owner != address(0) &amp;&amp; royaltyInfo[nftRoyalty].percent != uint256(0)) {
+                // Royalty
+                royalty = (value * royaltyInfo[nftRoyalty].percent) / 10000;
+&nbsp;
+                (bool success3, ) = royaltyInfo[nftRoyalty].owner.call{ value: royalty }("");
+                <span class="missing-if-branch" title="else path not taken" >E</span>require(success3, "te !rty");
+            }
+        }
+&nbsp;
+        // ETH Fee
+        uint256 fee = ((value - royalty) * protocolFee) / 10000;
+        (bool success1, ) = nftBuyContract.call{ value: fee }("");
+        (bool success2, ) = to.call{ value: (value - royalty) - fee }("");
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(success1 &amp;&amp; success2, "te !eth");
+    }
+&nbsp;
+    /**
+     * @dev multi-asset transfer function
+     * @param auctionType type of auction
+     * @param asset the asset being transferred
+     * @param from address where asset is being sent from
+     * @param to address receiving said asset
+     * @param decreasingPriceValue value only used for decreasing price auction
+     * @param validRoyalty true if singular NFT asset paired with only fungible token(s) trade
+     * @param optionalNftAssets only used if validRoyalty is true, should be 1 asset =&gt; NFT collection being traded
+     */
+    function transfer(
+        LibSignature.AuctionType auctionType,
+        LibAsset.Asset memory asset,
+        address from,
+        address to,
+        uint256 decreasingPriceValue,
+        bool validRoyalty,
+        LibAsset.Asset[] memory optionalNftAssets
+    ) internal override {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(nftBuyContract != address(0));
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(to != address(0) &amp;&amp; from != address(0));
+        uint256 value;
+&nbsp;
+        if (auctionType == LibSignature.AuctionType.Decreasing &amp;&amp; from == msg.sender) value = decreasingPriceValue;
+        else (value, ) = abi.decode(asset.data, (uint256, uint256));
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(value != 0);
+&nbsp;
+        if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
+            transferEth(to, value, validRoyalty, optionalNftAssets);
+        } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
+            address token = abi.decode(asset.assetType.data, (address));
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(whitelistERC20[token], "t !list");
+            uint256 royalty;
+&nbsp;
+            // handle royalty
+            if (validRoyalty) {
+                <span class="missing-if-branch" title="else path not taken" >E</span>require(optionalNftAssets.length == 1, "t len");
+                <span class="missing-if-branch" title="else path not taken" >E</span>require(optionalNftAssets[0].assetType.assetClass == LibAsset.ERC721_ASSET_CLASS, "t !721");
+                (address nftContract, , ) = abi.decode(optionalNftAssets[0].assetType.data, (address, uint256, bool));
+&nbsp;
+                if (royaltyInfo[nftContract].owner != address(0) &amp;&amp; royaltyInfo[nftContract].percent != uint256(0)) {
+                    royalty = (value * royaltyInfo[nftContract].percent) / 10000;
+&nbsp;
+                    // Royalty
+                    IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
+                        IERC20Upgradeable(token),
+                        from,
+                        royaltyInfo[nftContract].owner,
+                        royalty
+                    );
+                }
+            }
+&nbsp;
+            uint256 feePercent = token == nftToken ? protocolFee / 2 : protocolFee;
+            uint256 fee = ((value - royalty) * feePercent) / 10000;
+&nbsp;
+            // ERC20 Fee
+            IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
+                IERC20Upgradeable(token),
+                from,
+                nftBuyContract,
+                fee
+            );
+&nbsp;
+            IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
+                IERC20Upgradeable(token),
+                from,
+                to,
+                (value - royalty) - fee
+            );
+        } else if (asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
+            (address token, uint256 tokenId, ) = abi.decode(asset.assetType.data, (address, uint256, bool));
+&nbsp;
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(value == 1, "t !1");
+            INftTransferProxy(proxies[LibAsset.ERC721_ASSET_CLASS]).erc721safeTransferFrom(
+                IERC721Upgradeable(token),
+                from,
+                to,
+                tokenId
+            );
+        } else if (asset.assetType.assetClass == LibAsset.ERC1155_ASSET_CLASS) {
+            (address token, uint256 tokenId, ) = abi.decode(asset.assetType.data, (address, uint256, bool));
+            INftTransferProxy(proxies[LibAsset.ERC1155_ASSET_CLASS]).erc1155safeTransferFrom(
+                IERC1155Upgradeable(token),
+                from,
+                to,
+                tokenId,
+                value,
+                ""
+            );
+        } else {
+            // non standard assets
+            ITransferProxy(proxies[asset.assetType.assetClass]).transfer(asset, from, to);
+        }
+        emit Transfer(asset, from, to);
+    }
+&nbsp;
+    uint256[49] private __gap;
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jun 28 2022 21:41:52 GMT+0000 (Coordinated Universal Time)
+</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>
