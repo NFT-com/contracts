@@ -79,7 +79,7 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 - [deployedNftBuyer](https://goerli.etherscan.io/address/tbd)
 - [deployedProfileAuction](https://goerli.etherscan.io/address/0x40023d97Ca437B966C8f669C91a9740C639E21C3)
 
-  - implementation => 0xe91C327fE65e3A8826dC4DAAe5E84cA4c85b455B
+  - implementation => 0x60D0070b319c1Fe1D08EecD9C0c4b4D3909c17c6
 
 - [deployedEthereumRegex](https://goerli.etherscan.io/address/0x44Ab7157EA5aa43b538F00FF8E23B7cb9Bcd7C0D)
 - [deployedNftResolver](https://goerli.etherscan.io/address/0x45d296A1042248F48f484c6f2be01006D26fCBF0)
