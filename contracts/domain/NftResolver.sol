@@ -24,6 +24,14 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     mapping(uint256 => mapping(bytes => bool)) internal _ownerNonEvmMap; // O(1) lookup non-evm
     mapping(uint256 => mapping(address => bool)) internal _ownerEvmMap; // O(1) lookup evm
     // ===================================================================================================
+    /* used to record profiles that have added `address` and are waiting to accept */
+    mapping(address => RelatedProfiles[]) internal _pendingProfiles;
+    /* 
+        map bytes -> index in _pendingProfiles for fast lookup and deletion 
+        bytes = profile owner + token id + associatee
+    */
+    mapping(bytes => uint256) internal _pendingProfileIndex;
+    // ===================================================================================================
     mapping(address => RelatedProfiles[]) internal _approvedEvmList;
     mapping(bytes => bool) internal _approvedMap;
     // ===================================================================================================
@@ -68,6 +76,14 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         _ownerCtx[msg.sender][tokenId] = inputTuple;
     }
 
+    function getPendingAssociations(address _user) external view returns (RelatedProfiles[] memory) {
+        return _pendingProfiles[_user];
+    }
+
+    function getApprovedEvm(address _user) external view returns (RelatedProfiles[] memory) {
+        return _approvedEvmList[_user];
+    }
+
     function clearAssociatedContract(string calldata profileUrl) external {
         _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
@@ -99,9 +115,17 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
                 revert DuplicateAddress();
 
             if (_evmBased(inputTuples[i].cid)) {
-                address parsed = Resolver._parseAddr(inputTuples[i].chainAddr);
-                if (_ownerEvmMap[nonce][parsed]) revert DuplicateAddress();
-                _ownerEvmMap[nonce][parsed] = true;
+                address dest = Resolver._parseAddr(inputTuples[i].chainAddr);
+                if (_ownerEvmMap[nonce][dest]) revert DuplicateAddress();
+                _ownerEvmMap[nonce][dest] = true;
+
+                // only do this if profile isn't approved yet by receiver
+                if (!_approvedMap[abi.encode(msg.sender, tokenId, dest)]) {
+                    _pendingProfiles[dest].push(RelatedProfiles({ addr: msg.sender, profileUrl: profileUrl }));
+                    // always subtract by 1 to get true index
+                    // this is important to ignore all the default 0-indexed profiles
+                    _pendingProfileIndex[abi.encode(msg.sender, tokenId, dest)] = _pendingProfiles[dest].length;
+                }
             } else {
                 _ownerNonEvmMap[nonce][
                     abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)
@@ -136,6 +160,15 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             _approvedEvmList[msg.sender].push(RelatedProfiles({ addr: pOwner, profileUrl: url }));
             // mapping for O(1) lookup
             _approvedMap[abi.encode(pOwner, tokenId, msg.sender)] = true;
+
+            uint256 pendingIndex = _pendingProfileIndex[abi.encode(pOwner, tokenId, msg.sender)];
+            // ensures non-zero, removes pending profile
+            if (pendingIndex != 0) {
+                uint256 l2 = _pendingProfiles[msg.sender].length;
+                _pendingProfiles[msg.sender][pendingIndex - 1] = _pendingProfiles[msg.sender][l2 - 1];
+                _pendingProfiles[msg.sender].pop();
+                _pendingProfileIndex[abi.encode(pOwner, tokenId, msg.sender)] = 0;
+            }
 
             // INTERACTIONS
 

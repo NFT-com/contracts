@@ -334,9 +334,9 @@ contract GenesisKeyOld is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgr
 
         _mint(multiSig, quantityToTreasury, "", false);
 
-        for (uint256 i = 0; i < quantityToClaim + quantityToTreasury; i++) {
-            emit ClaimedGenesisKey(msg.sender, 0, block.number, false);
-        }
+        // for (uint256 i = 0; i < quantityToClaim + quantityToTreasury; i++) {
+        //     emit ClaimedGenesisKey(msg.sender, 0, block.number, false);
+        // }
     }
 
     function publicBuyKey() external payable nonReentrant {

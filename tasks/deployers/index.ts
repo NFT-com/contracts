@@ -761,7 +761,10 @@ task("upgrade:Vesting").setAction(async function (taskArguments, hre) {
 
 task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
-  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+  const chainId = hre.network.config.chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
+
+  const GenesisKey = await hre.ethers.getContractFactory(network === 'goerli' ? "GenesisKeyOld" : "GenesisKey");
 
   const upgradedGenesisKey = await hre.upgrades.upgradeProxy(
     (
