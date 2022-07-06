@@ -46,13 +46,6 @@ jobs:
     - run: yarn install
     - run: yarn coverage
 
-    - name: Commit changes
-      uses: EndBug/add-and-commit@v9
-      with:
-        author_name: github-ci/cd
-        author_email: engineering@nft.com
-        message: 'Update Coverage in Doc/*'
-        add: 'docs/*'
     - name: ✅ Upload coverage to Codecov
       uses: codecov/codecov-action@v3.1.0
       with:
