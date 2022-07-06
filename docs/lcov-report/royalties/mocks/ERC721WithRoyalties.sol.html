@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for royalties/mocks/ERC721WithRoyalties.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../index.html">all files</a> / <a href="index.html">royalties/mocks/</a> ERC721WithRoyalties.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">46.15% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>6/13</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">33.33% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>2/6</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">75% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>3/4</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">42.86% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>6/14</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity &gt;=0.8.4;
+&nbsp;
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+&nbsp;
+import "../ERC2981PerTokenRoyalties.sol";
+&nbsp;
+/// @title Example of ERC721 contract with ERC2981
+/// @author Simon Fremaux (@dievardump)
+/// @notice This is a mock, mint and mintBatch are not protected. Please do not use as-is in production
+contract ERC721WithRoyalties is ERC721, ERC2981PerTokenRoyalties {
+    uint256 nextTokenId;
+&nbsp;
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {}
+&nbsp;
+    /// @inheritdoc	ERC165
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, ERC2981Base) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
+&nbsp;
+    /// @notice Mint one token to `to`
+    /// @param to the recipient of the token
+    /// @param royaltyRecipient the recipient for royalties (if royaltyValue &gt; 0)
+    /// @param royaltyValue the royalties asked for (EIP2981)
+    function mint(
+        address to,
+        address royaltyRecipient,
+        uint256 royaltyValue
+    ) external {
+        uint256 tokenId = nextTokenId;
+        _safeMint(to, tokenId, "");
+&nbsp;
+        if (royaltyValue &gt; 0) {
+            _setTokenRoyalty(tokenId, royaltyRecipient, royaltyValue);
+        }
+&nbsp;
+        nextTokenId = tokenId + 1;
+    }
+&nbsp;
+    /// @notice Mint several tokens at once
+    /// @param recipients an array of recipients for each token
+    /// @param royaltyRecipients an array of recipients for royalties (if royaltyValues[i] &gt; 0)
+    /// @param royaltyValues an array of royalties asked for (EIP2981)
+<span class="fstat-no" title="function not covered" >    function mintBatch(</span>
+        address[] memory recipients,
+        address[] memory royaltyRecipients,
+        uint256[] memory royaltyValues
+    ) external {
+<span class="cstat-no" title="statement not covered" >        uint256 tokenId = nextTokenId;</span>
+<span class="cstat-no" title="statement not covered" >        require(</span>
+            recipients.length == royaltyRecipients.length &amp;&amp; recipients.length == royaltyValues.length,
+            "ERC721: Arrays length mismatch"
+        );
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        for (uint256 i; i &lt; recipients.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >            _safeMint(recipients[i], tokenId, "")</span>;
+<span class="cstat-no" title="statement not covered" >            if (royaltyValues[i] &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >                _setTokenRoyalty(tokenId, royaltyRecipients[i], royaltyValues[i])</span>;
+            }
+            tokenId++;
+        }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        nextTokenId = tokenId</span>;
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jul 06 2022 22:14:54 GMT+0000 (Coordinated Universal Time)
+</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>
