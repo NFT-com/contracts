@@ -4,7 +4,6 @@ describe("NFT Aggregator", function () {
   try {
     let NftAggregator, deployedNftAggregator;
 
-
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
     beforeEach(async function () {
@@ -19,7 +18,7 @@ describe("NFT Aggregator", function () {
 
     describe("NFT Aggregation", async function () {
       it("should allow nft aggregation", async function () {
-        console.log("TBD")
+        console.log("TBD");
       });
     });
   } catch (err) {

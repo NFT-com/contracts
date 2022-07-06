@@ -67,7 +67,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
     mapping(address => uint256) public publicMinted; // record of profiles public minted per user
 
-    address public emptySlot;   // empty slot for now, to be used in future
+    address public emptySlot; // empty slot for now, to be used in future
     uint96 public maxProfilePerAddress; // max profiles that can be minted per address, set by DAO
 
     event UpdatedProfileStake(string _profileUrl, uint256 _stake);
@@ -272,13 +272,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         // grace period of 10 years (unless DAO intervention)
         INftProfile(nftProfile).createProfile(msg.sender, profileUrl, 10 * 365 days);
 
-        emit MintedProfile(
-            msg.sender,
-            profileUrl,
-            INftProfile(nftProfile).totalSupply() - 1,
-            10 * 365 days,
-            0
-        );
+        emit MintedProfile(msg.sender, profileUrl, INftProfile(nftProfile).totalSupply() - 1, 10 * 365 days, 0);
     }
 
     function publicMint(

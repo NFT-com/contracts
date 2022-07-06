@@ -5,11 +5,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract NftAggregator is
-    Initializable,
-    ReentrancyGuardUpgradeable,
-    UUPSUpgradeable
-{
+contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     struct Order {
         address contractAddress;
         uint256 tokenId;
@@ -26,8 +22,7 @@ contract NftAggregator is
         _;
     }
 
-    function initialize(
-    ) public initializer {
+    function initialize() public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
@@ -44,7 +39,5 @@ contract NftAggregator is
      * @dev aggregated purchase function
      * @param orders (one or more orders on exchanges)
      */
-    function batchPurchase(Order[] calldata orders) external nonReentrant {
-        
-    }
+    function batchPurchase(Order[] calldata orders) external nonReentrant {}
 }

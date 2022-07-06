@@ -407,7 +407,7 @@ describe("NFT Profile Auction / Minting", function () {
         const { hash: h15, signature: s15 } = signHashProfile(addr5.address, "profile_addr5");
         expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(0); // 0 publicly minted profiles for addr5
         await expect(deployedProfileAuction.connect(addr5).publicClaim("test_profile_addr5", h15, s15)).to.be.reverted; // signature mismatch
-        
+
         const maxProfilePerAddress = await deployedProfileAuction.maxProfilePerAddress();
         await deployedProfileAuction.setMaxProfilePerAddress(1); // for testing purposes
 
