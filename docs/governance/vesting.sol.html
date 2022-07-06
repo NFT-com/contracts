@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for governance/vesting.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">governance/</a> vesting.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">85.88% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>73/85</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">62.07% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>36/58</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">72.73% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>8/11</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">86.9% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>73/84</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-yes">11×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity &gt;=0.8.4;
+&nbsp;
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+&nbsp;
+interface INft {
+    function balanceOf(address account) external view returns (uint256);
+&nbsp;
+    function transfer(address dst, uint256 rawAmount) external returns (bool);
+&nbsp;
+    function transferFrom(
+        address src,
+        address dst,
+        uint256 rawAmount
+    ) external returns (bool);
+}
+&nbsp;
+contract Vesting is Initializable, UUPSUpgradeable {
+    using SafeMathUpgradeable for uint256;
+&nbsp;
+    enum VestingInstallments {
+        MONTHLY,
+        QUARTERLY
+    }
+&nbsp;
+    struct VestingInfo {
+        uint256 claimedAmount;
+        uint256 vestingAmount;
+        uint256 vestingBegin;
+        uint256 vestingCliff;
+        uint256 vestingEnd;
+        uint256 lastUpdate;
+        VestingInstallments installment;
+        bool revokedVestor;
+    }
+&nbsp;
+    uint256 public constant MONTH_SECONDS = 30 days; // 2592000
+    uint256 public constant QUARTER_SECONDS = 91 days; // 7862400
+&nbsp;
+    address public nftToken;
+    address public multiSig;
+&nbsp;
+    mapping(address =&gt; uint256) private claimedAmount;
+    mapping(address =&gt; uint256) private vestingAmount;
+    mapping(address =&gt; uint256) private vestingBegin;
+    mapping(address =&gt; uint256) private vestingCliff;
+    mapping(address =&gt; uint256) private vestingEnd;
+    mapping(address =&gt; uint256) private lastUpdate;
+    mapping(address =&gt; VestingInstallments) private installment;
+&nbsp;
+    mapping(address =&gt; bool) public initializedVestor;
+    mapping(address =&gt; bool) public revokedVestor;
+&nbsp;
+    event NewMultiSig(address oldMultiSig, address newMultiSig);
+&nbsp;
+    modifier onlyMultiSig() {
+        require(msg.sender == multiSig, "Vesting::onlyMultiSig: Only multisig can call this function");
+        _;
+    }
+&nbsp;
+    function initialize(address nftToken_, address multiSig_) public initializer {
+        __UUPSUpgradeable_init();
+&nbsp;
+        nftToken = nftToken_;
+        multiSig = multiSig_;
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function _authorizeUpgrade(address) internal override onlyMultiSig {}</span>
+&nbsp;
+    function initializeVesting(
+        address[] memory recipients_,
+        uint256[] memory vestingAmounts_,
+        uint256[] memory vestingBegins_,
+        uint256[] memory vestingCliffs_,
+        uint256[] memory vestingEnds_,
+        VestingInstallments[] memory installments_
+    ) external onlyMultiSig {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            recipients_.length == vestingAmounts_.length &amp;&amp;
+                vestingAmounts_.length == vestingBegins_.length &amp;&amp;
+                vestingBegins_.length == vestingCliffs_.length &amp;&amp;
+                vestingCliffs_.length == vestingEnds_.length &amp;&amp;
+                vestingEnds_.length == installments_.length,
+            "Vesting::initializeVesting: length of all arrays must be equal"
+        );
+&nbsp;
+        uint256 totalAmount;
+        for (uint256 i = 0; i &lt; recipients_.length; i++) {
+            address recipient_ = recipients_[i];
+            uint256 vestingAmount_ = vestingAmounts_[i];
+            uint256 vestingBegin_ = vestingBegins_[i];
+            uint256 vestingCliff_ = vestingCliffs_[i];
+            uint256 vestingEnd_ = vestingEnds_[i];
+            VestingInstallments installment_ = installments_[i];
+&nbsp;
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(recipient_ != address(0), "Vesting::initializeVesting: recipient cannot be the zero address");
+            require(!initializedVestor[recipient_], "Vesting::initializeVesting: recipient already initialized");
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(vestingCliff_ &gt;= vestingBegin_, "Vesting::initializeVesting: cliff is too early");
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(vestingEnd_ &gt; vestingCliff_, "Vesting::initializeVesting: end is too early");
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(
+                installment_ == VestingInstallments.MONTHLY
+                    ? vestingEnd_ - vestingBegin_ &gt;= MONTH_SECONDS
+                    : vestingEnd_ - vestingBegin_ &gt;= QUARTER_SECONDS,
+                "Vesting::initializeVesting: end is too early"
+            );
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(
+                installment_ == VestingInstallments.MONTHLY || installment_ == VestingInstallments.QUARTERLY,
+                "Vesting::initializeVesting: installment must be MONTHLY or QUARTERLY"
+            );
+&nbsp;
+            vestingAmount[recipient_] = vestingAmount_;
+            vestingBegin[recipient_] = vestingBegin_;
+            vestingCliff[recipient_] = vestingCliff_;
+            vestingEnd[recipient_] = vestingEnd_;
+            lastUpdate[recipient_] = vestingBegin_;
+            installment[recipient_] = installment_;
+&nbsp;
+            initializedVestor[recipient_] = true;
+&nbsp;
+            totalAmount += vestingAmount_;
+        }
+&nbsp;
+        INft(nftToken).transferFrom(multiSig, address(this), totalAmount);
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function changeMultiSig(address multiSig_) external onlyMultiSig {</span>
+<span class="cstat-no" title="statement not covered" >        multiSig = multiSig_</span>;
+<span class="cstat-no" title="statement not covered" >        emit NewMultiSig(msg.sender, multiSig);</span>
+    }
+&nbsp;
+    function revokeVesting(address recipient) external onlyMultiSig {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(initializedVestor[recipient], "Vesting::revokeVesting: recipient not initialized");
+        require(!revokedVestor[recipient], "Vesting::revokeVesting: recipient already revoked");
+&nbsp;
+        uint256 remaining = claim(recipient);
+        revokedVestor[recipient] = true;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(
+            INft(nftToken).transfer(multiSig, remaining),
+            "Vesting::revokeVesting: failed to transfer remaining tokens"
+        );
+    }
+&nbsp;
+    function claim(address recipient) public returns (uint256 remaining) {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require((msg.sender == recipient) || (msg.sender == multiSig), "Vesting::claim: sender must be allowed");
+        require(initializedVestor[recipient], "Vesting::claim: recipient not initialized");
+        require(!revokedVestor[recipient], "Vesting::claim: recipient already revoked");
+&nbsp;
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (block.timestamp &lt; vestingCliff[recipient]) {
+<span class="cstat-no" title="statement not covered" >            remaining = vestingAmount[recipient].sub(claimedAmount[recipient])</span>;
+        } else {
+            uint256 amount;
+            if (block.timestamp &gt;= vestingEnd[recipient]) {
+                amount = vestingAmount[recipient].sub(claimedAmount[recipient]);
+            } else {
+                VestingInstallments vInstallment = installment[recipient];
+&nbsp;
+                <span class="missing-if-branch" title="else path not taken" >E</span>if (vInstallment == VestingInstallments.MONTHLY) {
+                    uint256 elapsedMonths = (block.timestamp - lastUpdate[recipient]).div(MONTH_SECONDS);
+                    uint256 totalMonths = (vestingEnd[recipient] - vestingBegin[recipient]).div(MONTH_SECONDS);
+&nbsp;
+                    uint256 tokensPerMonth = vestingAmount[recipient].div(totalMonths);
+                    amount = tokensPerMonth.mul(elapsedMonths);
+                    lastUpdate[recipient] += (elapsedMonths * MONTH_SECONDS);
+                } else <span class="cstat-no" title="statement not covered" >if (vInstallment == VestingInstallments.QUARTERLY) {</span>
+<span class="cstat-no" title="statement not covered" >                    uint256 elapsedQuarters = (block.timestamp - lastUpdate[recipient]).div(QUARTER_SECONDS);</span>
+<span class="cstat-no" title="statement not covered" >                    uint256 totalQuarters = (vestingEnd[recipient] - vestingBegin[recipient]).div(QUARTER_SECONDS);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                    uint256 tokensPerQuarter = vestingAmount[recipient].div(totalQuarters);</span>
+<span class="cstat-no" title="statement not covered" >                    amount = tokensPerQuarter.mul(elapsedQuarters)</span>;
+<span class="cstat-no" title="statement not covered" >                    lastUpdate[recipient] += (elapsedQuarters * QUARTER_SECONDS)</span>;
+                } else {
+<span class="cstat-no" title="statement not covered" >                    require(false, "Vesting::claim: invalid installment")</span>;
+                }
+            }
+            claimedAmount[recipient] += amount;
+            <span class="missing-if-branch" title="else path not taken" >E</span>require(INft(nftToken).transfer(recipient, amount), "Vesting::claim: failed to transfer remaining tokens");
+&nbsp;
+            remaining = vestingAmount[recipient].sub(claimedAmount[recipient]);
+        }
+    }
+&nbsp;
+    function currentClaim(address user) external view returns (uint256) {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(initializedVestor[user], "Vesting::currentClaim: user not initialized");
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(!revokedVestor[user], "Vesting::currentClaim: user already revoked");
+&nbsp;
+        if (block.timestamp &gt;= vestingCliff[user]) {
+            if (block.timestamp &gt;= vestingEnd[user]) {
+                return vestingAmount[user].sub(claimedAmount[user]);
+            } else {
+                VestingInstallments vInstallment = installment[user];
+&nbsp;
+                if (vInstallment == VestingInstallments.MONTHLY) {
+                    uint256 totalMonths = (vestingEnd[user] - vestingBegin[user]).div(MONTH_SECONDS);
+                    uint256 tokensPerMonth = vestingAmount[user].div(totalMonths);
+                    uint256 elapsedMonths = (block.timestamp - lastUpdate[user]).div(MONTH_SECONDS);
+                    return tokensPerMonth.mul(elapsedMonths);
+                } else <span class="missing-if-branch" title="else path not taken" >E</span>if (vInstallment == VestingInstallments.QUARTERLY) {
+                    uint256 totalQuarters = (vestingEnd[user] - vestingBegin[user]).div(QUARTER_SECONDS);
+                    uint256 tokensPerQuarter = vestingAmount[user].div(totalQuarters);
+&nbsp;
+                    uint256 elapsedQuarters = (block.timestamp - lastUpdate[user]).div(QUARTER_SECONDS);
+                    return tokensPerQuarter.mul(elapsedQuarters);
+                } else {
+<span class="cstat-no" title="statement not covered" >                    return 0;</span>
+                }
+            }
+        } else {
+            return 0;
+        }
+    }
+&nbsp;
+    function toBeVested(address user) external view returns (uint256) {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(initializedVestor[user], "Vesting::toBeVested: user not initialized");
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(!revokedVestor[user], "Vesting::toBeVested: user already revoked");
+        return vestingAmount[user].sub(claimedAmount[user]);
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function getVestingInfo(address user) external view returns (VestingInfo memory) {</span>
+<span class="cstat-no" title="statement not covered" >        return</span>
+            VestingInfo(
+                claimedAmount[user],
+                vestingAmount[user],
+                vestingBegin[user],
+                vestingCliff[user],
+                vestingEnd[user],
+                lastUpdate[user],
+                installment[user],
+                revokedVestor[user]
+            );
+    }
+&nbsp;
+    function multiClaim(address[] calldata recipients) public {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(msg.sender == multiSig);
+        for (uint256 i = 0; i &lt; recipients.length; i++) {
+            claim(recipients[i]);
+        }
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jul 06 2022 22:14:54 GMT+0000 (Coordinated Universal Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>
