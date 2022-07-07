@@ -9,6 +9,7 @@ error InvalidAddress();
 error InvalidAuth();
 error InvalidRegex();
 error InvalidSelf();
+error ProfileNotFound();
 
 interface IRegex {
     function matches(string memory input) external pure returns (bool);
