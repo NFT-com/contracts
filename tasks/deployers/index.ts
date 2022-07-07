@@ -265,7 +265,7 @@ task("deploy:1").setAction(async function (taskArguments, hre) {
   const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
 
   // Use old genesis key version (with auction flow)
-  const GenesisKey = await hre.ethers.getContractFactory(network === 'goerli' ? "GenesisKeyOld" : "GenesisKey");
+  const GenesisKey = await hre.ethers.getContractFactory(network === "goerli" ? "GenesisKeyOld" : "GenesisKey");
   const deployedGenesisKey = await hre.upgrades.deployProxy(
     GenesisKey,
     [name, symbol, multiSig, auctionSeconds, randomTeamAssignBool, (await getTokens(hre)).ipfsHash],
@@ -491,7 +491,7 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
     "0x338eFdd45AE7D010da108f39d293565449C52682": "1"
   }`);
 
-  const insiderGKClaimJSON = network === 'goerli' ? insiderGKClaimJSON_Testnet : insiderGKClaimJSON_Mainnet;
+  const insiderGKClaimJSON = network === "goerli" ? insiderGKClaimJSON_Testnet : insiderGKClaimJSON_Mainnet;
 
   const merkleResultInsider = parseBalanceMap(insiderGKClaimJSON);
   const merkleRootInsider = merkleResultInsider.merkleRoot;
@@ -603,11 +603,9 @@ task("deploy:2b").setAction(async function (taskArguments, hre) {
   console.log(chalk.green(`deployedEthereumRegex: ${deployedEthereumRegex.address}`));
 
   const NftResolver = await hre.ethers.getContractFactory("NftResolver");
-  const deployedNftResolver = await hre.upgrades.deployProxy(
-    NftResolver,
-    [(await getTokens(hre)).deployedNftProfile],
-    { kind: "uups" },
-  );
+  const deployedNftResolver = await hre.upgrades.deployProxy(NftResolver, [(await getTokens(hre)).deployedNftProfile], {
+    kind: "uups",
+  });
 
   console.log(chalk.green(`deployedNftResolver: ${deployedNftResolver.address}`));
 
@@ -619,7 +617,6 @@ task("deploy:2b").setAction(async function (taskArguments, hre) {
   await verifyContract("deployedEthereumRegex", deployedEthereumRegex.address, [], hre);
 
   await getImplementation("deployedNftResolver", deployedNftResolver.address, hre);
-
 });
 
 // ========================================================
@@ -761,7 +758,10 @@ task("upgrade:Vesting").setAction(async function (taskArguments, hre) {
 
 task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
-  const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+  const chainId = hre.network.config.chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
+
+  const GenesisKey = await hre.ethers.getContractFactory(network === "goerli" ? "GenesisKeyOld" : "GenesisKey");
 
   const upgradedGenesisKey = await hre.upgrades.upgradeProxy(
     (

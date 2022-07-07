@@ -86,7 +86,6 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
   - implementation => 0x3B95F6236033d39C173E80a3E9b89936Fd0FaFbA
 
-
 - [deployedGenesisKeyDistributor](https://goerli.etherscan.io/address/)
 
 - [nftTransferProxy](https://goerli.etherscan.io/address/)
@@ -101,7 +100,7 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
   - implementation => tbd
 - [deployedNftMarketplace](https://goerli.etherscan.io/address/)
   - implementation => tbd
-  
+
 ## [DEPRECATED] Rinkeby ============================================================================
 
 - [deployedNftToken](https://rinkeby.etherscan.io/address/0xd60054F74c9685e5F9E474F36344494D6a1DB3cF)

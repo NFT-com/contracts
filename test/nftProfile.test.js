@@ -407,7 +407,7 @@ describe("NFT Profile Auction / Minting", function () {
         const { hash: h15, signature: s15 } = signHashProfile(addr5.address, "profile_addr5");
         expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(0); // 0 publicly minted profiles for addr5
         await expect(deployedProfileAuction.connect(addr5).publicClaim("test_profile_addr5", h15, s15)).to.be.reverted; // signature mismatch
-        
+
         const maxProfilePerAddress = await deployedProfileAuction.maxProfilePerAddress();
         await deployedProfileAuction.setMaxProfilePerAddress(1); // for testing purposes
 
@@ -535,6 +535,25 @@ describe("NFT Profile Auction / Minting", function () {
         expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(3);
         expect((await deployedNftResolver.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
         expect((await deployedNftResolver.associatedAddresses("testminter"))[2][1]).to.be.equal(addr3.address);
+
+        await expect(deployedNftResolver.connect(addr1).removeAssociatedProfile("jokes")).to.be.reverted; // due to profile not existing
+
+        // succeeds
+        await deployedNftResolver.connect(addr1).removeAssociatedProfile("testminter");
+
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(2);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr2.address);
+
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(2);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr3.address);
+
+        // re add self
+        await deployedNftResolver.connect(addr1).associateSelfWithUsers(["testminter"]);
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(3);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
 
         await deployedNftResolver.connect(addr4).associateSelfWithUsers(["testminter"]);
         expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(4);

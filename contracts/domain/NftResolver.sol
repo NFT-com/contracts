@@ -29,6 +29,7 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     // ===================================================================================================
 
     event UpdatedRegex(Blockchain _cid, IRegex _regexAddress);
+    event AssociateEvmUser(address indexed owner, string indexed profileUrl, address indexed associatedAddress);
 
     function _onlyOwner() private view {
         if (msg.sender != owner) revert NotOwner();
@@ -68,6 +69,18 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         _ownerCtx[msg.sender][tokenId] = inputTuple;
     }
 
+    function getApprovedEvm(address _user) external view returns (RelatedProfiles[] memory) {
+        return _approvedEvmList[_user];
+    }
+
+    function getAllAssociatedAddr(
+        address _user,
+        string calldata profileUrl
+    ) external view returns (AddressTuple[] memory) {
+        uint256 tokenId = nftProfile.getTokenId(profileUrl);
+        return _ownerAddrList[_user][tokenId];
+    }
+
     function clearAssociatedContract(string calldata profileUrl) external {
         _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
@@ -77,7 +90,12 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     function _sameHash(AddressTuple memory _t1, AddressTuple memory _t2) private pure returns (bool) {
-        return keccak256(abi.encode(_t1.cid, _t1.chainAddr)) == keccak256(abi.encode(_t2.cid, _t2.chainAddr));
+        return
+            keccak256(abi.encodePacked(_t1.cid, _t1.chainAddr)) == keccak256(abi.encodePacked(_t2.cid, _t2.chainAddr));
+    }
+
+    function _sameStr(string memory _t1, string memory _t2) private pure returns (bool) {
+        return keccak256(abi.encodePacked(_t1)) == keccak256(abi.encodePacked(_t2));
     }
 
     function _evmBased(Blockchain cid) private pure returns (bool) {
@@ -99,9 +117,11 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
                 revert DuplicateAddress();
 
             if (_evmBased(inputTuples[i].cid)) {
-                address parsed = Resolver._parseAddr(inputTuples[i].chainAddr);
-                if (_ownerEvmMap[nonce][parsed]) revert DuplicateAddress();
-                _ownerEvmMap[nonce][parsed] = true;
+                address dest = Resolver._parseAddr(inputTuples[i].chainAddr);
+                if (_ownerEvmMap[nonce][dest]) revert DuplicateAddress();
+                _ownerEvmMap[nonce][dest] = true;
+
+                emit AssociateEvmUser(msg.sender, profileUrl, dest);
             } else {
                 _ownerNonEvmMap[nonce][
                     abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)
@@ -143,6 +163,30 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
                 ++i;
             }
         }
+    }
+
+    function removeAssociatedProfile(string memory url) external returns (bool) {
+        uint256 tokenId = nftProfile.getTokenId(url);
+        address pOwner = nftProfile.profileOwner(url);
+        uint256 l1 = _approvedEvmList[msg.sender].length;
+
+        if (_approvedMap[abi.encode(pOwner, tokenId, msg.sender)]) {
+            for (uint256 i = 0; i < l1; ) {
+                if (_sameStr(_approvedEvmList[msg.sender][i].profileUrl, url)) {
+                    _approvedEvmList[msg.sender][i] = _approvedEvmList[msg.sender][l1 - 1];
+                    _approvedEvmList[msg.sender].pop();
+                    _approvedMap[abi.encode(pOwner, tokenId, msg.sender)] = false;
+
+                    return true;
+                }
+
+                unchecked {
+                    ++i;
+                }
+            }
+        }
+
+        revert ProfileNotFound();
     }
 
     // removes 1 address at a time
@@ -245,14 +289,22 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         AddressTuple[] memory rawAssc = _ownerAddrList[pOwner][tokenId];
         AddressTuple[] memory updatedAssc = new AddressTuple[](validAddressSize(tokenId, pOwner, rawAssc));
 
+        uint256 j = 0;
         for (uint256 i = 0; i < rawAssc.length; ) {
             if (_evmBased(rawAssc[i].cid)) {
                 // if approved
                 if (_approvedMap[abi.encode(pOwner, tokenId, Resolver._parseAddr(rawAssc[i].chainAddr))]) {
-                    updatedAssc[i] = rawAssc[i];
+                    updatedAssc[j] = rawAssc[i];
+
+                    unchecked {
+                        ++j;
+                    }
                 }
             } else {
-                updatedAssc[i] = rawAssc[i];
+                updatedAssc[j] = rawAssc[i];
+                unchecked {
+                    ++j;
+                }
             }
 
             unchecked {
