@@ -73,11 +73,10 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         return _approvedEvmList[_user];
     }
 
-    function getAllAssociatedAddr(address _user, string calldata profileUrl)
-        external
-        view
-        returns (AddressTuple[] memory)
-    {
+    function getAllAssociatedAddr(
+        address _user,
+        string calldata profileUrl
+    ) external view returns (AddressTuple[] memory) {
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
         return _ownerAddrList[_user][tokenId];
     }

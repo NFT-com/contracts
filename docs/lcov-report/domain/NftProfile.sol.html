@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for domain/NftProfile.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">domain/</a> NftProfile.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">82.61% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>38/46</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">43.33% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>13/30</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">70.59% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>12/17</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">82.98% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>39/47</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37×</span>
+<span class="cline-any cline-yes">37×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">108×</span>
+<span class="cline-any cline-yes">108×</span>
+<span class="cline-any cline-yes">108×</span>
+<span class="cline-any cline-yes">108×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">108×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">88×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">82×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">36×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-yes">31×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity &gt;=0.8.4;
+&nbsp;
+import "../interface/INftProfile.sol";
+import "../erc721a/ERC721AProfileUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+&nbsp;
+contract NftProfile is
+    Initializable,
+    ERC721AProfileUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable,
+    INftProfile
+{
+    using SafeMathUpgradeable for uint256;
+&nbsp;
+    mapping(uint256 =&gt; string) internal _tokenURIs;
+    mapping(string =&gt; uint256) internal _tokenUsedURIs;
+    mapping(string =&gt; uint256) internal _expiryTimeline;
+&nbsp;
+    address public profileAuctionContract;
+    uint96 public protocolFee;
+    address public owner;
+&nbsp;
+    event NewFee(uint256 _fee);
+&nbsp;
+    function _onlyOwner() private view {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(msg.sender == owner);
+    }
+&nbsp;
+    modifier onlyOwner() {
+        _onlyOwner();
+        _;
+    }
+&nbsp;
+    function initialize(
+        string memory name,
+        string memory symbol,
+        string memory baseURI
+    ) public initializer {
+        __ReentrancyGuard_init();
+        __ERC721A_init(name, symbol, baseURI);
+        __UUPSUpgradeable_init();
+        protocolFee = 200; // 2% fee
+&nbsp;
+        owner = msg.sender;
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function _authorizeUpgrade(address) internal override onlyOwner {}</span>
+&nbsp;
+    /**
+     @notice helper function to finalize a URI in storage
+     @param _tokenId the ID of the NFT.com profile
+     @param _tokenURI the string name of a NFT.com profile
+    */
+    function setTokenURI(uint256 _tokenId, string memory _tokenURI) private {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(_exists(_tokenId));
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(_tokenUsedURIs[_tokenURI] == 0);
+&nbsp;
+        _tokenURIs[_tokenId] = _tokenURI;
+&nbsp;
+        // adds 1 to preserve 0 being the default not found case
+        _tokenUsedURIs[_tokenURI] = _tokenId.add(1);
+    }
+&nbsp;
+    /**
+     @dev transfers trademarked profile to recipient
+     @param _profile profile url being transferred
+     @param _to receiver of profile
+    */
+    function tradeMarkTransfer(string memory _profile, address _to) external onlyOwner {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(_tokenUsedURIs[_profile] != 0);
+        uint256 tokenId = _tokenUsedURIs[_profile].sub(1);
+&nbsp;
+        _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _to, tokenId);
+    }
+&nbsp;
+    function profileOwner(string memory _string) public view override returns (address) {
+        return ownerOf(_tokenUsedURIs[_string].sub(1));
+    }
+&nbsp;
+    /**
+     @notice checks if a profile exists
+     @param _string profile URI
+     @return true is a profile exists and is minted for a given string
+    */
+    function tokenUsed(string memory _string) external view override returns (bool) {
+        return _tokenUsedURIs[_string] != 0;
+    }
+&nbsp;
+    /**
+     @notice returns the tokenId of a particular profile
+     @param _string profile URI
+     @return the tokenId associated with a profile NFT
+    */
+    function getTokenId(string memory _string) external view override returns (uint256) {
+        return _tokenUsedURIs[_string].sub(1);
+    }
+&nbsp;
+    /**
+     @notice returns the expiry timeline of a profile
+     @param _string profile URI
+     @return the unix timestamp of the expiry
+    */
+<span class="fstat-no" title="function not covered" >    function getExpiryTimeline(string memory _string) external view returns (uint256) {</span>
+<span class="cstat-no" title="statement not covered" >        return _expiryTimeline[_string];</span>
+    }
+&nbsp;
+    /**
+     @notice helper function that sets the profile auction (split deployment)
+     @param _profileAuctionContract address of the profile auction contract
+    */
+    function setProfileAuction(address _profileAuctionContract) external onlyOwner {
+        profileAuctionContract = _profileAuctionContract;
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function setOwner(address _new) external onlyOwner {</span>
+<span class="cstat-no" title="statement not covered" >        owner = _new</span>;
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function setProtocolFee(uint96 _fee) external onlyOwner {</span>
+<span class="cstat-no" title="statement not covered" >        require(_fee &lt;= 2000)</span>; // 20%
+<span class="cstat-no" title="statement not covered" >        protocolFee = _fee</span>;
+<span class="cstat-no" title="statement not covered" >        emit NewFee(_fee);</span>
+    }
+&nbsp;
+    /**
+     @notice helper function used to mint profile, set URI, bid details
+     @param _receiver the user who bought the profile
+     @param _profileURI profile username
+     @param _duration seconds to add to expiry
+    */
+    function createProfile(
+        address _receiver,
+        string memory _profileURI,
+        uint256 _duration
+    ) external override {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(msg.sender == profileAuctionContract);
+        uint256 preSupply = totalSupply();
+        _mint(_receiver, 1, "", false);
+        setTokenURI(preSupply, _profileURI);
+        _expiryTimeline[_profileURI] = block.timestamp + _duration;
+        emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
+    }
+&nbsp;
+    /**
+     @notice helper function used to extend existing profile registration
+     @param _profileURI profile username
+     @param _duration seconds to add to expiry
+     @param _licensee seconds to add to expiry
+    */
+    function extendLicense(
+        string memory _profileURI,
+        uint256 _duration,
+        address _licensee
+    ) external override {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(_exists(_tokenUsedURIs[_profileURI]), "!exists");
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(msg.sender == profileAuctionContract, "only auction");
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(ownerOf(_tokenUsedURIs[_profileURI].sub(1)) == _licensee, "!owner");
+&nbsp;
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (_expiryTimeline[_profileURI] &gt;= block.timestamp) {
+<span class="cstat-no" title="statement not covered" >            _expiryTimeline[_profileURI] += _duration</span>;
+        } else {
+            _expiryTimeline[_profileURI] = block.timestamp + _duration;
+        }
+        emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
+    }
+&nbsp;
+    function purchaseExpiredProfile(
+        string memory _profileURI,
+        uint256 _duration,
+        address _receiver
+    ) external override {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(msg.sender == profileAuctionContract, "only auction");
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(_exists(_tokenUsedURIs[_profileURI]));
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(_expiryTimeline[_profileURI] &lt; block.timestamp, "!expired");
+        uint256 tokenId = _tokenUsedURIs[_profileURI].sub(1);
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(ownerOf(tokenId) != _receiver, "!receiver");
+&nbsp;
+        _expiryTimeline[_profileURI] = block.timestamp + _duration;
+&nbsp;
+        _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _receiver, tokenId);
+&nbsp;
+        emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
+    }
+&nbsp;
+    /**
+     @notice returns URI for a profile token
+     @param tokenId the ID of the NFT.com profile
+     @return URI string, which contains JSON spec
+    */
+<span class="fstat-no" title="function not covered" >    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {</span>
+<span class="cstat-no" title="statement not covered" >        require(_exists(tokenId), "!exists")</span>;
+<span class="cstat-no" title="statement not covered" >        return string(abi.encodePacked(_baseURI(), _tokenURIs[tokenId]));</span>
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jun 28 2022 21:41:52 GMT+0000 (Coordinated Universal Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>
