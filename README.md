@@ -84,7 +84,7 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 - [deployedEthereumRegex](https://goerli.etherscan.io/address/0x44Ab7157EA5aa43b538F00FF8E23B7cb9Bcd7C0D)
 - [deployedNftResolver](https://goerli.etherscan.io/address/0x45d296A1042248F48f484c6f2be01006D26fCBF0)
 
-  - implementation => 0x3B95F6236033d39C173E80a3E9b89936Fd0FaFbA
+  - implementation => 0x0E2580756b0313324AF844346b504102a10C0dBB
 
 - [deployedGenesisKeyDistributor](https://goerli.etherscan.io/address/)
 

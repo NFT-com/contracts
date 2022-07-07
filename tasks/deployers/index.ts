@@ -89,6 +89,8 @@ const getTokens = async (hre: any) => {
       : network === "mainnet"
       ? "0x7e229a305f26ce5C39AAB1d90271e1Ef03d764D5"
       : "";
+  const deployedNftResolver =
+    network == "goerli" ? "0x45d296A1042248F48f484c6f2be01006D26fCBF0" : network === "mainnet" ? "" : "";
   const profileMetadataLink = `https://${
     network === "goerli" ? "staging-api" : network === "mainnet" ? "prod-api" : ""
   }.nft.com/uri/`;
@@ -116,6 +118,7 @@ const getTokens = async (hre: any) => {
     multiSig,
     deployedProfileAuction,
     deployedNftProfile,
+    deployedNftResolver,
   };
 };
 
@@ -772,6 +775,15 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 
   await delayedVerifyImp("upgradedGenesisKey", upgradedGenesisKey.address, hre);
+});
+
+task("upgrade:NftResolver").setAction(async function (taskArguments, hre) {
+  const NftResolver = await hre.ethers.getContractFactory("NftResolver");
+
+  const upgradedNftResolver = await hre.upgrades.upgradeProxy((await getTokens(hre)).deployedNftResolver, NftResolver);
+  console.log(chalk.green("upgradedNftResolver: ", upgradedNftResolver.address));
+
+  await delayedVerifyImp("upgradedNftResolver", upgradedNftResolver.address, hre);
 });
 
 task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
