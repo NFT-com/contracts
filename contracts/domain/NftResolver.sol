@@ -22,14 +22,16 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     mapping(address => mapping(uint256 => AddressTuple[])) internal _ownerAddrList;
     mapping(address => mapping(uint256 => AddressTuple)) internal _ownerCtx;
     mapping(uint256 => mapping(bytes => bool)) internal _ownerNonEvmMap; // O(1) lookup non-evm
-    mapping(uint256 => mapping(address => bool)) internal _ownerEvmMap; // O(1) lookup evm
+    mapping(uint256 => mapping(address => mapping(bytes => bool))) internal _ownerEvmMap; // O(1) lookup evm
     // ===================================================================================================
     mapping(address => RelatedProfiles[]) internal _approvedEvmList;
     mapping(bytes => bool) internal _approvedMap;
     // ===================================================================================================
 
     event UpdatedRegex(Blockchain _cid, IRegex _regexAddress);
-    event AssociateEvmUser(address indexed owner, string indexed profileUrl, address indexed associatedAddress);
+    event AssociateEvmUser(address indexed owner, string profileUrl, address indexed associatedAddress);
+    event CancelledEvmAssociation(address indexed owner, string profileUrl, address indexed associatedAddresses);
+    event ClearAllAssociatedAddresses(address indexed owner, string profileUrl);
 
     function _onlyOwner() private view {
         if (msg.sender != owner) revert NotOwner();
@@ -119,8 +121,10 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
             if (_evmBased(inputTuples[i].cid)) {
                 address dest = Resolver._parseAddr(inputTuples[i].chainAddr);
-                if (_ownerEvmMap[nonce][dest]) revert DuplicateAddress();
-                _ownerEvmMap[nonce][dest] = true;
+                if (_ownerEvmMap[nonce][dest][abi.encode(msg.sender, tokenId, inputTuples[i].cid)]) {
+                    revert DuplicateAddress();
+                }
+                _ownerEvmMap[nonce][dest][abi.encode(msg.sender, tokenId, inputTuples[i].cid)] = true;
 
                 emit AssociateEvmUser(msg.sender, profileUrl, dest);
             } else {
@@ -207,10 +211,14 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             if (_evmBased(inputTuple.cid) && _evmBased(_ownerAddrList[msg.sender][tokenId][i].cid)) {
                 address parsed = Resolver._parseAddr(inputTuple.chainAddr);
                 address parsedCmp = Resolver._parseAddr(_ownerAddrList[msg.sender][tokenId][i].chainAddr);
-                if (parsed == parsedCmp && _ownerEvmMap[nonce][parsed]) {
+                if (parsed == parsedCmp &&
+                    _ownerEvmMap[nonce][parsed][abi.encode(msg.sender, tokenId, inputTuple.cid)])
+                {
                     _ownerAddrList[msg.sender][tokenId][i] = _ownerAddrList[msg.sender][tokenId][l1 - 1];
                     _ownerAddrList[msg.sender][tokenId].pop();
-                    _ownerEvmMap[nonce][parsed] = false;
+                    _ownerEvmMap[nonce][parsed][abi.encode(msg.sender, tokenId, inputTuple.cid)] = false;
+
+                    emit CancelledEvmAssociation(msg.sender, profileUrl, parsed);
 
                     return true;
                 }
@@ -244,6 +252,8 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         unchecked {
             ++_nonce[profileUrl];
         }
+
+        emit ClearAllAssociatedAddresses(msg.sender, profileUrl);
     }
 
     function evmBased(Blockchain cid) external pure returns (bool) {

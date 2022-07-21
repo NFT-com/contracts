@@ -4,14 +4,29 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "./SpecialTransferHelper.sol";
 
 // error InactiveMarket();
 
-contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, SpecialTransferHelper {
     struct TradeDetails {
         uint256 marketId; // marketId
         uint256 value; // msg.value if needed
         bytes tradeData; // data for call option
+    }
+
+    struct ERC20Details {
+        address[] tokenAddrs;
+        uint256[] amounts;
+    }
+
+    struct ERC1155Details {
+        address tokenAddr;
+        uint256[] ids;
+        uint256[] amounts;
     }
 
     address public owner;
@@ -48,7 +63,166 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         }
     }
 
-    function purchaseLooksrare(TradeDetails[] memory _tradeDetails) external nonReentrant {
+    function onERC1155Received(
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) public virtual returns (bytes4) {
+        return this.onERC1155Received.selector;
+    }
+
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    ) public virtual returns (bytes4) {
+        return this.onERC1155BatchReceived.selector;
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return 0x150b7a02;
+    }
+
+    // Used by ERC721BasicToken.sol
+    function onERC721Received(
+        address,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return 0xf0b9e5ba;
+    }
+
+    function supportsInterface(bytes4 interfaceId) external view virtual returns (bool) {
+        return interfaceId == this.supportsInterface.selector;
+    }
+
+    receive() external payable {}
+
+    function _transferEth(address _to, uint256 _amount) internal {
+        bool callStatus;
+        assembly {
+            // Transfer the ETH and store if it succeeded or not.
+            callStatus := call(gas(), _to, _amount, 0, 0, 0, 0)
+        }
+        require(callStatus, "_transferEth: Eth transfer failed");
+    }
+
+    // Emergency function: In case any ETH get stuck in the contract unintentionally
+    // Only owner can retrieve the asset balance to a recipient address
+    function rescueETH(address recipient) external onlyOwner {
+        _transferEth(recipient, address(this).balance);
+    }
+
+    // Emergency function: In case any ERC20 tokens get stuck in the contract unintentionally
+    // Only owner can retrieve the asset balance to a recipient address
+    function rescueERC20(address asset, address recipient) external onlyOwner {
+        asset.call(abi.encodeWithSelector(0xa9059cbb, recipient, IERC20(asset).balanceOf(address(this))));
+    }
+
+    // Emergency function: In case any ERC721 tokens get stuck in the contract unintentionally
+    // Only owner can retrieve the asset balance to a recipient address
+    function rescueERC721(
+        address asset,
+        uint256[] calldata ids,
+        address recipient
+    ) external onlyOwner {
+        for (uint256 i = 0; i < ids.length; i++) {
+            IERC721(asset).transferFrom(address(this), recipient, ids[i]);
+        }
+    }
+
+    // Emergency function: In case any ERC1155 tokens get stuck in the contract unintentionally
+    // Only owner can retrieve the asset balance to a recipient address
+    function rescueERC1155(
+        address asset,
+        uint256[] calldata ids,
+        uint256[] calldata amounts,
+        address recipient
+    ) external onlyOwner {
+        for (uint256 i = 0; i < ids.length; i++) {
+            IERC1155(asset).safeTransferFrom(address(this), recipient, ids[i], amounts[i], "");
+        }
+    }
+
+    function _transferFromHelper(
+        ERC20Details memory erc20Details,
+        SpecialTransferHelper.ERC721Details[] memory erc721Details,
+        ERC1155Details[] memory erc1155Details
+    ) internal {
+        // transfer ERC20 tokens from the sender to this contract
+        for (uint256 i = 0; i < erc20Details.tokenAddrs.length; i++) {
+            erc20Details.tokenAddrs[i].call(
+                abi.encodeWithSelector(0x23b872dd, msg.sender, address(this), erc20Details.amounts[i])
+            );
+        }
+
+        // transfer ERC721 tokens from the sender to this contract
+        for (uint256 i = 0; i < erc721Details.length; i++) {
+            // accept CryptoPunks
+            if (erc721Details[i].tokenAddr == 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB) {
+                _acceptCryptoPunk(erc721Details[i]);
+            }
+            // accept Mooncat
+            else if (erc721Details[i].tokenAddr == 0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6) {
+                _acceptMoonCat(erc721Details[i]);
+            }
+            // default
+            else {
+                for (uint256 j = 0; j < erc721Details[i].ids.length; j++) {
+                    IERC721(erc721Details[i].tokenAddr).transferFrom(
+                        _msgSender(),
+                        address(this),
+                        erc721Details[i].ids[j]
+                    );
+                }
+            }
+        }
+
+        // transfer ERC1155 tokens from the sender to this contract
+        for (uint256 i = 0; i < erc1155Details.length; i++) {
+            IERC1155(erc1155Details[i].tokenAddr).safeBatchTransferFrom(
+                _msgSender(),
+                address(this),
+                erc1155Details[i].ids,
+                erc1155Details[i].amounts,
+                ""
+            );
+        }
+    }
+
+    // must be called for all tokens used per exchange operator
+    function setOneTimeApproval(
+        IERC20 token,
+        address operator,
+        uint256 amount
+    ) external onlyOwner {
+        token.approve(operator, amount);
+    }
+
+    function purchaseLooksrare(
+        ERC20Details memory erc20Details,
+        TradeDetails[] memory _tradeDetails,
+        address[] memory dustTokens
+    ) external nonReentrant {
+        for (uint256 i = 0; i < erc20Details.tokenAddrs.length; ) {
+            erc20Details.tokenAddrs[i].call(
+                abi.encodeWithSelector(0x23b872dd, msg.sender, address(this), erc20Details.amounts[i])
+            );
+
+            unchecked {
+                ++i;
+            }
+        }
+
         for (uint256 i = 0; i < _tradeDetails.length; ) {
             (bool success, ) = address(0x1AA777972073Ff66DCFDeD85749bDD555C0665dA).call{
                 value: _tradeDetails[i].value
@@ -58,6 +232,25 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
 
             unchecked {
                 ++i;
+            }
+        }
+
+        _returnDust(dustTokens);
+    }
+
+    function _returnDust(address[] memory _tokens) internal {
+        // return remaining ETH (if any)
+        assembly {
+            if gt(selfbalance(), 0) {
+                let callStatus := call(gas(), caller(), selfbalance(), 0, 0, 0, 0)
+            }
+        }
+        // return remaining tokens (if any)
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            if (IERC20(_tokens[i]).balanceOf(address(this)) > 0) {
+                _tokens[i].call(
+                    abi.encodeWithSelector(0xa9059cbb, msg.sender, IERC20(_tokens[i]).balanceOf(address(this)))
+                );
             }
         }
     }

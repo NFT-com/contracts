@@ -21,7 +21,7 @@ const getNetwork = (hre: any) => {
 
 const getTokens = async (hre: any) => {
   const chainId = hre.network.config.chainId;
-  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 4 ? "rinkeby" : chainId === 1 ? "mainnet" : chainId;
 
   const governor =
     network === "goerli"
@@ -40,6 +40,8 @@ const getTokens = async (hre: any) => {
       ? "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
       : network === "mainnet"
       ? "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+      : network == "rinkeby"
+      ? "0xc778417E063141139Fce010982780140Aa0cD5Ab"
       : "";
   const usdcAddress =
     network === "goerli"
@@ -91,6 +93,14 @@ const getTokens = async (hre: any) => {
       : "";
   const deployedNftResolver =
     network == "goerli" ? "0x45d296A1042248F48f484c6f2be01006D26fCBF0" : network === "mainnet" ? "" : "";
+  const deployedNftAggregator =
+    network == "goerli"
+      ? ""
+      : network == "mainnet"
+      ? ""
+      : network == "rinkeby"
+      ? "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309"
+      : "";
   const profileMetadataLink = `https://${
     network === "goerli" ? "staging-api" : network === "mainnet" ? "prod-api" : ""
   }.nft.com/uri/`;
@@ -119,6 +129,7 @@ const getTokens = async (hre: any) => {
     deployedProfileAuction,
     deployedNftProfile,
     deployedNftResolver,
+    deployedNftAggregator,
   };
 };
 
@@ -626,6 +637,78 @@ task("deploy:2b").setAction(async function (taskArguments, hre) {
   await getImplementation("deployedNftResolver", deployedNftResolver.address, hre);
 });
 
+task("deploy:2c").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("deploying nft tx router"));
+
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+  const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [], {
+    kind: "uups",
+  });
+
+  console.log(chalk.green(`deployedNftAggregator: ${deployedNftAggregator.address}`));
+
+  await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
+});
+
+task("testResolver").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("starting to test resolver"));
+  const account2 = '0x1958Af77c06faB96D63351cACf10ABd3f598873B'; 
+
+  const NftResolver = await hre.ethers.getContractFactory("NftResolver");
+  const deployedNftResolver = await NftResolver.attach(
+    (
+      await getTokens(hre)
+    ).deployedNftResolver,
+  );
+
+  await deployedNftResolver
+    .addAssociatedAddresses(
+      [{ cid: 0, chainAddr: account2 }],
+      "gk",
+    );
+
+  // await deployedNftResolver
+  //   .removeAssociatedAddress(
+  //     { cid: 0, chainAddr: account2 },
+  //     "gk",
+  //   );
+});
+
+task("testPurchaseLooksrare").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("starting to purchase looksrare"));
+
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+  const deployedNftAggregator = await NftAggregator.attach((await getTokens(hre)).deployedNftAggregator);
+
+  const WETH = await hre.ethers.getContractFactory("WETH");
+  const deployedWETH = await WETH.attach((await getTokens(hre)).wethAddress);
+
+  // console.log('deployedWETH: ', deployedWETH.address);
+  // console.log('deployedNftAggregator: ', deployedNftAggregator.address);
+
+  // const tx = await deployedWETH.approve(deployedNftAggregator.address, hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1));
+
+  // console.log('aproval tx...: ', tx.hash);
+
+  // const tx2 = await deployedWETH.deposit({ value: hre.ethers.BigNumber.from(10).pow(17)});
+
+  // console.log('deposit tx2...: ', tx2.hash);
+
+  // const tx3 = await deployedNftAggregator.purchaseLooksrare(
+  //   {
+  //     tokenAddrs: [deployedWETH.address],
+  //     amounts: ['10000000000000000']
+  //   },
+  //   [{
+  //     marketId: 0,
+  //     value: 0,
+  //     tradeData: `0x38e292090000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006579a513e97c0043dc3ad9dfd3f804721023a309000000000000000000000000000000000000000000000000002386f26fc1000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000001d4c00000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000059495589849423692778a8c5aaca62ca80f875a400000000000000000000000033acfb7d8ef4fbeeb4d837c7e90b8f74e219daf7000000000000000000000000000000000000000000000000002386f26fc1000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000732319a3590e4fa838c111826f9584a9a2fdea1a000000000000000000000000c778417e063141139fce010982780140aa0cd5ab00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000062ced33c0000000000000000000000000000000000000000000000000000000062f660130000000000000000000000000000000000000000000000000000000000001d4c0000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001c96040adebbe79c72c75b250be268097a6363fdfa0e1d9c0dde6a147311a4edbd063ce04564f3a3bf874fec5aa000644d49631154bb1d407fdf22461fb2f84a8d0000000000000000000000000000000000000000000000000000000000000000`
+  //   }]
+  // );
+
+  // console.log('purchase tx3...: ', tx3.hash);
+});
+
 // ========================================================
 // TODO: make sure nftBuyer (contract1) is set in profile Auction
 // TODO: make sure nftGenesisStake (contract2) is set in profile Auction
@@ -818,4 +901,19 @@ task("upgrade:GenesisKeyTeamClaim").setAction(async function (taskArguments, hre
   console.log(chalk.green("upgraded genesis key team claim: ", upgradedGenesisKeyTeamClaim.address));
 
   await delayedVerifyImp("upgradedGenesisKeyTeamClaim", upgradedGenesisKeyTeamClaim.address, hre);
+});
+
+task("upgrade:NftAggregator").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("starting to upgrade..."));
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+
+  const upgradedNftAggregator = await hre.upgrades.upgradeProxy(
+    (
+      await getTokens(hre)
+    ).deployedNftAggregator,
+    NftAggregator,
+  );
+  console.log(chalk.green("upgraded genesis key team claim: ", upgradedNftAggregator.address));
+
+  await delayedVerifyImp("upgradedNftAggregator", upgradedNftAggregator.address, hre);
 });

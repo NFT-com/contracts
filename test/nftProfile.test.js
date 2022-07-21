@@ -201,6 +201,9 @@ describe("NFT Profile Auction / Minting", function () {
 
       const { hash: h1, signature: s1 } = signHashProfile(second.address, "testminter");
       await deployedProfileAuction.connect(second).genesisKeyClaimProfile("testminter", 2, second.address, h1, s1);
+      const { hash: h2, signature: s2 } = signHashProfile(second.address, "testminter2");
+      await deployedProfileAuction.connect(second).genesisKeyClaimProfile("testminter2", 2, second.address, h2, s2);
+      await deployedNftProfile.connect(second).transferFrom(second.address, addr1.address, 1); // transfer
 
       deployedNftResolver = await hre.upgrades.deployProxy(
         await hre.ethers.getContractFactory("NftResolver"),
@@ -242,7 +245,7 @@ describe("NFT Profile Auction / Minting", function () {
       });
 
       it("profiles should have a initial supply of 1", async function () {
-        expect(await deployedNftProfile.totalSupply()).to.equal(1); // minted in beforeEach
+        expect(await deployedNftProfile.totalSupply()).to.equal(2); // minted in beforeEach
       });
 
       it("should call view functions in the nft profile", async function () {
@@ -335,7 +338,7 @@ describe("NFT Profile Auction / Minting", function () {
         expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(owner.address);
         expect(await deployedGenesisKey.ownerOf(2)).to.be.equal(secondSigner.address);
 
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
 
         const { hash: h0, signature: s0 } = signHashProfile(owner.address, "gavin");
         await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h0, s0);
@@ -385,7 +388,7 @@ describe("NFT Profile Auction / Minting", function () {
           deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 1, owner.address, h11, s11),
         ).to.be.reverted;
 
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(9);
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(10);
         // open public mint
         await deployedProfileAuction.connect(owner).setPublicMint(true);
 
@@ -440,7 +443,7 @@ describe("NFT Profile Auction / Minting", function () {
         await deployedNftProfile.connect(owner).tradeMarkTransfer("profile6", owner.address);
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
 
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(14);
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(15);
       });
 
       it("should allow profiles to associate other addresses", async function () {
@@ -494,6 +497,27 @@ describe("NFT Profile Auction / Minting", function () {
 
         console.log("testminter after clearing: ", await deployedNftResolver.associatedAddresses("testminter"));
         expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(0);
+      });
+
+      it("should allow two different profiles to associate same address", async function () {
+        await deployedNftResolver.connect(second).addAssociatedAddresses(
+          [
+            [0, addr1.address],
+            [0, addr2.address],
+            [0, addr3.address],
+            [0, addr4.address],
+          ],
+          "testminter",
+        );
+
+        await deployedNftResolver.connect(addr1).addAssociatedAddresses(
+          [
+            [0, addr2.address],
+            [0, addr3.address],
+            [0, addr4.address],
+          ],
+          "testminter2",
+        );
       });
 
       it("should allow multiple addresses to be added at the same time", async function () {
