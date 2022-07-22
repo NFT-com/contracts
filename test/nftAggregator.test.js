@@ -10,6 +10,7 @@ describe("NFT Aggregator", function () {
     let NftAggregator, deployedNftAggregator;
     let MarketplaceRegistry, deployedMarketplaceRegistry;
     let LooksrareLibV1, deployedLooksrareLibV1;
+    let OpenseaLibV1, deployedOpenseaLibV1;
     let looksrare = new ethers.utils.Interface(looksrareABI);
     let seaport = new ethers.utils.Interface(seaportABI);
 
@@ -21,8 +22,11 @@ describe("NFT Aggregator", function () {
 
       LooksrareLibV1 = await ethers.getContractFactory("LooksrareLibV1");
       deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
+      OpenseaLibV1 = await ethers.getContractFactory("OpenseaLibV1");
+      deployedOpenseaLibV1 = await OpenseaLibV1.deploy();
 
       console.log('deployedLooksrareLibV1: ', deployedLooksrareLibV1.address);
+      console.log('deployedOpenseaLibV1: ', deployedOpenseaLibV1.address);
 
       MarketplaceRegistry = await ethers.getContractFactory("MarketplaceRegistry");
       deployedMarketplaceRegistry = await upgrades.deployProxy(MarketplaceRegistry, [], {
@@ -30,6 +34,8 @@ describe("NFT Aggregator", function () {
       });
 
       deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
+      deployedMarketplaceRegistry.addMarketplace(deployedOpenseaLibV1, true);
+      // add seaport as well
 
       console.log('deployedMarketplaceRegistry: ', deployedMarketplaceRegistry.address)
 
