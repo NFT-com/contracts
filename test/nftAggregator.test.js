@@ -9,6 +9,7 @@ describe("NFT Aggregator", function () {
   try {
     let NftAggregator, deployedNftAggregator;
     let MarketplaceRegistry, deployedMarketplaceRegistry;
+    let LooksrareLibV1, deployedLooksrareLibV1;
     let looksrare = new ethers.utils.Interface(looksrareABI);
     let seaport = new ethers.utils.Interface(seaportABI);
 
@@ -18,22 +19,26 @@ describe("NFT Aggregator", function () {
       // Get the ContractFactory and Signers here.
       [owner, second, addr1, ...addrs] = await ethers.getSigners();
 
+      LooksrareLibV1 = await ethers.getContractFactory("LooksrareLibV1");
+      deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
+
+      console.log('deployedLooksrareLibV1: ', deployedLooksrareLibV1.address);
+
       MarketplaceRegistry = await ethers.getContractFactory("MarketplaceRegistry");
       deployedMarketplaceRegistry = await upgrades.deployProxy(MarketplaceRegistry, [], {
         kind: "uups",
       });
 
-      // rinkeby looksrare: 0x1AA777972073Ff66DCFDeD85749bDD555C0665dA
-      deployedMarketplaceRegistry.addMarketplace();
+      deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
 
-      console.log("deployedMarketplaceRegistry: ", deployedMarketplaceRegistry.address);
+      console.log('deployedMarketplaceRegistry: ', deployedMarketplaceRegistry.address)
 
       NftAggregator = await ethers.getContractFactory("NftAggregator");
       deployedNftAggregator = await upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
         kind: "uups",
       });
 
-      console.log("deployedNftAggregator: ", deployedNftAggregator.address);
+      console.log('deployedNftAggregator: ', deployedNftAggregator.address)
     });
 
     const getLooksrareOrder = async (isOrderAsk = true, contract, tokenId, status = "VALID") => {
@@ -151,10 +156,12 @@ describe("NFT Aggregator", function () {
           // ERC20Details
           {
             tokenAddrs: [],
-            amounts: [],
+            amounts: []
           },
-          [marketId, value, generatedHex],
-          [], // dust tokens
+          [
+            marketId, value, generatedHex
+          ],
+          [] // dust tokens
         ]);
       });
     });
