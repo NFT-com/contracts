@@ -8,16 +8,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "./SpecialTransferHelper.sol";
+import "./MarketplaceRegistry.sol";
 
-// error InactiveMarket();
+error InactiveMarket();
 
 contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, SpecialTransferHelper {
-    struct TradeDetails {
-        uint256 marketId; // marketId
-        uint256 value; // msg.value if needed
-        bytes tradeData; // data for call option
-    }
-
     struct ERC20Details {
         address[] tokenAddrs;
         uint256[] amounts;
@@ -30,6 +25,10 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
     }
 
     address public owner;
+    MarketplaceRegistry public marketplaceRegistry;
+    uint256 public baseFees;
+    bool public openForTrades;
+    bool public openForFreeTrades;
 
     function _onlyOwner() private view {
         require(msg.sender == owner);
@@ -40,11 +39,15 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         _;
     }
 
-    function initialize() public initializer {
+    function initialize(address _marketRegistry) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
         owner = msg.sender;
+        marketplaceRegistry = MarketplaceRegistry(_marketRegistry);
+        baseFees = 0;
+        openForTrades = true;
+        openForFreeTrades = true;
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
@@ -114,6 +117,19 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
             callStatus := call(gas(), _to, _amount, 0, 0, 0, 0)
         }
         require(callStatus, "_transferEth: Eth transfer failed");
+    }
+
+    // GOV functions
+    function setBaseFees(uint256 _baseFees) external onlyOwner {
+        baseFees = _baseFees;
+    }
+
+    function setOpenForTrades(bool _openForTrades) external onlyOwner {
+        openForTrades = _openForTrades;
+    }
+
+    function setOpenForFreeTrades(bool _openForFreeTrades) external onlyOwner {
+        openForFreeTrades = _openForFreeTrades;
     }
 
     // Emergency function: In case any ETH get stuck in the contract unintentionally
@@ -208,7 +224,14 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         token.approve(operator, amount);
     }
 
-    function purchaseLooksrare(
+    function batchTradeWithETH(
+        TradeDetails[] memory _tradeDetails,
+        address[] memory dustTokens
+    ) external payable nonReentrant {
+        // TODO:
+    }
+
+    function batchTrade(
         ERC20Details memory erc20Details,
         TradeDetails[] memory _tradeDetails,
         address[] memory dustTokens
@@ -224,11 +247,14 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         }
 
         for (uint256 i = 0; i < _tradeDetails.length; ) {
-            (bool success, ) = address(0x1AA777972073Ff66DCFDeD85749bDD555C0665dA).call{
-                value: _tradeDetails[i].value
-            }(_tradeDetails[i].tradeData);
+            (address _proxy, bool _isLib, bool _isActive) = marketplaceRegistry.marketplaces(_tradeDetails[i].marketId);
+            if (!_isActive) revert InactiveMarket();
+            
+            (bool success, ) = _isLib
+                ? _proxy.delegatecall(_tradeDetails[i].tradeData)
+                : _proxy.call{ value:_tradeDetails[i].value }(_tradeDetails[i].tradeData);
 
-            _checkCallResult(success);
+                _checkCallResult(success);
 
             unchecked {
                 ++i;

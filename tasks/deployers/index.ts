@@ -92,7 +92,7 @@ const getTokens = async (hre: any) => {
       ? "0x7e229a305f26ce5C39AAB1d90271e1Ef03d764D5"
       : "";
   const deployedNftResolver =
-    network == "goerli" ? "0x45d296A1042248F48f484c6f2be01006D26fCBF0" : network === "mainnet" ? "" : "";
+    network == "goerli" ? "0x3a3539B6727E74fa1c5D4d39B433F0fAB5BC4F4a" : network === "mainnet" ? "" : "";
   const deployedNftAggregator =
     network == "goerli"
       ? ""

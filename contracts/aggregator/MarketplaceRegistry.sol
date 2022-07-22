@@ -2,11 +2,24 @@
 pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract MarketplaceRegistry is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+contract MarketplaceRegistry is Initializable, UUPSUpgradeable {
     address public owner;
+
+    struct TradeDetails {
+        uint256 marketId;
+        uint256 value;
+        bytes tradeData;
+    }
+
+    struct Marketplace {
+        address proxy;
+        bool isLib;
+        bool isActive;
+    }
+
+    Marketplace[] public marketplaces;
 
     function _onlyOwner() private view {
         require(msg.sender == owner);
@@ -18,7 +31,6 @@ contract MarketplaceRegistry is Initializable, ReentrancyGuardUpgradeable, UUPSU
     }
 
     function initialize() public initializer {
-        __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
         owner = msg.sender;
@@ -30,7 +42,18 @@ contract MarketplaceRegistry is Initializable, ReentrancyGuardUpgradeable, UUPSU
         owner = _new;
     }
 
-    function addMarketplace(address _contract) external onlyOwner {
-        // TODO
+    function addMarketplace(address proxy, bool isLib) external onlyOwner {
+        marketplaces.push(Marketplace(proxy, isLib, true));
+    }
+
+    function setMarketplaceStatus(uint256 marketId, bool newStatus) external onlyOwner {
+        Marketplace storage market = marketplaces[marketId];
+        market.isActive = newStatus;
+    }
+
+    function setMarketplaceProxy(uint256 marketId, address newProxy, bool isLib) external onlyOwner {
+        Marketplace storage market = marketplaces[marketId];
+        market.proxy = newProxy;
+        market.isLib = isLib;
     }
 }
