@@ -224,10 +224,11 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         token.approve(operator, amount);
     }
 
-    function batchTradeWithETH(
-        TradeDetails[] memory _tradeDetails,
-        address[] memory dustTokens
-    ) external payable nonReentrant {
+    function batchTradeWithETH(TradeDetails[] memory _tradeDetails, address[] memory dustTokens)
+        external
+        payable
+        nonReentrant
+    {
         // TODO:
     }
 
@@ -249,12 +250,12 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         for (uint256 i = 0; i < _tradeDetails.length; ) {
             (address _proxy, bool _isLib, bool _isActive) = marketplaceRegistry.marketplaces(_tradeDetails[i].marketId);
             if (!_isActive) revert InactiveMarket();
-            
+
             (bool success, ) = _isLib
                 ? _proxy.delegatecall(_tradeDetails[i].tradeData)
-                : _proxy.call{ value:_tradeDetails[i].value }(_tradeDetails[i].tradeData);
+                : _proxy.call{ value: _tradeDetails[i].value }(_tradeDetails[i].tradeData);
 
-                _checkCallResult(success);
+            _checkCallResult(success);
 
             unchecked {
                 ++i;

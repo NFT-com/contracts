@@ -140,7 +140,7 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
   - implementation => 0x9a47cFd45718dB5BEEA2aA200BE50E157023469c
 
-- [deployedNftAggregator](htts://rinkeby.etherscan.io/address/0x6579A513E97C0043dC3Ad9Dfd3f804721023a309)
+- [deployedNftAggregator](https://rinkeby.etherscan.io/address/0x6579A513E97C0043dC3Ad9Dfd3f804721023a309)
   - implementation => 0x83FFcEE83360e75434b8F0a8dB17f0EcFA751B33
 
 ### Regex Generation

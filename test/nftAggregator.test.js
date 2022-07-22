@@ -8,6 +8,7 @@ const { ethers } = require("hardhat");
 describe("NFT Aggregator", function () {
   try {
     let NftAggregator, deployedNftAggregator;
+    let MarketplaceRegistry, deployedMarketplaceRegistry;
     let looksrare = new ethers.utils.Interface(looksrareABI);
     let seaport = new ethers.utils.Interface(seaportABI);
 
@@ -17,10 +18,22 @@ describe("NFT Aggregator", function () {
       // Get the ContractFactory and Signers here.
       [owner, second, addr1, ...addrs] = await ethers.getSigners();
 
-      NftAggregator = await ethers.getContractFactory("NftAggregator");
-      deployedNftAggregator = await upgrades.deployProxy(NftAggregator, [], {
+      MarketplaceRegistry = await ethers.getContractFactory("MarketplaceRegistry");
+      deployedMarketplaceRegistry = await upgrades.deployProxy(MarketplaceRegistry, [], {
         kind: "uups",
       });
+
+      // rinkeby looksrare: 0x1AA777972073Ff66DCFDeD85749bDD555C0665dA
+      deployedMarketplaceRegistry.addMarketplace();
+
+      console.log("deployedMarketplaceRegistry: ", deployedMarketplaceRegistry.address);
+
+      NftAggregator = await ethers.getContractFactory("NftAggregator");
+      deployedNftAggregator = await upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
+        kind: "uups",
+      });
+
+      console.log("deployedNftAggregator: ", deployedNftAggregator.address);
     });
 
     const getLooksrareOrder = async (isOrderAsk = true, contract, tokenId, status = "VALID") => {
@@ -132,11 +145,17 @@ describe("NFT Aggregator", function () {
 
         console.log("generatedHex: ", generatedHex);
 
-        // await deployedNftAggregator.connect(owner).purchaseLooksrare([
-        //   [
-        //     0, 0, generatedHex
-        //   ]
-        // ]);
+        const marketId = 0; // looksrare
+        const value = 0;
+        await deployedNftAggregator.connect(owner).batchTrade([
+          // ERC20Details
+          {
+            tokenAddrs: [],
+            amounts: [],
+          },
+          [marketId, value, generatedHex],
+          [], // dust tokens
+        ]);
       });
     });
 

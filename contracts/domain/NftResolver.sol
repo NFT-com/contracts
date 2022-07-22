@@ -211,9 +211,9 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             if (_evmBased(inputTuple.cid) && _evmBased(_ownerAddrList[msg.sender][tokenId][i].cid)) {
                 address parsed = Resolver._parseAddr(inputTuple.chainAddr);
                 address parsedCmp = Resolver._parseAddr(_ownerAddrList[msg.sender][tokenId][i].chainAddr);
-                if (parsed == parsedCmp &&
-                    _ownerEvmMap[nonce][parsed][abi.encode(msg.sender, tokenId, inputTuple.cid)])
-                {
+                if (
+                    parsed == parsedCmp && _ownerEvmMap[nonce][parsed][abi.encode(msg.sender, tokenId, inputTuple.cid)]
+                ) {
                     _ownerAddrList[msg.sender][tokenId][i] = _ownerAddrList[msg.sender][tokenId][l1 - 1];
                     _ownerAddrList[msg.sender][tokenId].pop();
                     _ownerEvmMap[nonce][parsed][abi.encode(msg.sender, tokenId, inputTuple.cid)] = false;

@@ -21,6 +21,11 @@ contract MarketplaceRegistry is Initializable, UUPSUpgradeable {
 
     Marketplace[] public marketplaces;
 
+    event NewOwner(address indexed owner);
+    event NewMarketplace(address indexed proxy, bool isLibrary);
+    event UpdateMarketplaceStatus(uint256 marketId, bool newStatus);
+    event UpdateMarketplaceProxy(uint256 marketId, address indexed proxy, bool isLibrary);
+
     function _onlyOwner() private view {
         require(msg.sender == owner);
     }
@@ -34,26 +39,35 @@ contract MarketplaceRegistry is Initializable, UUPSUpgradeable {
         __UUPSUpgradeable_init();
 
         owner = msg.sender;
+        emit NewOwner(msg.sender);
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
     function setOwner(address _new) external onlyOwner {
         owner = _new;
+        emit NewOwner(_new);
     }
 
     function addMarketplace(address proxy, bool isLib) external onlyOwner {
         marketplaces.push(Marketplace(proxy, isLib, true));
+        emit NewMarketplace(proxy, isLib);
     }
 
     function setMarketplaceStatus(uint256 marketId, bool newStatus) external onlyOwner {
         Marketplace storage market = marketplaces[marketId];
         market.isActive = newStatus;
+        emit UpdateMarketplaceStatus(marketId, newStatus);
     }
 
-    function setMarketplaceProxy(uint256 marketId, address newProxy, bool isLib) external onlyOwner {
+    function setMarketplaceProxy(
+        uint256 marketId,
+        address newProxy,
+        bool isLib
+    ) external onlyOwner {
         Marketplace storage market = marketplaces[marketId];
         market.proxy = newProxy;
         market.isLib = isLib;
+        emit UpdateMarketplaceProxy(marketId, newProxy, isLib);
     }
 }
