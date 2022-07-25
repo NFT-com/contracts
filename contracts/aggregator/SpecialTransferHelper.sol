@@ -1,16 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "../interface/punks/ICryptoPunks.sol";
 import "../interface/punks/IWrappedPunk.sol";
 import "../interface/mooncats/IMoonCatsRescue.sol";
 
-contract SpecialTransferHelper is Context {
+contract SpecialTransferHelper is Initializable, ContextUpgradeable {
     struct ERC721Details {
         address tokenAddr;
         address[] to;
         uint256[] ids;
+    }
+
+    function __SpecialTransfer_init() internal initializer {
+        __Context_init_unchained();
     }
 
     function _uintToBytes5(uint256 id) internal pure returns (bytes5 slicedDataBytes5) {
@@ -94,4 +99,6 @@ contract SpecialTransferHelper is Context {
             ICryptoPunks(erc721Details.tokenAddr).transferPunk(erc721Details.to[i], erc721Details.ids[i]);
         }
     }
+
+    uint256[49] private __gap;
 }

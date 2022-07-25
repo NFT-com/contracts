@@ -4,9 +4,9 @@ pragma solidity >=0.8.4;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "./SpecialTransferHelper.sol";
 import "./MarketplaceRegistry.sol";
 
@@ -42,6 +42,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
     function initialize(address _marketRegistry) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
+        __SpecialTransfer_init();
 
         owner = msg.sender;
         marketplaceRegistry = MarketplaceRegistry(_marketRegistry);
@@ -141,7 +142,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
     // Emergency function: In case any ERC20 tokens get stuck in the contract unintentionally
     // Only owner can retrieve the asset balance to a recipient address
     function rescueERC20(address asset, address recipient) external onlyOwner {
-        asset.call(abi.encodeWithSelector(0xa9059cbb, recipient, IERC20(asset).balanceOf(address(this))));
+        asset.call(abi.encodeWithSelector(0xa9059cbb, recipient, IERC20Upgradeable(asset).balanceOf(address(this))));
     }
 
     // Emergency function: In case any ERC721 tokens get stuck in the contract unintentionally
@@ -152,7 +153,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         address recipient
     ) external onlyOwner {
         for (uint256 i = 0; i < ids.length; i++) {
-            IERC721(asset).transferFrom(address(this), recipient, ids[i]);
+            IERC721Upgradeable(asset).transferFrom(address(this), recipient, ids[i]);
         }
     }
 
@@ -165,7 +166,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         address recipient
     ) external onlyOwner {
         for (uint256 i = 0; i < ids.length; i++) {
-            IERC1155(asset).safeTransferFrom(address(this), recipient, ids[i], amounts[i], "");
+            IERC1155Upgradeable(asset).safeTransferFrom(address(this), recipient, ids[i], amounts[i], "");
         }
     }
 
@@ -194,7 +195,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
             // default
             else {
                 for (uint256 j = 0; j < erc721Details[i].ids.length; j++) {
-                    IERC721(erc721Details[i].tokenAddr).transferFrom(
+                    IERC721Upgradeable(erc721Details[i].tokenAddr).transferFrom(
                         _msgSender(),
                         address(this),
                         erc721Details[i].ids[j]
@@ -205,7 +206,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
 
         // transfer ERC1155 tokens from the sender to this contract
         for (uint256 i = 0; i < erc1155Details.length; i++) {
-            IERC1155(erc1155Details[i].tokenAddr).safeBatchTransferFrom(
+            IERC1155Upgradeable(erc1155Details[i].tokenAddr).safeBatchTransferFrom(
                 _msgSender(),
                 address(this),
                 erc1155Details[i].ids,
@@ -217,7 +218,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
 
     // must be called for all tokens used per exchange operator
     function setOneTimeApproval(
-        IERC20 token,
+        IERC20Upgradeable token,
         address operator,
         uint256 amount
     ) external onlyOwner {
@@ -274,9 +275,9 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         }
         // return remaining tokens (if any)
         for (uint256 i = 0; i < _tokens.length; i++) {
-            if (IERC20(_tokens[i]).balanceOf(address(this)) > 0) {
+            if (IERC20Upgradeable(_tokens[i]).balanceOf(address(this)) > 0) {
                 _tokens[i].call(
-                    abi.encodeWithSelector(0xa9059cbb, msg.sender, IERC20(_tokens[i]).balanceOf(address(this)))
+                    abi.encodeWithSelector(0xa9059cbb, msg.sender, IERC20Upgradeable(_tokens[i]).balanceOf(address(this)))
                 );
             }
         }

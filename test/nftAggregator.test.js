@@ -11,6 +11,7 @@ describe("NFT Aggregator", function () {
     let MarketplaceRegistry, deployedMarketplaceRegistry;
     let LooksrareLibV1, deployedLooksrareLibV1;
     let OpenseaLibV1, deployedOpenseaLibV1;
+    let SeaportLib1_1, deployedSeaportLib1_1;
     let looksrare = new ethers.utils.Interface(looksrareABI);
     let seaport = new ethers.utils.Interface(seaportABI);
 
@@ -24,9 +25,12 @@ describe("NFT Aggregator", function () {
       deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
       OpenseaLibV1 = await ethers.getContractFactory("OpenseaLibV1");
       deployedOpenseaLibV1 = await OpenseaLibV1.deploy();
+      SeaportLib1_1 = await ethers.getContractFactory("SeaportLib1_1");
+      deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
 
       console.log("deployedLooksrareLibV1: ", deployedLooksrareLibV1.address);
       console.log("deployedOpenseaLibV1: ", deployedOpenseaLibV1.address);
+      console.log("deployedSeaportLib1_1: ", deployedSeaportLib1_1.address);
 
       MarketplaceRegistry = await ethers.getContractFactory("MarketplaceRegistry");
       deployedMarketplaceRegistry = await upgrades.deployProxy(MarketplaceRegistry, [], {
@@ -35,13 +39,14 @@ describe("NFT Aggregator", function () {
 
       deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
       deployedMarketplaceRegistry.addMarketplace(deployedOpenseaLibV1.address, true);
-      // add seaport as well
+      deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
 
       console.log("deployedMarketplaceRegistry: ", deployedMarketplaceRegistry.address);
 
       NftAggregator = await ethers.getContractFactory("NftAggregator");
       deployedNftAggregator = await upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
         kind: "uups",
+        unsafeAllow: ['delegatecall']
       });
 
       console.log("deployedNftAggregator: ", deployedNftAggregator.address);
@@ -53,6 +58,20 @@ describe("NFT Aggregator", function () {
         let url = `${baseUrl}/orders?isOrderAsk=${isOrderAsk}&collection=${contract}&status%5B%5D=${status}&tokenId=${tokenId}&sort=PRICE_ASC`;
         const config = {
           headers: { Accept: "application/json" },
+        };
+        return (await axios.get(url, config)).data;
+      } catch (err) {
+        console.log("error with looksrare order:", err);
+        return err;
+      }
+    };
+
+    const getSeaportOrder = async (contract, tokenId, limit = 1, OPENSEA_API_KEY = '2829e29e1ae34375a3cc5f4eee84e190') => {
+      try {
+        const baseUrl = `https://testnets-api.opensea.io/v2`;
+        let url = `${baseUrl}/orders/rinkeby/seaport/listings?asset_contract_address=${contract}&token_ids=${tokenId}&limit=${limit}`;
+        const config = {
+          headers: { Accept: "application/json" }, // 'X-API-KEY': OPENSEA_API_KEY // TODO: only use for PROD
         };
         return (await axios.get(url, config)).data;
       } catch (err) {
@@ -96,247 +115,252 @@ describe("NFT Aggregator", function () {
         expect(hex).to.be.equal(hexGen);
       });
 
-      it("should allow user to user to list on looksrare and other user to purchase it", async function () {
-        const contractAddress = "0x33AcFb7d8eF4FBEeb4d837c7E90B8F74E219DAf7";
-        const tokenID = "1";
-        const data = await getLooksrareOrder(true, contractAddress, tokenID);
+      // it("should allow user to user to list on looksrare and other user to purchase it", async function () {
+      //   const contractAddress = "0x33AcFb7d8eF4FBEeb4d837c7E90B8F74E219DAf7";
+      //   const tokenID = "1";
+      //   const data = await getLooksrareOrder(true, contractAddress, tokenID);
 
-        const {
-          hash, // : '0x734f4c78ef0a189272479a19f2e4c89e6941679e33071ed4c367fabcaf26c518',
-          collectionAddress, // : '0x33AcFb7d8eF4FBEeb4d837c7E90B8F74E219DAf7',
-          tokenId, // : '1',
-          isOrderAsk, // : true,
-          signer, // : '0x59495589849423692778a8c5aaCA62CA80f875a4',
-          strategy, // : '0x732319A3590E4fA838C111826f9584a9A2fDEa1a',
-          currencyAddress, // : '0xc778417E063141139Fce010982780140Aa0cD5Ab',
-          amount, // : 1,
-          price, // : '10000000000000000',
-          nonce, // : '0',
-          startTime, // : 1657721660,
-          endTime, // : 1660313619,
-          minPercentageToAsk, // : 7500,
-          params, // : '',
-          status, // : 'VALID',
-          signature, // : '0x96040adebbe79c72c75b250be268097a6363fdfa0e1d9c0dde6a147311a4edbd063ce04564f3a3bf874fec5aa000644d49631154bb1d407fdf22461fb2f84a8d1c',
-          v, // : 28,
-          r, // : '0x96040adebbe79c72c75b250be268097a6363fdfa0e1d9c0dde6a147311a4edbd',
-          s, // : '0x063ce04564f3a3bf874fec5aa000644d49631154bb1d407fdf22461fb2f84a8d'
-        } = data.data[0];
+      //   const {
+      //     hash, // : '0x734f4c78ef0a189272479a19f2e4c89e6941679e33071ed4c367fabcaf26c518',
+      //     collectionAddress, // : '0x33AcFb7d8eF4FBEeb4d837c7E90B8F74E219DAf7',
+      //     tokenId, // : '1',
+      //     isOrderAsk, // : true,
+      //     signer, // : '0x59495589849423692778a8c5aaCA62CA80f875a4',
+      //     strategy, // : '0x732319A3590E4fA838C111826f9584a9A2fDEa1a',
+      //     currencyAddress, // : '0xc778417E063141139Fce010982780140Aa0cD5Ab',
+      //     amount, // : 1,
+      //     price, // : '10000000000000000',
+      //     nonce, // : '0',
+      //     startTime, // : 1657721660,
+      //     endTime, // : 1660313619,
+      //     minPercentageToAsk, // : 7500,
+      //     params, // : '',
+      //     status, // : 'VALID',
+      //     signature, // : '0x96040adebbe79c72c75b250be268097a6363fdfa0e1d9c0dde6a147311a4edbd063ce04564f3a3bf874fec5aa000644d49631154bb1d407fdf22461fb2f84a8d1c',
+      //     v, // : 28,
+      //     r, // : '0x96040adebbe79c72c75b250be268097a6363fdfa0e1d9c0dde6a147311a4edbd',
+      //     s, // : '0x063ce04564f3a3bf874fec5aa000644d49631154bb1d407fdf22461fb2f84a8d'
+      //   } = data.data[0];
 
-        // rinkeby nft aggregator
-        const executorAddress = "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309";
-        const generatedHex = await looksrare.encodeFunctionData("matchAskWithTakerBid", [
+      //   // rinkeby nft aggregator
+      //   const executorAddress = "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309";
+      //   const generatedHex = await looksrare.encodeFunctionData("matchAskWithTakerBid", [
+      //     {
+      //       isOrderAsk: false,
+      //       taker: executorAddress,
+      //       price,
+      //       tokenId,
+      //       minPercentageToAsk,
+      //       params: params || "0x",
+      //     },
+      //     {
+      //       isOrderAsk,
+      //       signer,
+      //       collection: collectionAddress,
+      //       price,
+      //       tokenId,
+      //       amount,
+      //       strategy,
+      //       currency: currencyAddress,
+      //       nonce,
+      //       startTime,
+      //       endTime,
+      //       minPercentageToAsk,
+      //       params: params || "0x",
+      //       v,
+      //       r,
+      //       s,
+      //     },
+      //   ]);
+
+      //   // console.log("generatedHex: ", generatedHex);
+
+      //   // const marketId = 0; // looksrare
+      //   // const value = 0;
+      //   // await deployedNftAggregator.connect(owner).batchTrade([
+      //   //   // ERC20Details
+      //   //   {
+      //   //     tokenAddrs: [],
+      //   //     amounts: [],
+      //   //   },
+      //   //   [marketId, value, generatedHex],
+      //   //   [], // dust tokens
+      //   // ]);
+      // });
+
+      it("should allow user to purchase listed asset on seaport", async function () {
+        const contractAddress = '0x2d5d5e4efbd13c2347013d4c9f3c5c666f18d55c';
+        const tokenId = '2';
+  
+        const data = await getSeaportOrder(contractAddress, tokenId);
+        const executorAddress = "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309"; // aggregator
+        const recipient = "0x338eFdd45AE7D010da108f39d293565449C52682";
+
+        console.log('data: ', JSON.stringify(data, null, 2));
+  
+        const generatedHex = await seaport.encodeFunctionData("fulfillAvailableAdvancedOrders", [
           {
-            isOrderAsk: false,
-            taker: executorAddress,
-            price,
-            tokenId,
-            minPercentageToAsk,
-            params: params || "0x",
-          },
-          {
-            isOrderAsk,
-            signer,
-            collection: collectionAddress,
-            price,
-            tokenId,
-            amount,
-            strategy,
-            currency: currencyAddress,
-            nonce,
-            startTime,
-            endTime,
-            minPercentageToAsk,
-            params: params || "0x",
-            v,
-            r,
-            s,
+            advancedOrders: [
+              {
+                parameters: {
+                  offerer: "0x91096b40fc4f7523835e5ecb133ab023188270f7", // seller
+                  zone: "0x004c00500000ad104d7dbd00e3ae0a5c00560c00", // opensea pausable zone
+                  offer: [
+                    {
+                      itemType: "2",
+                      token: "0x3b3c2dacfdd7b620c8916a5f7aa6476bdfb1aa07", // nft collection
+                      identifierOrCriteria: "9388", // tokenId
+                      startAmount: "1",
+                      endAmount: "1",
+                    },
+                  ],
+                  consideration: [
+                    {
+                      itemType: "0",
+                      token: "0x0000000000000000000000000000000000000000", // ETH
+                      identifierOrCriteria: "0",
+                      startAmount: "21330000000000000",
+                      endAmount: "21330000000000000", // 0.02133 ETH min
+                      recipient: "0x91096b40fc4f7523835e5ecb133ab023188270f7", // seller
+                    },
+                    {
+                      itemType: "0",
+                      token: "0x0000000000000000000000000000000000000000",
+                      identifierOrCriteria: "0",
+                      startAmount: "592500000000000",
+                      endAmount: "592500000000000",
+                      recipient: "0x8de9c5a032463c561423387a9648c5c7bcc5bc90", // opensea fees
+                    },
+                    {
+                      itemType: "0",
+                      token: "0x0000000000000000000000000000000000000000",
+                      identifierOrCriteria: "0",
+                      startAmount: "1777500000000000",
+                      endAmount: "1777500000000000",
+                      recipient: "0x6bd835fafc4dade21875d576d4ba6f468e9c6bd7", // creator of collection royalties
+                    },
+                  ],
+                  orderType: "2", // ???
+                  startTime: "1658140842",
+                  endTime: "1673692842",
+                  zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                  salt: "26260796048459481",
+                  conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // opensea conduit key
+                  totalOriginalConsiderationItems: "3",
+                },
+                numerator: "1",
+                denominator: "1",
+                signature:
+                  "0xaaa9d6a8e62bae08cc701bf66427c1780ba7d69600e30f0af1c91b8123ab4f36320019069681534752321dd8f069293d1d03e8e4f212af0ac6bfb59039cd93881c",
+              },
+              {
+                parameters: {
+                  offerer: "0x91096b40fc4f7523835e5ecb133ab023188270f7",
+                  zone: "0x004c00500000ad104d7dbd00e3ae0a5c00560c00",
+                  offer: [
+                    {
+                      itemType: "2",
+                      token: "0x3b3c2dacfdd7b620c8916a5f7aa6476bdfb1aa07", // nft
+                      identifierOrCriteria: "1107", // tokenId
+                      startAmount: "1",
+                      endAmount: "1",
+                    },
+                  ],
+                  consideration: [
+                    {
+                      itemType: "0",
+                      token: "0x0000000000000000000000000000000000000000",
+                      identifierOrCriteria: "0",
+                      startAmount: "20700000000000000",
+                      endAmount: "20700000000000000",
+                      recipient: "0x91096b40fc4f7523835e5ecb133ab023188270f7",
+                    },
+                    {
+                      itemType: "0",
+                      token: "0x0000000000000000000000000000000000000000",
+                      identifierOrCriteria: "0",
+                      startAmount: "574999999999999",
+                      endAmount: "574999999999999",
+                      recipient: "0x8de9c5a032463c561423387a9648c5c7bcc5bc90",
+                    },
+                    {
+                      itemType: "0",
+                      token: "0x0000000000000000000000000000000000000000",
+                      identifierOrCriteria: "0",
+                      startAmount: "1724999999999999",
+                      endAmount: "1724999999999999",
+                      recipient: "0x6bd835fafc4dade21875d576d4ba6f468e9c6bd7",
+                    },
+                  ],
+                  orderType: "2",
+                  startTime: "1658140838",
+                  endTime: "1673692838",
+                  zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                  salt: "64324093163467031",
+                  conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
+                  totalOriginalConsiderationItems: "3",
+                },
+                numerator: "1",
+                denominator: "1",
+                signature:
+                  "0x1310bfa39179e3377148a41c2294878ebc966c523bbefc7cd2dd1a7f7a8fb3b578d30cafd15db441156c52cec3ecd81e4b79b9ec35038b3af4c8e31e3f7480ca1b",
+              },
+            ],
+            criteriaResolvers: [],
+            offerFulfillments: [
+              [
+                {
+                  orderIndex: "0",
+                  itemIndex: "0",
+                },
+              ],
+              [
+                {
+                  orderIndex: "1",
+                  itemIndex: "0",
+                },
+              ],
+            ],
+            considerationFulfillments: [
+              [
+                {
+                  orderIndex: "0",
+                  itemIndex: "0",
+                },
+                {
+                  orderIndex: "1",
+                  itemIndex: "0",
+                },
+              ],
+              [
+                {
+                  orderIndex: "0",
+                  itemIndex: "1",
+                },
+                {
+                  orderIndex: "1",
+                  itemIndex: "1",
+                },
+              ],
+              [
+                {
+                  orderIndex: "0",
+                  itemIndex: "2",
+                },
+                {
+                  orderIndex: "1",
+                  itemIndex: "2",
+                },
+              ],
+            ],
+            fulfillerConduitKey: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            recipient,
+            maximumFulfilled: "2",
           },
         ]);
-
-        console.log("generatedHex: ", generatedHex);
-
-        const marketId = 0; // looksrare
-        const value = 0;
-        await deployedNftAggregator.connect(owner).batchTrade([
-          // ERC20Details
-          {
-            tokenAddrs: [],
-            amounts: [],
-          },
-          [marketId, value, generatedHex],
-          [], // dust tokens
-        ]);
+  
+        // console.log("generated hex opensea: ", genratedHex);
       });
-    });
-
-    it("should allow user to purchase listed asset on seaport", async function () {
-      // rinkeby nft aggregator
-      const executorAddress = "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309";
-      const recipient = "";
-
-      const generatedHex = await seaport.encodeFunctionData("fulfillAvailableAdvancedOrders", [
-        {
-          advancedOrders: [
-            {
-              parameters: {
-                offerer: "0x91096b40fc4f7523835e5ecb133ab023188270f7", // seller
-                zone: "0x004c00500000ad104d7dbd00e3ae0a5c00560c00", // opensea pausable zone
-                offer: [
-                  {
-                    itemType: "2",
-                    token: "0x3b3c2dacfdd7b620c8916a5f7aa6476bdfb1aa07", // nft collection
-                    identifierOrCriteria: "9388", // tokenId
-                    startAmount: "1",
-                    endAmount: "1",
-                  },
-                ],
-                consideration: [
-                  {
-                    itemType: "0",
-                    token: "0x0000000000000000000000000000000000000000", // ETH
-                    identifierOrCriteria: "0",
-                    startAmount: "21330000000000000",
-                    endAmount: "21330000000000000", // 0.02133 ETH min
-                    recipient: "0x91096b40fc4f7523835e5ecb133ab023188270f7", // seller
-                  },
-                  {
-                    itemType: "0",
-                    token: "0x0000000000000000000000000000000000000000",
-                    identifierOrCriteria: "0",
-                    startAmount: "592500000000000",
-                    endAmount: "592500000000000",
-                    recipient: "0x8de9c5a032463c561423387a9648c5c7bcc5bc90", // opensea fees
-                  },
-                  {
-                    itemType: "0",
-                    token: "0x0000000000000000000000000000000000000000",
-                    identifierOrCriteria: "0",
-                    startAmount: "1777500000000000",
-                    endAmount: "1777500000000000",
-                    recipient: "0x6bd835fafc4dade21875d576d4ba6f468e9c6bd7", // creator of collection royalties
-                  },
-                ],
-                orderType: "2", // ???
-                startTime: "1658140842",
-                endTime: "1673692842",
-                zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-                salt: "26260796048459481",
-                conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // opensea conduit key
-                totalOriginalConsiderationItems: "3",
-              },
-              numerator: "1",
-              denominator: "1",
-              signature:
-                "0xaaa9d6a8e62bae08cc701bf66427c1780ba7d69600e30f0af1c91b8123ab4f36320019069681534752321dd8f069293d1d03e8e4f212af0ac6bfb59039cd93881c",
-            },
-            {
-              parameters: {
-                offerer: "0x91096b40fc4f7523835e5ecb133ab023188270f7",
-                zone: "0x004c00500000ad104d7dbd00e3ae0a5c00560c00",
-                offer: [
-                  {
-                    itemType: "2",
-                    token: "0x3b3c2dacfdd7b620c8916a5f7aa6476bdfb1aa07", // nft
-                    identifierOrCriteria: "1107", // tokenId
-                    startAmount: "1",
-                    endAmount: "1",
-                  },
-                ],
-                consideration: [
-                  {
-                    itemType: "0",
-                    token: "0x0000000000000000000000000000000000000000",
-                    identifierOrCriteria: "0",
-                    startAmount: "20700000000000000",
-                    endAmount: "20700000000000000",
-                    recipient: "0x91096b40fc4f7523835e5ecb133ab023188270f7",
-                  },
-                  {
-                    itemType: "0",
-                    token: "0x0000000000000000000000000000000000000000",
-                    identifierOrCriteria: "0",
-                    startAmount: "574999999999999",
-                    endAmount: "574999999999999",
-                    recipient: "0x8de9c5a032463c561423387a9648c5c7bcc5bc90",
-                  },
-                  {
-                    itemType: "0",
-                    token: "0x0000000000000000000000000000000000000000",
-                    identifierOrCriteria: "0",
-                    startAmount: "1724999999999999",
-                    endAmount: "1724999999999999",
-                    recipient: "0x6bd835fafc4dade21875d576d4ba6f468e9c6bd7",
-                  },
-                ],
-                orderType: "2",
-                startTime: "1658140838",
-                endTime: "1673692838",
-                zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-                salt: "64324093163467031",
-                conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
-                totalOriginalConsiderationItems: "3",
-              },
-              numerator: "1",
-              denominator: "1",
-              signature:
-                "0x1310bfa39179e3377148a41c2294878ebc966c523bbefc7cd2dd1a7f7a8fb3b578d30cafd15db441156c52cec3ecd81e4b79b9ec35038b3af4c8e31e3f7480ca1b",
-            },
-          ],
-          criteriaResolvers: [],
-          offerFulfillments: [
-            [
-              {
-                orderIndex: "0",
-                itemIndex: "0",
-              },
-            ],
-            [
-              {
-                orderIndex: "1",
-                itemIndex: "0",
-              },
-            ],
-          ],
-          considerationFulfillments: [
-            [
-              {
-                orderIndex: "0",
-                itemIndex: "0",
-              },
-              {
-                orderIndex: "1",
-                itemIndex: "0",
-              },
-            ],
-            [
-              {
-                orderIndex: "0",
-                itemIndex: "1",
-              },
-              {
-                orderIndex: "1",
-                itemIndex: "1",
-              },
-            ],
-            [
-              {
-                orderIndex: "0",
-                itemIndex: "2",
-              },
-              {
-                orderIndex: "1",
-                itemIndex: "2",
-              },
-            ],
-          ],
-          fulfillerConduitKey: "0x0000000000000000000000000000000000000000000000000000000000000000",
-          recipient,
-          maximumFulfilled: "2",
-        },
-      ]);
-
-      console.log("generated hex opensea: ", genratedHex);
     });
   } catch (err) {
     console.log("error: ", err);
