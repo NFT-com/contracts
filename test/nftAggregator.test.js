@@ -25,8 +25,8 @@ describe("NFT Aggregator", function () {
       OpenseaLibV1 = await ethers.getContractFactory("OpenseaLibV1");
       deployedOpenseaLibV1 = await OpenseaLibV1.deploy();
 
-      console.log('deployedLooksrareLibV1: ', deployedLooksrareLibV1.address);
-      console.log('deployedOpenseaLibV1: ', deployedOpenseaLibV1.address);
+      console.log("deployedLooksrareLibV1: ", deployedLooksrareLibV1.address);
+      console.log("deployedOpenseaLibV1: ", deployedOpenseaLibV1.address);
 
       MarketplaceRegistry = await ethers.getContractFactory("MarketplaceRegistry");
       deployedMarketplaceRegistry = await upgrades.deployProxy(MarketplaceRegistry, [], {
@@ -34,17 +34,17 @@ describe("NFT Aggregator", function () {
       });
 
       deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
-      deployedMarketplaceRegistry.addMarketplace(deployedOpenseaLibV1, true);
+      deployedMarketplaceRegistry.addMarketplace(deployedOpenseaLibV1.address, true);
       // add seaport as well
 
-      console.log('deployedMarketplaceRegistry: ', deployedMarketplaceRegistry.address)
+      console.log("deployedMarketplaceRegistry: ", deployedMarketplaceRegistry.address);
 
       NftAggregator = await ethers.getContractFactory("NftAggregator");
       deployedNftAggregator = await upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
         kind: "uups",
       });
 
-      console.log('deployedNftAggregator: ', deployedNftAggregator.address)
+      console.log("deployedNftAggregator: ", deployedNftAggregator.address);
     });
 
     const getLooksrareOrder = async (isOrderAsk = true, contract, tokenId, status = "VALID") => {
@@ -162,12 +162,10 @@ describe("NFT Aggregator", function () {
           // ERC20Details
           {
             tokenAddrs: [],
-            amounts: []
+            amounts: [],
           },
-          [
-            marketId, value, generatedHex
-          ],
-          [] // dust tokens
+          [marketId, value, generatedHex],
+          [], // dust tokens
         ]);
       });
     });

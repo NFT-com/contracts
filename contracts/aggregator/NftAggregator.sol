@@ -224,7 +224,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         token.approve(operator, amount);
     }
 
-    function batchTradeWithETH(TradeDetails[] memory _tradeDetails, address[] memory dustTokens)
+    function batchTradeWithETH(MarketplaceRegistry.TradeDetails[] memory _tradeDetails, address[] memory dustTokens)
         external
         payable
         nonReentrant
@@ -234,7 +234,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
 
     function batchTrade(
         ERC20Details memory erc20Details,
-        TradeDetails[] memory _tradeDetails,
+        MarketplaceRegistry.TradeDetails[] memory _tradeDetails,
         address[] memory dustTokens
     ) external nonReentrant {
         for (uint256 i = 0; i < erc20Details.tokenAddrs.length; ) {

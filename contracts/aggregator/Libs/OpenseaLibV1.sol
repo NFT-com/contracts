@@ -7,7 +7,7 @@ interface IOpenSea {
      */
     function atomicMatch_(
         address[14] memory addrs,
-        uint[18] memory uints,
+        uint256[18] memory uints,
         uint8[8] memory feeMethodsSidesKindsHowToCalls,
         bytes memory calldataBuy,
         bytes memory calldataSell,
@@ -21,12 +21,11 @@ interface IOpenSea {
 }
 
 library OpenseaLibV1 {
-
     address public constant OPENSEA = 0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b;
 
     struct OpenSeaBuy {
         address[14] addrs;
-        uint[18] uints;
+        uint256[18] uints;
         uint8[8] feeMethodsSidesKindsHowToCalls;
         bytes calldataBuy;
         bytes calldataSell;
@@ -45,8 +44,21 @@ library OpenseaLibV1 {
     }
 
     function _buyAssetForEth(OpenSeaBuy memory _openSeaBuy, bool _revertIfTrxFails) internal {
-        bytes memory _data = abi.encodeWithSelector(IOpenSea.atomicMatch_.selector, _openSeaBuy.addrs, _openSeaBuy.uints, _openSeaBuy.feeMethodsSidesKindsHowToCalls, _openSeaBuy.calldataBuy, _openSeaBuy.calldataSell, _openSeaBuy.replacementPatternBuy, _openSeaBuy.replacementPatternSell, _openSeaBuy.staticExtradataBuy, _openSeaBuy.staticExtradataSell, _openSeaBuy.vs, _openSeaBuy.rssMetadata);
-        (bool success, ) = OPENSEA.call{value:_openSeaBuy.uints[4]}(_data);
+        bytes memory _data = abi.encodeWithSelector(
+            IOpenSea.atomicMatch_.selector,
+            _openSeaBuy.addrs,
+            _openSeaBuy.uints,
+            _openSeaBuy.feeMethodsSidesKindsHowToCalls,
+            _openSeaBuy.calldataBuy,
+            _openSeaBuy.calldataSell,
+            _openSeaBuy.replacementPatternBuy,
+            _openSeaBuy.replacementPatternSell,
+            _openSeaBuy.staticExtradataBuy,
+            _openSeaBuy.staticExtradataSell,
+            _openSeaBuy.vs,
+            _openSeaBuy.rssMetadata
+        );
+        (bool success, ) = OPENSEA.call{ value: _openSeaBuy.uints[4] }(_data);
         if (!success && _revertIfTrxFails) {
             // Copy revert reason from call
             assembly {
