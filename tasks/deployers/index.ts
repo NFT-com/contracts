@@ -652,7 +652,7 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
 
 task("testResolver").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to test resolver"));
-  const account2 = "0x1958Af77c06faB96D63351cACf10ABd3f598873B";
+  const account2 = "0x1958Af77c06faB96D63351cACf10ABd3f598873B"; // 0x1958Af77c06faB96D63351cACf10ABd3f598873B, 0xbBc0643F58Afa61F3afa921A43115639199619fa
 
   const NftResolver = await hre.ethers.getContractFactory("NftResolver");
   const deployedNftResolver = await NftResolver.attach((await getTokens(hre)).deployedNftResolver);
@@ -664,6 +664,8 @@ task("testResolver").setAction(async function (taskArguments, hre) {
   //     { cid: 0, chainAddr: account2 },
   //     "gk",
   //   );
+
+  // await deployedNftResolver.clearAssociatedAddresses("gk");
 });
 
 task("testPurchaseLooksrare").setAction(async function (taskArguments, hre) {
