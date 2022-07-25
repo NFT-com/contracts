@@ -192,177 +192,81 @@ describe("NFT Aggregator", function () {
         const contractAddress = '0x2d5d5e4efbd13c2347013d4c9f3c5c666f18d55c';
         const tokenId = '2';
   
-        const data = await getSeaportOrder(contractAddress, tokenId);
+        const data = await getSeaportOrder(contractAddress, tokenId, 5);
         const executorAddress = "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309"; // aggregator
         const recipient = "0x338eFdd45AE7D010da108f39d293565449C52682";
 
         console.log('data: ', JSON.stringify(data, null, 2));
+        const order = data?.orders[0];
+        // rinkeby zone: 0x00000000e88fe2628ebc5da81d2b3cead633e89e
+        // mainnet zone: 0x004c00500000ad104d7dbd00e3ae0a5c00560c00
+        const zone = "0x00000000e88fe2628ebc5da81d2b3cead633e89e";
   
-        const generatedHex = await seaport.encodeFunctionData("fulfillAvailableAdvancedOrders", [
-          {
-            advancedOrders: [
-              {
-                parameters: {
-                  offerer: "0x91096b40fc4f7523835e5ecb133ab023188270f7", // seller
-                  zone: "0x004c00500000ad104d7dbd00e3ae0a5c00560c00", // opensea pausable zone
-                  offer: [
-                    {
-                      itemType: "2",
-                      token: "0x3b3c2dacfdd7b620c8916a5f7aa6476bdfb1aa07", // nft collection
-                      identifierOrCriteria: "9388", // tokenId
-                      startAmount: "1",
-                      endAmount: "1",
-                    },
-                  ],
-                  consideration: [
-                    {
-                      itemType: "0",
-                      token: "0x0000000000000000000000000000000000000000", // ETH
-                      identifierOrCriteria: "0",
-                      startAmount: "21330000000000000",
-                      endAmount: "21330000000000000", // 0.02133 ETH min
-                      recipient: "0x91096b40fc4f7523835e5ecb133ab023188270f7", // seller
-                    },
-                    {
-                      itemType: "0",
-                      token: "0x0000000000000000000000000000000000000000",
-                      identifierOrCriteria: "0",
-                      startAmount: "592500000000000",
-                      endAmount: "592500000000000",
-                      recipient: "0x8de9c5a032463c561423387a9648c5c7bcc5bc90", // opensea fees
-                    },
-                    {
-                      itemType: "0",
-                      token: "0x0000000000000000000000000000000000000000",
-                      identifierOrCriteria: "0",
-                      startAmount: "1777500000000000",
-                      endAmount: "1777500000000000",
-                      recipient: "0x6bd835fafc4dade21875d576d4ba6f468e9c6bd7", // creator of collection royalties
-                    },
-                  ],
-                  orderType: "2", // ???
-                  startTime: "1658140842",
-                  endTime: "1673692842",
-                  zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-                  salt: "26260796048459481",
-                  conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000", // opensea conduit key
-                  totalOriginalConsiderationItems: "3",
-                },
-                numerator: "1",
-                denominator: "1",
-                signature:
-                  "0xaaa9d6a8e62bae08cc701bf66427c1780ba7d69600e30f0af1c91b8123ab4f36320019069681534752321dd8f069293d1d03e8e4f212af0ac6bfb59039cd93881c",
+        const inputData = [
+          [
+            {
+              parameters: {
+                offerer: order.protocol_data.parameters.offerer, // seller
+                zone: zone, // opensea pausable zone
+                offer: order.protocol_data.parameters.offer,
+                consideration: order.protocol_data.parameters.consideration,
+                orderType: order.protocol_data.parameters.orderType,
+                startTime: order.protocol_data.parameters.startTime,
+                endTime: order.protocol_data.parameters.endTime,
+                zoneHash: order.protocol_data.parameters.zoneHash,
+                salt: order.protocol_data.parameters.salt,
+                conduitKey: order.protocol_data.parameters.conduitKey,
+                totalOriginalConsiderationItems: order.protocol_data.parameters.totalOriginalConsiderationItems,
               },
+              numerator: "1",
+              denominator: "1",
+              signature: order.protocol_data.signature,
+            },
+          ],
+          [],
+          [
+            [
               {
-                parameters: {
-                  offerer: "0x91096b40fc4f7523835e5ecb133ab023188270f7",
-                  zone: "0x004c00500000ad104d7dbd00e3ae0a5c00560c00",
-                  offer: [
-                    {
-                      itemType: "2",
-                      token: "0x3b3c2dacfdd7b620c8916a5f7aa6476bdfb1aa07", // nft
-                      identifierOrCriteria: "1107", // tokenId
-                      startAmount: "1",
-                      endAmount: "1",
-                    },
-                  ],
-                  consideration: [
-                    {
-                      itemType: "0",
-                      token: "0x0000000000000000000000000000000000000000",
-                      identifierOrCriteria: "0",
-                      startAmount: "20700000000000000",
-                      endAmount: "20700000000000000",
-                      recipient: "0x91096b40fc4f7523835e5ecb133ab023188270f7",
-                    },
-                    {
-                      itemType: "0",
-                      token: "0x0000000000000000000000000000000000000000",
-                      identifierOrCriteria: "0",
-                      startAmount: "574999999999999",
-                      endAmount: "574999999999999",
-                      recipient: "0x8de9c5a032463c561423387a9648c5c7bcc5bc90",
-                    },
-                    {
-                      itemType: "0",
-                      token: "0x0000000000000000000000000000000000000000",
-                      identifierOrCriteria: "0",
-                      startAmount: "1724999999999999",
-                      endAmount: "1724999999999999",
-                      recipient: "0x6bd835fafc4dade21875d576d4ba6f468e9c6bd7",
-                    },
-                  ],
-                  orderType: "2",
-                  startTime: "1658140838",
-                  endTime: "1673692838",
-                  zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-                  salt: "64324093163467031",
-                  conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
-                  totalOriginalConsiderationItems: "3",
-                },
-                numerator: "1",
-                denominator: "1",
-                signature:
-                  "0x1310bfa39179e3377148a41c2294878ebc966c523bbefc7cd2dd1a7f7a8fb3b578d30cafd15db441156c52cec3ecd81e4b79b9ec35038b3af4c8e31e3f7480ca1b",
+                orderIndex: "0",
+                itemIndex: "0",
+              },
+            ]
+          ],
+          [
+            [
+              {
+                orderIndex: "0",
+                itemIndex: "0",
               },
             ],
-            criteriaResolvers: [],
-            offerFulfillments: [
-              [
-                {
-                  orderIndex: "0",
-                  itemIndex: "0",
-                },
-              ],
-              [
-                {
-                  orderIndex: "1",
-                  itemIndex: "0",
-                },
-              ],
+            [
+              {
+                orderIndex: "0",
+                itemIndex: "1",
+              },
             ],
-            considerationFulfillments: [
-              [
-                {
-                  orderIndex: "0",
-                  itemIndex: "0",
-                },
-                {
-                  orderIndex: "1",
-                  itemIndex: "0",
-                },
-              ],
-              [
-                {
-                  orderIndex: "0",
-                  itemIndex: "1",
-                },
-                {
-                  orderIndex: "1",
-                  itemIndex: "1",
-                },
-              ],
-              [
-                {
-                  orderIndex: "0",
-                  itemIndex: "2",
-                },
-                {
-                  orderIndex: "1",
-                  itemIndex: "2",
-                },
-              ],
+            [
+              {
+                orderIndex: "0",
+                itemIndex: "2",
+              },
             ],
-            fulfillerConduitKey: "0x0000000000000000000000000000000000000000000000000000000000000000",
-            recipient,
-            maximumFulfilled: "2",
-          },
-        ]);
+          ],
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          recipient,
+          "1",
+        ];
+
+        console.log('inputData: ', JSON.stringify(inputData, null, 2));
+        
+        const generatedHex = await seaport.encodeFunctionData("fulfillAvailableAdvancedOrders",
+          inputData,
+        );
   
-        // console.log("generated hex opensea: ", genratedHex);
+        console.log("generated hex opensea: ", generatedHex);
       });
     });
   } catch (err) {
-    console.log("error: ", err);
+    console.log("error: ", JSON.stringify(err.response, null, 2));
   }
 });
