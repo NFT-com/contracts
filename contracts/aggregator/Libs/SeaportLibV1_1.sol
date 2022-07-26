@@ -51,7 +51,9 @@ interface ISeaport {
     function incrementCounter() external returns (uint256 newCounter);
 }
 
-library SeaportLib1_1 {
+error InputLengthMismatch();
+
+contract SeaportLib1_1 {
     address public constant OPENSEA = 0x00000000006c3852cbEf3e08E8dF289169EdE581;
 
     struct SeaportBuyOrder {
@@ -62,16 +64,30 @@ library SeaportLib1_1 {
         bytes32 fulfillerConduitKey;
         address recipient;
         uint256 maximumFulfilled;
-        uint256 msgValue;
     }
 
-    function fulfillAvailableAdvancedOrders(SeaportBuyOrder[] memory openSeaBuys, bool revertIfTrxFails) public {
-        for (uint256 i = 0; i < openSeaBuys.length; i++) {
-            _fulfillAvailableAdvancedOrders(openSeaBuys[i], revertIfTrxFails);
+    function fulfillAvailableAdvancedOrders(
+        SeaportBuyOrder[] memory openSeaBuys,
+        uint256[] memory msgValue,
+        bool revertIfTrxFails
+    ) external {
+        uint256 l1 = openSeaBuys.length;
+        if (l1 != msgValue.length) revert InputLengthMismatch();
+
+        for (uint256 i = 0; i < l1; ) {
+            _fulfillAvailableAdvancedOrders(openSeaBuys[i], msgValue[i], revertIfTrxFails);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
-    function _fulfillAvailableAdvancedOrders(SeaportBuyOrder memory _openSeaBuy, bool _revertIfTrxFails) internal {
+    function _fulfillAvailableAdvancedOrders(
+        SeaportBuyOrder memory _openSeaBuy,
+        uint256 _msgValue,
+        bool _revertIfTrxFails
+    ) internal {
         bytes memory _data = abi.encodeWithSelector(
             ISeaport.fulfillAvailableAdvancedOrders.selector,
             _openSeaBuy.advancedOrders,
@@ -82,7 +98,9 @@ library SeaportLib1_1 {
             _openSeaBuy.recipient,
             _openSeaBuy.maximumFulfilled
         );
-        (bool success, ) = OPENSEA.call{ value: _openSeaBuy.msgValue }(_data);
+
+        (bool success, ) = OPENSEA.call{ value: _msgValue }(_data);
+
         if (!success && _revertIfTrxFails) {
             // Copy revert reason from call
             assembly {

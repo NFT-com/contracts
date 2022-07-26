@@ -177,11 +177,6 @@
       "kind": "uups"
     },
     {
-      "address": "0x2f8aF635aad23693be5caF5f0F861a65A4f01d81",
-      "txHash": "0x80ac422467a987f3909f7f37086c2975f3a4ae041fd63c96e66ecbe2fda9c4f3",
-      "kind": "uups"
-    },
-    {
       "address": "0x871608139Ebe220D85c9CA6898B94de9C461f922",
       "txHash": "0x540f1b282a35019c712fcc56ec1d0c4fa96cfbd6bdf865f91c3a668a3df61194",
       "kind": "uups"
@@ -659,6 +654,16 @@
     {
       "address": "0x533370590593D16b87668Be77feF82c2E18163e5",
       "txHash": "0xf8bf8d7d0db11e4c79aba200d68c07d144fa9b839960a696baa2088a1eb35500",
+      "kind": "uups"
+    },
+    {
+      "address": "0x2f8aF635aad23693be5caF5f0F861a65A4f01d81",
+      "txHash": "0x3f74f09594438d8b62dd50ae671033ef9451490d998a46ffd28698ea5af384c8",
+      "kind": "uups"
+    },
+    {
+      "address": "0xaE6Dd7dAa6D1D3f97e4A83f7a46b4c409C6C0e81",
+      "txHash": "0x3a35984b1278d594511408675f4bcc365157e16fbc92f2c470faf7693c4c203f",
       "kind": "uups"
     }
   ],
@@ -1961,7 +1966,7 @@
           {
             "contract": "MarketplaceRegistry",
             "label": "marketplaces",
-            "type": "t_array(t_struct(Marketplace)8873_storage)dyn_storage",
+            "type": "t_array(t_struct(Marketplace)9461_storage)dyn_storage",
             "src": "contracts/aggregator/MarketplaceRegistry.sol:22"
           }
         ],
@@ -1969,10 +1974,10 @@
           "t_address": {
             "label": "address"
           },
-          "t_array(t_struct(Marketplace)8873_storage)dyn_storage": {
+          "t_array(t_struct(Marketplace)9461_storage)dyn_storage": {
             "label": "struct MarketplaceRegistry.Marketplace[]"
           },
-          "t_struct(Marketplace)8873_storage": {
+          "t_struct(Marketplace)9461_storage": {
             "label": "struct MarketplaceRegistry.Marketplace",
             "members": [
               {
@@ -2001,9 +2006,9 @@
         }
       }
     },
-    "501c934a2a4fb834a138d0d58b8f416d5d2b9dd196e9b948428128220d9dda83": {
+    "bde2c7b1b4fce4b48590b7cf8b4377ea3c3047e042b975b5894f15627e7e71ef": {
       "address": "0x4940c8F4Ae91684aa07bC05116c132D40E1FAeeA",
-      "txHash": "0xdd63b664d8e0acaaeb19eae7513f614fd855a77320c4f0daff749c5e49113cc4",
+      "txHash": "0xa0a28f3b8c4cfaa313b7dc26017b1806bf65c576b6bf1afca42a8525e71643b3",
       "layout": {
         "storage": [
           {
@@ -2058,38 +2063,38 @@
             "contract": "NftAggregator",
             "label": "owner",
             "type": "t_address",
-            "src": "contracts/aggregator/NftAggregator.sol:27"
+            "src": "contracts/aggregator/NftAggregator.sol:29"
           },
           {
             "contract": "NftAggregator",
             "label": "marketplaceRegistry",
-            "type": "t_contract(MarketplaceRegistry)9054",
-            "src": "contracts/aggregator/NftAggregator.sol:28"
+            "type": "t_contract(MarketplaceRegistry)9642",
+            "src": "contracts/aggregator/NftAggregator.sol:30"
           },
           {
             "contract": "NftAggregator",
             "label": "baseFees",
             "type": "t_uint256",
-            "src": "contracts/aggregator/NftAggregator.sol:29"
+            "src": "contracts/aggregator/NftAggregator.sol:31"
           },
           {
             "contract": "NftAggregator",
             "label": "openForTrades",
             "type": "t_bool",
-            "src": "contracts/aggregator/NftAggregator.sol:30"
+            "src": "contracts/aggregator/NftAggregator.sol:32"
           },
           {
             "contract": "NftAggregator",
             "label": "openForFreeTrades",
             "type": "t_bool",
-            "src": "contracts/aggregator/NftAggregator.sol:31"
+            "src": "contracts/aggregator/NftAggregator.sol:33"
           }
         ],
         "types": {
           "t_address": {
             "label": "address"
           },
-          "t_contract(MarketplaceRegistry)9054": {
+          "t_contract(MarketplaceRegistry)9642": {
             "label": "contract MarketplaceRegistry"
           },
           "t_uint256": {

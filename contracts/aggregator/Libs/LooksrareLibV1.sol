@@ -16,10 +16,11 @@ library LooksrareLibV1 {
         if (block.chainid == 1) {
             // mainnet
             looksrareExchange = 0x59728544B08AB483533076417FbBB2fD0B17CE3a;
-        } else if (block.chainid == 4) {
+        } else if (block.chainid == 5) {
             // rinkeby
+            looksrareExchange = 0xD112466471b5438C1ca2D218694200e49d81D047;
+        } else if (block.chainid == 4) {
             looksrareExchange = 0x1AA777972073Ff66DCFDeD85749bDD555C0665dA;
-            return true;
         } else {
             revert InvalidChain();
         }

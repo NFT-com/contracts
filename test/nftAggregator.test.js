@@ -2,7 +2,6 @@ const { expect } = require("chai");
 const looksrareABI = require("../looksrareABI.json");
 const seaportABI = require("../seaportABI.json");
 const axios = require("axios");
-const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
 
 describe("NFT Aggregator", function () {
@@ -12,8 +11,12 @@ describe("NFT Aggregator", function () {
     let LooksrareLibV1, deployedLooksrareLibV1;
     let OpenseaLibV1, deployedOpenseaLibV1;
     let SeaportLib1_1, deployedSeaportLib1_1;
+    let Mock721;
     let looksrare = new ethers.utils.Interface(looksrareABI);
     let seaport = new ethers.utils.Interface(seaportABI);
+    let seaportLib = new ethers.utils.Interface(
+      `[{"inputs":[],"name":"InputLengthMismatch","type":"error"},{"inputs":[],"name":"OPENSEA","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"components":[{"components":[{"components":[{"internalType":"address","name":"offerer","type":"address"},{"internalType":"address","name":"zone","type":"address"},{"components":[{"internalType":"enum ItemType","name":"itemType","type":"uint8"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"identifierOrCriteria","type":"uint256"},{"internalType":"uint256","name":"startAmount","type":"uint256"},{"internalType":"uint256","name":"endAmount","type":"uint256"}],"internalType":"struct OfferItem[]","name":"offer","type":"tuple[]"},{"components":[{"internalType":"enum ItemType","name":"itemType","type":"uint8"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"identifierOrCriteria","type":"uint256"},{"internalType":"uint256","name":"startAmount","type":"uint256"},{"internalType":"uint256","name":"endAmount","type":"uint256"},{"internalType":"address payable","name":"recipient","type":"address"}],"internalType":"struct ConsiderationItem[]","name":"consideration","type":"tuple[]"},{"internalType":"enum OrderType","name":"orderType","type":"uint8"},{"internalType":"uint256","name":"startTime","type":"uint256"},{"internalType":"uint256","name":"endTime","type":"uint256"},{"internalType":"bytes32","name":"zoneHash","type":"bytes32"},{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"bytes32","name":"conduitKey","type":"bytes32"},{"internalType":"uint256","name":"totalOriginalConsiderationItems","type":"uint256"}],"internalType":"struct OrderParameters","name":"parameters","type":"tuple"},{"internalType":"uint120","name":"numerator","type":"uint120"},{"internalType":"uint120","name":"denominator","type":"uint120"},{"internalType":"bytes","name":"signature","type":"bytes"},{"internalType":"bytes","name":"extraData","type":"bytes"}],"internalType":"struct AdvancedOrder[]","name":"advancedOrders","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"enum Side","name":"side","type":"uint8"},{"internalType":"uint256","name":"index","type":"uint256"},{"internalType":"uint256","name":"identifier","type":"uint256"},{"internalType":"bytes32[]","name":"criteriaProof","type":"bytes32[]"}],"internalType":"struct CriteriaResolver[]","name":"criteriaResolvers","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"uint256","name":"itemIndex","type":"uint256"}],"internalType":"struct FulfillmentComponent[][]","name":"offerFulfillments","type":"tuple[][]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"uint256","name":"itemIndex","type":"uint256"}],"internalType":"struct FulfillmentComponent[][]","name":"considerationFulfillments","type":"tuple[][]"},{"internalType":"bytes32","name":"fulfillerConduitKey","type":"bytes32"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"maximumFulfilled","type":"uint256"}],"internalType":"struct SeaportLib1_1.SeaportBuyOrder[]","name":"openSeaBuys","type":"tuple[]"},{"internalType":"uint256[]","name":"msgValue","type":"uint256[]"},{"internalType":"bool","name":"revertIfTrxFails","type":"bool"}],"name":"fulfillAvailableAdvancedOrders","outputs":[],"stateMutability":"nonpayable","type":"function"}]`,
+    );
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -21,6 +24,7 @@ describe("NFT Aggregator", function () {
       // Get the ContractFactory and Signers here.
       [owner, second, addr1, ...addrs] = await ethers.getSigners();
 
+      Mock721 = await ethers.getContractFactory("GenesisKey");
       LooksrareLibV1 = await ethers.getContractFactory("LooksrareLibV1");
       deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
       OpenseaLibV1 = await ethers.getContractFactory("OpenseaLibV1");
@@ -46,7 +50,7 @@ describe("NFT Aggregator", function () {
       NftAggregator = await ethers.getContractFactory("NftAggregator");
       deployedNftAggregator = await upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
         kind: "uups",
-        unsafeAllow: ['delegatecall']
+        unsafeAllow: ["delegatecall"],
       });
 
       console.log("deployedNftAggregator: ", deployedNftAggregator.address);
@@ -66,7 +70,12 @@ describe("NFT Aggregator", function () {
       }
     };
 
-    const getSeaportOrder = async (contract, tokenId, limit = 1, OPENSEA_API_KEY = '2829e29e1ae34375a3cc5f4eee84e190') => {
+    const getSeaportOrder = async (
+      contract,
+      tokenId,
+      limit = 1,
+      OPENSEA_API_KEY = "2829e29e1ae34375a3cc5f4eee84e190",
+    ) => {
       try {
         const baseUrl = `https://testnets-api.opensea.io/v2`;
         let url = `${baseUrl}/orders/rinkeby/seaport/listings?asset_contract_address=${contract}&token_ids=${tokenId}&limit=${limit}`;
@@ -188,82 +197,179 @@ describe("NFT Aggregator", function () {
       //   // ]);
       // });
 
-      it("should allow user to purchase listed asset on seaport", async function () {
-        const contractAddress = '0x2d5d5e4efbd13c2347013d4c9f3c5c666f18d55c';
-        const tokenId = '2';
-  
-        const data = await getSeaportOrder(contractAddress, tokenId, 5);
-        const executorAddress = "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309"; // aggregator
-        const recipient = "0x338eFdd45AE7D010da108f39d293565449C52682";
-
-        console.log('data: ', JSON.stringify(data, null, 2));
-        const order = data?.orders[0];
-        // rinkeby zone: 0x00000000e88fe2628ebc5da81d2b3cead633e89e
-        // mainnet zone: 0x004c00500000ad104d7dbd00e3ae0a5c00560c00
-        const zone = "0x00000000e88fe2628ebc5da81d2b3cead633e89e";
-  
+      it("should generate seaport fulfillAvailableAdvancedOrder hex data successfully", async function () {
         const inputData = [
           [
             {
-              parameters: {
-                offerer: order.protocol_data.parameters.offerer, // seller
-                zone: zone, // opensea pausable zone
-                offer: order.protocol_data.parameters.offer,
-                consideration: order.protocol_data.parameters.consideration,
-                orderType: order.protocol_data.parameters.orderType,
-                startTime: order.protocol_data.parameters.startTime,
-                endTime: order.protocol_data.parameters.endTime,
-                zoneHash: order.protocol_data.parameters.zoneHash,
-                salt: order.protocol_data.parameters.salt,
-                conduitKey: order.protocol_data.parameters.conduitKey,
-                totalOriginalConsiderationItems: order.protocol_data.parameters.totalOriginalConsiderationItems,
-              },
-              numerator: "1",
               denominator: "1",
-              signature: order.protocol_data.signature,
+              numerator: "1",
+              parameters: {
+                conduitKey: "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
+                consideration: [
+                  {
+                    itemType: 0,
+                    token: "0x0000000000000000000000000000000000000000",
+                    identifierOrCriteria: "0",
+                    startAmount: "15575000000000000",
+                    endAmount: "15575000000000000",
+                    recipient: "0x59495589849423692778a8c5aaCA62CA80f875a4",
+                  },
+                  {
+                    itemType: 0,
+                    token: "0x0000000000000000000000000000000000000000",
+                    identifierOrCriteria: "0",
+                    startAmount: "445000000000000",
+                    endAmount: "445000000000000",
+                    recipient: "0x8De9C5A032463C561423387a9648c5C7BCC5BC90",
+                  },
+                  {
+                    itemType: 0,
+                    token: "0x0000000000000000000000000000000000000000",
+                    identifierOrCriteria: "0",
+                    startAmount: "1780000000000000",
+                    endAmount: "1780000000000000",
+                    recipient: "0x8E202708a7abe4F4ACe1bF00115faEf0c55101d5",
+                  },
+                ],
+                endTime: "1661204483",
+                offer: [
+                  {
+                    itemType: 2,
+                    token: "0x2D5D5E4efbD13c2347013d4C9F3c5c666f18D55c",
+                    identifierOrCriteria: "2",
+                    startAmount: "1",
+                    endAmount: "1",
+                  },
+                ],
+                offerer: "0x59495589849423692778a8c5aaca62ca80f875a4",
+                orderType: 2,
+                salt: "52230688045690710",
+                startTime: "1658526083",
+                totalOriginalConsiderationItems: 3,
+                zone: "0x00000000e88fe2628ebc5da81d2b3cead633e89e",
+                zoneHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+              },
+              signature:
+                "0x214739495d94919b94f3bdfc01ddd9adbcb4ce8f1448d9d761885a3785d481dd2fcf0019a8b9fb7088f66dd3061147f6c4c9d5873250ece5f19c14d53f18ed721c",
+              extraData: "0x",
             },
           ],
           [],
+          [[{ orderIndex: "0", itemIndex: "0" }]],
           [
-            [
-              {
-                orderIndex: "0",
-                itemIndex: "0",
-              },
-            ]
-          ],
-          [
-            [
-              {
-                orderIndex: "0",
-                itemIndex: "0",
-              },
-            ],
-            [
-              {
-                orderIndex: "0",
-                itemIndex: "1",
-              },
-            ],
-            [
-              {
-                orderIndex: "0",
-                itemIndex: "2",
-              },
-            ],
+            [{ orderIndex: "0", itemIndex: "0" }],
+            [{ orderIndex: "0", itemIndex: "1" }],
+            [{ orderIndex: "0", itemIndex: "2" }],
           ],
           "0x0000000000000000000000000000000000000000000000000000000000000000",
-          recipient,
+          "0x338eFdd45AE7D010da108f39d293565449C52682",
           "1",
         ];
 
-        console.log('inputData: ', JSON.stringify(inputData, null, 2));
-        
-        const generatedHex = await seaport.encodeFunctionData("fulfillAvailableAdvancedOrders",
-          inputData,
+        const genHex = await seaport.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
+        const hex = `0x87201b4100000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000006e0000000000000000000000000000000000000000000000000000000000000070000000000000000000000000000000000000000000000000000000000000007a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000338efdd45ae7d010da108f39d293565449c5268200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000052000000000000000000000000000000000000000000000000000000000000005a000000000000000000000000059495589849423692778a8c5aaca62ca80f875a400000000000000000000000000000000e88fe2628ebc5da81d2b3cead633e89e0000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000062db1983000000000000000000000000000000000000000000000000000000006303f803000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b98f88b7566f560000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f00000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000002d5d5e4efbd13c2347013d4c9f3c5c666f18d55c00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000037556146607000000000000000000000000000000000000000000000000000003755614660700000000000000000000000000059495589849423692778a8c5aaca62ca80f875a4000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000194b9a2ecd000000000000000000000000000000000000000000000000000000194b9a2ecd0000000000000000000000000008de9c5a032463c561423387a9648c5c7bcc5bc90000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000652e68bb34000000000000000000000000000000000000000000000000000000652e68bb340000000000000000000000000008e202708a7abe4f4ace1bf00115faef0c55101d50000000000000000000000000000000000000000000000000000000000000041214739495d94919b94f3bdfc01ddd9adbcb4ce8f1448d9d761885a3785d481dd2fcf0019a8b9fb7088f66dd3061147f6c4c9d5873250ece5f19c14d53f18ed721c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002`;
+        expect(hex).to.be.equal(genHex);
+      });
+
+      it("should create opensea generated hexes for arbitrary seaport orders", async function () {
+        const contractAddress = "0x2d5d5e4efbd13c2347013d4c9f3c5c666f18d55c";
+        const contractNft = await Mock721.attach(contractAddress);
+        const tokenId = "2";
+        const recipient = "0x338eFdd45AE7D010da108f39d293565449C52682";
+
+        // rinkeby zone: 0x00000000e88fe2628ebc5da81d2b3cead633e89e
+        // mainnet zone: 0x004c00500000ad104d7dbd00e3ae0a5c00560c00
+        const zone = "0x00000000e88fe2628ebc5da81d2b3cead633e89e";
+
+        const data = await getSeaportOrder(contractAddress, tokenId, 5);
+        const order = data?.orders[0];
+
+        // input data for SeaportLibV1_1
+        const inputData = [
+          [
+            [
+              [
+                {
+                  denominator: "1",
+                  numerator: "1",
+                  parameters: {
+                    conduitKey: order.protocol_data.parameters.conduitKey,
+                    consideration: order.protocol_data.parameters.consideration,
+                    endTime: order.protocol_data.parameters.endTime,
+                    offer: order.protocol_data.parameters.offer,
+                    offerer: order.protocol_data.parameters.offerer, // seller
+                    orderType: order.protocol_data.parameters.orderType,
+                    salt: order.protocol_data.parameters.salt,
+                    startTime: order.protocol_data.parameters.startTime,
+                    totalOriginalConsiderationItems: order.protocol_data.parameters.totalOriginalConsiderationItems,
+                    zone: zone, // opensea pausable zone
+                    zoneHash: order.protocol_data.parameters.zoneHash,
+                  },
+                  signature: order.protocol_data.signature,
+                  extraData: "0x",
+                },
+              ],
+              [],
+              [
+                [
+                  {
+                    orderIndex: "0",
+                    itemIndex: "0",
+                  },
+                ],
+              ],
+              [
+                [
+                  {
+                    orderIndex: "0",
+                    itemIndex: "0",
+                  },
+                ],
+                [
+                  {
+                    orderIndex: "0",
+                    itemIndex: "1",
+                  },
+                ],
+                [
+                  {
+                    orderIndex: "0",
+                    itemIndex: "2",
+                  },
+                ],
+              ],
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+              recipient,
+              "1",
+            ],
+          ],
+          ["17800000000000000"],
+          true,
+        ];
+
+        const genHex = await seaportLib.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
+
+        // console.log('genHex: ', genHex);
+
+        expect(await contractNft.ownerOf(2)).to.be.equal("0x59495589849423692778a8c5aaCA62CA80f875a4");
+
+        await deployedNftAggregator.batchTrade(
+          {
+            tokenAddrs: [],
+            amounts: [],
+          },
+          [
+            {
+              marketId: 2, // seaport 1.1
+              value: "17800000000000000", // 0.0178 ETH
+              tradeData: genHex,
+            },
+          ],
+          [],
         );
-  
-        console.log("generated hex opensea: ", generatedHex);
+
+        console.log("owner after: ", await contractNft.ownerOf(2));
+        console.log("constant recipient: ", recipient);
       });
     });
   } catch (err) {

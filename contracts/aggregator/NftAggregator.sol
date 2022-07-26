@@ -277,7 +277,11 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         for (uint256 i = 0; i < _tokens.length; i++) {
             if (IERC20Upgradeable(_tokens[i]).balanceOf(address(this)) > 0) {
                 _tokens[i].call(
-                    abi.encodeWithSelector(0xa9059cbb, msg.sender, IERC20Upgradeable(_tokens[i]).balanceOf(address(this)))
+                    abi.encodeWithSelector(
+                        0xa9059cbb,
+                        msg.sender,
+                        IERC20Upgradeable(_tokens[i]).balanceOf(address(this))
+                    )
                 );
             }
         }

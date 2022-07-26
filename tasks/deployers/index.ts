@@ -640,14 +640,52 @@ task("deploy:2b").setAction(async function (taskArguments, hre) {
 task("deploy:2c").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying nft tx router"));
 
-  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
-  const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [], {
-    kind: "uups",
-  });
+  // const LooksrareLibV1 = await hre.ethers.getContractFactory("LooksrareLibV1");
+  // const deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
+  // const OpenseaLibV1 = await hre.ethers.getContractFactory("OpenseaLibV1");
+  // const deployedOpenseaLibV1 = await OpenseaLibV1.deploy();
+  // const SeaportLib1_1 = await hre.ethers.getContractFactory("SeaportLib1_1");
+  // const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
 
-  console.log(chalk.green(`deployedNftAggregator: ${deployedNftAggregator.address}`));
+  // console.log(chalk.green("deployedLooksrareLibV1: ", deployedLooksrareLibV1.address));
+  // console.log(chalk.green("deployedOpenseaLibV1: ", deployedOpenseaLibV1.address));
+  // console.log(chalk.green("deployedSeaportLib1_1: ", deployedSeaportLib1_1.address));
 
-  await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
+  // const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
+  // const deployedMarketplaceRegistry = await hre.upgrades.deployProxy(MarketplaceRegistry, [], {
+  //   kind: "uups",
+  // });
+
+  // deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
+  // deployedMarketplaceRegistry.addMarketplace(deployedOpenseaLibV1.address, true);
+  // deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
+
+  // console.log(chalk.green("deployedMarketplaceRegistry: ", deployedMarketplaceRegistry.address));
+
+  // const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+  // const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
+  //   kind: "uups",
+  //   unsafeAllow: ["delegatecall"],
+  // });
+
+  // console.log(chalk.green(`deployedNftAggregator: ${deployedNftAggregator.address}`));
+
+  console.log(chalk.green(`${TIME_DELAY * 3 / 1000} second delay`));
+  await delay(TIME_DELAY * 3);
+  console.log(chalk.green("verifying..."));
+
+  const deployedLooksrareLibV1 = "0xD9c96BEC8D790cB460F7Ef3D23B5ad22b6684871";
+  const deployedOpenseaLibV1 = "0xedf8e068720B8B4d71589B947FB81EC7675C0454";
+  const deployedSeaportLib1_1 = "0xC7b0C89315F9A5E79a1c0b05B7f2aA1FC5587cd7";
+  const deployedMarketplaceRegistry = "0x7eC2fe955CFa0A9A5E6920Efc569cFCcB1a3B318";
+  const deployedNftAggregator = "0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10";
+
+  await verifyContract("deployedLooksrareLibV1", deployedLooksrareLibV1, [], hre);
+  await verifyContract("deployedOpenseaLibV1", deployedOpenseaLibV1, [], hre);
+  await verifyContract("deployedSeaportLib1_1", deployedSeaportLib1_1, [], hre);
+
+  await getImplementation("deployedMarketplaceRegistry", deployedMarketplaceRegistry, hre);
+  await getImplementation("deployedNftAggregator", deployedNftAggregator, hre);
 });
 
 task("testResolver").setAction(async function (taskArguments, hre) {
@@ -668,7 +706,7 @@ task("testResolver").setAction(async function (taskArguments, hre) {
   // await deployedNftResolver.clearAssociatedAddresses("gk");
 });
 
-task("testPurchaseLooksrare").setAction(async function (taskArguments, hre) {
+task("batchPurpose").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to purchase looksrare"));
 
   const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
