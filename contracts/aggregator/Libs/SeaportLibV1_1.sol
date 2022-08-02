@@ -53,7 +53,7 @@ interface ISeaport {
 
 error InputLengthMismatch();
 
-contract SeaportLib1_1 {
+library SeaportLib1_1 {
     address public constant OPENSEA = 0x00000000006c3852cbEf3e08E8dF289169EdE581;
 
     struct SeaportBuyOrder {

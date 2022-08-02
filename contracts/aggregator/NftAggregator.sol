@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "./SpecialTransferHelper.sol";
 import "./MarketplaceRegistry.sol";
+import "./Libs/SeaportLibV1_1.sol";
 
 error InactiveMarket();
 
@@ -225,12 +226,35 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         token.approve(operator, amount);
     }
 
+    function buySeaport(
+        SeaportLib1_1.SeaportBuyOrder[] memory openSeaBuys,
+        uint256[] memory msgValue,
+        bool revertIfTrxFails
+    ) external payable nonReentrant {
+        SeaportLib1_1.fulfillAvailableAdvancedOrders(openSeaBuys, msgValue, revertIfTrxFails);
+    }
+
     function batchTradeWithETH(MarketplaceRegistry.TradeDetails[] memory _tradeDetails, address[] memory dustTokens)
         external
         payable
         nonReentrant
     {
-        // TODO:
+        for (uint256 i = 0; i < _tradeDetails.length; ) {
+            (address _proxy, bool _isLib, bool _isActive) = marketplaceRegistry.marketplaces(_tradeDetails[i].marketId);
+            if (!_isActive) revert InactiveMarket();
+
+            (bool success, ) = _isLib
+                ? _proxy.delegatecall(_tradeDetails[i].tradeData)
+                : _proxy.call{ value: _tradeDetails[i].value }(_tradeDetails[i].tradeData);
+
+            _checkCallResult(success);
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        _returnDust(dustTokens);
     }
 
     function batchTrade(

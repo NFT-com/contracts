@@ -124,78 +124,78 @@ describe("NFT Aggregator", function () {
         expect(hex).to.be.equal(hexGen);
       });
 
-      // it("should allow user to user to list on looksrare and other user to purchase it", async function () {
-      //   const contractAddress = "0x33AcFb7d8eF4FBEeb4d837c7E90B8F74E219DAf7";
-      //   const tokenID = "1";
-      //   const data = await getLooksrareOrder(true, contractAddress, tokenID);
+      it("should allow user to user to list on looksrare and other user to purchase it", async function () {
+        const contractAddress = "0xf5de760f2e916647fd766B4AD9E85ff943cE3A2b";
+        const tokenID = "1441796";
+        const data = await getLooksrareOrder(true, contractAddress, tokenID);
 
-      //   const {
-      //     hash, // : '0x734f4c78ef0a189272479a19f2e4c89e6941679e33071ed4c367fabcaf26c518',
-      //     collectionAddress, // : '0x33AcFb7d8eF4FBEeb4d837c7E90B8F74E219DAf7',
-      //     tokenId, // : '1',
-      //     isOrderAsk, // : true,
-      //     signer, // : '0x59495589849423692778a8c5aaCA62CA80f875a4',
-      //     strategy, // : '0x732319A3590E4fA838C111826f9584a9A2fDEa1a',
-      //     currencyAddress, // : '0xc778417E063141139Fce010982780140Aa0cD5Ab',
-      //     amount, // : 1,
-      //     price, // : '10000000000000000',
-      //     nonce, // : '0',
-      //     startTime, // : 1657721660,
-      //     endTime, // : 1660313619,
-      //     minPercentageToAsk, // : 7500,
-      //     params, // : '',
-      //     status, // : 'VALID',
-      //     signature, // : '0x96040adebbe79c72c75b250be268097a6363fdfa0e1d9c0dde6a147311a4edbd063ce04564f3a3bf874fec5aa000644d49631154bb1d407fdf22461fb2f84a8d1c',
-      //     v, // : 28,
-      //     r, // : '0x96040adebbe79c72c75b250be268097a6363fdfa0e1d9c0dde6a147311a4edbd',
-      //     s, // : '0x063ce04564f3a3bf874fec5aa000644d49631154bb1d407fdf22461fb2f84a8d'
-      //   } = data.data[0];
+        const {
+          hash,
+          collectionAddress,
+          tokenId,
+          isOrderAsk,
+          signer,
+          strategy,
+          currencyAddress,
+          amount,
+          price,
+          nonce,
+          startTime,
+          endTime,
+          minPercentageToAsk,
+          params,
+          status,
+          signature,
+          v,
+          r,
+          s,
+        } = data.data[0];
 
-      //   // rinkeby nft aggregator
-      //   const executorAddress = "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309";
-      //   const generatedHex = await looksrare.encodeFunctionData("matchAskWithTakerBid", [
-      //     {
-      //       isOrderAsk: false,
-      //       taker: executorAddress,
-      //       price,
-      //       tokenId,
-      //       minPercentageToAsk,
-      //       params: params || "0x",
-      //     },
-      //     {
-      //       isOrderAsk,
-      //       signer,
-      //       collection: collectionAddress,
-      //       price,
-      //       tokenId,
-      //       amount,
-      //       strategy,
-      //       currency: currencyAddress,
-      //       nonce,
-      //       startTime,
-      //       endTime,
-      //       minPercentageToAsk,
-      //       params: params || "0x",
-      //       v,
-      //       r,
-      //       s,
-      //     },
-      //   ]);
+        // rinkeby nft aggregator
+        const executorAddress = "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309";
+        const generatedHex = await looksrare.encodeFunctionData("matchAskWithTakerBidUsingETHAndWETH", [
+          {
+            isOrderAsk: false,
+            taker: executorAddress,
+            price,
+            tokenId,
+            minPercentageToAsk,
+            params: params || "0x",
+          },
+          {
+            isOrderAsk,
+            signer,
+            collection: collectionAddress,
+            price,
+            tokenId,
+            amount,
+            strategy,
+            currency: currencyAddress,
+            nonce,
+            startTime,
+            endTime,
+            minPercentageToAsk,
+            params: params || "0x",
+            v,
+            r,
+            s,
+          },
+        ]);
 
-      //   // console.log("generatedHex: ", generatedHex);
+        console.log("generatedHex: ", generatedHex);
 
-      //   // const marketId = 0; // looksrare
-      //   // const value = 0;
-      //   // await deployedNftAggregator.connect(owner).batchTrade([
-      //   //   // ERC20Details
-      //   //   {
-      //   //     tokenAddrs: [],
-      //   //     amounts: [],
-      //   //   },
-      //   //   [marketId, value, generatedHex],
-      //   //   [], // dust tokens
-      //   // ]);
-      // });
+        const marketId = 0; // looksrare
+        const value = 0;
+        await deployedNftAggregator.connect(owner).batchTrade([
+          // ERC20Details
+          {
+            tokenAddrs: [],
+            amounts: [],
+          },
+          [marketId, value, generatedHex],
+          [], // dust tokens
+        ]);
+      });
 
       it("should generate seaport fulfillAvailableAdvancedOrder hex data successfully", async function () {
         const inputData = [

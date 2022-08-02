@@ -86,13 +86,13 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
   - implementation => 0x7927190920E74259d96f9be470A34a79e9bf49AF
 
-
 - [deployedLooksrareLibV1](https://goerli.etherscan.io/address/0xD9c96BEC8D790cB460F7Ef3D23B5ad22b6684871)
 - [deployedOpenseaLibV1](https://goerli.etherscan.io/address/0xedf8e068720B8B4d71589B947FB81EC7675C0454)
 - [deployedSeaportLib1_1](https://goerli.etherscan.io/address/0xC7b0C89315F9A5E79a1c0b05B7f2aA1FC5587cd7)
 - [deployedMarketplaceRegistry](https://goerli.etherscan.io/address/0x7eC2fe955CFa0A9A5E6920Efc569cFCcB1a3B318)
   - implementation => 0x149c5E6A61A323465B56f862FbdB2AdB2181de88
 - [deployedNftAggregator](https://goerli.etherscan.io/address/0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10)
+
   - implementation => 0x11b4feF96EC56aF895452cF1858245F46e0A290F
 
 - [deployedGenesisKeyDistributor](https://goerli.etherscan.io/address/)
@@ -149,8 +149,8 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
   - implementation => 0x9a47cFd45718dB5BEEA2aA200BE50E157023469c
 
-- [deployedNftAggregator](https://rinkeby.etherscan.io/address/0x6579A513E97C0043dC3Ad9Dfd3f804721023a309)
-  - implementation => 0x83FFcEE83360e75434b8F0a8dB17f0EcFA751B33
+- [deployedNftAggregator](https://rinkeby.etherscan.io/address/0x3F15E5e9cCE275213365e5109168eD7B368f67Fe)
+  - implementation => 0xf19acbece5654457f7a5141fd61ff91860f2437f
 
 ### Regex Generation
 

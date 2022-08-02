@@ -1842,14 +1842,7 @@
           },
           "t_enum(Blockchain)20662": {
             "label": "enum Blockchain",
-            "members": [
-              "ETHEREUM",
-              "HEDERA",
-              "POLYGON",
-              "SOLANA",
-              "TEZOS",
-              "FLOW"
-            ]
+            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
           },
           "t_contract(IRegex)20655": {
             "label": "contract IRegex"

@@ -1,10 +1,13 @@
 import { task } from "hardhat/config";
 import chalk from "chalk";
 import csv from "csvtojson";
+import axios from "axios";
 import fs from "fs";
 import delay from "delay";
 import { parseBalanceMap } from "../../test/utils/parse-balance-map";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
+import { getLooksrareHex, getSeaportHex } from "../../test/utils/aggregator/index";
+import { BigNumber, BigNumberish } from "ethers";
 
 const TIME_DELAY = 10000; // 10 seconds
 
@@ -95,11 +98,51 @@ const getTokens = async (hre: any) => {
     network == "goerli" ? "0x3a3539B6727E74fa1c5D4d39B433F0fAB5BC4F4a" : network === "mainnet" ? "" : "";
   const deployedNftAggregator =
     network == "goerli"
+      ? "0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10"
+      : network == "mainnet"
+      ? ""
+      : network == "rinkeby"
+      ? "0x3F15E5e9cCE275213365e5109168eD7B368f67Fe"
+      : "";
+  const deployedLooksrareLibV1 =
+    network == "goerli"
+      ? "0xD9c96BEC8D790cB460F7Ef3D23B5ad22b6684871"
+      : network == "mainnet"
+      ? ""
+      : network == "rinkeby"
+      ? "0xbf65fD1ad485A2a87d3eBD221EB2e1C765e77a36"
+      : "";
+  const deployedOpenseaLibV1 =
+    network == "goerli"
+      ? "0xedf8e068720B8B4d71589B947FB81EC7675C0454"
+      : network == "mainnet"
+      ? "0x59F873fc534571BC5E8ee64290a46724e3E3e4E4"
+      : network == "rinkeby"
+      ? ""
+      : "";
+  const deployedSeaportContract1_1 =
+    network == "goerli"
+      ? "0xC7b0C89315F9A5E79a1c0b05B7f2aA1FC5587cd7"
+      : network == "mainnet"
+      ? ""
+      : network == "rinkeby"
+      ? "0x41D13d8A537e5B163A41fb0c1c8ec3af8e2C043e"
+      : "";
+  const deployedSeaportLib1_1 =
+    network == "goerli"
       ? ""
       : network == "mainnet"
       ? ""
       : network == "rinkeby"
-      ? "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309"
+      ? "0xD7E288B574466FE673cD162A5558966FcAa6446E"
+      : "";
+  const deployedMarketplaceRegistry =
+    network == "goerli"
+      ? "0x7eC2fe955CFa0A9A5E6920Efc569cFCcB1a3B318"
+      : network == "mainnet"
+      ? ""
+      : network == "rinkeby"
+      ? "0x624548A10332fAe8B1e3D064F2fdD23eD4c4E645"
       : "";
   const profileMetadataLink = `https://${
     network === "goerli" ? "staging-api" : network === "mainnet" ? "prod-api" : ""
@@ -130,6 +173,11 @@ const getTokens = async (hre: any) => {
     deployedNftProfile,
     deployedNftResolver,
     deployedNftAggregator,
+    deployedLooksrareLibV1,
+    deployedOpenseaLibV1,
+    deployedSeaportContract1_1,
+    deployedSeaportLib1_1,
+    deployedMarketplaceRegistry,
   };
 };
 
@@ -142,6 +190,16 @@ const verifyContract = async (name: string, address: string, args: Array<string>
     });
   } catch (err) {
     console.log(chalk.red(`verification failed: ${err}`));
+  }
+};
+
+const waitTx = async (name: string, object: any, hre: any): Promise<void> => {
+  try {
+    console.log(chalk.green(`waiting for ${name} tx`));
+    await hre.ethers.provider.waitForTransaction(object.deployTransaction.hash, 1, 200000);
+    console.log(chalk.green(`${name}: `, object.address));
+  } catch (err) {
+    console.log(chalk.red(`wait tx failed: ${err}`));
   }
 };
 
@@ -640,52 +698,61 @@ task("deploy:2b").setAction(async function (taskArguments, hre) {
 task("deploy:2c").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying nft tx router"));
 
-  // const LooksrareLibV1 = await hre.ethers.getContractFactory("LooksrareLibV1");
-  // const deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
-  // const OpenseaLibV1 = await hre.ethers.getContractFactory("OpenseaLibV1");
-  // const deployedOpenseaLibV1 = await OpenseaLibV1.deploy();
-  // const SeaportLib1_1 = await hre.ethers.getContractFactory("SeaportLib1_1");
-  // const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
+  const LooksrareLibV1 = await hre.ethers.getContractFactory("LooksrareLibV1");
+  const deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
+  await waitTx("deployedLooksrareLibV1", deployedLooksrareLibV1, hre);
 
-  // console.log(chalk.green("deployedLooksrareLibV1: ", deployedLooksrareLibV1.address));
-  // console.log(chalk.green("deployedOpenseaLibV1: ", deployedOpenseaLibV1.address));
-  // console.log(chalk.green("deployedSeaportLib1_1: ", deployedSeaportLib1_1.address));
+  const OpenseaLibV1 = await hre.ethers.getContractFactory("OpenseaLibV1");
+  const deployedOpenseaLibV1 = await OpenseaLibV1.deploy();
+  await waitTx("deployedOpenseaLibV1", deployedOpenseaLibV1, hre);
 
-  // const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
-  // const deployedMarketplaceRegistry = await hre.upgrades.deployProxy(MarketplaceRegistry, [], {
-  //   kind: "uups",
-  // });
+  const SeaportLib1_1 = await hre.ethers.getContractFactory("SeaportLib1_1");
+  const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
+  await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
 
-  // deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
-  // deployedMarketplaceRegistry.addMarketplace(deployedOpenseaLibV1.address, true);
-  // deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
+  const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
+  const deployedMarketplaceRegistry = await hre.upgrades.deployProxy(MarketplaceRegistry, [], {
+    kind: "uups",
+  });
+  await waitTx("deployedMarketplaceRegistry", deployedMarketplaceRegistry, hre);
 
-  // console.log(chalk.green("deployedMarketplaceRegistry: ", deployedMarketplaceRegistry.address));
+  await deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
+  await deployedMarketplaceRegistry.addMarketplace(deployedOpenseaLibV1.address, true);
+  await deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
 
-  // const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
-  // const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
-  //   kind: "uups",
-  //   unsafeAllow: ["delegatecall"],
-  // });
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+  const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
+    kind: "uups",
+    unsafeAllow: ["delegatecall"],
+  });
+  await waitTx("deployedNftAggregator", deployedNftAggregator, hre);
 
-  // console.log(chalk.green(`deployedNftAggregator: ${deployedNftAggregator.address}`));
-
-  console.log(chalk.green(`${TIME_DELAY * 3 / 1000} second delay`));
+  console.log(chalk.green(`${(TIME_DELAY * 3) / 1000} second delay`));
   await delay(TIME_DELAY * 3);
   console.log(chalk.green("verifying..."));
 
-  const deployedLooksrareLibV1 = "0xD9c96BEC8D790cB460F7Ef3D23B5ad22b6684871";
-  const deployedOpenseaLibV1 = "0xedf8e068720B8B4d71589B947FB81EC7675C0454";
-  const deployedSeaportLib1_1 = "0xC7b0C89315F9A5E79a1c0b05B7f2aA1FC5587cd7";
-  const deployedMarketplaceRegistry = "0x7eC2fe955CFa0A9A5E6920Efc569cFCcB1a3B318";
-  const deployedNftAggregator = "0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10";
+  await verifyContract("deployedLooksrareLibV1", deployedLooksrareLibV1.address, [], hre);
+  await verifyContract("deployedOpenseaLibV1", deployedOpenseaLibV1.address, [], hre);
+  await verifyContract("deployedSeaportLib1_1", deployedSeaportLib1_1.address, [], hre);
 
-  await verifyContract("deployedLooksrareLibV1", deployedLooksrareLibV1, [], hre);
-  await verifyContract("deployedOpenseaLibV1", deployedOpenseaLibV1, [], hre);
-  await verifyContract("deployedSeaportLib1_1", deployedSeaportLib1_1, [], hre);
+  await getImplementation("deployedMarketplaceRegistry", deployedMarketplaceRegistry.address, hre);
+  await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
+});
 
-  await getImplementation("deployedMarketplaceRegistry", deployedMarketplaceRegistry, hre);
-  await getImplementation("deployedNftAggregator", deployedNftAggregator, hre);
+task("deploy:2d").setAction(async function (taskArguments, hre) {
+  // console.log(chalk.green("updating nft tx router"));
+
+  // const SeaportLib1_1 = await hre.ethers.getContractFactory("SeaportLib1_1");
+  // const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
+  // await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
+
+  // const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
+  // const deployedMarketplaceRegistry = await MarketplaceRegistry.attach((await getTokens(hre)).deployedMarketplaceRegistry)
+
+  // // index 3
+  // await deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
+
+  await verifyContract("deployedSeaportLib1_1", "0xD7E288B574466FE673cD162A5558966FcAa6446E", [], hre);
 });
 
 task("testResolver").setAction(async function (taskArguments, hre) {
@@ -706,39 +773,89 @@ task("testResolver").setAction(async function (taskArguments, hre) {
   // await deployedNftResolver.clearAssociatedAddresses("gk");
 });
 
-task("batchPurpose").setAction(async function (taskArguments, hre) {
-  console.log(chalk.green("starting to purchase looksrare"));
+const getSeaportOrder = async (
+  contract: string,
+  tokenId: string,
+  limit = 1,
+  OPENSEA_API_KEY = "2829e29e1ae34375a3cc5f4eee84e190",
+) => {
+  try {
+    const baseUrl = `https://testnets-api.opensea.io/v2`;
+    const url = `${baseUrl}/orders/rinkeby/seaport/listings?asset_contract_address=${contract}&token_ids=${tokenId}&limit=${limit}`;
+    const config = {
+      headers: { Accept: "application/json" }, // 'X-API-KEY': OPENSEA_API_KEY // TODO: only use for PROD
+    };
+    return (await axios.get(url, config)).data;
+  } catch (err) {
+    console.log("error with looksrare order:", err);
+    return err;
+  }
+};
 
-  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+task("batchBuy").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("starting to batch buy"));
+
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator", {
+    libraries: {
+      SeaportLib1_1: (await getTokens(hre)).deployedSeaportLib1_1,
+    },
+  });
   const deployedNftAggregator = await NftAggregator.attach((await getTokens(hre)).deployedNftAggregator);
 
-  const WETH = await hre.ethers.getContractFactory("WETH");
-  const deployedWETH = await WETH.attach((await getTokens(hre)).wethAddress);
+  const seaportOrders = [
+    {
+      contractAddress: "0xf5de760f2e916647fd766b4ad9e85ff943ce3a2b",
+      tokenId: "1442580",
+      msgValue: "3210000000000000", // TODO: auto pull this in future
+      recipient: "0x59495589849423692778a8c5aaCA62CA80f875a4",
+      chainID: "4",
+      failIfRevert: true,
+    },
+  ];
 
-  // console.log('deployedWETH: ', deployedWETH.address);
-  // console.log('deployedNftAggregator: ', deployedNftAggregator.address);
+  const looksrareOrders = [
+    {
+      contractAddress: "0xf5de760f2e916647fd766B4AD9E85ff943cE3A2b",
+      tokenId: "1441796",
+      msgValue: "23411000000000000", // TODO: auto pull this in future
+      executorAddress: "0x3F15E5e9cCE275213365e5109168eD7B368f67Fe", // aggregator 
+      chainID: "4",
+      failIfRevert: true,
+    },
+  ];
 
-  // const tx = await deployedWETH.approve(deployedNftAggregator.address, hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1));
+  const totalValue: BigNumber = seaportOrders
+    .map(i => BigNumber.from(i.msgValue))
+    .concat(looksrareOrders.map(i => BigNumber.from(i.msgValue)))
+    .reduce((partialSum, a) => BigNumber.from(partialSum).add(a), BigNumber.from(0));
 
-  // console.log('aproval tx...: ', tx.hash);
+  const seaportHexes = seaportOrders.map(async i => {
+    return {
+      tradeData: await getSeaportHex(i.contractAddress, i.tokenId, i.msgValue, i.recipient, i.chainID, i.failIfRevert),
+      value: i.msgValue,
+      marketId: 3 // seaport lib
+    }
+  });
 
-  // const tx2 = await deployedWETH.deposit({ value: hre.ethers.BigNumber.from(10).pow(17)});
+  const looksrareHexes = looksrareOrders.map(async i => {
+    return {
+      tradeData: await getLooksrareHex(i.contractAddress, i.tokenId, i.chainID, i.msgValue, i.executorAddress, i.failIfRevert),
+      value: i.msgValue,
+      marketId: 0 // looksrare
+    }
+  });
 
-  // console.log('deposit tx2...: ', tx2.hash);
+  try {
+    const tx = await deployedNftAggregator.batchTradeWithETH(
+      await Promise.all(seaportHexes.concat(looksrareHexes)),
+      [],
+      { value: totalValue },
+    );
 
-  // const tx3 = await deployedNftAggregator.purchaseLooksrare(
-  //   {
-  //     tokenAddrs: [deployedWETH.address],
-  //     amounts: ['10000000000000000']
-  //   },
-  //   [{
-  //     marketId: 0,
-  //     value: 0,
-  //     tradeData: `0x38e292090000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006579a513e97c0043dc3ad9dfd3f804721023a309000000000000000000000000000000000000000000000000002386f26fc1000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000001d4c00000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000059495589849423692778a8c5aaca62ca80f875a400000000000000000000000033acfb7d8ef4fbeeb4d837c7e90b8f74e219daf7000000000000000000000000000000000000000000000000002386f26fc1000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000732319a3590e4fa838c111826f9584a9a2fdea1a000000000000000000000000c778417e063141139fce010982780140aa0cd5ab00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000062ced33c0000000000000000000000000000000000000000000000000000000062f660130000000000000000000000000000000000000000000000000000000000001d4c0000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001c96040adebbe79c72c75b250be268097a6363fdfa0e1d9c0dde6a147311a4edbd063ce04564f3a3bf874fec5aa000644d49631154bb1d407fdf22461fb2f84a8d0000000000000000000000000000000000000000000000000000000000000000`
-  //   }]
-  // );
-
-  // console.log('purchase tx3...: ', tx3.hash);
+    console.log(chalk.green('batch buy with eth: ', tx.hash));
+  } catch (err) {
+    console.log("error while batch trading: ", err);
+  }
 });
 
 // ========================================================
@@ -937,15 +1054,21 @@ task("upgrade:GenesisKeyTeamClaim").setAction(async function (taskArguments, hre
 
 task("upgrade:NftAggregator").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
-  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator", {
+    libraries: {
+      SeaportLib1_1: (await getTokens(hre)).deployedSeaportLib1_1,
+    },
+  });
 
   const upgradedNftAggregator = await hre.upgrades.upgradeProxy(
     (
       await getTokens(hre)
     ).deployedNftAggregator,
     NftAggregator,
+    { unsafeAllow: ["delegatecall"], unsafeAllowLinkedLibraries: true },
   );
-  console.log(chalk.green("upgraded genesis key team claim: ", upgradedNftAggregator.address));
+
+  await waitTx("upgradedNftAggregator", upgradedNftAggregator, hre);
 
   await delayedVerifyImp("upgradedNftAggregator", upgradedNftAggregator.address, hre);
 });
