@@ -1,17 +1,43 @@
-const looksrareABI = require("../../../looksrareABI.json");
-const axios = require("axios");
-const ethers = require("ethers");
+import axios from "axios";
+import { ethers } from "ethers";
+import looksrareABI from "../../../looksrareABI.json";
 
 const looksrare = new ethers.utils.Interface(looksrareABI);
 const seaportLib = new ethers.utils.Interface(
   `[{"inputs":[],"name":"InputLengthMiconstsmatch","type":"error"},{"inputs":[],"name":"OPENSEA","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"components":[{"components":[{"components":[{"internalType":"address","name":"offerer","type":"address"},{"internalType":"address","name":"zone","type":"address"},{"components":[{"internalType":"enum ItemType","name":"itemType","type":"uint8"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"identifierOrCriteria","type":"uint256"},{"internalType":"uint256","name":"startAmount","type":"uint256"},{"internalType":"uint256","name":"endAmount","type":"uint256"}],"internalType":"struct OfferItem[]","name":"offer","type":"tuple[]"},{"components":[{"internalType":"enum ItemType","name":"itemType","type":"uint8"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"identifierOrCriteria","type":"uint256"},{"internalType":"uint256","name":"startAmount","type":"uint256"},{"internalType":"uint256","name":"endAmount","type":"uint256"},{"internalType":"address payable","name":"recipient","type":"address"}],"internalType":"struct ConsiderationItem[]","name":"consideration","type":"tuple[]"},{"internalType":"enum OrderType","name":"orderType","type":"uint8"},{"internalType":"uint256","name":"startTime","type":"uint256"},{"internalType":"uint256","name":"endTime","type":"uint256"},{"internalType":"bytes32","name":"zoneHash","type":"bytes32"},{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"bytes32","name":"conduitKey","type":"bytes32"},{"internalType":"uint256","name":"totalOriginalConsiderationItems","type":"uint256"}],"internalType":"struct OrderParameters","name":"parameters","type":"tuple"},{"internalType":"uint120","name":"numerator","type":"uint120"},{"internalType":"uint120","name":"denominator","type":"uint120"},{"internalType":"bytes","name":"signature","type":"bytes"},{"internalType":"bytes","name":"extraData","type":"bytes"}],"internalType":"struct AdvancedOrder[]","name":"advancedOrders","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"enum Side","name":"side","type":"uint8"},{"internalType":"uint256","name":"index","type":"uint256"},{"internalType":"uint256","name":"identifier","type":"uint256"},{"internalType":"bytes32[]","name":"criteriaProof","type":"bytes32[]"}],"internalType":"struct CriteriaResolver[]","name":"criteriaResolvers","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"uint256","name":"itemIndex","type":"uint256"}],"internalType":"struct FulfillmentComponent[][]","name":"offerFulfillments","type":"tuple[][]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"uint256","name":"itemIndex","type":"uint256"}],"internalType":"struct FulfillmentComponent[][]","name":"considerationFulfillments","type":"tuple[][]"},{"internalType":"bytes32","name":"fulfillerConduitKey","type":"bytes32"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"maximumFulfilled","type":"uint256"}],"internalType":"struct SeaportLib1_1.SeaportBuyOrder[]","name":"openSeaBuys","type":"tuple[]"},{"internalType":"uint256[]","name":"msgValue","type":"uint256[]"},{"internalType":"bool","name":"revertIfTrxFails","type":"bool"}],"name":"fulfillAvailableAdvancedOrders","outputs":[],"stateMutability":"nonpayable","type":"function"}]`,
 );
 const looksrareLib = new ethers.utils.Interface(
-  `[{"inputs":[],"name":"InvalidChain","type":"error"},{"inputs":[{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"bytes","name":"tradeData","type":"bytes"},{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bool","name":"revertTxFail","type":"bool"}],"name":"_tradeHelper","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]`
-)
+  `[{"inputs":[],"name":"InvalidChain","type":"error"},{"inputs":[{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"bytes","name":"tradeData","type":"bytes"},{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bool","name":"revertTxFail","type":"bool"}],"name":"_tradeHelper","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]`,
+);
 
-// contractAddress = "0xf5de760f2e916647fd766B4AD9E85ff943cE3A2b";
-// tokenID = "1441796";
+interface CombinedOrders {
+  totalValue: ethers.BigNumber;
+  combinedOrders: Array<AggregatorResponse>;
+}
+
+interface LooksrareInput {
+  contractAddress: string;
+  tokenId: string;
+  msgValue: string;
+  executorAddress: string;
+  chainID: string;
+  failIfRevert: boolean;
+}
+interface SeaportInput {
+  contractAddress: string;
+  tokenId: string;
+  msgValue: string;
+  recipient: string;
+  chainID: string;
+  failIfRevert: boolean;
+}
+
+interface AggregatorResponse {
+  tradeData: string;
+  value: ethers.BigNumber;
+  marketId: string;
+}
+
 const libraryCall = (fnSig: string, entireHex: string): string => {
   return `${ethers.utils.keccak256(ethers.utils.toUtf8Bytes(fnSig)).toString("hex").substring(0, 10)}` + entireHex;
 };
@@ -24,6 +50,18 @@ const getLooksrarePrefix = (chainID: string) => {
       return "api-rinkeby";
     case 5:
       return "api-goerli";
+    default:
+      throw `chainID ${chainID} not supported`;
+  }
+};
+
+const getSeaportPrefix = (chainID: string) => {
+  switch (Number(chainID)) {
+    case 1:
+      return "api";
+    case 4:
+      return "testnets-api";
+    case 5: // TODO: fill in when opensea supports goerli
     default:
       throw `chainID ${chainID} not supported`;
   }
@@ -57,7 +95,7 @@ const getSeaportOrder = async (
   OPENSEA_API_KEY = "2829e29e1ae34375a3cc5f4eee84e190",
 ) => {
   try {
-    const baseUrl = `https://testnets-api.opensea.io/v2`;
+    const baseUrl = `https://${getSeaportPrefix(chainID)}.opensea.io/v2`;
     const url = `${baseUrl}/orders/rinkeby/seaport/listings?asset_contract_address=${contract}&token_ids=${tokenId}&limit=${limit}`;
     const config = {
       headers:
@@ -72,17 +110,14 @@ const getSeaportOrder = async (
   }
 };
 
-// contractAddress = "0x2d5d5e4efbd13c2347013d4c9f3c5c666f18d55c";
-// tokenID = "2";
-// msgValue = "21300000000000000"
-export const getSeaportHex = async (
+const getSeaportHex = async (
   contractAddress: string,
   tokenID: string,
   msgValue: string,
   recipient: string,
   chainID: string,
   failIfRevert: boolean,
-): Promise<string> => {
+): Promise<AggregatorResponse> => {
   try {
     let zone;
     if (Number(chainID) == 1) {
@@ -162,13 +197,24 @@ export const getSeaportHex = async (
       wholeHex.slice(10),
     );
 
-    return genHex;
+    return {
+      tradeData: genHex,
+      value: ethers.BigNumber.from(msgValue),
+      marketId: "3",
+    };
   } catch (err) {
-    return `error in getSeaportHex: ${err}`;
+    throw `error in getSeaportHex: ${err}`;
   }
 };
 
-export const getLooksrareHex = async (contractAddress: string, tokenID: string, chainID: string, msgValue: string, executorAddress: string, failIfRevert: boolean,): Promise<string> => {
+const getLooksrareHex = async (
+  contractAddress: string,
+  tokenID: string,
+  chainID: string,
+  msgValue: string,
+  executorAddress: string,
+  failIfRevert: boolean,
+): Promise<AggregatorResponse> => {
   try {
     const data = await getLooksrareOrder(true, contractAddress, tokenID, chainID);
 
@@ -228,16 +274,45 @@ export const getLooksrareHex = async (contractAddress: string, tokenID: string, 
       hexParam,
       contractAddress,
       tokenID,
-      failIfRevert
-    ])
+      failIfRevert,
+    ]);
 
-    const genHex = await libraryCall(
-      "_tradeHelper(uint256,bytes,address,uint256,bool)",
-      wholeHex.slice(10),
-    )
+    const genHex = await libraryCall("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
 
-    return genHex;
+    return {
+      tradeData: genHex,
+      value: ethers.BigNumber.from(msgValue),
+      marketId: "0",
+    };
   } catch (err) {
-    return `error in getLooksrareHex: ${err}`;
+    throw `error in getLooksrareHex: ${err}`;
   }
+};
+
+export const combineOrders = async (
+  seaportOrders: Array<SeaportInput>,
+  looksrareOrders: Array<LooksrareInput>,
+): Promise<CombinedOrders> => {
+  const seaportHexes = seaportOrders.map(
+    async (i: SeaportInput) =>
+      await getSeaportHex(i.contractAddress, i.tokenId, i.msgValue, i.recipient, i.chainID, i.failIfRevert),
+  );
+
+  const looksrareHexes = looksrareOrders.map(
+    async (i: LooksrareInput) =>
+      await getLooksrareHex(i.contractAddress, i.tokenId, i.chainID, i.msgValue, i.executorAddress, i.failIfRevert),
+  );
+
+  const totalValue: ethers.BigNumber = seaportOrders
+    .map(i => ethers.BigNumber.from(i.msgValue))
+    .concat(looksrareOrders.map(i => ethers.BigNumber.from(i.msgValue)))
+    .reduce(
+      (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
+      ethers.BigNumber.from(0),
+    );
+
+  return {
+    combinedOrders: await Promise.all(seaportHexes.concat(looksrareHexes)),
+    totalValue,
+  };
 };

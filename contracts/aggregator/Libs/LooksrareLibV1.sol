@@ -38,7 +38,6 @@ library LooksrareLibV1 {
         // return back nft
         (bool success2, ) = asset.call(abi.encodeWithSelector(0x23b872dd, address(this), msg.sender, tokenId));
 
-        // TODO: want both?? or just success
         return success && success2;
     }
 }

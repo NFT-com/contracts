@@ -1,13 +1,11 @@
 import { task } from "hardhat/config";
 import chalk from "chalk";
 import csv from "csvtojson";
-import axios from "axios";
 import fs from "fs";
 import delay from "delay";
 import { parseBalanceMap } from "../../test/utils/parse-balance-map";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
-import { getLooksrareHex, getSeaportHex } from "../../test/utils/aggregator/index";
-import { BigNumber, BigNumberish } from "ethers";
+import { combineOrders } from "../../test/utils/aggregator/index";
 
 const TIME_DELAY = 10000; // 10 seconds
 
@@ -739,22 +737,6 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
 });
 
-task("deploy:2d").setAction(async function (taskArguments, hre) {
-  // console.log(chalk.green("updating nft tx router"));
-
-  // const SeaportLib1_1 = await hre.ethers.getContractFactory("SeaportLib1_1");
-  // const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
-  // await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
-
-  // const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
-  // const deployedMarketplaceRegistry = await MarketplaceRegistry.attach((await getTokens(hre)).deployedMarketplaceRegistry)
-
-  // // index 3
-  // await deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
-
-  await verifyContract("deployedSeaportLib1_1", "0xD7E288B574466FE673cD162A5558966FcAa6446E", [], hre);
-});
-
 task("testResolver").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to test resolver"));
   const account2 = "0x1958Af77c06faB96D63351cACf10ABd3f598873B"; // 0x1958Af77c06faB96D63351cACf10ABd3f598873B, 0xbBc0643F58Afa61F3afa921A43115639199619fa
@@ -773,25 +755,6 @@ task("testResolver").setAction(async function (taskArguments, hre) {
   // await deployedNftResolver.clearAssociatedAddresses("gk");
 });
 
-const getSeaportOrder = async (
-  contract: string,
-  tokenId: string,
-  limit = 1,
-  OPENSEA_API_KEY = "2829e29e1ae34375a3cc5f4eee84e190",
-) => {
-  try {
-    const baseUrl = `https://testnets-api.opensea.io/v2`;
-    const url = `${baseUrl}/orders/rinkeby/seaport/listings?asset_contract_address=${contract}&token_ids=${tokenId}&limit=${limit}`;
-    const config = {
-      headers: { Accept: "application/json" }, // 'X-API-KEY': OPENSEA_API_KEY // TODO: only use for PROD
-    };
-    return (await axios.get(url, config)).data;
-  } catch (err) {
-    console.log("error with looksrare order:", err);
-    return err;
-  }
-};
-
 task("batchBuy").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to batch buy"));
 
@@ -806,7 +769,7 @@ task("batchBuy").setAction(async function (taskArguments, hre) {
     {
       contractAddress: "0xf5de760f2e916647fd766b4ad9e85ff943ce3a2b",
       tokenId: "1442580",
-      msgValue: "3210000000000000", // TODO: auto pull this in future
+      msgValue: "3210000000000000", // 0 if ETH
       recipient: "0x59495589849423692778a8c5aaCA62CA80f875a4",
       chainID: "4",
       failIfRevert: true,
@@ -817,42 +780,19 @@ task("batchBuy").setAction(async function (taskArguments, hre) {
     {
       contractAddress: "0xf5de760f2e916647fd766B4AD9E85ff943cE3A2b",
       tokenId: "1441796",
-      msgValue: "23411000000000000", // TODO: auto pull this in future
-      executorAddress: "0x3F15E5e9cCE275213365e5109168eD7B368f67Fe", // aggregator 
+      msgValue: "23411000000000000", // 0 if ETH
+      executorAddress: (await getTokens(hre)).deployedNftAggregator,
       chainID: "4",
       failIfRevert: true,
     },
   ];
 
-  const totalValue: BigNumber = seaportOrders
-    .map(i => BigNumber.from(i.msgValue))
-    .concat(looksrareOrders.map(i => BigNumber.from(i.msgValue)))
-    .reduce((partialSum, a) => BigNumber.from(partialSum).add(a), BigNumber.from(0));
-
-  const seaportHexes = seaportOrders.map(async i => {
-    return {
-      tradeData: await getSeaportHex(i.contractAddress, i.tokenId, i.msgValue, i.recipient, i.chainID, i.failIfRevert),
-      value: i.msgValue,
-      marketId: 3 // seaport lib
-    }
-  });
-
-  const looksrareHexes = looksrareOrders.map(async i => {
-    return {
-      tradeData: await getLooksrareHex(i.contractAddress, i.tokenId, i.chainID, i.msgValue, i.executorAddress, i.failIfRevert),
-      value: i.msgValue,
-      marketId: 0 // looksrare
-    }
-  });
+  const { totalValue, combinedOrders } = await combineOrders(seaportOrders, looksrareOrders);
 
   try {
-    const tx = await deployedNftAggregator.batchTradeWithETH(
-      await Promise.all(seaportHexes.concat(looksrareHexes)),
-      [],
-      { value: totalValue },
-    );
+    const tx = await deployedNftAggregator.batchTradeWithETH(combinedOrders, [], { value: totalValue });
 
-    console.log(chalk.green('batch buy with eth: ', tx.hash));
+    console.log(chalk.green("batch buy with eth: ", tx.hash));
   } catch (err) {
     console.log("error while batch trading: ", err);
   }
