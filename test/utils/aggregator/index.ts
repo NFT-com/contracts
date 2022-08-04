@@ -1,5 +1,7 @@
 import axios from "axios";
+import delay from "delay";
 import { ethers } from "ethers";
+import { string } from "hardhat/internal/core/params/argumentTypes";
 import looksrareABI from "../../../looksrareABI.json";
 
 const looksrare = new ethers.utils.Interface(looksrareABI);
@@ -15,6 +17,24 @@ interface CombinedOrders {
   combinedOrders: Array<AggregatorResponse>;
 }
 
+interface ConsiderationObject {
+  itemType: number;
+  token: string;
+  identifierOrCriteria: string;
+  startAmount: string;
+  endAmount: string;
+  recipient: string;
+}
+
+interface ConsiderationObjMap {
+  [key: string]: Array<ConsiderationFulfillmentUnit>
+}
+
+interface ConsiderationFulfillmentUnit {
+  orderIndex: string;
+  itemIndex: string;
+}
+
 interface LooksrareInput {
   contractAddress: string;
   tokenId: string;
@@ -23,13 +43,16 @@ interface LooksrareInput {
   chainID: string;
   failIfRevert: boolean;
 }
+interface SeaportCompleteInput {
+  order: Array<SeaportInput>;
+  chainID: string;
+  failIfRevert: boolean;
+  recipient: string;
+}
 interface SeaportInput {
   contractAddress: string;
   tokenId: string;
   msgValue: string;
-  recipient: string;
-  chainID: string;
-  failIfRevert: boolean;
 }
 
 interface AggregatorResponse {
@@ -39,7 +62,11 @@ interface AggregatorResponse {
 }
 
 const libraryCall = (fnSig: string, entireHex: string): string => {
-  return `${ethers.utils.keccak256(ethers.utils.toUtf8Bytes(fnSig)).toString("hex").substring(0, 10)}` + entireHex;
+  return `${
+    (ethers.utils.keccak256(ethers.utils.toUtf8Bytes(fnSig)) as unknown as Buffer)
+    .toString("hex")
+    .substring(0, 10)
+  }` + entireHex;
 };
 
 const getLooksrarePrefix = (chainID: string) => {
@@ -55,13 +82,14 @@ const getLooksrarePrefix = (chainID: string) => {
   }
 };
 
-const getSeaportPrefix = (chainID: string) => {
+const getSeaportBaseUrl = (chainID: string) => {
   switch (Number(chainID)) {
     case 1:
-      return "api";
+      return "https://api.opensea.io/v2/orders/mainnet/seaport";
     case 4:
-      return "testnets-api";
-    case 5: // TODO: fill in when opensea supports goerli
+      return "https://testnets-api.opensea.io/v2/orders/rinkeby/seaport";
+    case 5:
+      return "https://testnets-api.opensea.io/v2/orders/goerli/seaport";
     default:
       throw `chainID ${chainID} not supported`;
   }
@@ -75,6 +103,10 @@ const getLooksrareOrder = async (
   status = "VALID",
 ) => {
   try {
+    console.log('1 ===== getLooksrareOrder');
+    await delay(2000);
+    console.log('2 ===== after getLooksrareOrder');
+
     const baseUrl = `https://${getLooksrarePrefix(chainID)}.looksrare.org/api/v1`;
     const url = `${baseUrl}/orders?isOrderAsk=${isOrderAsk}&collection=${contract}&status%5B%5D=${status}&tokenId=${tokenId}&sort=PRICE_ASC`;
     const config = {
@@ -92,33 +124,64 @@ const getSeaportOrder = async (
   tokenId: string,
   chainID: string,
   limit = 1,
-  OPENSEA_API_KEY = "2829e29e1ae34375a3cc5f4eee84e190",
+  OPENSEA_API_KEY = '2829e29e1ae34375a3cc5f4eee84e190',
 ) => {
   try {
-    const baseUrl = `https://${getSeaportPrefix(chainID)}.opensea.io/v2`;
-    const url = `${baseUrl}/orders/rinkeby/seaport/listings?asset_contract_address=${contract}&token_ids=${tokenId}&limit=${limit}`;
+    console.log('1 ===== getSeaportOrder');
+    await delay(2000);
+    console.log('2 ===== after getSeaportOrder');
+
+    const baseUrl = getSeaportBaseUrl(chainID);
+    const url = `${baseUrl}/listings?asset_contract_address=${contract}&token_ids=${tokenId}&limit=${limit}`;
+    const os_api_key: string = (OPENSEA_API_KEY || '2829e29e1ae34375a3cc5f4eee84e190')
     const config = {
-      headers:
-        Number(chainID) == 1
-          ? { Accept: "application/json", "X-API-KEY": OPENSEA_API_KEY }
-          : { Accept: "application/json" },
+      headers: { Accept: "application/json" }
     };
-    return (await axios.get(url, config)).data;
+    const result = await axios.get(url, config)
+    return result.data;
   } catch (err) {
     console.log("error with looksrare order:", err);
     return err;
   }
 };
 
+const generateOfferArray = (array: any) => {
+  return array.map((item: any, index: string) =>
+    [
+      {
+        orderIndex: index,
+        itemIndex: item.length - 1,
+      },
+    ],
+  )
+}
+
+const generateOrderConsiderationArray = (array: Array<Array<ConsiderationObject>>):
+  Array<Array<ConsiderationFulfillmentUnit>> => {
+  const mapIndex: ConsiderationObjMap = {}
+  array.map((item: Array<ConsiderationObject>, index: number) => 
+    item.map((i: ConsiderationObject, shortIndex: number) => {
+      if (mapIndex[i.recipient] == undefined) {
+        mapIndex[i.recipient] = [{ orderIndex: index.toString(), itemIndex: shortIndex.toString() }]
+      } else {
+        mapIndex[i.recipient].push({ orderIndex: index.toString(), itemIndex: shortIndex.toString() })
+      }
+    })
+  )
+  
+  return Object.values(mapIndex)
+}
+
 const getSeaportHex = async (
-  contractAddress: string,
-  tokenID: string,
-  msgValue: string,
-  recipient: string,
-  chainID: string,
-  failIfRevert: boolean,
+  input: SeaportCompleteInput
+  // contractAddress: string,
+  // tokenID: string,
+  // msgValue: string,
+  // recipient: string,
 ): Promise<AggregatorResponse> => {
   try {
+    const { failIfRevert, chainID, order, recipient } = input;
+
     let zone;
     if (Number(chainID) == 1) {
       zone = "0x004c00500000ad104d7dbd00e3ae0a5c00560c00";
@@ -128,66 +191,52 @@ const getSeaportHex = async (
       throw `chainID ${chainID} not supported`;
     }
 
-    const data = await getSeaportOrder(contractAddress, tokenID, chainID, 5);
-    const order = data?.orders[0];
+    const orderParams = []
+
+    for (let i = 0; i < order.length; i++) {
+      const { contractAddress, tokenId } = order[i];
+      const data = await getSeaportOrder(contractAddress, tokenId, chainID, 5);
+      const orderResult = data?.orders[0];
+  
+      orderParams.push({
+        denominator: "1",
+        numerator: "1",
+        parameters: {
+          conduitKey: orderResult.protocol_data.parameters.conduitKey,
+          consideration: orderResult.protocol_data.parameters.consideration,
+          endTime: orderResult.protocol_data.parameters.endTime,
+          offer: orderResult.protocol_data.parameters.offer,
+          offerer: orderResult.protocol_data.parameters.offerer, // seller
+          orderType: orderResult.protocol_data.parameters.orderType,
+          salt: orderResult.protocol_data.parameters.salt,
+          startTime: orderResult.protocol_data.parameters.startTime,
+          totalOriginalConsiderationItems: orderResult.protocol_data.parameters.totalOriginalConsiderationItems,
+          zone: zone, // opensea pausable zone
+          zoneHash: orderResult.protocol_data.parameters.zoneHash,
+        },
+        signature: orderResult.protocol_data.signature,
+        extraData: "0x",
+      })
+    }
 
     const orderStruct = [
       [
-        [
-          {
-            denominator: "1",
-            numerator: "1",
-            parameters: {
-              conduitKey: order.protocol_data.parameters.conduitKey,
-              consideration: order.protocol_data.parameters.consideration,
-              endTime: order.protocol_data.parameters.endTime,
-              offer: order.protocol_data.parameters.offer,
-              offerer: order.protocol_data.parameters.offerer, // seller
-              orderType: order.protocol_data.parameters.orderType,
-              salt: order.protocol_data.parameters.salt,
-              startTime: order.protocol_data.parameters.startTime,
-              totalOriginalConsiderationItems: order.protocol_data.parameters.totalOriginalConsiderationItems,
-              zone: zone, // opensea pausable zone
-              zoneHash: order.protocol_data.parameters.zoneHash,
-            },
-            signature: order.protocol_data.signature,
-            extraData: "0x",
-          },
-        ],
+        orderParams,
         [],
-        [
-          [
-            {
-              orderIndex: "0",
-              itemIndex: "0",
-            },
-          ],
-        ],
-        [
-          [
-            {
-              orderIndex: "0",
-              itemIndex: "0",
-            },
-          ],
-          [
-            {
-              orderIndex: "0",
-              itemIndex: "1",
-            },
-          ],
-          [
-            {
-              orderIndex: "0",
-              itemIndex: "2",
-            },
-          ],
-        ],
+        generateOfferArray(orderParams.map(i => i.parameters.offer)), // array of all offers
+        generateOrderConsiderationArray(orderParams.map(i => i.parameters.consideration)), // array of all considerations
         "0x0000000000000000000000000000000000000000000000000000000000000000",
         recipient,
-        "1",
+        order.length.toString(), // maximumFulfilled
       ],
     ];
+
+    const msgValue: ethers.BigNumber = input.order
+      .map(i => ethers.BigNumber.from(i.msgValue))
+      .reduce(
+        (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
+        ethers.BigNumber.from(0),
+      );
 
     // input data for SeaportLibV1_1
     const inputData = [orderStruct, [msgValue], failIfRevert];
@@ -282,7 +331,7 @@ const getLooksrareHex = async (
     return {
       tradeData: genHex,
       value: ethers.BigNumber.from(msgValue),
-      marketId: "0",
+      marketId: "4",
     };
   } catch (err) {
     throw `error in getLooksrareHex: ${err}`;
@@ -290,20 +339,29 @@ const getLooksrareHex = async (
 };
 
 export const combineOrders = async (
-  seaportOrders: Array<SeaportInput>,
+  seaportOrders: SeaportCompleteInput,
   looksrareOrders: Array<LooksrareInput>,
 ): Promise<CombinedOrders> => {
-  const seaportHexes = seaportOrders.map(
-    async (i: SeaportInput) =>
-      await getSeaportHex(i.contractAddress, i.tokenId, i.msgValue, i.recipient, i.chainID, i.failIfRevert),
-  );
+  const combinedOrders: Array<AggregatorResponse> = [];
+  
+  try {
+    const result: AggregatorResponse = await getSeaportHex(seaportOrders);
+    combinedOrders.push(result);
+  } catch (err) {
+    console.log(`seaport order combination failed: ${err}`)
+  }
 
-  const looksrareHexes = looksrareOrders.map(
-    async (i: LooksrareInput) =>
-      await getLooksrareHex(i.contractAddress, i.tokenId, i.chainID, i.msgValue, i.executorAddress, i.failIfRevert),
-  );
+  for (let index = 0; index < looksrareOrders.length; index++) {
+    const i: LooksrareInput = looksrareOrders[index];
+    try {
+      const result: AggregatorResponse = await getLooksrareHex(i.contractAddress, i.tokenId, i.chainID, i.msgValue, i.executorAddress, i.failIfRevert);
+      combinedOrders.push(result);
+    } catch (err) {
+      console.log(`looksrare order ${index} / ${looksrareOrders.length - 1} failed: ${err}`)
+    }
+  }
 
-  const totalValue: ethers.BigNumber = seaportOrders
+  const totalValue: ethers.BigNumber = seaportOrders.order
     .map(i => ethers.BigNumber.from(i.msgValue))
     .concat(looksrareOrders.map(i => ethers.BigNumber.from(i.msgValue)))
     .reduce(
@@ -312,7 +370,7 @@ export const combineOrders = async (
     );
 
   return {
-    combinedOrders: await Promise.all(seaportHexes.concat(looksrareHexes)),
+    combinedOrders,
     totalValue,
   };
 };

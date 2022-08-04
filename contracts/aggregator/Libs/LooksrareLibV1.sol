@@ -38,6 +38,14 @@ library LooksrareLibV1 {
         // return back nft
         (bool success2, ) = asset.call(abi.encodeWithSelector(0x23b872dd, address(this), msg.sender, tokenId));
 
+        if (!success2 && revertTxFail) {
+            // Copy revert reason from call
+            assembly {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+        }
+
         return success && success2;
     }
 }
