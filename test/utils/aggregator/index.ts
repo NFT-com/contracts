@@ -1,7 +1,7 @@
 import axios from "axios";
+import chalk from "chalk";
 import delay from "delay";
 import { ethers } from "ethers";
-import { string } from "hardhat/internal/core/params/argumentTypes";
 import looksrareABI from "../../../looksrareABI.json";
 
 const looksrare = new ethers.utils.Interface(looksrareABI);
@@ -35,15 +35,15 @@ interface ConsiderationFulfillmentUnit {
   itemIndex: string;
 }
 
-interface LooksrareInput {
+export interface LooksrareInput {
   contractAddress: string;
   tokenId: string;
-  msgValue: string;
+  msgValue: ethers.BigNumber;
   executorAddress: string;
   chainID: string;
   failIfRevert: boolean;
 }
-interface SeaportCompleteInput {
+export interface SeaportCompleteInput {
   order: Array<SeaportInput>;
   chainID: string;
   failIfRevert: boolean;
@@ -52,7 +52,7 @@ interface SeaportCompleteInput {
 interface SeaportInput {
   contractAddress: string;
   tokenId: string;
-  msgValue: string;
+  msgValue: ethers.BigNumber;
 }
 
 interface AggregatorResponse {
@@ -103,9 +103,8 @@ const getLooksrareOrder = async (
   status = "VALID",
 ) => {
   try {
-    console.log('1 ===== getLooksrareOrder');
+    console.log(chalk.green('getting looksrare order'));
     await delay(2000);
-    console.log('2 ===== after getLooksrareOrder');
 
     const baseUrl = `https://${getLooksrarePrefix(chainID)}.looksrare.org/api/v1`;
     const url = `${baseUrl}/orders?isOrderAsk=${isOrderAsk}&collection=${contract}&status%5B%5D=${status}&tokenId=${tokenId}&sort=PRICE_ASC`;
@@ -127,9 +126,8 @@ const getSeaportOrder = async (
   OPENSEA_API_KEY = '2829e29e1ae34375a3cc5f4eee84e190',
 ) => {
   try {
-    console.log('1 ===== getSeaportOrder');
+    console.log(chalk.blue('getting seaport order'));
     await delay(2000);
-    console.log('2 ===== after getSeaportOrder');
 
     const baseUrl = getSeaportBaseUrl(chainID);
     const url = `${baseUrl}/listings?asset_contract_address=${contract}&token_ids=${tokenId}&limit=${limit}`;
@@ -174,10 +172,6 @@ const generateOrderConsiderationArray = (array: Array<Array<ConsiderationObject>
 
 const getSeaportHex = async (
   input: SeaportCompleteInput
-  // contractAddress: string,
-  // tokenID: string,
-  // msgValue: string,
-  // recipient: string,
 ): Promise<AggregatorResponse> => {
   try {
     const { failIfRevert, chainID, order, recipient } = input;
@@ -221,12 +215,12 @@ const getSeaportHex = async (
 
     const orderStruct = [
       [
-        orderParams,
-        [],
-        generateOfferArray(orderParams.map(i => i.parameters.offer)), // array of all offers
-        generateOrderConsiderationArray(orderParams.map(i => i.parameters.consideration)), // array of all considerations
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-        recipient,
+        orderParams, // advancedOrders
+        [], // criteria resolvers
+        generateOfferArray(orderParams.map(i => i.parameters.offer)), // array of all offers (offers fulfillment)
+        generateOrderConsiderationArray(orderParams.map(i => i.parameters.consideration)), // array of all considerations (considerations fulfillment)
+        "0x0000000000000000000000000000000000000000000000000000000000000000", // fulfillerConduitKey
+        recipient, // recipient
         order.length.toString(), // maximumFulfilled
       ],
     ];
@@ -248,7 +242,7 @@ const getSeaportHex = async (
 
     return {
       tradeData: genHex,
-      value: ethers.BigNumber.from(msgValue),
+      value: msgValue,
       marketId: "3",
     };
   } catch (err) {
@@ -345,8 +339,10 @@ export const combineOrders = async (
   const combinedOrders: Array<AggregatorResponse> = [];
   
   try {
-    const result: AggregatorResponse = await getSeaportHex(seaportOrders);
-    combinedOrders.push(result);
+    if (seaportOrders?.order?.length) {
+      const result: AggregatorResponse = await getSeaportHex(seaportOrders);
+      combinedOrders.push(result);
+    }
   } catch (err) {
     console.log(`seaport order combination failed: ${err}`)
   }
@@ -354,7 +350,7 @@ export const combineOrders = async (
   for (let index = 0; index < looksrareOrders.length; index++) {
     const i: LooksrareInput = looksrareOrders[index];
     try {
-      const result: AggregatorResponse = await getLooksrareHex(i.contractAddress, i.tokenId, i.chainID, i.msgValue, i.executorAddress, i.failIfRevert);
+      const result: AggregatorResponse = await getLooksrareHex(i.contractAddress, i.tokenId, i.chainID, i.msgValue.toString(), i.executorAddress, i.failIfRevert);
       combinedOrders.push(result);
     } catch (err) {
       console.log(`looksrare order ${index} / ${looksrareOrders.length - 1} failed: ${err}`)

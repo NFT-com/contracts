@@ -5,7 +5,7 @@ import fs from "fs";
 import delay from "delay";
 import { parseBalanceMap } from "../../test/utils/parse-balance-map";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
-import { combineOrders } from "../../test/utils/aggregator/index";
+import { combineOrders, LooksrareInput, SeaportCompleteInput } from "../../test/utils/aggregator/index";
 
 const TIME_DELAY = 10000; // 10 seconds
 
@@ -756,31 +756,31 @@ task("batchBuy").setAction(async function (taskArguments, hre) {
       {
         contractAddress: "0xdbf82b308ed7589bc93f99918043ab80060cd8b8",
         tokenId: "2",
-        msgValue: "20000000000000000", // 0 if ETH
+        msgValue: hre.ethers.BigNumber.from((0.02 * 10**18).toString()), // 0 if ETH
       },
       {
-        contractAddress: "0x52ec5398c29d6627e543931c473ba36c2bbe0f5c",
-        tokenId: "29",
-        msgValue: "10000000000000000", // 0 if ETH
+        contractAddress: "0x7e229a305f26ce5c39aab1d90271e1ef03d764d5",
+        tokenId: "9",
+        msgValue: hre.ethers.BigNumber.from((0.01 * 10**18).toString()), // 0 if ETH
       }
     ],
-    recipient: "0x338efdd45ae7d010da108f39d293565449c52682",
+    recipient: "0x59495589849423692778a8c5aaCA62CA80f875a4",
     chainID: "4",
     failIfRevert: true
   };
 
   const looksrareOrders = [
-    {
-      contractAddress: "0xf5de760f2e916647fd766B4AD9E85ff943cE3A2b",
-      tokenId: "1441796",
-      msgValue: "10000000000000000", // 0 if not ETH
-      executorAddress: (await getTokens(hre)).deployedNftAggregator,
-      chainID: "4",
-      failIfRevert: true,
-    },
-  ];
+    // {
+    //   contractAddress: "0x52Ec5398c29d6627E543931C473Ba36c2bBE0f5C",
+    //   tokenId: "29",
+    //   msgValue: hre.ethers.BigNumber.from((0.01 * 10**18).toString()), // 0 if not ETH
+    //   executorAddress: (await getTokens(hre)).deployedNftAggregator,
+    //   chainID: "4",
+    //   failIfRevert: true,
+    // },
+  ] || new Array<LooksrareInput>();
 
-  const { totalValue, combinedOrders } = await combineOrders(seaportOrders, looksrareOrders);
+  const { totalValue, combinedOrders } = await combineOrders(seaportOrders as SeaportCompleteInput, looksrareOrders);
 
   try {
     const tx = await deployedNftAggregator.batchTradeWithETH(combinedOrders, [], { value: totalValue });
