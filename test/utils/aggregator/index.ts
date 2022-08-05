@@ -320,8 +320,8 @@ const getLooksrareHex = async (
       failIfRevert,
     ]);
 
-    console.log('===== msgValue: ', msgValue)
-    console.log('===== price: ', price)
+    console.log('===== input msgValue: ', msgValue)
+    console.log('===== price on looksrare: ', price)
 
     const genHex = await libraryCall("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
 
