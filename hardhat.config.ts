@@ -102,7 +102,7 @@ const config: HardhatUserConfig = {
     mainnet: getChainConfigPK("mainnet"),
     goerli: getChainConfig("goerli"),
     kovan: getChainConfig("kovan"),
-    rinkeby: getChainConfigPK("rinkeby"), //getChainConfigPK("rinkeby"),
+    rinkeby: getChainConfig("rinkeby"), //getChainConfigPK("rinkeby"),
     ropsten: getChainConfig("ropsten"),
   },
   contractSizer: {

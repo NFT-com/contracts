@@ -754,13 +754,33 @@ task("batchBuy").setAction(async function (taskArguments, hre) {
   const seaportOrders = {
     order: [
       {
-        contractAddress: "0xdbf82b308ed7589bc93f99918043ab80060cd8b8",
-        tokenId: "2",
-        msgValue: hre.ethers.BigNumber.from((0.02 * 10**18).toString()), // 0 if ETH
+        contractAddress: "0x52ec5398c29d6627e543931c473ba36c2bbe0f5c",
+        tokenId: "29",
+        msgValue: hre.ethers.BigNumber.from((0.32 * 10**18).toString()), // 0 if ETH
+      },
+      {
+        contractAddress: "0x530e404f51778f38249413264ac7807a16b88603",
+        tokenId: "24",
+        msgValue: hre.ethers.BigNumber.from((0.02145 * 10**18).toString()), // 0 if ETH
+      },
+      {
+        contractAddress: "0x20fc7ad1ee47245f0fee579e1f4beb2dc5380068",
+        tokenId: "2170",
+        msgValue: hre.ethers.BigNumber.from((0.1 * 10**18).toString()), // 0 if ETH
       },
       {
         contractAddress: "0x7e229a305f26ce5c39aab1d90271e1ef03d764d5",
-        tokenId: "9",
+        tokenId: "2",
+        msgValue: hre.ethers.BigNumber.from((0.05 * 10**18).toString()), // 0 if ETH
+      },
+      {
+        contractAddress: "0xf5de760f2e916647fd766b4ad9e85ff943ce3a2b",
+        tokenId: "1441799",
+        msgValue: hre.ethers.BigNumber.from((0.00321 * 10**18).toString()), // 0 if ETH
+      },
+      {
+        contractAddress: "0xaa7f30a10d3e259ae9b14308c77dfe5aa2f5d9df",
+        tokenId: "16",
         msgValue: hre.ethers.BigNumber.from((0.01 * 10**18).toString()), // 0 if ETH
       }
     ],
@@ -770,14 +790,38 @@ task("batchBuy").setAction(async function (taskArguments, hre) {
   };
 
   const looksrareOrders = [
-    // {
-    //   contractAddress: "0x52Ec5398c29d6627E543931C473Ba36c2bBE0f5C",
-    //   tokenId: "29",
-    //   msgValue: hre.ethers.BigNumber.from((0.01 * 10**18).toString()), // 0 if not ETH
-    //   executorAddress: (await getTokens(hre)).deployedNftAggregator,
-    //   chainID: "4",
-    //   failIfRevert: true,
-    // },
+    {
+      contractAddress: "0xAa1209AD1716c34733B34417D20f724cf951b4AB",
+      tokenId: "2",
+      msgValue: hre.ethers.BigNumber.from((0.02 * 10**18).toString()), // 0 if not ETH
+      executorAddress: (await getTokens(hre)).deployedNftAggregator,
+      chainID: "4",
+      failIfRevert: true,
+    },
+    {
+      contractAddress: "0x5d0913f2d5430002bf720119835987C51d55E723",
+      tokenId: "15",
+      msgValue: hre.ethers.BigNumber.from((0.234656789 * 10**18).toString()), // 0 if not ETH
+      executorAddress: (await getTokens(hre)).deployedNftAggregator,
+      chainID: "4",
+      failIfRevert: true,
+    },
+    {
+      contractAddress: "0x6830BdCdeB541892d1952d230f39CD995cd9fc40",
+      tokenId: "1",
+      msgValue: hre.ethers.BigNumber.from((0.01 * 10**18).toString()), // 0 if not ETH
+      executorAddress: (await getTokens(hre)).deployedNftAggregator,
+      chainID: "4",
+      failIfRevert: true,
+    },
+    {
+      contractAddress: "0xF5f9d0D0C28446c49E4Be464edb76A0509336076",
+      tokenId: "24",
+      msgValue: hre.ethers.BigNumber.from((0.01 * 10**18).toString()), // 0 if not ETH
+      executorAddress: (await getTokens(hre)).deployedNftAggregator,
+      chainID: "4",
+      failIfRevert: true,
+    },
   ] || new Array<LooksrareInput>();
 
   const { totalValue, combinedOrders } = await combineOrders(seaportOrders as SeaportCompleteInput, looksrareOrders);
