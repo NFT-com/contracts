@@ -32,6 +32,10 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     event AssociateEvmUser(address indexed owner, string profileUrl, address indexed associatedAddress);
     event CancelledEvmAssociation(address indexed owner, string profileUrl, address indexed associatedAddresses);
     event ClearAllAssociatedAddresses(address indexed owner, string profileUrl);
+    event SetAssociatedContract(address indexed owner, string profileUrl, string associatedContract);
+    event ClearAssociatedContract(address indexed owner, string profileUrl);
+    event AssociateSelfWithUser(address indexed receiver, string profileUrl, address indexed profileOwner);
+    event RemovedAssociateProfile(address indexed receiver, string profileUrl, address indexed profileOwner);
 
     function _onlyOwner() private view {
         if (msg.sender != owner) revert NotOwner();
@@ -69,6 +73,8 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         validateAddress(inputTuple.cid, inputTuple.chainAddr);
 
         _ownerCtx[msg.sender][tokenId] = inputTuple;
+
+        emit SetAssociatedContract(msg.sender, profileUrl, inputTuple.chainAddr);
     }
 
     function getApprovedEvm(address _user) external view returns (RelatedProfiles[] memory) {
@@ -90,6 +96,8 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         AddressTuple memory addressTuple;
         _ownerCtx[msg.sender][tokenId] = addressTuple;
+
+        emit ClearAssociatedContract(msg.sender, profileUrl);
     }
 
     function _sameHash(AddressTuple memory _t1, AddressTuple memory _t2) private pure returns (bool) {
@@ -162,6 +170,8 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             // mapping for O(1) lookup
             _approvedMap[abi.encode(pOwner, tokenId, msg.sender)] = true;
 
+            emit AssociateSelfWithUser(msg.sender, url, pOwner);
+
             // INTERACTIONS
 
             unchecked {
@@ -181,6 +191,8 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
                     _approvedEvmList[msg.sender][i] = _approvedEvmList[msg.sender][l1 - 1];
                     _approvedEvmList[msg.sender].pop();
                     _approvedMap[abi.encode(pOwner, tokenId, msg.sender)] = false;
+
+                    emit RemovedAssociateProfile(msg.sender, url, pOwner);
 
                     return true;
                 }
