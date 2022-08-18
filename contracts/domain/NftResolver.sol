@@ -12,7 +12,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, INftResolver {
     using SafeMathUpgradeable for uint256;
 
-    INftProfile nftProfile;
+    INftProfile public nftProfile;
     address public owner;
 
     // ===================================================================================================
@@ -347,6 +347,10 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     function setRegex(Blockchain _cid, IRegex _regexContract) external onlyOwner {
         _regexMap[_cid] = _regexContract;
         emit UpdatedRegex(_cid, _regexContract);
+    }
+
+    function setNftProfile(address profileContract) external onlyOwner {
+        nftProfile = INftProfile(profileContract);
     }
 
     function setOwner(address _new) external onlyOwner {

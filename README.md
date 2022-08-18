@@ -41,6 +41,11 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
   - implementation => 0xBdF4538fb1a3863fA48E96A081911d04A21FbC49
 
+- [deployedEthereumRegex](https://etherscan.io/address/0xe9F5CBeE4a58B1EB47b303c14765Ab102E4ABC37)
+- [deployedNftResolver](https://etherscan.io/address/0xA657C988e8aC39D3268D390eB7c522a535B10453)
+
+  - implementation => 0xf76eaa507b252f498ff70b4caa659376ed3cc757
+
 - [deployedGenesisKeyDistributor](https://etherscan.io/address/0x0eBa8d862AF4E01A0573B663FB3eb3A06D7937dE)
 
 - [deployedNftBuyer](https://etherscan.io/address/)

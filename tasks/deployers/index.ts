@@ -90,10 +90,10 @@ const getTokens = async (hre: any) => {
     network == "goerli"
       ? "0x9Ef7A34dcCc32065802B1358129a226B228daB4E"
       : network === "mainnet"
-      ? "0x7e229a305f26ce5C39AAB1d90271e1Ef03d764D5"
+      ? "0x98ca78e89Dd1aBE48A53dEe5799F24cC1A462F2D"
       : "";
   const deployedNftResolver =
-    network == "goerli" ? "0x3a3539B6727E74fa1c5D4d39B433F0fAB5BC4F4a" : network === "mainnet" ? "" : "";
+    network == "goerli" ? "0x3a3539B6727E74fa1c5D4d39B433F0fAB5BC4F4a" : network === "mainnet" ? "0xA657C988e8aC39D3268D390eB7c522a535B10453" : "";
   const deployedNftAggregator =
     network == "goerli"
       ? "0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10"
@@ -942,12 +942,13 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
 });
 
 task("upgrade:NftResolver").setAction(async function (taskArguments, hre) {
-  const NftResolver = await hre.ethers.getContractFactory("NftResolver");
+  // const NftResolver = await hre.ethers.getContractFactory("NftResolver");
 
-  const upgradedNftResolver = await hre.upgrades.upgradeProxy((await getTokens(hre)).deployedNftResolver, NftResolver);
-  console.log(chalk.green("upgradedNftResolver: ", upgradedNftResolver.address));
+  // const upgradedNftResolver = await hre.upgrades.upgradeProxy((await getTokens(hre)).deployedNftResolver, NftResolver);
+  // console.log(chalk.green("upgradedNftResolver: ", upgradedNftResolver.address));
 
-  await delayedVerifyImp("upgradedNftResolver", upgradedNftResolver.address, hre);
+  await getImplementation("deployedNftResolver", "0xA657C988e8aC39D3268D390eB7c522a535B10453", hre);
+  // await delayedVerifyImp("upgradedNftResolver", upgradedNftResolver.address, hre);
 });
 
 task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {

@@ -209,7 +209,10 @@
           },
           "t_enum(VestingInstallments)18146": {
             "label": "enum Vesting.VestingInstallments",
-            "members": ["MONTHLY", "QUARTERLY"]
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -1174,7 +1177,14 @@
           },
           "t_enum(Blockchain)19428": {
             "label": "enum Blockchain",
-            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
+            "members": [
+              "ETHEREUM",
+              "HEDERA",
+              "POLYGON",
+              "SOLANA",
+              "TEZOS",
+              "FLOW"
+            ]
           },
           "t_contract(IRegex)19421": {
             "label": "contract IRegex"
@@ -1909,7 +1919,14 @@
           },
           "t_enum(Blockchain)20125": {
             "label": "enum Blockchain",
-            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
+            "members": [
+              "ETHEREUM",
+              "HEDERA",
+              "POLYGON",
+              "SOLANA",
+              "TEZOS",
+              "FLOW"
+            ]
           },
           "t_contract(IRegex)20118": {
             "label": "contract IRegex"
@@ -2111,7 +2128,14 @@
           },
           "t_enum(Blockchain)2760": {
             "label": "enum Blockchain",
-            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
+            "members": [
+              "ETHEREUM",
+              "HEDERA",
+              "POLYGON",
+              "SOLANA",
+              "TEZOS",
+              "FLOW"
+            ]
           },
           "t_contract(IRegex)2753": {
             "label": "contract IRegex"
@@ -2313,7 +2337,14 @@
           },
           "t_enum(Blockchain)20619": {
             "label": "enum Blockchain",
-            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
+            "members": [
+              "ETHEREUM",
+              "HEDERA",
+              "POLYGON",
+              "SOLANA",
+              "TEZOS",
+              "FLOW"
+            ]
           },
           "t_contract(IRegex)20612": {
             "label": "contract IRegex"
@@ -2436,7 +2467,7 @@
           {
             "contract": "NftResolver",
             "label": "nftProfile",
-            "type": "t_contract(INftProfile)20617",
+            "type": "t_contract(INftProfile)21503",
             "src": "contracts/domain/NftResolver.sol:15"
           },
           {
@@ -2454,19 +2485,19 @@
           {
             "contract": "NftResolver",
             "label": "_regexMap",
-            "type": "t_mapping(t_enum(Blockchain)20662,t_contract(IRegex)20655)",
+            "type": "t_mapping(t_enum(Blockchain)21548,t_contract(IRegex)21541)",
             "src": "contracts/domain/NftResolver.sol:20"
           },
           {
             "contract": "NftResolver",
             "label": "_ownerAddrList",
-            "type": "t_mapping(t_address,t_mapping(t_uint256,t_array(t_struct(AddressTuple)20668_storage)dyn_storage))",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_array(t_struct(AddressTuple)21554_storage)dyn_storage))",
             "src": "contracts/domain/NftResolver.sol:22"
           },
           {
             "contract": "NftResolver",
             "label": "_ownerCtx",
-            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(AddressTuple)20668_storage))",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(AddressTuple)21554_storage))",
             "src": "contracts/domain/NftResolver.sol:23"
           },
           {
@@ -2484,7 +2515,7 @@
           {
             "contract": "NftResolver",
             "label": "_approvedEvmList",
-            "type": "t_mapping(t_address,t_array(t_struct(RelatedProfiles)20673_storage)dyn_storage)",
+            "type": "t_mapping(t_address,t_array(t_struct(RelatedProfiles)21559_storage)dyn_storage)",
             "src": "contracts/domain/NftResolver.sol:27"
           },
           {
@@ -2495,7 +2526,7 @@
           }
         ],
         "types": {
-          "t_contract(INftProfile)20617": {
+          "t_contract(INftProfile)21503": {
             "label": "contract INftProfile"
           },
           "t_address": {
@@ -2510,31 +2541,38 @@
           "t_uint256": {
             "label": "uint256"
           },
-          "t_mapping(t_enum(Blockchain)20662,t_contract(IRegex)20655)": {
+          "t_mapping(t_enum(Blockchain)21548,t_contract(IRegex)21541)": {
             "label": "mapping(enum Blockchain => contract IRegex)"
           },
-          "t_enum(Blockchain)20662": {
+          "t_enum(Blockchain)21548": {
             "label": "enum Blockchain",
-            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
+            "members": [
+              "ETHEREUM",
+              "HEDERA",
+              "POLYGON",
+              "SOLANA",
+              "TEZOS",
+              "FLOW"
+            ]
           },
-          "t_contract(IRegex)20655": {
+          "t_contract(IRegex)21541": {
             "label": "contract IRegex"
           },
-          "t_mapping(t_address,t_mapping(t_uint256,t_array(t_struct(AddressTuple)20668_storage)dyn_storage))": {
+          "t_mapping(t_address,t_mapping(t_uint256,t_array(t_struct(AddressTuple)21554_storage)dyn_storage))": {
             "label": "mapping(address => mapping(uint256 => struct AddressTuple[]))"
           },
-          "t_mapping(t_uint256,t_array(t_struct(AddressTuple)20668_storage)dyn_storage)": {
+          "t_mapping(t_uint256,t_array(t_struct(AddressTuple)21554_storage)dyn_storage)": {
             "label": "mapping(uint256 => struct AddressTuple[])"
           },
-          "t_array(t_struct(AddressTuple)20668_storage)dyn_storage": {
+          "t_array(t_struct(AddressTuple)21554_storage)dyn_storage": {
             "label": "struct AddressTuple[]"
           },
-          "t_struct(AddressTuple)20668_storage": {
+          "t_struct(AddressTuple)21554_storage": {
             "label": "struct AddressTuple",
             "members": [
               {
                 "label": "cid",
-                "type": "t_enum(Blockchain)20662"
+                "type": "t_enum(Blockchain)21548"
               },
               {
                 "label": "chainAddr",
@@ -2542,10 +2580,10 @@
               }
             ]
           },
-          "t_mapping(t_address,t_mapping(t_uint256,t_struct(AddressTuple)20668_storage))": {
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(AddressTuple)21554_storage))": {
             "label": "mapping(address => mapping(uint256 => struct AddressTuple))"
           },
-          "t_mapping(t_uint256,t_struct(AddressTuple)20668_storage)": {
+          "t_mapping(t_uint256,t_struct(AddressTuple)21554_storage)": {
             "label": "mapping(uint256 => struct AddressTuple)"
           },
           "t_mapping(t_uint256,t_mapping(t_bytes_memory_ptr,t_bool))": {
@@ -2566,13 +2604,13 @@
           "t_mapping(t_address,t_mapping(t_bytes_memory_ptr,t_bool))": {
             "label": "mapping(address => mapping(bytes => bool))"
           },
-          "t_mapping(t_address,t_array(t_struct(RelatedProfiles)20673_storage)dyn_storage)": {
+          "t_mapping(t_address,t_array(t_struct(RelatedProfiles)21559_storage)dyn_storage)": {
             "label": "mapping(address => struct RelatedProfiles[])"
           },
-          "t_array(t_struct(RelatedProfiles)20673_storage)dyn_storage": {
+          "t_array(t_struct(RelatedProfiles)21559_storage)dyn_storage": {
             "label": "struct RelatedProfiles[]"
           },
-          "t_struct(RelatedProfiles)20673_storage": {
+          "t_struct(RelatedProfiles)21559_storage": {
             "label": "struct RelatedProfiles",
             "members": [
               {
@@ -2880,6 +2918,215 @@
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "1c1f5b1fbbda4a4d7db59223af61034592ed837e96547c9a8c4b19e5b3c9be5d": {
+      "address": "0x1Ea675312D2ca133248D0968be719E8225B62deb",
+      "txHash": "0x0cbf01c7a70e11d76ba3dae014b158a09999b2f7a1db72df1b44830ad77a39ec",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "NftResolver",
+            "label": "nftProfile",
+            "type": "t_contract(INftProfile)21561",
+            "src": "contracts/domain/NftResolver.sol:15"
+          },
+          {
+            "contract": "NftResolver",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts/domain/NftResolver.sol:16"
+          },
+          {
+            "contract": "NftResolver",
+            "label": "_nonce",
+            "type": "t_mapping(t_string_memory_ptr,t_uint256)",
+            "src": "contracts/domain/NftResolver.sol:19"
+          },
+          {
+            "contract": "NftResolver",
+            "label": "_regexMap",
+            "type": "t_mapping(t_enum(Blockchain)21606,t_contract(IRegex)21599)",
+            "src": "contracts/domain/NftResolver.sol:20"
+          },
+          {
+            "contract": "NftResolver",
+            "label": "_ownerAddrList",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_array(t_struct(AddressTuple)21612_storage)dyn_storage))",
+            "src": "contracts/domain/NftResolver.sol:22"
+          },
+          {
+            "contract": "NftResolver",
+            "label": "_ownerCtx",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(AddressTuple)21612_storage))",
+            "src": "contracts/domain/NftResolver.sol:23"
+          },
+          {
+            "contract": "NftResolver",
+            "label": "_ownerNonEvmMap",
+            "type": "t_mapping(t_uint256,t_mapping(t_bytes_memory_ptr,t_bool))",
+            "src": "contracts/domain/NftResolver.sol:24"
+          },
+          {
+            "contract": "NftResolver",
+            "label": "_ownerEvmMap",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_mapping(t_bytes_memory_ptr,t_bool)))",
+            "src": "contracts/domain/NftResolver.sol:25"
+          },
+          {
+            "contract": "NftResolver",
+            "label": "_approvedEvmList",
+            "type": "t_mapping(t_address,t_array(t_struct(RelatedProfiles)21617_storage)dyn_storage)",
+            "src": "contracts/domain/NftResolver.sol:27"
+          },
+          {
+            "contract": "NftResolver",
+            "label": "_approvedMap",
+            "type": "t_mapping(t_bytes_memory_ptr,t_bool)",
+            "src": "contracts/domain/NftResolver.sol:28"
+          }
+        ],
+        "types": {
+          "t_contract(INftProfile)21561": {
+            "label": "contract INftProfile"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_enum(Blockchain)21606,t_contract(IRegex)21599)": {
+            "label": "mapping(enum Blockchain => contract IRegex)"
+          },
+          "t_enum(Blockchain)21606": {
+            "label": "enum Blockchain",
+            "members": [
+              "ETHEREUM",
+              "HEDERA",
+              "POLYGON",
+              "SOLANA",
+              "TEZOS",
+              "FLOW"
+            ]
+          },
+          "t_contract(IRegex)21599": {
+            "label": "contract IRegex"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_array(t_struct(AddressTuple)21612_storage)dyn_storage))": {
+            "label": "mapping(address => mapping(uint256 => struct AddressTuple[]))"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(AddressTuple)21612_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct AddressTuple[])"
+          },
+          "t_array(t_struct(AddressTuple)21612_storage)dyn_storage": {
+            "label": "struct AddressTuple[]"
+          },
+          "t_struct(AddressTuple)21612_storage": {
+            "label": "struct AddressTuple",
+            "members": [
+              {
+                "label": "cid",
+                "type": "t_enum(Blockchain)21606"
+              },
+              {
+                "label": "chainAddr",
+                "type": "t_string_storage"
+              }
+            ]
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(AddressTuple)21612_storage))": {
+            "label": "mapping(address => mapping(uint256 => struct AddressTuple))"
+          },
+          "t_mapping(t_uint256,t_struct(AddressTuple)21612_storage)": {
+            "label": "mapping(uint256 => struct AddressTuple)"
+          },
+          "t_mapping(t_uint256,t_mapping(t_bytes_memory_ptr,t_bool))": {
+            "label": "mapping(uint256 => mapping(bytes => bool))"
+          },
+          "t_mapping(t_bytes_memory_ptr,t_bool)": {
+            "label": "mapping(bytes => bool)"
+          },
+          "t_bytes_storage": {
+            "label": "bytes"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_mapping(t_bytes_memory_ptr,t_bool)))": {
+            "label": "mapping(uint256 => mapping(address => mapping(bytes => bool)))"
+          },
+          "t_mapping(t_address,t_mapping(t_bytes_memory_ptr,t_bool))": {
+            "label": "mapping(address => mapping(bytes => bool))"
+          },
+          "t_mapping(t_address,t_array(t_struct(RelatedProfiles)21617_storage)dyn_storage)": {
+            "label": "mapping(address => struct RelatedProfiles[])"
+          },
+          "t_array(t_struct(RelatedProfiles)21617_storage)dyn_storage": {
+            "label": "struct RelatedProfiles[]"
+          },
+          "t_struct(RelatedProfiles)21617_storage": {
+            "label": "struct RelatedProfiles",
+            "members": [
+              {
+                "label": "addr",
+                "type": "t_address"
+              },
+              {
+                "label": "profileUrl",
+                "type": "t_string_storage"
+              }
+            ]
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
           }
         }
       }
