@@ -2,6 +2,7 @@ import { IExecutionStrategy, RoyaltyFeeRegistry } from '../../../typechain/looks
 
 import { Addresses, addressesByNetwork, MakerOrder } from '@looksrare/sdk';
 import { BigNumber, BigNumberish } from 'ethers';
+import axios from 'axios';
 
 export async function createLooksrareParametersForNFTListing(
   offerer: string,
@@ -14,7 +15,6 @@ export async function createLooksrareParametersForNFTListing(
   looksrareStrategy: IExecutionStrategy,
   looksrareRoyaltyFeeRegistry: RoyaltyFeeRegistry,
   duration: BigNumberish,
-  // takerAddress: string,
 ): Promise<MakerOrder> {
   // @ts-ignore
   const addresses: Addresses = addressesByNetwork[chainId];
@@ -44,6 +44,12 @@ export async function createLooksrareParametersForNFTListing(
     minPercentageToAsk: Math.max(netPriceRatio, minNetPriceRatio),
     params: []
   };
+}
+
+export async function getLooksrareNonce(address: string, chainId: number): Promise<number> {
+  const url = `https://${chainId == 5 ? 'api-goerli' : 'api'}.looksrare.org/api/v1/orders/nonce?address=${address}`
+  const { data } = await axios.get(url)
+  return data?.data
 }
 
 // export async function signLooksrare(): string {

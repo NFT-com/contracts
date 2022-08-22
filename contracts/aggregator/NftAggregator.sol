@@ -9,7 +9,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "./SpecialTransferHelper.sol";
 import "./MarketplaceRegistry.sol";
-import "./Libs/SeaportLibV1_1.sol";
 
 error InactiveMarket();
 
@@ -224,14 +223,6 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         uint256 amount
     ) external onlyOwner {
         token.approve(operator, amount);
-    }
-
-    function buySeaport(
-        SeaportLib1_1.SeaportBuyOrder[] memory openSeaBuys,
-        uint256[] memory msgValue,
-        bool revertIfTrxFails
-    ) external payable nonReentrant {
-        SeaportLib1_1.fulfillAvailableAdvancedOrders(openSeaBuys, msgValue, revertIfTrxFails);
     }
 
     function batchTradeWithETH(MarketplaceRegistry.TradeDetails[] memory _tradeDetails, address[] memory dustTokens)

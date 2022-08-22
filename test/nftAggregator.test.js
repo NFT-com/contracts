@@ -3,13 +3,14 @@ const looksrareABI = require("../looksrareABI.json");
 const seaportABI = require("../seaportABI.json");
 const axios = require("axios");
 const { ethers } = require("hardhat");
+const { createLooksrareParametersForNFTListing, getLooksrareNonce } = require('./utils/aggregator/looksrareHelper')
+const { createSeaportParametersForNFTListing } = require('./utils/aggregator/seaportHelper')
 
 describe("NFT Aggregator", function () {
   try {
     let NftAggregator, deployedNftAggregator;
     let MarketplaceRegistry, deployedMarketplaceRegistry;
     let LooksrareLibV1, deployedLooksrareLibV1;
-    let OpenseaLibV1, deployedOpenseaLibV1;
     let SeaportLib1_1, deployedSeaportLib1_1;
     let Mock721;
     let looksrare = new ethers.utils.Interface(looksrareABI);
@@ -27,13 +28,10 @@ describe("NFT Aggregator", function () {
       Mock721 = await ethers.getContractFactory("GenesisKey");
       LooksrareLibV1 = await ethers.getContractFactory("LooksrareLibV1");
       deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
-      OpenseaLibV1 = await ethers.getContractFactory("OpenseaLibV1");
-      deployedOpenseaLibV1 = await OpenseaLibV1.deploy();
       SeaportLib1_1 = await ethers.getContractFactory("SeaportLib1_1");
       deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
 
       console.log("deployedLooksrareLibV1: ", deployedLooksrareLibV1.address);
-      console.log("deployedOpenseaLibV1: ", deployedOpenseaLibV1.address);
       console.log("deployedSeaportLib1_1: ", deployedSeaportLib1_1.address);
 
       MarketplaceRegistry = await ethers.getContractFactory("MarketplaceRegistry");
@@ -42,7 +40,6 @@ describe("NFT Aggregator", function () {
       });
 
       deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
-      deployedMarketplaceRegistry.addMarketplace(deployedOpenseaLibV1.address, true);
       deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
 
       console.log("deployedMarketplaceRegistry: ", deployedMarketplaceRegistry.address);
@@ -125,9 +122,19 @@ describe("NFT Aggregator", function () {
       });
 
       it("should allow user to user to list on looksrare and other user to purchase it", async function () {
-        const contractAddress = "0xf5de760f2e916647fd766B4AD9E85ff943cE3A2b";
-        const tokenID = "1441796";
-        const data = await getLooksrareOrder(true, contractAddress, tokenID);
+        const chainId = 5; // goerli
+        const data = await createLooksrareParametersForNFTListing(
+          offerer: string,
+          contractAddress: string,
+          tokenId: string,
+          price: BigNumberish,
+          currency: string,
+          chainId,
+          await getLooksrareNonce(currentAddress, chainId), // nonce
+          looksrareStrategy: IExecutionStrategy,
+          looksrareRoyaltyFeeRegistry: RoyaltyFeeRegistry,
+          duration: BigNumberish,
+        )
 
         const {
           hash,
@@ -149,7 +156,7 @@ describe("NFT Aggregator", function () {
           v,
           r,
           s,
-        } = data.data[0];
+        } = data;
 
         // rinkeby nft aggregator
         const executorAddress = "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309";
@@ -271,106 +278,106 @@ describe("NFT Aggregator", function () {
         expect(hex).to.be.equal(genHex);
       });
 
-      it("should create opensea generated hexes for arbitrary seaport orders", async function () {
-        const contractAddress = "0x2d5d5e4efbd13c2347013d4c9f3c5c666f18d55c";
-        const contractNft = await Mock721.attach(contractAddress);
-        const tokenId = "2";
-        const recipient = "0x338eFdd45AE7D010da108f39d293565449C52682";
+      // it("should create opensea generated hexes for arbitrary seaport orders", async function () {
+      //   const contractAddress = "0x2d5d5e4efbd13c2347013d4c9f3c5c666f18d55c";
+      //   const contractNft = await Mock721.attach(contractAddress);
+      //   const tokenId = "2";
+      //   const recipient = "0x338eFdd45AE7D010da108f39d293565449C52682";
 
-        // rinkeby zone: 0x00000000e88fe2628ebc5da81d2b3cead633e89e
-        // mainnet zone: 0x004c00500000ad104d7dbd00e3ae0a5c00560c00
-        const zone = "0x00000000e88fe2628ebc5da81d2b3cead633e89e";
+      //   // rinkeby zone: 0x00000000e88fe2628ebc5da81d2b3cead633e89e
+      //   // mainnet zone: 0x004c00500000ad104d7dbd00e3ae0a5c00560c00
+      //   const zone = "0x00000000e88fe2628ebc5da81d2b3cead633e89e";
 
-        const data = await getSeaportOrder(contractAddress, tokenId, 5);
-        const order = data?.orders[0];
+      //   const data = await getSeaportOrder(contractAddress, tokenId, 5);
+      //   const order = data?.orders[0];
 
-        // input data for SeaportLibV1_1
-        const inputData = [
-          [
-            [
-              [
-                {
-                  denominator: "1",
-                  numerator: "1",
-                  parameters: {
-                    conduitKey: order.protocol_data.parameters.conduitKey,
-                    consideration: order.protocol_data.parameters.consideration,
-                    endTime: order.protocol_data.parameters.endTime,
-                    offer: order.protocol_data.parameters.offer,
-                    offerer: order.protocol_data.parameters.offerer, // seller
-                    orderType: order.protocol_data.parameters.orderType,
-                    salt: order.protocol_data.parameters.salt,
-                    startTime: order.protocol_data.parameters.startTime,
-                    totalOriginalConsiderationItems: order.protocol_data.parameters.totalOriginalConsiderationItems,
-                    zone: zone, // opensea pausable zone
-                    zoneHash: order.protocol_data.parameters.zoneHash,
-                  },
-                  signature: order.protocol_data.signature,
-                  extraData: "0x",
-                },
-              ],
-              [],
-              [
-                [
-                  {
-                    orderIndex: "0",
-                    itemIndex: "0",
-                  },
-                ],
-              ],
-              [
-                [
-                  {
-                    orderIndex: "0",
-                    itemIndex: "0",
-                  },
-                ],
-                [
-                  {
-                    orderIndex: "0",
-                    itemIndex: "1",
-                  },
-                ],
-                [
-                  {
-                    orderIndex: "0",
-                    itemIndex: "2",
-                  },
-                ],
-              ],
-              "0x0000000000000000000000000000000000000000000000000000000000000000",
-              recipient,
-              "1",
-            ],
-          ],
-          ["17800000000000000"],
-          true,
-        ];
+      //   // input data for SeaportLibV1_1
+      //   const inputData = [
+      //     [
+      //       [
+      //         [
+      //           {
+      //             denominator: "1",
+      //             numerator: "1",
+      //             parameters: {
+      //               conduitKey: order.protocol_data.parameters.conduitKey,
+      //               consideration: order.protocol_data.parameters.consideration,
+      //               endTime: order.protocol_data.parameters.endTime,
+      //               offer: order.protocol_data.parameters.offer,
+      //               offerer: order.protocol_data.parameters.offerer, // seller
+      //               orderType: order.protocol_data.parameters.orderType,
+      //               salt: order.protocol_data.parameters.salt,
+      //               startTime: order.protocol_data.parameters.startTime,
+      //               totalOriginalConsiderationItems: order.protocol_data.parameters.totalOriginalConsiderationItems,
+      //               zone: zone, // opensea pausable zone
+      //               zoneHash: order.protocol_data.parameters.zoneHash,
+      //             },
+      //             signature: order.protocol_data.signature,
+      //             extraData: "0x",
+      //           },
+      //         ],
+      //         [],
+      //         [
+      //           [
+      //             {
+      //               orderIndex: "0",
+      //               itemIndex: "0",
+      //             },
+      //           ],
+      //         ],
+      //         [
+      //           [
+      //             {
+      //               orderIndex: "0",
+      //               itemIndex: "0",
+      //             },
+      //           ],
+      //           [
+      //             {
+      //               orderIndex: "0",
+      //               itemIndex: "1",
+      //             },
+      //           ],
+      //           [
+      //             {
+      //               orderIndex: "0",
+      //               itemIndex: "2",
+      //             },
+      //           ],
+      //         ],
+      //         "0x0000000000000000000000000000000000000000000000000000000000000000",
+      //         recipient,
+      //         "1",
+      //       ],
+      //     ],
+      //     ["17800000000000000"],
+      //     true,
+      //   ];
 
-        const genHex = await seaportLib.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
+      //   const genHex = await seaportLib.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
 
-        // console.log('genHex: ', genHex);
+      //   // console.log('genHex: ', genHex);
 
-        expect(await contractNft.ownerOf(2)).to.be.equal("0x59495589849423692778a8c5aaCA62CA80f875a4");
+      //   expect(await contractNft.ownerOf(2)).to.be.equal("0x59495589849423692778a8c5aaCA62CA80f875a4");
 
-        await deployedNftAggregator.batchTrade(
-          {
-            tokenAddrs: [],
-            amounts: [],
-          },
-          [
-            {
-              marketId: 2, // seaport 1.1
-              value: "17800000000000000", // 0.0178 ETH
-              tradeData: genHex,
-            },
-          ],
-          [],
-        );
+      //   await deployedNftAggregator.batchTrade(
+      //     {
+      //       tokenAddrs: [],
+      //       amounts: [],
+      //     },
+      //     [
+      //       {
+      //         marketId: 2, // seaport 1.1
+      //         value: "17800000000000000", // 0.0178 ETH
+      //         tradeData: genHex,
+      //       },
+      //     ],
+      //     [],
+      //   );
 
-        console.log("owner after: ", await contractNft.ownerOf(2));
-        console.log("constant recipient: ", recipient);
-      });
+      //   console.log("owner after: ", await contractNft.ownerOf(2));
+      //   console.log("constant recipient: ", recipient);
+      // });
     });
   } catch (err) {
     console.log("error: ", JSON.stringify(err.response, null, 2));
