@@ -93,7 +93,11 @@ const getTokens = async (hre: any) => {
       ? "0x98ca78e89Dd1aBE48A53dEe5799F24cC1A462F2D"
       : "";
   const deployedNftResolver =
-    network == "goerli" ? "0x3a3539B6727E74fa1c5D4d39B433F0fAB5BC4F4a" : network === "mainnet" ? "0xA657C988e8aC39D3268D390eB7c522a535B10453" : "";
+    network == "goerli"
+      ? "0x3a3539B6727E74fa1c5D4d39B433F0fAB5BC4F4a"
+      : network === "mainnet"
+      ? "0xA657C988e8aC39D3268D390eB7c522a535B10453"
+      : "";
   const deployedNftAggregator =
     network == "goerli"
       ? "0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10"
@@ -691,9 +695,9 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   const deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
   await waitTx("deployedLooksrareLibV1", deployedLooksrareLibV1, hre);
 
-  // const SeaportLib1_1 = await hre.ethers.getContractFactory("SeaportLib1_1");
-  // const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
-  // await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
+  const SeaportLib1_1 = await hre.ethers.getContractFactory("SeaportLib1_1");
+  const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
+  await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
 
   const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
   // const deployedMarketplaceRegistry = await hre.upgrades.deployProxy(MarketplaceRegistry, [], {
@@ -701,23 +705,19 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   // });
   // await waitTx("deployedMarketplaceRegistry", deployedMarketplaceRegistry, hre);
 
-  const deployedMarketplaceRegistry = await MarketplaceRegistry.attach((await getTokens(hre)).deployedMarketplaceRegistry)
+  const deployedMarketplaceRegistry = await MarketplaceRegistry.attach(
+    (
+      await getTokens(hre)
+    ).deployedMarketplaceRegistry,
+  );
   await deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
-  // await deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
-
-  // const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
-  // const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
-  //   kind: "uups",
-  //   unsafeAllow: ["delegatecall"],
-  // });
-  // await waitTx("deployedNftAggregator", deployedNftAggregator, hre);
 
   console.log(chalk.green(`${(TIME_DELAY * 3) / 1000} second delay`));
   await delay(TIME_DELAY * 3);
   console.log(chalk.green("verifying..."));
 
   await verifyContract("deployedLooksrareLibV1", deployedLooksrareLibV1.address, [], hre);
-  // await verifyContract("deployedSeaportLib1_1", deployedSeaportLib1_1.address, [], hre);
+  await verifyContract("deployedSeaportLib1_1", deployedSeaportLib1_1.address, [], hre);
 
   // await getImplementation("deployedMarketplaceRegistry", deployedMarketplaceRegistry.address, hre);
   // await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
@@ -744,36 +744,33 @@ task("testResolver").setAction(async function (taskArguments, hre) {
 task("batchBuy").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to batch buy"));
 
-  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator", {
-    libraries: {
-      SeaportLib1_1: (await getTokens(hre)).deployedSeaportLib1_1,
-    },
-  });
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
   const deployedNftAggregator = await NftAggregator.attach((await getTokens(hre)).deployedNftAggregator);
 
   const seaportOrders = {
-    order: [
-      {
-        contractAddress: "0xf5de760f2e916647fd766b4ad9e85ff943ce3a2b",
-        tokenId: "1441800",
-        msgValue: hre.ethers.BigNumber.from((0.1 * 10**18).toString()), // 0 if ETH
-      },
-    ],
-    recipient: "0x59495589849423692778a8c5aaCA62CA80f875a4",
-    chainID: "4",
-    failIfRevert: true
+    // order: [
+    //   {
+    //     contractAddress: "0xf5de760f2e916647fd766b4ad9e85ff943ce3a2b",
+    //     tokenId: "1441800",
+    //     msgValue: hre.ethers.BigNumber.from((0.1 * 10 ** 18).toString()), // 0 if ETH
+    //   },
+    // ],
+    // recipient: "0x59495589849423692778a8c5aaCA62CA80f875a4",
+    // chainID: "4",
+    // failIfRevert: true,
   };
 
-  const looksrareOrders = [
-    {
-      contractAddress: "0x530E404f51778F38249413264ac7807A16b88603",
-      tokenId: "57",
-      msgValue: hre.ethers.BigNumber.from((0.04 * 10**18).toString()), // 0 if not ETH
-      executorAddress: (await getTokens(hre)).deployedNftAggregator,
-      chainID: "4",
-      failIfRevert: true,
-    },
-  ] || new Array<LooksrareInput>();
+  const looksrareOrders =
+    [
+      {
+        contractAddress: "0xe0060010c2c81A817f4c52A9263d4Ce5c5B66D55",
+        tokenId: "4955",
+        msgValue: hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString()), // 0 if not ETH
+        executorAddress: (await getTokens(hre)).deployedNftAggregator,
+        chainID: "5",
+        failIfRevert: true,
+      },
+    ] || new Array<LooksrareInput>();
 
   const { totalValue, combinedOrders } = await combineOrders(seaportOrders as SeaportCompleteInput, looksrareOrders);
 
@@ -983,18 +980,14 @@ task("upgrade:GenesisKeyTeamClaim").setAction(async function (taskArguments, hre
 
 task("upgrade:NftAggregator").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
-  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator", {
-    libraries: {
-      SeaportLib1_1: (await getTokens(hre)).deployedSeaportLib1_1,
-    },
-  });
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
 
   const upgradedNftAggregator = await hre.upgrades.upgradeProxy(
     (
       await getTokens(hre)
     ).deployedNftAggregator,
     NftAggregator,
-    { unsafeAllow: ["delegatecall"], unsafeAllowLinkedLibraries: true },
+    { unsafeAllow: ["delegatecall"] },
   );
 
   await waitTx("upgradedNftAggregator", upgradedNftAggregator, hre);

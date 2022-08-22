@@ -1,8 +1,20 @@
-import { IExecutionStrategy, RoyaltyFeeRegistry } from '../../../typechain/looksrare';
+import { Provider } from "@ethersproject/providers";
+import { Addresses, addressesByNetwork, generateMakerOrderTypedData, MakerOrder } from "@looksrare/sdk";
+import axios from "axios";
+import { BigNumber, BigNumberish } from "ethers";
 
-import { Addresses, addressesByNetwork, MakerOrder } from '@looksrare/sdk';
-import { BigNumber, BigNumberish } from 'ethers';
-import axios from 'axios';
+import { IExecutionStrategy, RoyaltyFeeRegistry } from "../../../typechain/looksrare";
+import { RoyaltyFeeRegistry__factory } from "../../../typechain/looksrare/factories/RoyaltyFeeRegistry__factory";
+import { IExecutionStrategy__factory } from "../../../typechain/looksrare/factories/IExecutionStrategy__factory";
+import { signLooksrareOrder } from "../sign-utils";
+
+export const isNullOrEmpty = (val: string | any[] | null | undefined): boolean => val == null || val.length === 0;
+
+export async function getLooksrareAddresses(chainId: number): Promise<any> {
+  // @ts-ignore
+  const addresses: Addresses = addressesByNetwork[chainId];
+  return addresses;
+}
 
 export async function createLooksrareParametersForNFTListing(
   offerer: string,
@@ -20,9 +32,11 @@ export async function createLooksrareParametersForNFTListing(
   const addresses: Addresses = addressesByNetwork[chainId];
   const protocolFees = await looksrareStrategy.viewProtocolFee();
   const [
-    , // setter
-    , // receiver
-    fee
+    ,
+    ,
+    // setter
+    // receiver
+    fee,
   ]: [string, string, BigNumber] = await looksrareRoyaltyFeeRegistry.royaltyFeeInfoCollection(contractAddress);
 
   // Get protocolFees and creatorFees from the contracts
@@ -37,35 +51,67 @@ export async function createLooksrareParametersForNFTListing(
     currency: currency,
     signer: offerer,
     isOrderAsk: true,
-    amount: '1',
-    price:  BigNumber.from(price).toString(),
+    amount: "1",
+    price: BigNumber.from(price).toString(),
     startTime: BigNumber.from(Date.now()).div(1000).toString(),
     endTime: BigNumber.from(Date.now()).div(1000).add(duration).toString(),
     minPercentageToAsk: Math.max(netPriceRatio, minNetPriceRatio),
-    params: []
+    params: [],
   };
 }
 
 export async function getLooksrareNonce(address: string, chainId: number): Promise<number> {
-  const url = `https://${chainId == 5 ? 'api-goerli' : 'api'}.looksrare.org/api/v1/orders/nonce?address=${address}`
-  const { data } = await axios.get(url)
-  return data?.data
+  const url = `https://${chainId == 5 ? "api-goerli" : "api"}.looksrare.org/api/v1/orders/nonce?address=${address}`;
+  const { data } = await axios.get(url);
+  return data?.data;
 }
 
-// export async function signLooksrare(): string {
-//   let nonce = 0;
-//   const order: MakerOrder = await createLooksrareParametersForNFTListing(
-//     currentAddress, // offerer
-//     listing.nft,
-//     listing.startingPrice,
-//     listing.currency,
-//     chain?.id,
-//     nonce,
-//     looksrareStrategy,
-//     looksrareRoyaltyFeeRegistry,
-//     listing.duration,
-//     // listing.takerAddress
-//   );
-//   nonce++;
-//   const signature = await signOrderForLooksrare(order);
-// }
+export function useLooksrareRoyaltyFeeRegistryContractContract(
+  chainId: number,
+  provider: Provider,
+): RoyaltyFeeRegistry | null {
+  // @ts-ignore
+  const addresses: Addresses = addressesByNetwork[chainId];
+  const address = addresses?.ROYALTY_FEE_REGISTRY;
+  if (isNullOrEmpty(address)) {
+    return null;
+  }
+  return RoyaltyFeeRegistry__factory.connect(address, provider);
+}
+
+export function useLooksrareStrategyContract(chainId: number, provider: Provider): IExecutionStrategy | null {
+  // @ts-ignore
+  const addresses: Addresses = addressesByNetwork[chainId];
+  const address = addresses?.STRATEGY_STANDARD_SALE;
+  if (isNullOrEmpty(address)) {
+    return null;
+  }
+  // todo: generalize this hook to different strategies.
+  return IExecutionStrategy__factory.connect(address, provider);
+}
+
+export async function signOrderForLooksrare(
+  chainId: number,
+  signer: any,
+  order: MakerOrder,
+): Promise<{ v: string; r: string; s: string } | undefined> {
+  try {
+    const { domain, value, type } = generateMakerOrderTypedData(signer.address, chainId, order);
+    console.log("domain: ", domain);
+
+    const signature = await signLooksrareOrder(
+      signer,
+      // @ts-ignore
+      domain.name,
+      domain.chainId,
+      domain.version,
+      domain.verifyingContract,
+      type,
+      value,
+    );
+
+    return signature;
+  } catch (err) {
+    console.log("error in signOrderForLooksrare: ", err);
+  }
+}

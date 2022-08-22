@@ -144,10 +144,7 @@
           },
           "t_enum(VestingInstallments)14058": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -2994,14 +2991,7 @@
           },
           "t_enum(Blockchain)2888": {
             "label": "enum Blockchain",
-            "members": [
-              "ETHEREUM",
-              "HEDERA",
-              "POLYGON",
-              "SOLANA",
-              "TEZOS",
-              "FLOW"
-            ]
+            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
           },
           "t_contract(IRegex)2881": {
             "label": "contract IRegex"
@@ -3203,14 +3193,7 @@
           },
           "t_enum(Blockchain)21620": {
             "label": "enum Blockchain",
-            "members": [
-              "ETHEREUM",
-              "HEDERA",
-              "POLYGON",
-              "SOLANA",
-              "TEZOS",
-              "FLOW"
-            ]
+            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
           },
           "t_contract(IRegex)21613": {
             "label": "contract IRegex"

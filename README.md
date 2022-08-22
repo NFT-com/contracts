@@ -91,14 +91,13 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
   - implementation => 0x7927190920E74259d96f9be470A34a79e9bf49AF
 
-- [deployedLooksrareLibV1](https://goerli.etherscan.io/address/0xD9c96BEC8D790cB460F7Ef3D23B5ad22b6684871)
-- [deployedOpenseaLibV1](https://goerli.etherscan.io/address/0xedf8e068720B8B4d71589B947FB81EC7675C0454)
-- [deployedSeaportLib1_1](https://goerli.etherscan.io/address/0xC7b0C89315F9A5E79a1c0b05B7f2aA1FC5587cd7)
+- [deployedLooksrareLibV1](https://goerli.etherscan.io/address/0x4A655899ef868E33436876F33e76F48835Fa3869)
+- [deployedSeaportLib1_1](https://goerli.etherscan.io/address/0xCDaf866B13b4883a43c4b3Ef6b66f8859C848bF5)
 - [deployedMarketplaceRegistry](https://goerli.etherscan.io/address/0x7eC2fe955CFa0A9A5E6920Efc569cFCcB1a3B318)
   - implementation => 0x149c5E6A61A323465B56f862FbdB2AdB2181de88
 - [deployedNftAggregator](https://goerli.etherscan.io/address/0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10)
 
-  - implementation => 0x11b4feF96EC56aF895452cF1858245F46e0A290F
+  - implementation => 0xD2C34A867AE9759BD80A5Fbe136695DfFffE0443
 
 - [deployedGenesisKeyDistributor](https://goerli.etherscan.io/address/)
 

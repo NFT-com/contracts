@@ -2878,7 +2878,7 @@
           {
             "contract": "NftAggregator",
             "label": "marketplaceRegistry",
-            "type": "t_contract(MarketplaceRegistry)9054",
+            "type": "t_contract(MarketplaceRegistry)1504",
             "src": "contracts/aggregator/NftAggregator.sol:28"
           },
           {
@@ -2904,7 +2904,7 @@
           "t_address": {
             "label": "address"
           },
-          "t_contract(MarketplaceRegistry)9054": {
+          "t_contract(MarketplaceRegistry)1504": {
             "label": "contract MarketplaceRegistry"
           },
           "t_uint256": {
@@ -3127,6 +3127,112 @@
           },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "2ccf30ff3e2d10a71c8fa5423733b60bfba892bcec1cfd445698855ce2e6d73c": {
+      "address": "0xD2C34A867AE9759BD80A5Fbe136695DfFffE0443",
+      "txHash": "0xd44ad3cc8f569cbf1ca3631712cdf2b2b2453baed2197b0409edc10c6f2aa4f3",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:26"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:30"
+          },
+          {
+            "contract": "SpecialTransferHelper",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "contracts/aggregator/SpecialTransferHelper.sol:103"
+          },
+          {
+            "contract": "NftAggregator",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts/aggregator/NftAggregator.sol:27"
+          },
+          {
+            "contract": "NftAggregator",
+            "label": "marketplaceRegistry",
+            "type": "t_contract(MarketplaceRegistry)9054",
+            "src": "contracts/aggregator/NftAggregator.sol:28"
+          },
+          {
+            "contract": "NftAggregator",
+            "label": "baseFees",
+            "type": "t_uint256",
+            "src": "contracts/aggregator/NftAggregator.sol:29"
+          },
+          {
+            "contract": "NftAggregator",
+            "label": "openForTrades",
+            "type": "t_bool",
+            "src": "contracts/aggregator/NftAggregator.sol:30"
+          },
+          {
+            "contract": "NftAggregator",
+            "label": "openForFreeTrades",
+            "type": "t_bool",
+            "src": "contracts/aggregator/NftAggregator.sol:31"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(MarketplaceRegistry)9054": {
+            "label": "contract MarketplaceRegistry"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
           }
         }
       }

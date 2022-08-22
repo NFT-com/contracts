@@ -27,7 +27,7 @@ interface ConsiderationObject {
 }
 
 interface ConsiderationObjMap {
-  [key: string]: Array<ConsiderationFulfillmentUnit>
+  [key: string]: Array<ConsiderationFulfillmentUnit>;
 }
 
 interface ConsiderationFulfillmentUnit {
@@ -61,12 +61,12 @@ interface AggregatorResponse {
   marketId: string;
 }
 
-const libraryCall = (fnSig: string, entireHex: string): string => {
-  return `${
-    (ethers.utils.keccak256(ethers.utils.toUtf8Bytes(fnSig)) as unknown as Buffer)
-    .toString("hex")
-    .substring(0, 10)
-  }` + entireHex;
+export const libraryCall = (fnSig: string, entireHex: string): string => {
+  return (
+    `${(ethers.utils.keccak256(ethers.utils.toUtf8Bytes(fnSig)) as unknown as Buffer)
+      .toString("hex")
+      .substring(0, 10)}` + entireHex
+  );
 };
 
 const getLooksrarePrefix = (chainID: string) => {
@@ -103,7 +103,7 @@ const getLooksrareOrder = async (
   status = "VALID",
 ) => {
   try {
-    console.log(chalk.green('getting looksrare order'));
+    console.log(chalk.green("getting looksrare order"));
     await delay(2000);
 
     const baseUrl = `https://${getLooksrarePrefix(chainID)}.looksrare.org/api/v1`;
@@ -123,19 +123,19 @@ const getSeaportOrder = async (
   tokenId: string,
   chainID: string,
   limit = 1,
-  OPENSEA_API_KEY = '2829e29e1ae34375a3cc5f4eee84e190',
+  OPENSEA_API_KEY = "2829e29e1ae34375a3cc5f4eee84e190",
 ) => {
   try {
-    console.log(chalk.blue('getting seaport order'));
+    console.log(chalk.blue("getting seaport order"));
     await delay(2000);
 
     const baseUrl = getSeaportBaseUrl(chainID);
     const url = `${baseUrl}/listings?asset_contract_address=${contract}&token_ids=${tokenId}&limit=${limit}`;
-    const os_api_key: string = (OPENSEA_API_KEY || '2829e29e1ae34375a3cc5f4eee84e190')
+    const os_api_key: string = OPENSEA_API_KEY || "2829e29e1ae34375a3cc5f4eee84e190";
     const config = {
-      headers: { Accept: "application/json" }
+      headers: { Accept: "application/json" },
     };
-    const result = await axios.get(url, config)
+    const result = await axios.get(url, config);
     return result.data;
   } catch (err) {
     console.log("error with looksrare order:", err);
@@ -144,35 +144,32 @@ const getSeaportOrder = async (
 };
 
 const generateOfferArray = (array: any) => {
-  return array.map((item: any, index: string) =>
-    [
-      {
-        orderIndex: index,
-        itemIndex: item.length - 1,
-      },
-    ],
-  )
-}
+  return array.map((item: any, index: string) => [
+    {
+      orderIndex: index,
+      itemIndex: item.length - 1,
+    },
+  ]);
+};
 
-const generateOrderConsiderationArray = (array: Array<Array<ConsiderationObject>>):
-  Array<Array<ConsiderationFulfillmentUnit>> => {
-  const mapIndex: ConsiderationObjMap = {}
-  array.map((item: Array<ConsiderationObject>, index: number) => 
+const generateOrderConsiderationArray = (
+  array: Array<Array<ConsiderationObject>>,
+): Array<Array<ConsiderationFulfillmentUnit>> => {
+  const mapIndex: ConsiderationObjMap = {};
+  array.map((item: Array<ConsiderationObject>, index: number) =>
     item.map((i: ConsiderationObject, shortIndex: number) => {
       if (mapIndex[i.recipient] == undefined) {
-        mapIndex[i.recipient] = [{ orderIndex: index.toString(), itemIndex: shortIndex.toString() }]
+        mapIndex[i.recipient] = [{ orderIndex: index.toString(), itemIndex: shortIndex.toString() }];
       } else {
-        mapIndex[i.recipient].push({ orderIndex: index.toString(), itemIndex: shortIndex.toString() })
+        mapIndex[i.recipient].push({ orderIndex: index.toString(), itemIndex: shortIndex.toString() });
       }
-    })
-  )
-  
-  return Object.values(mapIndex)
-}
+    }),
+  );
 
-const getSeaportHex = async (
-  input: SeaportCompleteInput
-): Promise<AggregatorResponse> => {
+  return Object.values(mapIndex);
+};
+
+const getSeaportHex = async (input: SeaportCompleteInput): Promise<AggregatorResponse> => {
   try {
     const { failIfRevert, chainID, order, recipient } = input;
 
@@ -185,13 +182,13 @@ const getSeaportHex = async (
       throw `chainID ${chainID} not supported`;
     }
 
-    const orderParams = []
+    const orderParams = [];
 
     for (let i = 0; i < order.length; i++) {
       const { contractAddress, tokenId } = order[i];
       const data = await getSeaportOrder(contractAddress, tokenId, chainID, 5);
       const orderResult = data?.orders[0];
-  
+
       orderParams.push({
         denominator: "1",
         numerator: "1",
@@ -210,7 +207,7 @@ const getSeaportHex = async (
         },
         signature: orderResult.protocol_data.signature,
         extraData: "0x",
-      })
+      });
     }
 
     const orderStruct = [
@@ -243,7 +240,7 @@ const getSeaportHex = async (
     return {
       tradeData: genHex,
       value: msgValue,
-      marketId: "3",
+      marketId: "1",
     };
   } catch (err) {
     throw `error in getSeaportHex: ${err}`;
@@ -320,15 +317,15 @@ const getLooksrareHex = async (
       failIfRevert,
     ]);
 
-    console.log('===== input msgValue: ', msgValue)
-    console.log('===== price on looksrare: ', price)
+    console.log("===== input msgValue: ", msgValue);
+    console.log("===== price on looksrare: ", price);
 
     const genHex = await libraryCall("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
 
     return {
       tradeData: genHex,
       value: ethers.BigNumber.from(msgValue),
-      marketId: "4",
+      marketId: "0",
     };
   } catch (err) {
     throw `error in getLooksrareHex: ${err}`;
@@ -340,27 +337,34 @@ export const combineOrders = async (
   looksrareOrders: Array<LooksrareInput>,
 ): Promise<CombinedOrders> => {
   const combinedOrders: Array<AggregatorResponse> = [];
-  
+
   try {
     if (seaportOrders?.order?.length) {
       const result: AggregatorResponse = await getSeaportHex(seaportOrders);
       combinedOrders.push(result);
     }
   } catch (err) {
-    console.log(`seaport order combination failed: ${err}`)
+    console.log(`seaport order combination failed: ${err}`);
   }
 
   for (let index = 0; index < looksrareOrders.length; index++) {
     const i: LooksrareInput = looksrareOrders[index];
     try {
-      const result: AggregatorResponse = await getLooksrareHex(i.contractAddress, i.tokenId, i.chainID, i.msgValue.toString(), i.executorAddress, i.failIfRevert);
+      const result: AggregatorResponse = await getLooksrareHex(
+        i.contractAddress,
+        i.tokenId,
+        i.chainID,
+        i.msgValue.toString(),
+        i.executorAddress,
+        i.failIfRevert,
+      );
       combinedOrders.push(result);
     } catch (err) {
-      console.log(`looksrare order ${index} / ${looksrareOrders.length - 1} failed: ${err}`)
+      console.log(`looksrare order ${index} / ${looksrareOrders.length - 1} failed: ${err}`);
     }
   }
 
-  const totalValue: ethers.BigNumber = seaportOrders.order
+  const totalValue: ethers.BigNumber = (seaportOrders.order || [])
     .map(i => ethers.BigNumber.from(i.msgValue))
     .concat(looksrareOrders.map(i => ethers.BigNumber.from(i.msgValue)))
     .reduce(

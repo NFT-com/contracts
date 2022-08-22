@@ -3,8 +3,16 @@ const looksrareABI = require("../looksrareABI.json");
 const seaportABI = require("../seaportABI.json");
 const axios = require("axios");
 const { ethers } = require("hardhat");
-const { createLooksrareParametersForNFTListing, getLooksrareNonce } = require('./utils/aggregator/looksrareHelper')
-const { createSeaportParametersForNFTListing } = require('./utils/aggregator/seaportHelper')
+const {
+  createLooksrareParametersForNFTListing,
+  getLooksrareNonce,
+  useLooksrareRoyaltyFeeRegistryContractContract,
+  getLooksrareAddresses,
+  useLooksrareStrategyContract,
+  signOrderForLooksrare,
+} = require("./utils/aggregator/looksrareHelper");
+const { libraryCall } = require("../test/utils/aggregator/index")
+const { createSeaportParametersForNFTListing } = require("./utils/aggregator/seaportHelper");
 
 describe("NFT Aggregator", function () {
   try {
@@ -12,11 +20,13 @@ describe("NFT Aggregator", function () {
     let MarketplaceRegistry, deployedMarketplaceRegistry;
     let LooksrareLibV1, deployedLooksrareLibV1;
     let SeaportLib1_1, deployedSeaportLib1_1;
-    let Mock721;
     let looksrare = new ethers.utils.Interface(looksrareABI);
     let seaport = new ethers.utils.Interface(seaportABI);
-    let seaportLib = new ethers.utils.Interface(
-      `[{"inputs":[],"name":"InputLengthMismatch","type":"error"},{"inputs":[],"name":"OPENSEA","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"components":[{"components":[{"components":[{"internalType":"address","name":"offerer","type":"address"},{"internalType":"address","name":"zone","type":"address"},{"components":[{"internalType":"enum ItemType","name":"itemType","type":"uint8"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"identifierOrCriteria","type":"uint256"},{"internalType":"uint256","name":"startAmount","type":"uint256"},{"internalType":"uint256","name":"endAmount","type":"uint256"}],"internalType":"struct OfferItem[]","name":"offer","type":"tuple[]"},{"components":[{"internalType":"enum ItemType","name":"itemType","type":"uint8"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"identifierOrCriteria","type":"uint256"},{"internalType":"uint256","name":"startAmount","type":"uint256"},{"internalType":"uint256","name":"endAmount","type":"uint256"},{"internalType":"address payable","name":"recipient","type":"address"}],"internalType":"struct ConsiderationItem[]","name":"consideration","type":"tuple[]"},{"internalType":"enum OrderType","name":"orderType","type":"uint8"},{"internalType":"uint256","name":"startTime","type":"uint256"},{"internalType":"uint256","name":"endTime","type":"uint256"},{"internalType":"bytes32","name":"zoneHash","type":"bytes32"},{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"bytes32","name":"conduitKey","type":"bytes32"},{"internalType":"uint256","name":"totalOriginalConsiderationItems","type":"uint256"}],"internalType":"struct OrderParameters","name":"parameters","type":"tuple"},{"internalType":"uint120","name":"numerator","type":"uint120"},{"internalType":"uint120","name":"denominator","type":"uint120"},{"internalType":"bytes","name":"signature","type":"bytes"},{"internalType":"bytes","name":"extraData","type":"bytes"}],"internalType":"struct AdvancedOrder[]","name":"advancedOrders","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"enum Side","name":"side","type":"uint8"},{"internalType":"uint256","name":"index","type":"uint256"},{"internalType":"uint256","name":"identifier","type":"uint256"},{"internalType":"bytes32[]","name":"criteriaProof","type":"bytes32[]"}],"internalType":"struct CriteriaResolver[]","name":"criteriaResolvers","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"uint256","name":"itemIndex","type":"uint256"}],"internalType":"struct FulfillmentComponent[][]","name":"offerFulfillments","type":"tuple[][]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"uint256","name":"itemIndex","type":"uint256"}],"internalType":"struct FulfillmentComponent[][]","name":"considerationFulfillments","type":"tuple[][]"},{"internalType":"bytes32","name":"fulfillerConduitKey","type":"bytes32"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"maximumFulfilled","type":"uint256"}],"internalType":"struct SeaportLib1_1.SeaportBuyOrder[]","name":"openSeaBuys","type":"tuple[]"},{"internalType":"uint256[]","name":"msgValue","type":"uint256[]"},{"internalType":"bool","name":"revertIfTrxFails","type":"bool"}],"name":"fulfillAvailableAdvancedOrders","outputs":[],"stateMutability":"nonpayable","type":"function"}]`,
+    const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
+    const buyerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC, "m/44'/60'/0'/0/1");
+
+    const looksrareLib = new ethers.utils.Interface(
+      `[{"inputs":[],"name":"InvalidChain","type":"error"},{"inputs":[{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"bytes","name":"tradeData","type":"bytes"},{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bool","name":"revertTxFail","type":"bool"}],"name":"_tradeHelper","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]`,
     );
 
     // `beforeEach` will run before each test, re-deploying the contract every
@@ -52,39 +62,6 @@ describe("NFT Aggregator", function () {
 
       console.log("deployedNftAggregator: ", deployedNftAggregator.address);
     });
-
-    const getLooksrareOrder = async (isOrderAsk = true, contract, tokenId, status = "VALID") => {
-      try {
-        let baseUrl = `https://api-rinkeby.looksrare.org/api/v1`;
-        let url = `${baseUrl}/orders?isOrderAsk=${isOrderAsk}&collection=${contract}&status%5B%5D=${status}&tokenId=${tokenId}&sort=PRICE_ASC`;
-        const config = {
-          headers: { Accept: "application/json" },
-        };
-        return (await axios.get(url, config)).data;
-      } catch (err) {
-        console.log("error with looksrare order:", err);
-        return err;
-      }
-    };
-
-    const getSeaportOrder = async (
-      contract,
-      tokenId,
-      limit = 1,
-      OPENSEA_API_KEY = "2829e29e1ae34375a3cc5f4eee84e190",
-    ) => {
-      try {
-        const baseUrl = `https://testnets-api.opensea.io/v2`;
-        let url = `${baseUrl}/orders/rinkeby/seaport/listings?asset_contract_address=${contract}&token_ids=${tokenId}&limit=${limit}`;
-        const config = {
-          headers: { Accept: "application/json" }, // 'X-API-KEY': OPENSEA_API_KEY // TODO: only use for PROD
-        };
-        return (await axios.get(url, config)).data;
-      } catch (err) {
-        console.log("error with looksrare order:", err);
-        return err;
-      }
-    };
 
     describe("NFT Aggregation", async function () {
       it("should allow nft aggregation parameter creation on looksrare", async function () {
@@ -122,45 +99,46 @@ describe("NFT Aggregator", function () {
       });
 
       it("should allow user to user to list on looksrare and other user to purchase it", async function () {
-        const chainId = 5; // goerli
-        const data = await createLooksrareParametersForNFTListing(
-          offerer: string,
-          contractAddress: string,
-          tokenId: string,
-          price: BigNumberish,
-          currency: string,
-          chainId,
-          await getLooksrareNonce(currentAddress, chainId), // nonce
-          looksrareStrategy: IExecutionStrategy,
-          looksrareRoyaltyFeeRegistry: RoyaltyFeeRegistry,
-          duration: BigNumberish,
-        )
+        const INFURA_KEY = "460ed70fa7394604a709b7dff23f1641";
+        const chainId = 5; // 5 = goerli, hre.network.config.chainId
+        const provider = new ethers.providers.InfuraProvider(chainId == 5 ? "goerli" : "homestead", INFURA_KEY);
 
-        const {
-          hash,
-          collectionAddress,
-          tokenId,
-          isOrderAsk,
-          signer,
-          strategy,
-          currencyAddress,
-          amount,
-          price,
-          nonce,
-          startTime,
-          endTime,
-          minPercentageToAsk,
-          params,
-          status,
-          signature,
-          v,
-          r,
-          s,
-        } = data;
+        const looksrareRoyaltyFeeRegistry = useLooksrareRoyaltyFeeRegistryContractContract(chainId, provider);
+        const looksrareStrategy = useLooksrareStrategyContract(chainId, provider);
+        const addresses = await getLooksrareAddresses(chainId);
+        const tokenID = '4955';
+
+        const offerer = "0x59495589849423692778a8c5aaCA62CA80f875a4";
+        const contractAddress = "0xe0060010c2c81A817f4c52A9263d4Ce5c5B66D55";
+        const currency = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6"; // WETH on goerli
+        const duration = hre.ethers.BigNumber.from(60 * 10); // 10 minutes or 600 seconds
+
+        // approve
+        const contractNft = await Mock721.attach(contractAddress);
+        await contractNft.connect(owner).approve(addresses['EXCHANGE'], tokenID);
+
+        const order = await createLooksrareParametersForNFTListing(
+          offerer,
+          contractAddress,
+          hre.ethers.BigNumber.from(tokenID), // tokenId
+          hre.ethers.BigNumber.from("12000000000000000"), // price
+          currency,
+          chainId,
+          await getLooksrareNonce(offerer, chainId), // nonce
+          looksrareStrategy,
+          looksrareRoyaltyFeeRegistry,
+          duration,
+        );
+
+        const { v, r, s } = await signOrderForLooksrare(chainId, ownerSigner, order);
+
+        const { nonce, tokenId, collection, strategy, signer, isOrderAsk, amount, price, startTime, endTime, minPercentageToAsk, params } = order;
 
         // rinkeby nft aggregator
-        const executorAddress = "0x6579A513E97C0043dC3Ad9Dfd3f804721023a309";
-        const generatedHex = await looksrare.encodeFunctionData("matchAskWithTakerBidUsingETHAndWETH", [
+        const executorAddress = deployedNftAggregator.address;
+        console.log('executorAddress: ', executorAddress);
+        
+        const hexParam = await looksrare.encodeFunctionData("matchAskWithTakerBidUsingETHAndWETH", [
           {
             isOrderAsk: false,
             taker: executorAddress,
@@ -172,12 +150,12 @@ describe("NFT Aggregator", function () {
           {
             isOrderAsk,
             signer,
-            collection: collectionAddress,
+            collection,
             price,
             tokenId,
             amount,
             strategy,
-            currency: currencyAddress,
+            currency,
             nonce,
             startTime,
             endTime,
@@ -189,19 +167,29 @@ describe("NFT Aggregator", function () {
           },
         ]);
 
-        console.log("generatedHex: ", generatedHex);
+        const wholeHex = await looksrareLib.encodeFunctionData("_tradeHelper", [
+          price,
+          hexParam,
+          collection,
+          tokenId,
+          true // failIfRevert,
+        ]);
+    
+        const genHex = await libraryCall("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
+
+        console.log('genHex: ', genHex);
+
+        const totalValue = hre.ethers.BigNumber.from(price);
 
         const marketId = 0; // looksrare
-        const value = 0;
-        await deployedNftAggregator.connect(owner).batchTrade([
-          // ERC20Details
-          {
-            tokenAddrs: [],
-            amounts: [],
-          },
-          [marketId, value, generatedHex],
-          [], // dust tokens
-        ]);
+        const value = totalValue; // wei sent
+        try {
+          await deployedNftAggregator
+            .connect(second)
+            .batchTradeWithETH([{ marketId, value, tradeData: genHex }], [], { value: totalValue });
+        } catch (err) {
+          console.log("error while batch trading: ", err);
+        }
       });
 
       it("should generate seaport fulfillAvailableAdvancedOrder hex data successfully", async function () {
