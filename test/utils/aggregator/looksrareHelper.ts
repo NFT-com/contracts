@@ -53,8 +53,8 @@ export async function createLooksrareParametersForNFTListing(
     isOrderAsk: true,
     amount: "1",
     price: BigNumber.from(price).toString(),
-    startTime: BigNumber.from(Date.now()).div(1000).toString(),
-    endTime: BigNumber.from(Date.now()).div(1000).add(duration).toString(),
+    startTime: "1661269703" || BigNumber.from(Date.now()).div(1000).toString(),
+    endTime: "1661356103" || BigNumber.from(Date.now()).div(1000).add(duration).toString(),
     minPercentageToAsk: Math.max(netPriceRatio, minNetPriceRatio),
     params: [],
   };
@@ -97,8 +97,6 @@ export async function signOrderForLooksrare(
 ): Promise<{ v: string; r: string; s: string } | undefined> {
   try {
     const { domain, value, type } = generateMakerOrderTypedData(signer.address, chainId, order);
-    console.log("domain: ", domain);
-
     const signature = await signLooksrareOrder(
       signer,
       // @ts-ignore

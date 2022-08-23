@@ -38,7 +38,7 @@ export const convertToHash = (text: string) => {
 
 // 0x40261ade532fa1d2c7293df30aaadb9b3c616fae525a0b56d3d411c841a85028
 export const MAKER_ORDER_HASH = convertToHash(
-  "MakerOrder(bool isOrderAsk,address signer,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params)"
+  "MakerOrder(bool isOrderAsk,address signer,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params)",
 );
 
 export const ERC20_PERMIT_TYPEHASH = convertToHash(
@@ -86,7 +86,7 @@ interface Domain {
   version: string;
   chainId: BigNumberish;
   verifyingContract: string;
-  salt?: BytesLike
+  salt?: BytesLike;
 }
 
 const getDomain = async (provider: any, name: string, verifyingContract: string): Promise<Domain> => {
@@ -165,17 +165,23 @@ export const signLooksrareOrder = async (
   values: any,
 ): Promise<any> => {
   try {
-    console.log('types: ', types)
-    console.log('values: ', values)
+    const orderHash = getHash(
+      ["bytes32"].concat(types.MakerOrder.map((a: any) => (a.type == "bytes" ? "bytes32" : a.type))),
+      [MAKER_ORDER_HASH].concat(
+        types.MakerOrder.map((a: any) => a.name).map((b: any) =>
+          values[b] == "0x"
+            ? keccak256("0x")
+            : values[b],
+        ),
+      ),
+    );
+
     const orderDigest = await getLooksrareDigest(
       domainName,
       domainChainId,
       domainVersion,
       domainVerifyingContract,
-      getHash(
-        ['bytes32'].concat(types.MakerOrder.map((a: any) => a.type)),
-        [MAKER_ORDER_HASH].concat(types.MakerOrder.map((a: any) => a.name).map((b: any) => values[b])),
-      ),
+      orderHash,
     );
 
     const { v, r, s } = sign(orderDigest, signer);

@@ -20,7 +20,8 @@ library LooksrareLibV1 {
             looksrareExchange = 0xD112466471b5438C1ca2D218694200e49d81D047;
         } else if (block.chainid == 4) {
             looksrareExchange = 0x1AA777972073Ff66DCFDeD85749bDD555C0665dA;
-        } else if (block.chainid == 31337) { // hardhat
+        } else if (block.chainid == 31337) {
+            // hardhat
             looksrareExchange = 0xD112466471b5438C1ca2D218694200e49d81D047;
         } else {
             revert InvalidChain();

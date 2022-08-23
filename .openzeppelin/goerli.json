@@ -209,10 +209,7 @@
           },
           "t_enum(VestingInstallments)18146": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -1177,14 +1174,7 @@
           },
           "t_enum(Blockchain)19428": {
             "label": "enum Blockchain",
-            "members": [
-              "ETHEREUM",
-              "HEDERA",
-              "POLYGON",
-              "SOLANA",
-              "TEZOS",
-              "FLOW"
-            ]
+            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
           },
           "t_contract(IRegex)19421": {
             "label": "contract IRegex"
@@ -1919,14 +1909,7 @@
           },
           "t_enum(Blockchain)20125": {
             "label": "enum Blockchain",
-            "members": [
-              "ETHEREUM",
-              "HEDERA",
-              "POLYGON",
-              "SOLANA",
-              "TEZOS",
-              "FLOW"
-            ]
+            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
           },
           "t_contract(IRegex)20118": {
             "label": "contract IRegex"
@@ -2128,14 +2111,7 @@
           },
           "t_enum(Blockchain)2760": {
             "label": "enum Blockchain",
-            "members": [
-              "ETHEREUM",
-              "HEDERA",
-              "POLYGON",
-              "SOLANA",
-              "TEZOS",
-              "FLOW"
-            ]
+            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
           },
           "t_contract(IRegex)2753": {
             "label": "contract IRegex"
@@ -2337,14 +2313,7 @@
           },
           "t_enum(Blockchain)20619": {
             "label": "enum Blockchain",
-            "members": [
-              "ETHEREUM",
-              "HEDERA",
-              "POLYGON",
-              "SOLANA",
-              "TEZOS",
-              "FLOW"
-            ]
+            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
           },
           "t_contract(IRegex)20612": {
             "label": "contract IRegex"
@@ -2546,14 +2515,7 @@
           },
           "t_enum(Blockchain)21548": {
             "label": "enum Blockchain",
-            "members": [
-              "ETHEREUM",
-              "HEDERA",
-              "POLYGON",
-              "SOLANA",
-              "TEZOS",
-              "FLOW"
-            ]
+            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
           },
           "t_contract(IRegex)21541": {
             "label": "contract IRegex"
@@ -3045,14 +3007,7 @@
           },
           "t_enum(Blockchain)21606": {
             "label": "enum Blockchain",
-            "members": [
-              "ETHEREUM",
-              "HEDERA",
-              "POLYGON",
-              "SOLANA",
-              "TEZOS",
-              "FLOW"
-            ]
+            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
           },
           "t_contract(IRegex)21599": {
             "label": "contract IRegex"

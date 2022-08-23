@@ -11,7 +11,7 @@ const {
   useLooksrareStrategyContract,
   signOrderForLooksrare,
 } = require("./utils/aggregator/looksrareHelper");
-const { libraryCall } = require("../test/utils/aggregator/index")
+const { libraryCall } = require("../test/utils/aggregator/index");
 const { createSeaportParametersForNFTListing } = require("./utils/aggregator/seaportHelper");
 
 describe("NFT Aggregator", function () {
@@ -106,16 +106,16 @@ describe("NFT Aggregator", function () {
         const looksrareRoyaltyFeeRegistry = useLooksrareRoyaltyFeeRegistryContractContract(chainId, provider);
         const looksrareStrategy = useLooksrareStrategyContract(chainId, provider);
         const addresses = await getLooksrareAddresses(chainId);
-        const tokenID = '4955';
+        const tokenID = "4955";
 
         const offerer = "0x59495589849423692778a8c5aaCA62CA80f875a4";
         const contractAddress = "0xe0060010c2c81A817f4c52A9263d4Ce5c5B66D55";
         const currency = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6"; // WETH on goerli
-        const duration = hre.ethers.BigNumber.from(60 * 10); // 10 minutes or 600 seconds
+        const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
 
         // approve
         const contractNft = await Mock721.attach(contractAddress);
-        await contractNft.connect(owner).approve(addresses['EXCHANGE'], tokenID);
+        await contractNft.connect(owner).approve(addresses["EXCHANGE"], tokenID);
 
         const order = await createLooksrareParametersForNFTListing(
           offerer,
@@ -132,12 +132,24 @@ describe("NFT Aggregator", function () {
 
         const { v, r, s } = await signOrderForLooksrare(chainId, ownerSigner, order);
 
-        const { nonce, tokenId, collection, strategy, signer, isOrderAsk, amount, price, startTime, endTime, minPercentageToAsk, params } = order;
+        const {
+          nonce,
+          tokenId,
+          collection,
+          strategy,
+          signer,
+          isOrderAsk,
+          amount,
+          price,
+          startTime,
+          endTime,
+          minPercentageToAsk,
+          params,
+        } = order;
 
-        // rinkeby nft aggregator
+        // goerli nft aggregator
         const executorAddress = deployedNftAggregator.address;
-        console.log('executorAddress: ', executorAddress);
-        
+
         const hexParam = await looksrare.encodeFunctionData("matchAskWithTakerBidUsingETHAndWETH", [
           {
             isOrderAsk: false,
@@ -145,7 +157,7 @@ describe("NFT Aggregator", function () {
             price,
             tokenId,
             minPercentageToAsk,
-            params: params || "0x",
+            params: params.length ? params : "0x",
           },
           {
             isOrderAsk,
@@ -160,7 +172,7 @@ describe("NFT Aggregator", function () {
             startTime,
             endTime,
             minPercentageToAsk,
-            params: params || "0x",
+            params: params.length ? params : "0x",
             v,
             r,
             s,
@@ -172,12 +184,10 @@ describe("NFT Aggregator", function () {
           hexParam,
           collection,
           tokenId,
-          true // failIfRevert,
+          true, // failIfRevert,
         ]);
-    
-        const genHex = await libraryCall("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
 
-        console.log('genHex: ', genHex);
+        const genHex = await libraryCall("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
 
         const totalValue = hre.ethers.BigNumber.from(price);
 
