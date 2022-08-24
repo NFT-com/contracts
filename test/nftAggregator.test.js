@@ -131,11 +131,7 @@ describe("NFT Aggregator", function () {
         const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
 
         // approve
-        // await deployedMock721.connect(owner).setApprovalForAll(addresses["EXCHANGE"], true);
-        const contractNft = await Mock721.attach(contractAddress);
-        await contractNft.connect(owner).approve(addresses["EXCHANGE"], "1");
-        await contractNft.connect(owner).approve(deployedNftAggregator.address, "1");
-        expect(await contractNft.ownerOf(tokenID)).to.be.equal(owner.address);
+        await deployedMock721.connect(owner).setApprovalForAll(addresses["TRANSFER_MANAGER_ERC721"], true);
 
         const order = await createLooksrareParametersForNFTListing(
           offerer,
@@ -221,7 +217,7 @@ describe("NFT Aggregator", function () {
           console.log("error while batch trading: ", err);
         }
 
-        expect(await contractNft.ownerOf(tokenID)).to.be.equal(second.address);
+        expect(await deployedMock721.ownerOf(tokenID)).to.be.equal(second.address);
       });
 
       // it("should create opensea generated hexes for arbitrary seaport orders", async function () {

@@ -994,3 +994,10 @@ task("upgrade:NftAggregator").setAction(async function (taskArguments, hre) {
 
   await delayedVerifyImp("upgradedNftAggregator", upgradedNftAggregator.address, hre);
 });
+
+task("z").setAction(async function (taskArguments, hre) {
+  const Mock721 = await hre.ethers.getContractFactory("Test721");
+  const contractNft = await Mock721.attach("0x773d2E2C48140f7cBc1D58be09783d54f47d7D1f");
+  await contractNft.mint('1');
+  console.log(chalk.green(contractNft.address));
+});
