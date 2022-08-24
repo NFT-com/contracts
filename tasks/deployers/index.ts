@@ -997,3 +997,9 @@ task("upgrade:NftAggregator").setAction(async function (taskArguments, hre) {
 
   await delayedVerifyImp("upgradedNftAggregator", upgradedNftAggregator.address, hre);
 });
+
+task("z").setAction(async function (taskArguments, hre) {
+  const Test721 = await hre.ethers.getContractFactory("Test721");
+  const deployed721 = Test721.attach("0x773d2e2c48140f7cbc1d58be09783d54f47d7d1f")
+  await deployed721.approve('0x1e0049783f008a0085193e00003d00cd54003c71', '1');
+});

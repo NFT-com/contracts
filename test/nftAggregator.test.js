@@ -12,7 +12,7 @@ const {
 } = require("./utils/aggregator/looksrareHelper");
 const { libraryCall } = require("../test/utils/aggregator/index");
 const { createSeaportParametersForNFTListing, signOrderForOpensea } = require("./utils/aggregator/seaportHelper");
-const { CROSS_CHAIN_SEAPORT_ADDRESS } = require("./utils/aggregator/types");
+const { OPENSEA_CONDUIT_ADDRESS } = require("./utils/aggregator/types");
 
 describe("NFT Aggregator", function () {
   try {
@@ -222,13 +222,12 @@ describe("NFT Aggregator", function () {
       // });
 
       it("should create opensea generated hexes for arbitrary seaport orders", async function () {
-        const contractAddress = deployedMock721.address;
-
         await deployedMock721.connect(owner).mint("1");
         await deployedMock721.connect(owner).mint("2");
         await deployedMock721.connect(owner).mint("3");
-
+        
         const offerer = owner.address;
+        const contractAddress = "0x773d2e2c48140f7cbc1d58be09783d54f47d7d1f" || deployedMock721.address;
         const tokenId = "1";
         const chainId = "5";
         const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
@@ -243,7 +242,7 @@ describe("NFT Aggregator", function () {
         expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(owner.address);
 
         // approve
-        await deployedMock721.connect(owner).setApprovalForAll(CROSS_CHAIN_SEAPORT_ADDRESS, true);
+        await deployedMock721.connect(owner).setApprovalForAll(OPENSEA_CONDUIT_ADDRESS, true);
 
         const collectionFee = null; // since this is a dummy 721 contract that has no royalties
 
@@ -331,6 +330,8 @@ describe("NFT Aggregator", function () {
         };
 
         const combinedOrders = [setData];
+
+        console.log('combinedOrders: ', combinedOrders);
 
         await deployedNftAggregator.connect(second).batchTradeWithETH(combinedOrders, [], { value: totalValue });
 

@@ -151,7 +151,7 @@ export function createSeaportParametersForNFTListing(
     ],
     consideration: considerationItemsWithFees,
     orderType: OrderType.FULL_RESTRICTED,
-    startTime: BigNumber.from(Date.now()).div(1000).toString(),
+    startTime: BigNumber.from(Date.now()).div(1000).sub(duration).toString(),
     endTime: BigNumber.from(Date.now()).div(1000).add(duration).toString(),
     zoneHash: SEAPORT_ZONE_HASH,
     totalOriginalConsiderationItems: String(considerationItemsWithFees.length),
