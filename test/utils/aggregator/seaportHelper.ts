@@ -21,7 +21,7 @@ import {
 
 import { BigNumber, BigNumberish, ethers } from "ethers";
 import { _TypedDataEncoder } from "ethers/lib/utils";
-import { signOpenseaOrder } from "../sign-utils";
+import { Seaport__factory } from "../../../typechain/seaport/factories/Seaport__factory";
 
 interface Domain {
   name: string;
@@ -163,27 +163,21 @@ export function createSeaportParametersForNFTListing(
 export async function signOrderForOpensea(
   chainId: number,
   signer: any,
-  counter: string,
+  provider: any,
   orderParameters: SeaportOrderParameters,
 ): Promise<{ v: string; r: string; s: string } | undefined> {
   try {
+    const seaport = Seaport__factory.connect(CROSS_CHAIN_SEAPORT_ADDRESS, provider);
+    const counter = (await seaport.getCounter(orderParameters.offerer))?.toString();
+
     const domain = getTypedDataDomain(chainId ?? 1);
     const type = EIP_712_ORDER_TYPE;
     const value = {
       ...orderParameters,
-      counter
+      counter,
     } as SeaportOrderComponents;
 
-    const signature = await signOpenseaOrder(
-      signer,
-      // @ts-ignore
-      domain.name,
-      Number(domain.chainId),
-      domain.version,
-      domain.verifyingContract,
-      type,
-      value,
-    );
+    const signature = await signer._signTypedData(domain, type, value);
 
     return signature;
   } catch (err) {

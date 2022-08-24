@@ -11,7 +11,7 @@ const {
   signOrderForLooksrare,
 } = require("./utils/aggregator/looksrareHelper");
 const { libraryCall } = require("../test/utils/aggregator/index");
-const { createSeaportParametersForNFTListing } = require("./utils/aggregator/seaportHelper");
+const { createSeaportParametersForNFTListing, signOrderForOpensea } = require("./utils/aggregator/seaportHelper");
 const { CROSS_CHAIN_SEAPORT_ADDRESS } = require("./utils/aggregator/types");
 
 describe("NFT Aggregator", function () {
@@ -78,148 +78,148 @@ describe("NFT Aggregator", function () {
         expect(await deployedMock721.balanceOf(second.address)).to.be.equal(0);
       });
 
-      it("should allow nft aggregation parameter creation on looksrare", async function () {
-        let hex = await looksrare.encodeFunctionData("matchAskWithTakerBid", [
-          {
-            isOrderAsk: false,
-            taker: "0x59495589849423692778a8c5aaCA62CA80f875a4",
-            price: "25000000000000000",
-            tokenId: 1,
-            minPercentageToAsk: 7500,
-            params: "0x",
-          },
-          {
-            isOrderAsk: true,
-            signer: "0x6245Cc08E29ca462f9bae9B18fD31e2a83927705",
-            collection: "0x33AcFb7d8eF4FBEeb4d837c7E90B8F74E219DAf7",
-            price: "25000000000000000",
-            tokenId: 1,
-            amount: 1,
-            strategy: "0x732319A3590E4fA838C111826f9584a9A2fDEa1a",
-            currency: "0xc778417E063141139Fce010982780140Aa0cD5Ab",
-            nonce: 0,
-            startTime: 1657491493,
-            endTime: 1673047035,
-            minPercentageToAsk: 7500,
-            params: "0x",
-            v: 28,
-            r: "0xe19a51cc67d9b99cdb06562a2f42d4d8589bf950996b6a1b2fab6d6cf469c076",
-            s: "0x7e6d98660f43cf7ba183e447c62d63a0bfcf7b267b23ed128279a6b2aa86758c",
-          },
-        ]);
+      // it("should allow nft aggregation parameter creation on looksrare", async function () {
+      //   let hex = await looksrare.encodeFunctionData("matchAskWithTakerBid", [
+      //     {
+      //       isOrderAsk: false,
+      //       taker: "0x59495589849423692778a8c5aaCA62CA80f875a4",
+      //       price: "25000000000000000",
+      //       tokenId: 1,
+      //       minPercentageToAsk: 7500,
+      //       params: "0x",
+      //     },
+      //     {
+      //       isOrderAsk: true,
+      //       signer: "0x6245Cc08E29ca462f9bae9B18fD31e2a83927705",
+      //       collection: "0x33AcFb7d8eF4FBEeb4d837c7E90B8F74E219DAf7",
+      //       price: "25000000000000000",
+      //       tokenId: 1,
+      //       amount: 1,
+      //       strategy: "0x732319A3590E4fA838C111826f9584a9A2fDEa1a",
+      //       currency: "0xc778417E063141139Fce010982780140Aa0cD5Ab",
+      //       nonce: 0,
+      //       startTime: 1657491493,
+      //       endTime: 1673047035,
+      //       minPercentageToAsk: 7500,
+      //       params: "0x",
+      //       v: 28,
+      //       r: "0xe19a51cc67d9b99cdb06562a2f42d4d8589bf950996b6a1b2fab6d6cf469c076",
+      //       s: "0x7e6d98660f43cf7ba183e447c62d63a0bfcf7b267b23ed128279a6b2aa86758c",
+      //     },
+      //   ]);
 
-        const hexGen = `0x38e2920900000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000000000000000000000000000000059495589849423692778a8c5aaca62ca80f875a40000000000000000000000000000000000000000000000000058d15e1762800000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000001d4c00000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000006245cc08e29ca462f9bae9b18fd31e2a8392770500000000000000000000000033acfb7d8ef4fbeeb4d837c7e90b8f74e219daf70000000000000000000000000000000000000000000000000058d15e1762800000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000732319a3590e4fa838c111826f9584a9a2fdea1a000000000000000000000000c778417e063141139fce010982780140aa0cd5ab00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000062cb50250000000000000000000000000000000000000000000000000000000063b8abfb0000000000000000000000000000000000000000000000000000000000001d4c0000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001ce19a51cc67d9b99cdb06562a2f42d4d8589bf950996b6a1b2fab6d6cf469c0767e6d98660f43cf7ba183e447c62d63a0bfcf7b267b23ed128279a6b2aa86758c0000000000000000000000000000000000000000000000000000000000000000`;
-        expect(hex).to.be.equal(hexGen);
-      });
+      //   const hexGen = `0x38e2920900000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000000000000000000000000000000059495589849423692778a8c5aaca62ca80f875a40000000000000000000000000000000000000000000000000058d15e1762800000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000001d4c00000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000006245cc08e29ca462f9bae9b18fd31e2a8392770500000000000000000000000033acfb7d8ef4fbeeb4d837c7e90b8f74e219daf70000000000000000000000000000000000000000000000000058d15e1762800000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000732319a3590e4fa838c111826f9584a9a2fdea1a000000000000000000000000c778417e063141139fce010982780140aa0cd5ab00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000062cb50250000000000000000000000000000000000000000000000000000000063b8abfb0000000000000000000000000000000000000000000000000000000000001d4c0000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001ce19a51cc67d9b99cdb06562a2f42d4d8589bf950996b6a1b2fab6d6cf469c0767e6d98660f43cf7ba183e447c62d63a0bfcf7b267b23ed128279a6b2aa86758c0000000000000000000000000000000000000000000000000000000000000000`;
+      //   expect(hex).to.be.equal(hexGen);
+      // });
 
-      it("should allow user to user to list on looksrare and other user to purchase it", async function () {
-        const INFURA_KEY = "460ed70fa7394604a709b7dff23f1641";
-        const chainId = 5; // 5 = goerli, hre.network.config.chainId
-        const provider = new ethers.providers.InfuraProvider(chainId == 5 ? "goerli" : "homestead", INFURA_KEY);
+      // it("should allow user to user to list on looksrare and other user to purchase it", async function () {
+      //   const INFURA_KEY = "460ed70fa7394604a709b7dff23f1641";
+      //   const chainId = 5; // 5 = goerli, hre.network.config.chainId
+      //   const provider = new ethers.providers.InfuraProvider(chainId == 5 ? "goerli" : "homestead", INFURA_KEY);
 
-        const looksrareRoyaltyFeeRegistry = useLooksrareRoyaltyFeeRegistryContractContract(chainId, provider);
-        const looksrareStrategy = useLooksrareStrategyContract(chainId, provider);
-        const addresses = await getLooksrareAddresses(chainId);
-        const contractAddress = deployedMock721.address;
+      //   const looksrareRoyaltyFeeRegistry = useLooksrareRoyaltyFeeRegistryContractContract(chainId, provider);
+      //   const looksrareStrategy = useLooksrareStrategyContract(chainId, provider);
+      //   const addresses = await getLooksrareAddresses(chainId);
+      //   const contractAddress = deployedMock721.address;
 
-        await deployedMock721.connect(owner).mint("1");
-        await deployedMock721.connect(owner).mint("2");
-        await deployedMock721.connect(owner).mint("3");
+      //   await deployedMock721.connect(owner).mint("1");
+      //   await deployedMock721.connect(owner).mint("2");
+      //   await deployedMock721.connect(owner).mint("3");
 
-        const offerer = owner.address;
-        const tokenID = "1";
-        const currency = addresses["WETH"];
-        const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
+      //   const offerer = owner.address;
+      //   const tokenID = "1";
+      //   const currency = addresses["WETH"];
+      //   const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
 
-        // approve
-        await deployedMock721.connect(owner).setApprovalForAll(addresses["TRANSFER_MANAGER_ERC721"], true);
+      //   // approve
+      //   await deployedMock721.connect(owner).setApprovalForAll(addresses["TRANSFER_MANAGER_ERC721"], true);
 
-        const order = await createLooksrareParametersForNFTListing(
-          offerer,
-          contractAddress,
-          hre.ethers.BigNumber.from(tokenID), // tokenId
-          hre.ethers.BigNumber.from("12000000000000000"), // price
-          currency,
-          chainId,
-          await getLooksrareNonce(offerer, chainId), // nonce
-          looksrareStrategy,
-          looksrareRoyaltyFeeRegistry,
-          duration,
-        );
+      //   const order = await createLooksrareParametersForNFTListing(
+      //     offerer,
+      //     contractAddress,
+      //     hre.ethers.BigNumber.from(tokenID), // tokenId
+      //     hre.ethers.BigNumber.from("12000000000000000"), // price
+      //     currency,
+      //     chainId,
+      //     await getLooksrareNonce(offerer, chainId), // nonce
+      //     looksrareStrategy,
+      //     looksrareRoyaltyFeeRegistry,
+      //     duration,
+      //   );
 
-        const { v, r, s } = await signOrderForLooksrare(chainId, ownerSigner, order);
+      //   const { v, r, s } = await signOrderForLooksrare(chainId, ownerSigner, order);
 
-        const {
-          nonce,
-          tokenId,
-          collection,
-          strategy,
-          signer,
-          isOrderAsk,
-          amount,
-          price,
-          startTime,
-          endTime,
-          minPercentageToAsk,
-          params,
-        } = order;
+      //   const {
+      //     nonce,
+      //     tokenId,
+      //     collection,
+      //     strategy,
+      //     signer,
+      //     isOrderAsk,
+      //     amount,
+      //     price,
+      //     startTime,
+      //     endTime,
+      //     minPercentageToAsk,
+      //     params,
+      //   } = order;
 
-        // goerli nft aggregator
-        const executorAddress = deployedNftAggregator.address;
+      //   // goerli nft aggregator
+      //   const executorAddress = deployedNftAggregator.address;
 
-        const hexParam = await looksrare.encodeFunctionData("matchAskWithTakerBidUsingETHAndWETH", [
-          {
-            isOrderAsk: false,
-            taker: executorAddress,
-            price,
-            tokenId,
-            minPercentageToAsk,
-            params: params,
-          },
-          {
-            isOrderAsk,
-            signer,
-            collection,
-            price,
-            tokenId,
-            amount,
-            strategy,
-            currency,
-            nonce,
-            startTime,
-            endTime,
-            minPercentageToAsk,
-            params: params,
-            v,
-            r,
-            s,
-          },
-        ]);
+      //   const hexParam = await looksrare.encodeFunctionData("matchAskWithTakerBidUsingETHAndWETH", [
+      //     {
+      //       isOrderAsk: false,
+      //       taker: executorAddress,
+      //       price,
+      //       tokenId,
+      //       minPercentageToAsk,
+      //       params: params,
+      //     },
+      //     {
+      //       isOrderAsk,
+      //       signer,
+      //       collection,
+      //       price,
+      //       tokenId,
+      //       amount,
+      //       strategy,
+      //       currency,
+      //       nonce,
+      //       startTime,
+      //       endTime,
+      //       minPercentageToAsk,
+      //       params: params,
+      //       v,
+      //       r,
+      //       s,
+      //     },
+      //   ]);
 
-        const wholeHex = await looksrareLib.encodeFunctionData("_tradeHelper", [
-          price,
-          hexParam,
-          collection,
-          tokenId,
-          true, // failIfRevert,
-        ]);
+      //   const wholeHex = await looksrareLib.encodeFunctionData("_tradeHelper", [
+      //     price,
+      //     hexParam,
+      //     collection,
+      //     tokenId,
+      //     true, // failIfRevert,
+      //   ]);
 
-        const genHex = await vvccc("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
+      //   const genHex = await vvccc("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
 
-        const totalValue = hre.ethers.BigNumber.from(price);
+      //   const totalValue = hre.ethers.BigNumber.from(price);
 
-        const marketId = 0; // looksrare
-        const value = totalValue; // wei sent
-        try {
-          await deployedNftAggregator
-            .connect(second)
-            .batchTradeWithETH([{ marketId, value, tradeData: genHex }], [], { value: totalValue });
-        } catch (err) {
-          console.log("error while batch trading: ", err);
-        }
+      //   const marketId = 0; // looksrare
+      //   const value = totalValue; // wei sent
+      //   try {
+      //     await deployedNftAggregator
+      //       .connect(second)
+      //       .batchTradeWithETH([{ marketId, value, tradeData: genHex }], [], { value: totalValue });
+      //   } catch (err) {
+      //     console.log("error while batch trading: ", err);
+      //   }
 
-        expect(await deployedMock721.ownerOf(tokenID)).to.be.equal(second.address);
-      });
+      //   expect(await deployedMock721.ownerOf(tokenID)).to.be.equal(second.address);
+      // });
 
       it("should create opensea generated hexes for arbitrary seaport orders", async function () {
         const contractAddress = deployedMock721.address;
@@ -232,10 +232,15 @@ describe("NFT Aggregator", function () {
         const tokenId = "1";
         const chainId = "5";
         const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
-        const recipient = "0x338eFdd45AE7D010da108f39d293565449C52682";
+        const recipient = second.address;
         const currency = "0x0000000000000000000000000000000000000000"; // ETH
         const startingPrice = hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString());
         const endingPrice = hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString());
+
+        const INFURA_KEY = "460ed70fa7394604a709b7dff23f1641";
+        const provider = new ethers.providers.InfuraProvider(chainId == 5 ? "goerli" : "homestead", INFURA_KEY);
+
+        expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(owner.address);
 
         // approve
         await deployedMock721.connect(owner).setApprovalForAll(CROSS_CHAIN_SEAPORT_ADDRESS, true);
@@ -254,90 +259,82 @@ describe("NFT Aggregator", function () {
           chainId,
         );
 
-        // input data for SeaportLibV1_1
-        const inputData = [
+        const signature = await signOrderForOpensea(chainId, ownerSigner, provider, data);
+
+        // orderStruct for SeaportLibV1_1
+        const orderStruct = [
           [
+            [
+              {
+                denominator: "1",
+                numerator: "1",
+                parameters: {
+                  conduitKey: data.conduitKey,
+                  consideration: data.consideration,
+                  endTime: data.endTime,
+                  offer: data.offer,
+                  offerer: data.offerer, // seller
+                  orderType: data.orderType,
+                  salt: data.salt,
+                  startTime: data.startTime,
+                  totalOriginalConsiderationItems: data.totalOriginalConsiderationItems,
+                  zone: data.zone, // opensea pausable zone
+                  zoneHash: data.zoneHash,
+                },
+                signature: signature,
+                extraData: "0x",
+              },
+            ],
+            [],
             [
               [
                 {
-                  denominator: "1",
-                  numerator: "1",
-                  parameters: {
-                    conduitKey: order.protocol_data.parameters.conduitKey,
-                    consideration: order.protocol_data.parameters.consideration,
-                    endTime: order.protocol_data.parameters.endTime,
-                    offer: order.protocol_data.parameters.offer,
-                    offerer: order.protocol_data.parameters.offerer, // seller
-                    orderType: order.protocol_data.parameters.orderType,
-                    salt: order.protocol_data.parameters.salt,
-                    startTime: order.protocol_data.parameters.startTime,
-                    totalOriginalConsiderationItems: order.protocol_data.parameters.totalOriginalConsiderationItems,
-                    zone: zone, // opensea pausable zone
-                    zoneHash: order.protocol_data.parameters.zoneHash,
-                  },
-                  signature: order.protocol_data.signature,
-                  extraData: "0x",
+                  orderIndex: "0",
+                  itemIndex: "0",
                 },
               ],
-              [],
+            ], // TODO: automate these arrays
+            [
               [
-                [
-                  {
-                    orderIndex: "0",
-                    itemIndex: "0",
-                  },
-                ],
+                {
+                  orderIndex: "0",
+                  itemIndex: "0",
+                },
               ],
               [
-                [
-                  {
-                    orderIndex: "0",
-                    itemIndex: "0",
-                  },
-                ],
-                [
-                  {
-                    orderIndex: "0",
-                    itemIndex: "1",
-                  },
-                ],
-                [
-                  {
-                    orderIndex: "0",
-                    itemIndex: "2",
-                  },
-                ],
+                {
+                  orderIndex: "0",
+                  itemIndex: "1",
+                },
               ],
-              "0x0000000000000000000000000000000000000000000000000000000000000000",
-              recipient,
-              "1",
             ],
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            recipient,
+            "1",
           ],
-          [startingPrice],
-          true,
         ];
 
-        // const genHex = await seaportLib.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
+        const totalValue = startingPrice;
+        const failIfRevert = true;
 
-        // const tx = await deployedNftAggregator.batchTradeWithETH(combinedOrders, [], { value: totalValue });
+        const inputData = [orderStruct, [startingPrice], failIfRevert];
+        const wholeHex = await seaportLib.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
+        const genHex = await libraryCall(
+          "fulfillAvailableAdvancedOrders(SeaportLib1_1.SeaportBuyOrder[],uint256[],bool)",
+          wholeHex.slice(10),
+        );
 
-        // await deployedNftAggregator.batchTrade(
-        //   {
-        //     tokenAddrs: [],
-        //     amounts: [],
-        //   },
-        //   [
-        //     {
-        //       marketId: 1, // seaport 1.1
-        //       value: "17800000000000000", // 0.0178 ETH
-        //       tradeData: genHex,
-        //     },
-        //   ],
-        //   [],
-        // );
+        const setData = {
+          tradeData: genHex,
+          value: startingPrice,
+          marketId: "1",
+        };
 
-        // console.log("owner after: ", await contractNft.ownerOf(2));
-        // console.log("constant recipient: ", recipient);
+        const combinedOrders = [setData];
+
+        await deployedNftAggregator.connect(second).batchTradeWithETH(combinedOrders, [], { value: totalValue });
+
+        expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(second.address);
       });
 
       it("should generate seaport fulfillAvailableAdvancedOrder hex data successfully", async function () {

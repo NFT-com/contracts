@@ -42,9 +42,7 @@ export const MAKER_ORDER_HASH = convertToHash(
 );
 
 // TODO:
-export const OPENSEA_TYPEHASH = convertToHash(
-  ""
-);
+export const OPENSEA_TYPEHASH = convertToHash("");
 
 export const ERC20_PERMIT_TYPEHASH = convertToHash(
   "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)",
@@ -159,43 +157,6 @@ const getAssetList = (assets: any) => {
     };
   });
 };
-
-export const signOpenseaOrder = async (
-  signer: any,
-  domainName: string,
-  domainChainId: number,
-  domainVersion: string,
-  domainVerifyingContract: string,
-  types: any,
-  values: any,
-): Promise<any> => {
-  try {
-    const orderHash = getHash(
-      ["bytes32"].concat(types.MakerOrder.map((a: any) => (a.type == "bytes" ? "bytes32" : a.type))),
-      [MAKER_ORDER_HASH].concat(
-        types.MakerOrder.map((a: any) => a.name).map((b: any) => (values[b] == "0x" ? keccak256("0x") : values[b])),
-      ),
-    );
-
-    const orderDigest = await getExplicitDigest(
-      domainName,
-      domainChainId,
-      domainVersion,
-      domainVerifyingContract,
-      orderHash,
-    );
-
-    const { v, r, s } = sign(orderDigest, signer);
-
-    return {
-      v,
-      r,
-      s,
-    };
-  } catch (err) {
-    console.log("error in signOpenseaOrder: ", err);
-  }
-}
 
 export const signLooksrareOrder = async (
   signer: any,

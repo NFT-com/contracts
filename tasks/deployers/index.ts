@@ -102,7 +102,7 @@ const getTokens = async (hre: any) => {
     network == "goerli"
       ? "0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10"
       : network == "mainnet"
-      ? ""
+      ? "0xc7Ce15B068f96D8079Af45A5bab225e628bF96e6"
       : network == "rinkeby"
       ? "0x3F15E5e9cCE275213365e5109168eD7B368f67Fe"
       : "";
@@ -110,7 +110,7 @@ const getTokens = async (hre: any) => {
     network == "goerli"
       ? "0xD9c96BEC8D790cB460F7Ef3D23B5ad22b6684871"
       : network == "mainnet"
-      ? ""
+      ? "0xf3d4636d92977b16499c73b1fd3a759e45050d90"
       : network == "rinkeby"
       ? "0x8363F28dE86901f12a92150Bb4E0dBee72626bde"
       : "";
@@ -118,7 +118,7 @@ const getTokens = async (hre: any) => {
     network == "goerli"
       ? "0xC7b0C89315F9A5E79a1c0b05B7f2aA1FC5587cd7"
       : network == "mainnet"
-      ? ""
+      ? "0x14be7c58087d73b8557438bf9ae3def395837176"
       : network == "rinkeby"
       ? "0x41D13d8A537e5B163A41fb0c1c8ec3af8e2C043e"
       : "";
@@ -126,7 +126,7 @@ const getTokens = async (hre: any) => {
     network == "goerli"
       ? ""
       : network == "mainnet"
-      ? ""
+      ? "0x14be7c58087d73b8557438bf9ae3def395837176"
       : network == "rinkeby"
       ? "0xD7E288B574466FE673cD162A5558966FcAa6446E"
       : "";
@@ -134,7 +134,7 @@ const getTokens = async (hre: any) => {
     network == "goerli"
       ? "0x7eC2fe955CFa0A9A5E6920Efc569cFCcB1a3B318"
       : network == "mainnet"
-      ? ""
+      ? "0x24851a6783fB586E49b1dC71FA40B8307802f2A5"
       : network == "rinkeby"
       ? "0x624548A10332fAe8B1e3D064F2fdD23eD4c4E645"
       : "";
@@ -700,17 +700,20 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
 
   const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
-  // const deployedMarketplaceRegistry = await hre.upgrades.deployProxy(MarketplaceRegistry, [], {
-  //   kind: "uups",
-  // });
-  // await waitTx("deployedMarketplaceRegistry", deployedMarketplaceRegistry, hre);
+  const deployedMarketplaceRegistry = await hre.upgrades.deployProxy(MarketplaceRegistry, [], {
+    kind: "uups",
+  });
+  await waitTx("deployedMarketplaceRegistry", deployedMarketplaceRegistry, hre);
 
-  const deployedMarketplaceRegistry = await MarketplaceRegistry.attach(
-    (
-      await getTokens(hre)
-    ).deployedMarketplaceRegistry,
-  );
-  await deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+  const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
+    kind: "uups",
+    unsafeAllow: ["delegatecall"],
+  });
+
+  console.log(chalk.green("deployedNftAggregator: ", deployedNftAggregator.address));
+  await deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1?.address, true);
+  await deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
 
   console.log(chalk.green(`${(TIME_DELAY * 3) / 1000} second delay`));
   await delay(TIME_DELAY * 3);
@@ -719,8 +722,8 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   await verifyContract("deployedLooksrareLibV1", deployedLooksrareLibV1.address, [], hre);
   await verifyContract("deployedSeaportLib1_1", deployedSeaportLib1_1.address, [], hre);
 
-  // await getImplementation("deployedMarketplaceRegistry", deployedMarketplaceRegistry.address, hre);
-  // await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
+  await getImplementation("deployedMarketplaceRegistry", deployedMarketplaceRegistry.address, hre);
+  await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
 });
 
 task("testResolver").setAction(async function (taskArguments, hre) {

@@ -96,7 +96,7 @@
     "prettier": "prettier --config ./.prettierrc.yaml --write \"**/*.{js,json,md,sol,ts}\"",
     "prettier:check": "prettier --check --config ./.prettierrc.yaml \"**/*.{js,json,md,sol,ts}\"",
     "test": "hardhat test",
-    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain && typechain --target=ethers-v5 ./node_modules/@looksrare/sdk/dist/abis/*.json --out-dir ./typechain/looksrare"
+    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain && typechain --target=ethers-v5 ./node_modules/@looksrare/sdk/dist/abis/*.json --out-dir ./typechain/looksrare && typechain --target=ethers-v5 ./abis/seaport.json --out-dir ./typechain/seaport"
   },
   "dependencies": {
     "@looksrare/sdk": "^0.8.1",
