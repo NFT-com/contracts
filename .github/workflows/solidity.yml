@@ -45,6 +45,7 @@ jobs:
           ${{ matrix.os }}-yarn-
     - run: npm install -g yarn
     - run: yarn install
+    - run: yarn typechain
     - run: yarn coverage
 
     - name: ✅ Upload coverage to Codecov
