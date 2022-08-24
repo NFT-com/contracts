@@ -168,11 +168,7 @@ export const signLooksrareOrder = async (
     const orderHash = getHash(
       ["bytes32"].concat(types.MakerOrder.map((a: any) => (a.type == "bytes" ? "bytes32" : a.type))),
       [MAKER_ORDER_HASH].concat(
-        types.MakerOrder.map((a: any) => a.name).map((b: any) =>
-          values[b] == "0x"
-            ? keccak256("0x")
-            : values[b],
-        ),
+        types.MakerOrder.map((a: any) => a.name).map((b: any) => (values[b] == "0x" ? keccak256("0x") : values[b])),
       ),
     );
 

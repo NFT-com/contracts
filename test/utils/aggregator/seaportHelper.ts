@@ -12,6 +12,7 @@ import {
   SEAPORT_ZONE,
   SEAPORT_ZONE_HASH,
   SEAPORT_ZONE_RINKEBY,
+  SEAPORT_ZONE_GOERLI,
   SeaportConsiderationItem,
   SeaportOrderComponents,
   SeaportOrderParameters,
@@ -100,7 +101,6 @@ export function createSeaportParametersForNFTListing(
   duration: BigNumberish,
   collectionFee: Maybe<Fee>,
   chainId: string,
-  // takerAddress: string,
 ): SeaportOrderParameters {
   // This is what the seller will accept for their NFT.
   // For now, we support a single currency.
@@ -138,7 +138,7 @@ export function createSeaportParametersForNFTListing(
   ]);
   return {
     offerer: offerer ?? NULL_ADDRESS,
-    zone: chainId === "4" ? SEAPORT_ZONE_RINKEBY : SEAPORT_ZONE,
+    zone: chainId === "5" ? SEAPORT_ZONE_GOERLI : chainId === "1" ? SEAPORT_ZONE : SEAPORT_ZONE_RINKEBY,
     offer: [
       {
         itemType: ItemType.ERC721,
@@ -158,3 +158,27 @@ export function createSeaportParametersForNFTListing(
     conduitKey: OPENSEA_CONDUIT_KEY,
   };
 }
+
+// export async function signOrderForOpensea(
+//   chainId: number,
+//   signer: any,
+//   order: MakerOrder,
+// ): Promise<{ v: string; r: string; s: string } | undefined> {
+//   try {
+//     const { domain, value, type } = generateMakerOrderTypedData(signer.address, chainId, order);
+//     const signature = await signLooksrareOrder(
+//       signer,
+//       // @ts-ignore
+//       domain.name,
+//       domain.chainId,
+//       domain.version,
+//       domain.verifyingContract,
+//       type,
+//       value,
+//     );
+
+//     return signature;
+//   } catch (err) {
+//     console.log("error in signOrderForLooksrare: ", err);
+//   }
+// }
