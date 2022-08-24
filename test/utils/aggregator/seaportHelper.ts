@@ -21,6 +21,7 @@ import {
 
 import { BigNumber, BigNumberish, ethers } from "ethers";
 import { _TypedDataEncoder } from "ethers/lib/utils";
+import { signOpenseaOrder } from "../sign-utils";
 
 interface Domain {
   name: string;
@@ -159,26 +160,33 @@ export function createSeaportParametersForNFTListing(
   };
 }
 
-// export async function signOrderForOpensea(
-//   chainId: number,
-//   signer: any,
-//   order: MakerOrder,
-// ): Promise<{ v: string; r: string; s: string } | undefined> {
-//   try {
-//     const { domain, value, type } = generateMakerOrderTypedData(signer.address, chainId, order);
-//     const signature = await signLooksrareOrder(
-//       signer,
-//       // @ts-ignore
-//       domain.name,
-//       domain.chainId,
-//       domain.version,
-//       domain.verifyingContract,
-//       type,
-//       value,
-//     );
+export async function signOrderForOpensea(
+  chainId: number,
+  signer: any,
+  counter: string,
+  orderParameters: SeaportOrderParameters,
+): Promise<{ v: string; r: string; s: string } | undefined> {
+  try {
+    const domain = getTypedDataDomain(chainId ?? 1);
+    const type = EIP_712_ORDER_TYPE;
+    const value = {
+      ...orderParameters,
+      counter
+    } as SeaportOrderComponents;
 
-//     return signature;
-//   } catch (err) {
-//     console.log("error in signOrderForLooksrare: ", err);
-//   }
-// }
+    const signature = await signOpenseaOrder(
+      signer,
+      // @ts-ignore
+      domain.name,
+      Number(domain.chainId),
+      domain.version,
+      domain.verifyingContract,
+      type,
+      value,
+    );
+
+    return signature;
+  } catch (err) {
+    console.log("error in signOrderForOpensea: ", err);
+  }
+}

@@ -41,6 +41,11 @@ export const MAKER_ORDER_HASH = convertToHash(
   "MakerOrder(bool isOrderAsk,address signer,address collection,uint256 price,uint256 tokenId,uint256 amount,address strategy,address currency,uint256 nonce,uint256 startTime,uint256 endTime,uint256 minPercentageToAsk,bytes params)",
 );
 
+// TODO:
+export const OPENSEA_TYPEHASH = convertToHash(
+  ""
+);
+
 export const ERC20_PERMIT_TYPEHASH = convertToHash(
   "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)",
 );
@@ -155,6 +160,43 @@ const getAssetList = (assets: any) => {
   });
 };
 
+export const signOpenseaOrder = async (
+  signer: any,
+  domainName: string,
+  domainChainId: number,
+  domainVersion: string,
+  domainVerifyingContract: string,
+  types: any,
+  values: any,
+): Promise<any> => {
+  try {
+    const orderHash = getHash(
+      ["bytes32"].concat(types.MakerOrder.map((a: any) => (a.type == "bytes" ? "bytes32" : a.type))),
+      [MAKER_ORDER_HASH].concat(
+        types.MakerOrder.map((a: any) => a.name).map((b: any) => (values[b] == "0x" ? keccak256("0x") : values[b])),
+      ),
+    );
+
+    const orderDigest = await getExplicitDigest(
+      domainName,
+      domainChainId,
+      domainVersion,
+      domainVerifyingContract,
+      orderHash,
+    );
+
+    const { v, r, s } = sign(orderDigest, signer);
+
+    return {
+      v,
+      r,
+      s,
+    };
+  } catch (err) {
+    console.log("error in signOpenseaOrder: ", err);
+  }
+}
+
 export const signLooksrareOrder = async (
   signer: any,
   domainName: string,
@@ -172,7 +214,7 @@ export const signLooksrareOrder = async (
       ),
     );
 
-    const orderDigest = await getLooksrareDigest(
+    const orderDigest = await getExplicitDigest(
       domainName,
       domainChainId,
       domainVersion,
@@ -254,7 +296,7 @@ export const signMarketplaceOrder = async (
   };
 };
 
-const getLooksrareDomain = async (
+const getExplicitDomain = async (
   name: string,
   chainId: number,
   version: string,
@@ -263,18 +305,18 @@ const getLooksrareDomain = async (
   return { name, version, chainId, verifyingContract };
 };
 
-export const domainLooksrareSeparator = async (
+export const explicitDomainSeparator = async (
   name: string, // name is deprecated
   chainId: number,
   version: string,
   contractAddress: string,
 ): Promise<string> => {
-  const domain = await getLooksrareDomain(name, chainId, version, contractAddress);
+  const domain = await getExplicitDomain(name, chainId, version, contractAddress);
 
   return _TypedDataEncoder.hashDomain(domain);
 };
 
-export const getLooksrareDigest = async (
+export const getExplicitDigest = async (
   name: string,
   chainId: number,
   version: string,
@@ -284,7 +326,7 @@ export const getLooksrareDigest = async (
   return keccak256(
     solidityPack(
       ["bytes1", "bytes1", "bytes32", "bytes32"],
-      ["0x19", "0x01", await domainLooksrareSeparator(name, chainId, version, contractAddress), hash],
+      ["0x19", "0x01", await explicitDomainSeparator(name, chainId, version, contractAddress), hash],
     ),
   );
 };
