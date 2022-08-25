@@ -104,7 +104,7 @@ const getTokens = async (hre: any) => {
       : network == "mainnet"
       ? "0xc7Ce15B068f96D8079Af45A5bab225e628bF96e6"
       : network == "rinkeby"
-      ? "0x3F15E5e9cCE275213365e5109168eD7B368f67Fe"
+      ? "0xF579F547f656385C5CAD740a7e7D37dD47A66c31"
       : "";
   const deployedLooksrareLibV1 =
     network == "goerli"
@@ -751,31 +751,36 @@ task("batchBuy").setAction(async function (taskArguments, hre) {
   const deployedNftAggregator = await NftAggregator.attach((await getTokens(hre)).deployedNftAggregator);
 
   const seaportOrders = {
-    // order: [
-    //   {
-    //     contractAddress: "0xf5de760f2e916647fd766b4ad9e85ff943ce3a2b",
-    //     tokenId: "1441800",
-    //     msgValue: hre.ethers.BigNumber.from((0.1 * 10 ** 18).toString()), // 0 if ETH
-    //   },
-    // ],
-    // recipient: "0x59495589849423692778a8c5aaCA62CA80f875a4",
-    // chainID: "4",
-    // failIfRevert: true,
+    order: [
+      {
+        contractAddress: "0x530e404f51778f38249413264ac7807a16b88603",
+        tokenId: "56",
+        msgValue: hre.ethers.BigNumber.from((0.013 * 10 ** 18).toString()), // 0 if ETH
+      },
+    ],
+    recipient: "0x338eFdd45AE7D010da108f39d293565449C52682",
+    chainID: "4",
+    failIfRevert: true,
   };
 
   const looksrareOrders =
     [
-      {
-        contractAddress: "0xe0060010c2c81A817f4c52A9263d4Ce5c5B66D55",
-        tokenId: "4955",
-        msgValue: hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString()), // 0 if not ETH
-        executorAddress: (await getTokens(hre)).deployedNftAggregator,
-        chainID: "5",
-        failIfRevert: true,
-      },
+      // {
+      //   contractAddress: "0xe0060010c2c81A817f4c52A9263d4Ce5c5B66D55",
+      //   tokenId: "4955",
+      //   msgValue: hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString()), // 0 if not ETH
+      //   executorAddress: (await getTokens(hre)).deployedNftAggregator,
+      //   chainID: "5",
+      //   failIfRevert: true,
+      // },
     ] || new Array<LooksrareInput>();
 
   const { totalValue, combinedOrders } = await combineOrders(seaportOrders as SeaportCompleteInput, looksrareOrders);
+
+  console.log('combinedOrders: ', combinedOrders)
+  console.log('totalValue: ', totalValue);
+
+  console.log('purchase hex: ', await deployedNftAggregator.interface.encodeFunctionData("batchTradeWithETH", [combinedOrders, []]))
 
   try {
     const tx = await deployedNftAggregator.batchTradeWithETH(combinedOrders, [], { value: totalValue });

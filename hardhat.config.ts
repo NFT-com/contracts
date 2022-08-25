@@ -91,8 +91,8 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        // url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-        url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+        // url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
       accounts: {
         mnemonic,
@@ -102,7 +102,7 @@ const config: HardhatUserConfig = {
     mainnet: getChainConfigPK("mainnet"),
     goerli: getChainConfig("goerli"),
     kovan: getChainConfig("kovan"),
-    rinkeby: getChainConfig("rinkeby"), //getChainConfigPK("rinkeby"),
+    rinkeby: getChainConfigPK("rinkeby"), //getChainConfigPK("rinkeby"),
     ropsten: getChainConfig("ropsten"),
   },
   contractSizer: {

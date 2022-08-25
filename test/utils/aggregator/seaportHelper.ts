@@ -9,6 +9,7 @@ import {
   SEAPORT_CONTRACT_NAME,
   SEAPORT_CONTRACT_VERSION,
   SEAPORT_FEE_COLLLECTION_ADDRESS,
+  SEAPORT_FEE_COLLLECTION_ADDRESS_RINKEBY,
   SEAPORT_ZONE,
   SEAPORT_ZONE_HASH,
   SEAPORT_ZONE_RINKEBY,
@@ -116,7 +117,7 @@ export function createSeaportParametersForNFTListing(
     },
   ];
   const openseaFee: Fee = {
-    recipient: SEAPORT_FEE_COLLLECTION_ADDRESS,
+    recipient: chainId == '4' ? SEAPORT_FEE_COLLLECTION_ADDRESS_RINKEBY : SEAPORT_FEE_COLLLECTION_ADDRESS,
     basisPoints: 250,
   };
 
@@ -139,7 +140,10 @@ export function createSeaportParametersForNFTListing(
   ]);
   return {
     offerer: offerer ?? NULL_ADDRESS,
-    zone: chainId === "5" ? SEAPORT_ZONE_GOERLI : chainId === "1" ? SEAPORT_ZONE : SEAPORT_ZONE_RINKEBY,
+    zone: chainId === "5" ? 
+      SEAPORT_ZONE_GOERLI : chainId == "4" ?
+      SEAPORT_ZONE_RINKEBY : chainId === "1" ?
+      SEAPORT_ZONE : SEAPORT_ZONE_RINKEBY,
     offer: [
       {
         itemType: ItemType.ERC721,
@@ -162,10 +166,10 @@ export function createSeaportParametersForNFTListing(
 
 export async function signOrderForOpensea(
   chainId: number,
-  signer: any,
+  signer: ethers.Wallet,
   provider: any,
   orderParameters: SeaportOrderParameters,
-): Promise<{ v: string; r: string; s: string } | undefined> {
+): Promise<string | undefined> {
   try {
     const seaport = Seaport__factory.connect(CROSS_CHAIN_SEAPORT_ADDRESS, provider);
     const counter = (await seaport.getCounter(orderParameters.offerer))?.toString();

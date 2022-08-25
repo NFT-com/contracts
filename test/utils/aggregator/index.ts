@@ -2,7 +2,7 @@ import axios from "axios";
 import chalk from "chalk";
 import delay from "delay";
 import { ethers } from "ethers";
-import looksrareABI from "../../../looksrareABI.json";
+import looksrareABI from "../../../abis/looksrare.json";
 
 const looksrare = new ethers.utils.Interface(looksrareABI);
 const seaportLib = new ethers.utils.Interface(
@@ -221,6 +221,8 @@ const getSeaportHex = async (input: SeaportCompleteInput): Promise<AggregatorRes
         order.length.toString(), // maximumFulfilled
       ],
     ];
+
+    console.log('orderStruct: ', JSON.stringify(orderStruct, null, 2))
 
     const msgValue: ethers.BigNumber = input.order
       .map(i => ethers.BigNumber.from(i.msgValue))

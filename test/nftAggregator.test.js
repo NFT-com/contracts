@@ -1,6 +1,6 @@
 const { expect } = require("chai");
-const looksrareABI = require("../looksrareABI.json");
-const seaportABI = require("../seaportABI.json");
+const looksrareABI = require("../abis/looksrare.json");
+const seaportABI = require("../abis/seaport.json");
 const { ethers } = require("hardhat");
 const {
   createLooksrareParametersForNFTListing,
@@ -225,11 +225,12 @@ describe("NFT Aggregator", function () {
         await deployedMock721.connect(owner).mint("1");
         await deployedMock721.connect(owner).mint("2");
         await deployedMock721.connect(owner).mint("3");
+        await deployedMock721.connect(owner).mint("56");
         
         const offerer = owner.address;
-        const contractAddress = "0x773d2e2c48140f7cbc1d58be09783d54f47d7d1f" || deployedMock721.address;
-        const tokenId = "1";
-        const chainId = "5";
+        const contractAddress = "0x530e404f51778f38249413264ac7807a16b88603" || deployedMock721.address; // "0x773d2e2c48140f7cbc1d58be09783d54f47d7d1f" || 
+        const tokenId = "56" || "1";
+        const chainId = "4";
         const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
         const recipient = second.address;
         const currency = "0x0000000000000000000000000000000000000000"; // ETH
@@ -237,7 +238,7 @@ describe("NFT Aggregator", function () {
         const endingPrice = hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString());
 
         const INFURA_KEY = "460ed70fa7394604a709b7dff23f1641";
-        const provider = new ethers.providers.InfuraProvider(chainId == 5 ? "goerli" : "homestead", INFURA_KEY);
+        const provider = new ethers.providers.InfuraProvider(chainId == 5 ? "goerli" : chainId == 4 ? "rinkeby" : "homestead", INFURA_KEY);
 
         expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(owner.address);
 
@@ -313,11 +314,45 @@ describe("NFT Aggregator", function () {
           ],
         ];
 
+        console.log('param: ', JSON.stringify([
+          {
+            denominator: "1",
+            numerator: "1",
+            parameters: {
+              conduitKey: data.conduitKey,
+              consideration: data.consideration,
+              endTime: data.endTime,
+              offer: data.offer,
+              offerer: data.offerer, // seller
+              orderType: data.orderType,
+              salt: data.salt,
+              startTime: data.startTime,
+              totalOriginalConsiderationItems: data.totalOriginalConsiderationItems,
+              zone: data.zone, // opensea pausable zone
+              zoneHash: data.zoneHash,
+            },
+            signature: signature,
+            extraData: "0x",
+          },
+        ], null, 2));
+
         const totalValue = startingPrice;
         const failIfRevert = true;
 
+        // const hex = await seaport.encodeFunctionData("fulfillAvailableAdvancedOrders", orderStruct[0]);
+        // console.log('hex: ', hex);
+
         const inputData = [orderStruct, [startingPrice], failIfRevert];
         const wholeHex = await seaportLib.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
+
+        console.log('wholeHex: ', wholeHex);
+        console.log('wholeHex: ', wholeHex.slice(0, 10));
+        console.log('wholeHex: ', wholeHex.slice(10));
+        console.log('base: ', await libraryCall(
+          "fulfillAvailableAdvancedOrders(SeaportLib1_1.SeaportBuyOrder[],uint256[],bool)",
+          '',
+        ))
+
         const genHex = await libraryCall(
           "fulfillAvailableAdvancedOrders(SeaportLib1_1.SeaportBuyOrder[],uint256[],bool)",
           wholeHex.slice(10),
@@ -333,6 +368,10 @@ describe("NFT Aggregator", function () {
 
         console.log('combinedOrders: ', combinedOrders);
 
+        const hex = await deployedNftAggregator.interface.encodeFunctionData("batchTradeWithETH", [combinedOrders, []]);
+        console.log('hex: ', hex);
+
+        console.log('totalValue: ', totalValue);
         await deployedNftAggregator.connect(second).batchTradeWithETH(combinedOrders, [], { value: totalValue });
 
         expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(second.address);
