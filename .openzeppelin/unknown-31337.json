@@ -952,13 +952,13 @@
       "kind": "uups"
     },
     {
-      "address": "0x5745178B7BFA5c6bB96F530C19f10aBaB8ec0F41",
-      "txHash": "0x1ce0be1e9cae10c10bb24ed51e8f73ca8f318a6a42f20107fed2ac11b2a5709e",
+      "address": "0xcf6F8B52e5D9e1d5AC17c35cfB5D56ea0D89d7E4",
+      "txHash": "0x974fc9211d950b5469a5a1b4f1ea9e61d2314be596616c4b46b8e40cc9915c0b",
       "kind": "uups"
     },
     {
-      "address": "0xE33b304C1e6c8D43E3b4dd54603095d6794Fd59B",
-      "txHash": "0xc1076035d19e7487ae37d98219cb95d1115b42aa4221837ef54d2675af0081f3",
+      "address": "0x3c7c34c73aede2D6e14A3d5D89BC2C588941d833",
+      "txHash": "0x0a814271833225e223689f4ceec70ad22b753243cdbe5c733de2e171ec70b0c2",
       "kind": "uups"
     },
     {
@@ -982,13 +982,13 @@
       "kind": "uups"
     },
     {
-      "address": "0xcf6F8B52e5D9e1d5AC17c35cfB5D56ea0D89d7E4",
-      "txHash": "0x974fc9211d950b5469a5a1b4f1ea9e61d2314be596616c4b46b8e40cc9915c0b",
+      "address": "0x5745178B7BFA5c6bB96F530C19f10aBaB8ec0F41",
+      "txHash": "0x1ce0be1e9cae10c10bb24ed51e8f73ca8f318a6a42f20107fed2ac11b2a5709e",
       "kind": "uups"
     },
     {
-      "address": "0x3c7c34c73aede2D6e14A3d5D89BC2C588941d833",
-      "txHash": "0x0a814271833225e223689f4ceec70ad22b753243cdbe5c733de2e171ec70b0c2",
+      "address": "0xE33b304C1e6c8D43E3b4dd54603095d6794Fd59B",
+      "txHash": "0xc1076035d19e7487ae37d98219cb95d1115b42aa4221837ef54d2675af0081f3",
       "kind": "uups"
     }
   ],
@@ -2167,14 +2167,7 @@
           },
           "t_enum(Blockchain)20662": {
             "label": "enum Blockchain",
-            "members": [
-              "ETHEREUM",
-              "HEDERA",
-              "POLYGON",
-              "SOLANA",
-              "TEZOS",
-              "FLOW"
-            ]
+            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
           },
           "t_contract(IRegex)20655": {
             "label": "contract IRegex"

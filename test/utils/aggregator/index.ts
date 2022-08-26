@@ -222,7 +222,7 @@ const getSeaportHex = async (input: SeaportCompleteInput): Promise<AggregatorRes
       ],
     ];
 
-    console.log('orderStruct: ', JSON.stringify(orderStruct, null, 2))
+    console.log("orderStruct: ", JSON.stringify(orderStruct, null, 2));
 
     const msgValue: ethers.BigNumber = input.order
       .map(i => ethers.BigNumber.from(i.msgValue))
@@ -233,6 +233,7 @@ const getSeaportHex = async (input: SeaportCompleteInput): Promise<AggregatorRes
 
     // input data for SeaportLibV1_1
     const inputData = [orderStruct, [msgValue], failIfRevert];
+    console.log("inputData: ", inputData);
     const wholeHex = await seaportLib.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
     const genHex = await libraryCall(
       "fulfillAvailableAdvancedOrders(SeaportLib1_1.SeaportBuyOrder[],uint256[],bool)",
@@ -343,6 +344,7 @@ export const combineOrders = async (
   try {
     if (seaportOrders?.order?.length) {
       const result: AggregatorResponse = await getSeaportHex(seaportOrders);
+      console.log("result: ", result);
       combinedOrders.push(result);
     }
   } catch (err) {

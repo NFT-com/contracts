@@ -777,10 +777,13 @@ task("batchBuy").setAction(async function (taskArguments, hre) {
 
   const { totalValue, combinedOrders } = await combineOrders(seaportOrders as SeaportCompleteInput, looksrareOrders);
 
-  console.log('combinedOrders: ', combinedOrders)
-  console.log('totalValue: ', totalValue);
+  console.log("combinedOrders: ", combinedOrders);
+  console.log("totalValue: ", totalValue);
 
-  console.log('purchase hex: ', await deployedNftAggregator.interface.encodeFunctionData("batchTradeWithETH", [combinedOrders, []]))
+  console.log(
+    "purchase hex: ",
+    await deployedNftAggregator.interface.encodeFunctionData("batchTradeWithETH", [combinedOrders, []]),
+  );
 
   // try {
   //   const tx = await deployedNftAggregator.batchTradeWithETH(combinedOrders, [], { value: totalValue });
@@ -1006,25 +1009,23 @@ task("upgrade:NftAggregator").setAction(async function (taskArguments, hre) {
 task("oneTimeApproval").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to add approval for token..."));
   const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
-  const deployedNftAggregator = NftAggregator.attach((
-    await getTokens(hre)
-  ).deployedNftAggregator)
+  const deployedNftAggregator = NftAggregator.attach((await getTokens(hre)).deployedNftAggregator);
 
   await deployedNftAggregator.setOneTimeApproval(
-    '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-    '0xf42aa99F011A1fA7CDA90E5E98b277E306BcA83e',
-    hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1)
-  )
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0xf42aa99F011A1fA7CDA90E5E98b277E306BcA83e",
+    hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1),
+  );
 
   await deployedNftAggregator.setOneTimeApproval(
-    '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-    '0x1e0049783f008a0085193e00003d00cd54003c71',
-    hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1)
-  )
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0x1e0049783f008a0085193e00003d00cd54003c71",
+    hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1),
+  );
 });
 
 task("z").setAction(async function (taskArguments, hre) {
   const Test721 = await hre.ethers.getContractFactory("Test721");
-  const deployed721 = Test721.attach("0x773d2e2c48140f7cbc1d58be09783d54f47d7d1f")
-  await deployed721.approve('0x1e0049783f008a0085193e00003d00cd54003c71', '1');
+  const deployed721 = Test721.attach("0x773d2e2c48140f7cbc1d58be09783d54f47d7d1f");
+  await deployed721.approve("0x1e0049783f008a0085193e00003d00cd54003c71", "1");
 });

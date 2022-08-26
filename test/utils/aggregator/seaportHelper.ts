@@ -117,7 +117,7 @@ export function createSeaportParametersForNFTListing(
     },
   ];
   const openseaFee: Fee = {
-    recipient: chainId == '4' ? SEAPORT_FEE_COLLLECTION_ADDRESS_RINKEBY : SEAPORT_FEE_COLLLECTION_ADDRESS,
+    recipient: chainId == "4" ? SEAPORT_FEE_COLLLECTION_ADDRESS_RINKEBY : SEAPORT_FEE_COLLLECTION_ADDRESS,
     basisPoints: 250,
   };
 
@@ -140,10 +140,14 @@ export function createSeaportParametersForNFTListing(
   ]);
   return {
     offerer: offerer ?? NULL_ADDRESS,
-    zone: chainId === "5" ? 
-      SEAPORT_ZONE_GOERLI : chainId == "4" ?
-      SEAPORT_ZONE_RINKEBY : chainId === "1" ?
-      SEAPORT_ZONE : SEAPORT_ZONE_RINKEBY,
+    zone:
+      chainId === "5"
+        ? SEAPORT_ZONE_GOERLI
+        : chainId == "4"
+        ? SEAPORT_ZONE_RINKEBY
+        : chainId === "1"
+        ? SEAPORT_ZONE
+        : SEAPORT_ZONE_RINKEBY,
     offer: [
       {
         itemType: ItemType.ERC721,
@@ -155,11 +159,11 @@ export function createSeaportParametersForNFTListing(
     ],
     consideration: considerationItemsWithFees,
     orderType: OrderType.FULL_RESTRICTED,
-    startTime: "1661526619" || BigNumber.from(Date.now()).div(1000).sub(duration).toString(),
-    endTime: "1664205019" || BigNumber.from(Date.now()).div(1000).add(duration).toString(),
+    startTime: BigNumber.from(Date.now()).div(1000).sub(duration).toString(),
+    endTime: BigNumber.from(Date.now()).div(1000).add(duration).toString(),
     zoneHash: SEAPORT_ZONE_HASH,
     totalOriginalConsiderationItems: String(considerationItemsWithFees.length),
-    salt: "40852851116678769" || generateRandomSalt(),
+    salt: generateRandomSalt(),
     conduitKey: OPENSEA_CONDUIT_KEY,
   };
 }

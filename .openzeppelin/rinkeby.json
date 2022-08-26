@@ -795,6 +795,66 @@
       "address": "0xF579F547f656385C5CAD740a7e7D37dD47A66c31",
       "txHash": "0xd2f80c71eb8275344b36182461b4a7d6e81657eb0c8e578abd376233518548e2",
       "kind": "uups"
+    },
+    {
+      "address": "0x21F1950aFec168b6a6224a27D91AB99579AD98c9",
+      "txHash": "0x8deca6c132ace6552ea8d26be16b0f47865159f11cd8141856c170cb46625a80",
+      "kind": "uups"
+    },
+    {
+      "address": "0xC49197427411D74590ffb3914049Db87F0AD18b0",
+      "txHash": "0xecd3da6d5c76b519b2e612b51287c4398ee1bf1af0400f0cf64532cf48cc5cb6",
+      "kind": "uups"
+    },
+    {
+      "address": "0x38E640b0FEAc638344Ca8d1223F4ef604b8c39AE",
+      "txHash": "0x756123f5a9050499a3c435d7e12b28316cac58334f1ba819dd990a465d01e64e",
+      "kind": "uups"
+    },
+    {
+      "address": "0x58Af42D76860380A8809604F135eA2c0A94c068E",
+      "txHash": "0x7c2f73af4f264ae7a9d5afb90fa0171540f90f6fa3dbc83d7aefa2b67a06c0b0",
+      "kind": "uups"
+    },
+    {
+      "address": "0xf7e73474C742E50553559A6CB40b27c4B5c8ad73",
+      "txHash": "0x8cb95c7e4daf2d32414a036ff55a1dea94e247f0751fc948ba5611ef00c88ed6",
+      "kind": "uups"
+    },
+    {
+      "address": "0x771D85788857569cE04d9c58eF46fdf8435Ff19F",
+      "txHash": "0xee8d037d86c09a751429343504bc09dd85655b4364afa69fe59accec83d7a434",
+      "kind": "uups"
+    },
+    {
+      "address": "0x2a7008B4a4AfD5Cebc42C695e57a4013ecEC8Ff0",
+      "txHash": "0xec58112b603b0cf1c5ed0dbcad1b8d7eee6d21fcaad7cf6de8e756010a8f8b65",
+      "kind": "uups"
+    },
+    {
+      "address": "0xeC7774b47B61295e93f9A5Ff60C99C7a575a1a18",
+      "txHash": "0xd078e11c1b79598184ca9e3223a1f391e09e433c57ca909a9794515dfdcb4f1e",
+      "kind": "uups"
+    },
+    {
+      "address": "0xE33b304C1e6c8D43E3b4dd54603095d6794Fd59B",
+      "txHash": "0xb5ca8e617635a620d5a5955821dbe782816c122bc4dbef95c82b20c02b852ddc",
+      "kind": "uups"
+    },
+    {
+      "address": "0x40E9EA800db4FCc2EFd7fEa0f2Dc480829c005D1",
+      "txHash": "0xd44b5c510c7a452eb684890e20034d6ee82cd992282c4f3a7dee406ee1a64d4b",
+      "kind": "uups"
+    },
+    {
+      "address": "0x0B1Ce637Dc9aD1736E3DE2502eAAb838a5e99110",
+      "txHash": "0xfe001136860fe4b10fd161f7c75991301edb68026434ab6b1a93f6960902aaac",
+      "kind": "uups"
+    },
+    {
+      "address": "0xD1f8AF6e38978bcC7d72A8111b45A8A7e1a7AFA5",
+      "txHash": "0xe2bfb4c541502ece54e2bc4fe965e516913422a55253de86ccf4389110faf6db",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -15580,10 +15640,7 @@
           },
           "t_enum(VestingInstallments)13302": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16290,10 +16347,7 @@
           },
           "t_enum(VestingInstallments)13302": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16418,10 +16472,7 @@
           },
           "t_enum(VestingInstallments)1224": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16546,10 +16597,7 @@
           },
           "t_enum(VestingInstallments)13302": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16674,10 +16722,7 @@
           },
           "t_enum(VestingInstallments)13520": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -20664,10 +20709,7 @@
           },
           "t_enum(VestingInstallments)13978": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -22528,10 +22570,7 @@
           },
           "t_enum(VestingInstallments)14257": {
             "label": "enum Vesting.VestingInstallments",
-            "members": [
-              "MONTHLY",
-              "QUARTERLY"
-            ]
+            "members": ["MONTHLY", "QUARTERLY"]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"

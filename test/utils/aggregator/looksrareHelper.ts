@@ -61,7 +61,9 @@ export async function createLooksrareParametersForNFTListing(
 }
 
 export async function getLooksrareNonce(address: string, chainId: number): Promise<number> {
-  const url = `https://${chainId == 5 ? "api-goerli" : "api"}.looksrare.org/api/v1/orders/nonce?address=${address}`;
+  const url = `https://${
+    chainId == 5 ? "api-goerli" : chainId == 4 ? "api-rinkeby" : "api"
+  }.looksrare.org/api/v1/orders/nonce?address=${address}`;
   const { data } = await axios.get(url);
   return data?.data;
 }

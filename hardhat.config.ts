@@ -91,13 +91,12 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        // url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
         url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
       accounts: {
         mnemonic,
       },
-      chainId: chainIds.hardhat,
+      chainId: chainIds.rinkeby,
     },
     mainnet: getChainConfigPK("mainnet"),
     goerli: getChainConfig("goerli"),
