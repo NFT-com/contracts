@@ -755,7 +755,7 @@ task("batchBuy").setAction(async function (taskArguments, hre) {
       {
         contractAddress: "0x530e404f51778f38249413264ac7807a16b88603",
         tokenId: "56",
-        msgValue: hre.ethers.BigNumber.from((0.013 * 10 ** 18).toString()), // 0 if ETH
+        msgValue: hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString()), // 0 if ETH
       },
     ],
     recipient: "0x338eFdd45AE7D010da108f39d293565449C52682",
@@ -782,13 +782,13 @@ task("batchBuy").setAction(async function (taskArguments, hre) {
 
   console.log('purchase hex: ', await deployedNftAggregator.interface.encodeFunctionData("batchTradeWithETH", [combinedOrders, []]))
 
-  try {
-    const tx = await deployedNftAggregator.batchTradeWithETH(combinedOrders, [], { value: totalValue });
+  // try {
+  //   const tx = await deployedNftAggregator.batchTradeWithETH(combinedOrders, [], { value: totalValue });
 
-    console.log(chalk.green("batch buy with eth: ", tx.hash));
-  } catch (err) {
-    console.log("error while batch trading: ", err);
-  }
+  //   console.log(chalk.green("batch buy with eth: ", tx.hash));
+  // } catch (err) {
+  //   console.log("error while batch trading: ", err);
+  // }
 });
 
 // ========================================================
@@ -1001,6 +1001,26 @@ task("upgrade:NftAggregator").setAction(async function (taskArguments, hre) {
   await waitTx("upgradedNftAggregator", upgradedNftAggregator, hre);
 
   await delayedVerifyImp("upgradedNftAggregator", upgradedNftAggregator.address, hre);
+});
+
+task("oneTimeApproval").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("starting to add approval for token..."));
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+  const deployedNftAggregator = NftAggregator.attach((
+    await getTokens(hre)
+  ).deployedNftAggregator)
+
+  await deployedNftAggregator.setOneTimeApproval(
+    '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+    '0xf42aa99F011A1fA7CDA90E5E98b277E306BcA83e',
+    hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1)
+  )
+
+  await deployedNftAggregator.setOneTimeApproval(
+    '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+    '0x1e0049783f008a0085193e00003d00cd54003c71',
+    hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1)
+  )
 });
 
 task("z").setAction(async function (taskArguments, hre) {

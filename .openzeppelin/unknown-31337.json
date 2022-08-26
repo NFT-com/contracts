@@ -952,23 +952,33 @@
       "kind": "uups"
     },
     {
+      "address": "0x5745178B7BFA5c6bB96F530C19f10aBaB8ec0F41",
+      "txHash": "0x1ce0be1e9cae10c10bb24ed51e8f73ca8f318a6a42f20107fed2ac11b2a5709e",
+      "kind": "uups"
+    },
+    {
+      "address": "0xE33b304C1e6c8D43E3b4dd54603095d6794Fd59B",
+      "txHash": "0xc1076035d19e7487ae37d98219cb95d1115b42aa4221837ef54d2675af0081f3",
+      "kind": "uups"
+    },
+    {
       "address": "0x428A3060A0aeE26d14b90545B327871DF75545bC",
-      "txHash": "0x512fd3f76f39e8c92c86a295b15eb1e7e548f1d8935c3ade6815ee8591d74615",
+      "txHash": "0x4a1e85ce97711c309d1eb0b95366395a78de27178a1400ab3b1e84abcb4df5ce",
       "kind": "uups"
     },
     {
       "address": "0x889fdAf67b7fa0F5559203593Ec13dE30E81a2EA",
-      "txHash": "0xf0b17299b3857fc2091a7996b06d9997641b7a74265265252dc772f241cefe14",
+      "txHash": "0x34208ca05f296ac4f2c18ae8db37ef5fd809ed03d87c6da7ebc7d1b00d308714",
       "kind": "uups"
     },
     {
       "address": "0x166ca09701E1071f88bf36De311e3190Ca3c102A",
-      "txHash": "0x5c49410a41121adc8bb505fb760fcef5ad5e983a3378eefb28be375f6378de9d",
+      "txHash": "0x8088ac0391673caf0f52deff1b6dac74e159aea78a24e3bafaa2121ba6f0cf21",
       "kind": "uups"
     },
     {
       "address": "0x5a5b5Bb51C2691DA1BD8f07dF368d67960B29d8c",
-      "txHash": "0xa94c5eb56882202e8d38fdcbf4d788c229ac7a7adf9e82e5eac48857f2ff0479",
+      "txHash": "0x08a1690d73ead7aa7d638b1cfea4284fc6fbee1107e65f891ed3d7d7a0e255b8",
       "kind": "uups"
     },
     {
@@ -2245,7 +2255,7 @@
     },
     "d4f8def4e0d5ae910e35eb664eec8cb7275b57050edd93df16ffbcb6e2feb7e8": {
       "address": "0x38E640b0FEAc638344Ca8d1223F4ef604b8c39AE",
-      "txHash": "0x1c2cf8071edf40413ed618abdfa277f1423dc06b77073d9a8a37028de3c1c8f1",
+      "txHash": "0x0f313c5782c531e992622609b389e36d83cf9c4101b09ddd49992da7779641fd",
       "layout": {
         "storage": [
           {
@@ -2429,7 +2439,7 @@
     },
     "2ccf30ff3e2d10a71c8fa5423733b60bfba892bcec1cfd445698855ce2e6d73c": {
       "address": "0x7fFB31463FB94cd0942f8070F2a7AE2d515854C0",
-      "txHash": "0x931ba95dc253f63d97d1666efa9bb61056488fe8a6e005d565a0979e16fe9aa2",
+      "txHash": "0x712694da598bcd4ca49a97542c11ff5240c0ad3033dbaafdff3e42393311573f",
       "layout": {
         "storage": [
           {

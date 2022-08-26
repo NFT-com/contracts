@@ -53,15 +53,11 @@ describe("NFT Aggregator", function () {
       deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
       deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
 
-      console.log("deployedMarketplaceRegistry: ", deployedMarketplaceRegistry.address);
-
       NftAggregator = await ethers.getContractFactory("NftAggregator");
       deployedNftAggregator = await upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
         kind: "uups",
         unsafeAllow: ["delegatecall"],
       });
-
-      console.log("deployedNftAggregator: ", deployedNftAggregator.address);
     });
 
     describe("NFT Aggregation", async function () {
@@ -204,7 +200,7 @@ describe("NFT Aggregator", function () {
       //     true, // failIfRevert,
       //   ]);
 
-      //   const genHex = await vvccc("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
+      //   const genHex = await libraryCall("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
 
       //   const totalValue = hre.ethers.BigNumber.from(price);
 
@@ -228,7 +224,7 @@ describe("NFT Aggregator", function () {
         await deployedMock721.connect(owner).mint("56");
         
         const offerer = owner.address;
-        const contractAddress = "0x530e404f51778f38249413264ac7807a16b88603" || deployedMock721.address; // "0x773d2e2c48140f7cbc1d58be09783d54f47d7d1f" || 
+        const contractAddress = "0x530e404f51778f38249413264ac7807a16b88603" || deployedMock721.address;
         const tokenId = "56" || "1";
         const chainId = "4";
         const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
@@ -238,7 +234,7 @@ describe("NFT Aggregator", function () {
         const endingPrice = hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString());
 
         const INFURA_KEY = "460ed70fa7394604a709b7dff23f1641";
-        const provider = new ethers.providers.InfuraProvider(chainId == 5 ? "goerli" : chainId == 4 ? "rinkeby" : "homestead", INFURA_KEY);
+        const provider = new ethers.providers.InfuraProvider(chainId == "5" ? "goerli" : chainId == "4" ? "rinkeby" : "homestead", INFURA_KEY);
 
         expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(owner.address);
 
@@ -277,7 +273,7 @@ describe("NFT Aggregator", function () {
                   orderType: data.orderType,
                   salt: data.salt,
                   startTime: data.startTime,
-                  totalOriginalConsiderationItems: data.totalOriginalConsiderationItems,
+                  totalOriginalConsiderationItems: Number(data.totalOriginalConsiderationItems),
                   zone: data.zone, // opensea pausable zone
                   zoneHash: data.zoneHash,
                 },
@@ -314,44 +310,36 @@ describe("NFT Aggregator", function () {
           ],
         ];
 
-        console.log('param: ', JSON.stringify([
-          {
-            denominator: "1",
-            numerator: "1",
-            parameters: {
-              conduitKey: data.conduitKey,
-              consideration: data.consideration,
-              endTime: data.endTime,
-              offer: data.offer,
-              offerer: data.offerer, // seller
-              orderType: data.orderType,
-              salt: data.salt,
-              startTime: data.startTime,
-              totalOriginalConsiderationItems: data.totalOriginalConsiderationItems,
-              zone: data.zone, // opensea pausable zone
-              zoneHash: data.zoneHash,
-            },
-            signature: signature,
-            extraData: "0x",
-          },
-        ], null, 2));
+        console.log('seaport params: ', JSON.stringify([
+          [
+            [
+              data.offerer,
+              data.zone,
+              data.offer,
+              data.consideration,
+              data.orderType,
+              data.startTime,
+              data.endTime,
+              data.zoneHash,
+              data.salt,
+              data.conduitKey,
+              Number(data.totalOriginalConsiderationItems),
+            ],
+            1,
+            1,
+            signature,
+            "0x",
+          ],
+        ]));
 
         const totalValue = startingPrice;
         const failIfRevert = true;
 
-        // const hex = await seaport.encodeFunctionData("fulfillAvailableAdvancedOrders", orderStruct[0]);
-        // console.log('hex: ', hex);
+        console.log('orderStruct: ', JSON.stringify(orderStruct, null, 2));
 
         const inputData = [orderStruct, [startingPrice], failIfRevert];
+        console.log('inputData: ', inputData)
         const wholeHex = await seaportLib.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
-
-        console.log('wholeHex: ', wholeHex);
-        console.log('wholeHex: ', wholeHex.slice(0, 10));
-        console.log('wholeHex: ', wholeHex.slice(10));
-        console.log('base: ', await libraryCall(
-          "fulfillAvailableAdvancedOrders(SeaportLib1_1.SeaportBuyOrder[],uint256[],bool)",
-          '',
-        ))
 
         const genHex = await libraryCall(
           "fulfillAvailableAdvancedOrders(SeaportLib1_1.SeaportBuyOrder[],uint256[],bool)",
@@ -359,7 +347,7 @@ describe("NFT Aggregator", function () {
         );
 
         const setData = {
-          tradeData: genHex,
+          _tradeData: genHex,
           value: startingPrice,
           marketId: "1",
         };
@@ -368,11 +356,11 @@ describe("NFT Aggregator", function () {
 
         console.log('combinedOrders: ', combinedOrders);
 
-        const hex = await deployedNftAggregator.interface.encodeFunctionData("batchTradeWithETH", [combinedOrders, []]);
-        console.log('hex: ', hex);
-
         console.log('totalValue: ', totalValue);
-        await deployedNftAggregator.connect(second).batchTradeWithETH(combinedOrders, [], { value: totalValue });
+
+        console.log('purchase hex: ', await deployedNftAggregator.interface.encodeFunctionData("batchTradeWithETH", [combinedOrders, []]))
+        const tx  = await deployedNftAggregator.connect(second).batchTradeWithETH(combinedOrders, [], { value: totalValue });
+        console.log('tx: ', tx);
 
         expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(second.address);
       });
@@ -435,7 +423,7 @@ describe("NFT Aggregator", function () {
             },
           ],
           [],
-          [[{ orderIndex: "0", itemIndex: "0" }]],
+          [[{ orderIndex: 0, itemIndex: 0 }]],
           [
             [{ orderIndex: "0", itemIndex: "0" }],
             [{ orderIndex: "0", itemIndex: "1" }],

@@ -155,11 +155,11 @@ export function createSeaportParametersForNFTListing(
     ],
     consideration: considerationItemsWithFees,
     orderType: OrderType.FULL_RESTRICTED,
-    startTime: BigNumber.from(Date.now()).div(1000).sub(duration).toString(),
-    endTime: BigNumber.from(Date.now()).div(1000).add(duration).toString(),
+    startTime: "1661526619" || BigNumber.from(Date.now()).div(1000).sub(duration).toString(),
+    endTime: "1664205019" || BigNumber.from(Date.now()).div(1000).add(duration).toString(),
     zoneHash: SEAPORT_ZONE_HASH,
     totalOriginalConsiderationItems: String(considerationItemsWithFees.length),
-    salt: generateRandomSalt(),
+    salt: "40852851116678769" || generateRandomSalt(),
     conduitKey: OPENSEA_CONDUIT_KEY,
   };
 }

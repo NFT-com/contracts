@@ -62,7 +62,7 @@ function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
     accounts: [`${network === "mainnet" ? mainnetPK : rinkebyPK}`],
     chainId: chainIds[network],
     url,
-    gasPrice: network === "mainnet" ? 17 * 1000000000 : "auto",
+    gasPrice: network === "mainnet" ? 16 * 1000000000 : "auto",
   };
 }
 
@@ -91,8 +91,8 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-        // url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        // url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+        url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
       accounts: {
         mnemonic,
