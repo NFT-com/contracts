@@ -991,19 +991,19 @@ task("upgrade:GenesisKeyTeamClaim").setAction(async function (taskArguments, hre
 
 task("upgrade:NftAggregator").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
-  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+  // const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
 
-  const upgradedNftAggregator = await hre.upgrades.upgradeProxy(
-    (
-      await getTokens(hre)
-    ).deployedNftAggregator,
-    NftAggregator,
-    { unsafeAllow: ["delegatecall"] },
-  );
+  // const upgradedNftAggregator = await hre.upgrades.upgradeProxy(
+  //   (
+  //     await getTokens(hre)
+  //   ).deployedNftAggregator,
+  //   NftAggregator,
+  //   { unsafeAllow: ["delegatecall"] },
+  // );
 
-  await waitTx("upgradedNftAggregator", upgradedNftAggregator, hre);
+  // await waitTx("upgradedNftAggregator", upgradedNftAggregator, hre);
 
-  await delayedVerifyImp("upgradedNftAggregator", upgradedNftAggregator.address, hre);
+  await delayedVerifyImp("upgradedNftAggregator", "0xc7Ce15B068f96D8079Af45A5bab225e628bF96e6", hre);
 });
 
 task("oneTimeApproval").setAction(async function (taskArguments, hre) {
@@ -1014,12 +1014,24 @@ task("oneTimeApproval").setAction(async function (taskArguments, hre) {
   await deployedNftAggregator.setOneTimeApproval(
     "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
     "0xf42aa99F011A1fA7CDA90E5E98b277E306BcA83e",
-    hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1),
+    0,
   );
 
   await deployedNftAggregator.setOneTimeApproval(
     "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
     "0x1e0049783f008a0085193e00003d00cd54003c71",
+    0,
+  );
+
+  await deployedNftAggregator.setOneTimeApproval(
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0x59728544b08ab483533076417fbbb2fd0b17ce3a",
+    hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1),
+  );
+
+  await deployedNftAggregator.setOneTimeApproval(
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "0x00000000006c3852cbef3e08e8df289169ede581",
     hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1),
   );
 });
