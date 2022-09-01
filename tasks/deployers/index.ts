@@ -780,13 +780,13 @@ task("batchBuy").setAction(async function (taskArguments, hre) {
   console.log("combinedOrders: ", combinedOrders);
   console.log("totalValue: ", totalValue);
 
-  console.log(
-    "purchase hex: ",
-    await deployedNftAggregator.interface.encodeFunctionData("batchTradeWithETH", [combinedOrders, [], [0, 0]]),
-  );
+  // console.log(
+  //   "purchase hex: ",
+  //   await deployedNftAggregator.interface.encodeFunctionData("batchTradeWithETH", [combinedOrders, [], [0, 0]]),
+  // );
 
   // try {
-  //   const tx = await deployedNftAggregator.batchTradeWithETH(combinedOrders, [], { value: totalValue });
+  //   const tx = await deployedNftAggregator.batchTradeWithETH(combinedOrders, [], [0, 0], { value: totalValue });
 
   //   console.log(chalk.green("batch buy with eth: ", tx.hash));
   // } catch (err) {
