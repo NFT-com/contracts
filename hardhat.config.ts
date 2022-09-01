@@ -41,9 +41,9 @@ if (!mainnetPK) {
   throw new Error("Please set your MAINNET_PRIVATE_KEY in a .env file");
 }
 
-const rinkebyPK: string | undefined = process.env.RINKEBY_PRIVATE_KEY;
-if (!rinkebyPK) {
-  throw new Error("Please set your RINKEBY_PRIVATE_KEY in a .env file");
+const testnetPK: string | undefined = process.env.TESTNET_PRIVATE_KEY;
+if (!testnetPK) {
+  throw new Error("Please set your TESTNET_PRIVATE_KEY in a .env file");
 }
 
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
@@ -59,7 +59,7 @@ if (!infuraApiKey) {
 function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
   return {
-    accounts: [`${network === "mainnet" ? mainnetPK : rinkebyPK}`],
+    accounts: [`${network === "mainnet" ? mainnetPK : testnetPK}`],
     chainId: chainIds[network],
     url,
     gasPrice: network === "mainnet" ? 16 * 1000000000 : "auto",
