@@ -12,7 +12,7 @@ struct ERC20Details {
 }
 
 /**
- * @dev Represents an ERC-721 NFT contract and it's associated 
+ * @dev Represents an ERC-721 NFT contract and it's associated
  * associated ids, which are used for inputs in the aggregator for
  * purposes of trading
  */

@@ -143,7 +143,49 @@ const getSeaportOrder = async (
   }
 };
 
-const generateOfferArray = (array: any) => {
+// @ts-ignore
+export const getTotalValue = (results): any => {
+  const totalValue: ethers.BigNumber = (results || [])
+  .map((i: any) => {
+    const inner = i.data.consideration.map((j: any) => ethers.BigNumber.from(j.startAmount))
+    return inner.reduce(
+      (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
+      ethers.BigNumber.from(0),
+    );
+  }).reduce(
+    (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
+    ethers.BigNumber.from(0),
+  );
+
+  return totalValue;
+}
+
+// @ts-ignore
+export const generateParameters = (results): any => {
+  return results.map((r: any) => {
+    return {
+      denominator: "1",
+      numerator: "1",
+      parameters: {
+        conduitKey: r.data.conduitKey,
+        consideration: r.data.consideration,
+        endTime: r.data.endTime,
+        offer: r.data.offer,
+        offerer: r.data.offerer, // seller
+        orderType: r.data.orderType,
+        salt: r.data.salt,
+        startTime: r.data.startTime,
+        totalOriginalConsiderationItems: Number(r.data.totalOriginalConsiderationItems),
+        zone: r.data.zone, // opensea pausable zone
+        zoneHash: r.data.zoneHash,
+      },
+      signature: r.signature,
+      extraData: "0x",
+    }
+  });
+}
+
+export const generateOfferArray = (array: any) => {
   return array.map((item: any, index: string) => [
     {
       orderIndex: index,
@@ -152,7 +194,7 @@ const generateOfferArray = (array: any) => {
   ]);
 };
 
-const generateOrderConsiderationArray = (
+export const generateOrderConsiderationArray = (
   array: Array<Array<ConsiderationObject>>,
 ): Array<Array<ConsiderationFulfillmentUnit>> => {
   const mapIndex: ConsiderationObjMap = {};
@@ -341,7 +383,6 @@ export const combineOrders = async (
   try {
     if (seaportOrders?.order?.length) {
       const result: AggregatorResponse = await getSeaportHex(seaportOrders);
-      console.log("result: ", result);
       combinedOrders.push(result);
     }
   } catch (err) {
