@@ -41,7 +41,20 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
   - implementation => 0xBdF4538fb1a3863fA48E96A081911d04A21FbC49
 
+- [deployedEthereumRegex](https://etherscan.io/address/0xe9F5CBeE4a58B1EB47b303c14765Ab102E4ABC37)
+- [deployedNftResolver](https://etherscan.io/address/0xA657C988e8aC39D3268D390eB7c522a535B10453)
+
+  - implementation => 0xf76eaa507b252f498ff70b4caa659376ed3cc757
+
 - [deployedGenesisKeyDistributor](https://etherscan.io/address/0x0eBa8d862AF4E01A0573B663FB3eb3A06D7937dE)
+
+- [deployedLooksrareLibV1](https://etherscan.io/address/0xf3d4636d92977b16499c73b1fd3a759e45050d90)
+- [deployedSeaportLib1_1](https://etherscan.io/address/0x14be7c58087d73b8557438bf9ae3def395837176)
+- [deployedMarketplaceRegistry](https://etherscan.io/address/0x24851a6783fB586E49b1dC71FA40B8307802f2A5)
+  - implementation => 0x10b7873e3bec36b84d4d5a05b32faa36d2639189
+- [deployedNftAggregator](https://etherscan.io/address/0xc7Ce15B068f96D8079Af45A5bab225e628bF96e6)
+
+  - implementation => 0xd19700493d4488e0731039e96186d4194a73a572
 
 - [deployedNftBuyer](https://etherscan.io/address/)
 - [deployedNftGenesisStake](https://etherscan.io/address/)
@@ -81,10 +94,18 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 
   - implementation => 0x60D0070b319c1Fe1D08EecD9C0c4b4D3909c17c6
 
-- [deployedEthereumRegex](https://goerli.etherscan.io/address/0x44Ab7157EA5aa43b538F00FF8E23B7cb9Bcd7C0D)
-- [deployedNftResolver](https://goerli.etherscan.io/address/0x45d296A1042248F48f484c6f2be01006D26fCBF0)
+- [deployedEthereumRegex](https://goerli.etherscan.io/address/0x6379A115EA1E18E817f8B3aA4990E217822B1C38)
+- [deployedNftResolver](https://goerli.etherscan.io/address/0x3a3539B6727E74fa1c5D4d39B433F0fAB5BC4F4a)
 
-  - implementation => 0x0E2580756b0313324AF844346b504102a10C0dBB
+  - implementation => 0x7927190920E74259d96f9be470A34a79e9bf49AF
+
+- [deployedLooksrareLibV1](https://goerli.etherscan.io/address/0x4A655899ef868E33436876F33e76F48835Fa3869)
+- [deployedSeaportLib1_1](https://goerli.etherscan.io/address/0xCDaf866B13b4883a43c4b3Ef6b66f8859C848bF5)
+- [deployedMarketplaceRegistry](https://goerli.etherscan.io/address/0x7eC2fe955CFa0A9A5E6920Efc569cFCcB1a3B318)
+  - implementation => 0x149c5E6A61A323465B56f862FbdB2AdB2181de88
+- [deployedNftAggregator](https://goerli.etherscan.io/address/0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10)
+
+  - implementation => 0xD2C34A867AE9759BD80A5Fbe136695DfFffE0443
 
 - [deployedGenesisKeyDistributor](https://goerli.etherscan.io/address/)
 
@@ -137,7 +158,11 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 - [deployedMarketplaceEvent](https://rinkeby.etherscan.io/address/)
   - implementation => 0xDdE3E8BeEb4aE8345df3a3B9aB524979bD9f8463
 - [deployedNftMarketplace](https://rinkeby.etherscan.io/address/)
+
   - implementation => 0x9a47cFd45718dB5BEEA2aA200BE50E157023469c
+
+- [deployedNftAggregator](https://rinkeby.etherscan.io/address/0x3F15E5e9cCE275213365e5109168eD7B368f67Fe)
+  - implementation => 0x871608139Ebe220D85c9CA6898B94de9C461f922
 
 ### Regex Generation
 

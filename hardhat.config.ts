@@ -41,6 +41,11 @@ if (!mainnetPK) {
   throw new Error("Please set your MAINNET_PRIVATE_KEY in a .env file");
 }
 
+const testnetPK: string | undefined = process.env.TESTNET_PRIVATE_KEY;
+if (!testnetPK) {
+  throw new Error("Please set your TESTNET_PRIVATE_KEY in a .env file");
+}
+
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
 if (!infuraApiKey) {
   throw new Error("Please set your INFURA_API_KEY in a .env file");
@@ -54,15 +59,15 @@ if (!infuraApiKey) {
 function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
   return {
-    accounts: [`${mainnetPK}`],
+    accounts: [`${network === "mainnet" ? mainnetPK : testnetPK}`],
     chainId: chainIds[network],
     url,
-    gasPrice: 44 * 1000000000,
+    gasPrice: network === "mainnet" ? 16 * 1000000000 : "auto",
   };
 }
 
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = `https://eth-goerli.alchemyapi.io/v2/${alchemyApiKey}`; // "https://" + network + ".infura.io/v3/" + infuraApiKey;
+  const url: string = `https://eth-${network}.alchemyapi.io/v2/${alchemyApiKey}`;
   return {
     accounts: {
       count: 10,
@@ -86,18 +91,17 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://eth-goerli.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
-        // url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
       accounts: {
         mnemonic,
       },
-      chainId: chainIds.hardhat,
+      chainId: chainIds.rinkeby,
     },
     mainnet: getChainConfigPK("mainnet"),
     goerli: getChainConfig("goerli"),
     kovan: getChainConfig("kovan"),
-    rinkeby: getChainConfig("rinkeby"),
+    rinkeby: getChainConfigPK("rinkeby"), //getChainConfigPK("rinkeby"),
     ropsten: getChainConfig("ropsten"),
   },
   contractSizer: {
