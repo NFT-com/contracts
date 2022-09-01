@@ -45,3 +45,9 @@ struct Approvals {
     address operator;
     uint256 amount;
 }
+
+struct MultiAssetInfo {
+    bytes[] converstionDetails;
+    address[] dustTokens;
+    FeeDetails feeDetails;
+}

@@ -227,33 +227,31 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         _returnDust(dustTokens);
     }
 
-    // function multiAssetSwap(
-    //     ERC20Details calldata erc20Details,
-    //     ERC721Details[] calldata erc721Details,
-    //     ERC1155Details[] calldata erc1155Details,
-    //     bytes[] calldata converstionDetails,
-    //     TradeDetails[] calldata tradeDetails,
-    //     address[] calldata dustTokens,
-    //     FeeDetails calldata feeDetails    // [affiliateTokenId, ETH fee in Wei]
-    // ) payable external nonReentrant {
-    //     if (!openForTrades) revert TradingNotOpen();
+    function multiAssetSwap(
+        ERC20Details calldata erc20Details,
+        ERC721Details[] calldata erc721Details,
+        ERC1155Details[] calldata erc1155Details,
+        TradeDetails[] calldata tradeDetails,
+        MultiAssetInfo calldata tradeInfo
+    ) payable external nonReentrant {
+        if (!openForTrades) revert TradingNotOpen();
         
-    //     _collectFee(feeDetails);
+        _collectFee(tradeInfo.feeDetails);
 
-    //     // transfer all tokens
-    //     _transferFromHelper(
-    //         erc20Details,
-    //         erc721Details,
-    //         erc1155Details
-    //     );
+        // transfer all tokens
+        _transferFromHelper(
+            erc20Details,
+            erc721Details,
+            erc1155Details
+        );
 
-    //     // Convert any assets if needed
-    //     _conversionHelper(converstionDetails);
+        // Convert any assets if needed
+        _conversionHelper(tradeInfo.converstionDetails);
 
-    //     // execute trades
-    //     _trade(tradeDetails);
+        // execute trades
+        _trade(tradeDetails);
 
-    //     // return dust tokens (if any)
-    //     _returnDust(dustTokens);
-    // }
+        // return dust tokens (if any)
+        _returnDust(tradeInfo.dustTokens);
+    }
 }

@@ -79,7 +79,7 @@ contract TransferHelper is Initializable, ContextUpgradeable, SpecialTransferHel
 
     function _transferFromHelper(
         ERC20Details memory erc20Details,
-        SpecialTransferHelper.ERC721Details[] memory erc721Details,
+        ERC721Details[] memory erc721Details,
         ERC1155Details[] memory erc1155Details
     ) internal {
         // transfer ERC20 tokens from the sender to this contract
