@@ -453,8 +453,6 @@ describe("NFT Aggregator", function () {
           ],
         ];
 
-        console.log('orderStruct: ', JSON.stringify(orderStruct, null, 2));
-
         const totalValue = getTotalValue(results);
 
         const failIfRevert = true;
