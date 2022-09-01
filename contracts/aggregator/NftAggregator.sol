@@ -138,9 +138,11 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
 
     // helper function for collecting fee
     function _collectFee(
-        uint256 _profileTokenId,
-        uint256 _wei
+        FeeDetails calldata feeDetails    // [affiliateTokenId, ETH fee in Wei]
     ) internal {
+        uint256 _profileTokenId = feeDetails._profileTokenId;
+        uint256 _wei = feeDetails._wei;
+
         if (_wei != 0) {
             if (percentFeeToDao != 0) {
                 _transferEth(INftProfile(nftProfile).ownerOf(_profileTokenId), _wei * percentFeeToDao / 10000);
@@ -173,7 +175,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
     function batchTradeWithETH(
         TradeDetails[] calldata _tradeDetails,
         address[] calldata dustTokens,
-        uint256[2] calldata feeDetails    // [affiliateTokenId, ETH fee in Wei]
+        FeeDetails calldata feeDetails    // [affiliateTokenId, ETH fee in Wei]
     )
         external
         payable
@@ -181,7 +183,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
     {
         if (!openForTrades) revert TradingNotOpen();
 
-        _collectFee(feeDetails[0], feeDetails[1]);
+        _collectFee(feeDetails);
 
         _trade(_tradeDetails);
 
@@ -202,7 +204,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         bytes[] calldata _conversionDetails,
         TradeDetails[] calldata _tradeDetails,
         address[] calldata dustTokens,
-        uint256[2] calldata feeDetails    // [affiliateTokenId, ETH fee in Wei]
+        FeeDetails calldata feeDetails    // [affiliateTokenId, ETH fee in Wei]
     ) external payable nonReentrant {
         if (!openForTrades) revert TradingNotOpen();
 
@@ -216,7 +218,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
             }
         }
 
-        _collectFee(feeDetails[0], feeDetails[1]);
+        _collectFee(feeDetails);
 
         _conversionHelper(_conversionDetails);
 
@@ -227,16 +229,16 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
 
     function multiAssetSwap(
         ERC20Details calldata erc20Details,
-        SpecialTransferHelper.ERC721Details[] calldata erc721Details,
+        ERC721Details[] calldata erc721Details,
         ERC1155Details[] calldata erc1155Details,
         bytes[] calldata converstionDetails,
         TradeDetails[] calldata tradeDetails,
         address[] calldata dustTokens,
-        uint256[2] calldata feeDetails    // [affiliateTokenId, ETH fee in Wei]
+        FeeDetails calldata feeDetails    // [affiliateTokenId, ETH fee in Wei]
     ) payable external nonReentrant {
         if (!openForTrades) revert TradingNotOpen();
         
-        _collectFee(feeDetails[0], feeDetails[1]);
+        _collectFee(feeDetails);
 
         // transfer all tokens
         _transferFromHelper(

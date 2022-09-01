@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+struct FeeDetails {
+    uint256 _profileTokenId;
+    uint256 _wei;
+}
+
 /**
  * @dev Represents an array of ERC20 contract addresses and an array of
  * associated amounts, which are used for inputs in the aggregator for
