@@ -217,7 +217,7 @@ describe("NFT Aggregator", function () {
         try {
           await deployedNftAggregator
             .connect(second)
-            .batchTradeWithETH([{ marketId, value, tradeData: genHex }], [], { value: totalValue });
+            .batchTradeWithETH([{ marketId, value, tradeData: genHex }], [], [0,0], { value: totalValue });
         } catch (err) {
           console.log("error while batch trading: ", err);
         }
@@ -341,7 +341,7 @@ describe("NFT Aggregator", function () {
 
         const tx = await deployedNftAggregator
           .connect(owner)
-          .batchTradeWithETH(combinedOrders, [], { value: totalValue });
+          .batchTradeWithETH(combinedOrders, [], [0,0], { value: totalValue });
 
         expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(second.address);
       });

@@ -3,21 +3,10 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "./RegistryStructs.sol";
 
 contract MarketplaceRegistry is Initializable, UUPSUpgradeable {
     address public owner;
-
-    struct TradeDetails {
-        uint256 marketId;
-        uint256 value;
-        bytes tradeData;
-    }
-
-    struct Marketplace {
-        address proxy;
-        bool isLib;
-        bool isActive;
-    }
 
     Marketplace[] public marketplaces;
 

@@ -863,7 +863,7 @@
     },
     {
       "address": "0x889fdAf67b7fa0F5559203593Ec13dE30E81a2EA",
-      "txHash": "0x918bdf36ad02b012290187e4c2d36df9ae845e4ff491611c3e5af22d8ce1f3ea",
+      "txHash": "0xbc06d1222a94e3d4c2bd594c0cbf663097b896108ef9ce8196e865db5eae2c17",
       "kind": "uups"
     },
     {
@@ -873,7 +873,7 @@
     },
     {
       "address": "0x5a5b5Bb51C2691DA1BD8f07dF368d67960B29d8c",
-      "txHash": "0x7c849e9e636a028e3dc047c0f5a6a145bab1be8c8bf253f86f3ed6d8a2f8b8fc",
+      "txHash": "0x5d6dc5dbd63f54970784c22162100e3899797cdb19a525b261dd831097722505",
       "kind": "uups"
     },
     {
@@ -883,7 +883,7 @@
     },
     {
       "address": "0x5B20BA46c6247b9adf34534Be05421194Fdc982c",
-      "txHash": "0x6afade245fc8f771a58f0d6422f3502967fdaa70daff01026cb9003339440f69",
+      "txHash": "0x947b0185aa6a7ee7459ee7af3497fca4e9ca46d9db8b0cfbca5c793aa5255856",
       "kind": "uups"
     },
     {
@@ -893,7 +893,7 @@
     },
     {
       "address": "0xD5D30c93FC05487f6F3d9C38a0F76a7e53E1b2E7",
-      "txHash": "0x330826dc1ab3de06bd6faffbef9044300123773678aee3b3c8238ac1a994d651",
+      "txHash": "0xa0bd66842683f3827f1ec0041a6cf35df70dfcd5b31a83ed3de2788368766593",
       "kind": "uups"
     },
     {
@@ -903,7 +903,7 @@
     },
     {
       "address": "0xE0AA1dE8bCF583D3CC09665928933bc08C8c5E6F",
-      "txHash": "0xa3f1fdefc9492316fdf9e0028483ca3db2b190f577a30b13ac30f5e38a1cc75b",
+      "txHash": "0x7c45ff7140a1904c90223b8f7b5eacfe5e6e9cb96bd894352cf90e186559ec97",
       "kind": "uups"
     }
   ],
@@ -15690,7 +15690,10 @@
           },
           "t_enum(VestingInstallments)13302": {
             "label": "enum Vesting.VestingInstallments",
-            "members": ["MONTHLY", "QUARTERLY"]
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16397,7 +16400,10 @@
           },
           "t_enum(VestingInstallments)13302": {
             "label": "enum Vesting.VestingInstallments",
-            "members": ["MONTHLY", "QUARTERLY"]
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16522,7 +16528,10 @@
           },
           "t_enum(VestingInstallments)1224": {
             "label": "enum Vesting.VestingInstallments",
-            "members": ["MONTHLY", "QUARTERLY"]
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16647,7 +16656,10 @@
           },
           "t_enum(VestingInstallments)13302": {
             "label": "enum Vesting.VestingInstallments",
-            "members": ["MONTHLY", "QUARTERLY"]
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -16772,7 +16784,10 @@
           },
           "t_enum(VestingInstallments)13520": {
             "label": "enum Vesting.VestingInstallments",
-            "members": ["MONTHLY", "QUARTERLY"]
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -20759,7 +20774,10 @@
           },
           "t_enum(VestingInstallments)13978": {
             "label": "enum Vesting.VestingInstallments",
-            "members": ["MONTHLY", "QUARTERLY"]
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -22620,7 +22638,10 @@
           },
           "t_enum(VestingInstallments)14257": {
             "label": "enum Vesting.VestingInstallments",
-            "members": ["MONTHLY", "QUARTERLY"]
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -26532,15 +26553,15 @@
             "slot": "101",
             "type": "t_address",
             "contract": "MarketplaceRegistry",
-            "src": "contracts/aggregator/MarketplaceRegistry.sol:8"
+            "src": "contracts/aggregator/MarketplaceRegistry.sol:9"
           },
           {
             "label": "marketplaces",
             "offset": 0,
             "slot": "102",
-            "type": "t_array(t_struct(Marketplace)11821_storage)dyn_storage",
+            "type": "t_array(t_struct(Marketplace)12786_storage)dyn_storage",
             "contract": "MarketplaceRegistry",
-            "src": "contracts/aggregator/MarketplaceRegistry.sol:22"
+            "src": "contracts/aggregator/MarketplaceRegistry.sol:11"
           }
         ],
         "types": {
@@ -26548,8 +26569,8 @@
             "label": "address",
             "numberOfBytes": "20"
           },
-          "t_array(t_struct(Marketplace)11821_storage)dyn_storage": {
-            "label": "struct MarketplaceRegistry.Marketplace[]",
+          "t_array(t_struct(Marketplace)12786_storage)dyn_storage": {
+            "label": "struct Marketplace[]",
             "numberOfBytes": "32"
           },
           "t_array(t_uint256)50_storage": {
@@ -26560,8 +26581,8 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_struct(Marketplace)11821_storage": {
-            "label": "struct MarketplaceRegistry.Marketplace",
+          "t_struct(Marketplace)12786_storage": {
+            "label": "struct Marketplace",
             "members": [
               {
                 "label": "proxy",
@@ -26595,9 +26616,9 @@
         }
       }
     },
-    "6086be471102371d467ea095b4f261c92e36867b771e85d0ba16ecdb5885cca3": {
+    "2c2e7b4305c21ae7abb6f2f09b1ac244fed29aa19be31d637da5e93b4b6bc3e3": {
       "address": "0x7fFB31463FB94cd0942f8070F2a7AE2d515854C0",
-      "txHash": "0xacdad80e33539ff687eef83a7183591d6e4def370897f0302c952ff66215c78a",
+      "txHash": "0x338cc0366b63a821cad10f273b1a98254e8b6c76bfe6b60d99862591353cc534",
       "layout": {
         "storage": [
           {
@@ -26671,39 +26692,71 @@
             "slot": "250",
             "type": "t_address",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:27"
+            "src": "contracts/aggregator/NftAggregator.sol:19"
           },
           {
             "label": "marketplaceRegistry",
             "offset": 0,
             "slot": "251",
-            "type": "t_contract(MarketplaceRegistry)12002",
+            "type": "t_contract(MarketplaceRegistry)12023",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:28"
+            "src": "contracts/aggregator/NftAggregator.sol:20"
           },
           {
-            "label": "baseFees",
+            "label": "percentFeeToDao",
+            "offset": 20,
+            "slot": "251",
+            "type": "t_uint64",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:21"
+          },
+          {
+            "label": "baseFee",
             "offset": 0,
             "slot": "252",
-            "type": "t_uint256",
+            "type": "t_uint64",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:29"
+            "src": "contracts/aggregator/NftAggregator.sol:22"
+          },
+          {
+            "label": "extra",
+            "offset": 8,
+            "slot": "252",
+            "type": "t_uint128",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:23"
           },
           {
             "label": "openForTrades",
-            "offset": 0,
-            "slot": "253",
+            "offset": 24,
+            "slot": "252",
             "type": "t_bool",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:30"
+            "src": "contracts/aggregator/NftAggregator.sol:24"
           },
           {
-            "label": "openForFreeTrades",
-            "offset": 1,
-            "slot": "253",
+            "label": "extraBool",
+            "offset": 25,
+            "slot": "252",
             "type": "t_bool",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:31"
+            "src": "contracts/aggregator/NftAggregator.sol:25"
+          },
+          {
+            "label": "converter",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_address",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:26"
+          },
+          {
+            "label": "nftProfile",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_address",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:27"
           }
         ],
         "types": {
@@ -26723,13 +26776,21 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(MarketplaceRegistry)12002": {
+          "t_contract(MarketplaceRegistry)12023": {
             "label": "contract MarketplaceRegistry",
             "numberOfBytes": "20"
+          },
+          "t_uint128": {
+            "label": "uint128",
+            "numberOfBytes": "16"
           },
           "t_uint256": {
             "label": "uint256",
             "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
           },
           "t_uint8": {
             "label": "uint8",
