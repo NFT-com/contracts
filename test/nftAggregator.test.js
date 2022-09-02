@@ -121,6 +121,16 @@ describe("NFT Aggregator", function () {
         expect(await deployedMock721.balanceOf(second.address)).to.be.equal(0);
       });
 
+      it("should allow marketplace registry edits", async function() {
+        expect(await deployedMarketplaceRegistry.owner()).to.be.equal(owner.address);
+        await deployedMarketplaceRegistry.setOwner(second.address);
+        expect(await deployedMarketplaceRegistry.owner()).to.be.equal(second.address);
+        await expect(deployedMarketplaceRegistry.setOwner(second.address)).to.be.reverted; // owner is wrong
+
+        await deployedMarketplaceRegistry.connect(second).setOwner(owner.address);
+        expect(await deployedMarketplaceRegistry.owner()).to.be.equal(owner.address);
+      });
+
       it("should allow nft aggregation parameter creation on looksrare", async function () {
         let hex = await looksrare.encodeFunctionData("matchAskWithTakerBid", [
           {
@@ -426,7 +436,7 @@ describe("NFT Aggregator", function () {
         expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(second.address);
       });
 
-      it("should allow two nft purchases in one", async function() {
+      it("should allow two nft purchases in one and throw errors on edge cases", async function() {
         const tokenIds = ['1', '2', '3'];
         const recipient = second.address;
 
@@ -473,9 +483,37 @@ describe("NFT Aggregator", function () {
 
         const combinedOrders = [setData];
 
+        expect((await deployedMarketplaceRegistry.marketplaces(1))?.isActive).to.be.equal(true);
+        await deployedMarketplaceRegistry.setMarketplaceStatus("1", false);
+        expect((await deployedMarketplaceRegistry.marketplaces(1))?.isActive).to.be.equal(false);
+
+        // reverts due to marketplace not being active
+        await expect(deployedNftAggregator
+          .connect(owner)
+          .batchTradeWithETH(combinedOrders, [], [0,0], { value: totalValue })).to.be.reverted;
+
+        // due to no marketId being active
+        await expect(deployedMarketplaceRegistry.setMarketplaceProxy('2', deployedLooksrareLibV1.address, false)).to.be.reverted;
+
+        // swap marketIds
+        await deployedMarketplaceRegistry.setMarketplaceProxy('0', deployedSeaportLib1_1.address, true);
+        await deployedMarketplaceRegistry.setMarketplaceProxy('1', deployedLooksrareLibV1.address, true);
+
+        await deployedMarketplaceRegistry.setMarketplaceStatus("1", true);
+        expect((await deployedMarketplaceRegistry.marketplaces(1))?.isActive).to.be.equal(true);
+
+        // use new setData since marketIds are swapped
+        const setData2 = {
+          tradeData: genHex,
+          value: totalValue,
+          marketId: "0",
+        };
+
+        const combinedOrders2 = [setData2];
+
         await deployedNftAggregator
           .connect(owner)
-          .batchTradeWithETH(combinedOrders, [], [0,0], { value: totalValue });
+          .batchTradeWithETH(combinedOrders2, [], [0,0], { value: totalValue });
 
         for (let i = 0; i < tokenIds.length; i++) {
           expect(await deployedMock721.ownerOf(tokenIds[i])).to.be.equal(second.address);
