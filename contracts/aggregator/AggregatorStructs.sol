@@ -47,7 +47,7 @@ struct Approvals {
 }
 
 struct MultiAssetInfo {
-    bytes[] converstionDetails;
+    bytes[] conversionDetails;
     address[] dustTokens;
     FeeDetails feeDetails;
 }

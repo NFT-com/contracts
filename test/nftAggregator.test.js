@@ -10,9 +10,10 @@ const {
   useLooksrareStrategyContract,
   signOrderForLooksrare,
 } = require("./utils/aggregator/looksrareHelper");
-const { libraryCall, generateParameters, generateOfferArray, generateOrderConsiderationArray, getTotalValue } = require("../test/utils/aggregator/index");
+const { libraryCall, generateParameters, generateOfferArray, generateOrderConsiderationArray, getLooksrareTotalValue, getSeaportTotalValue } = require("../test/utils/aggregator/index");
 const { createSeaportParametersForNFTListing, signOrderForOpensea } = require("./utils/aggregator/seaportHelper");
-const { OPENSEA_CONDUIT_ADDRESS } = require("./utils/aggregator/types");
+const { OPENSEA_CONDUIT_ADDRESS, MAX_INT } = require("./utils/aggregator/types");
+const { MAX_UINT64 } = require("ethereumjs-util");
 
 describe("NFT Aggregator", function () {
   try {
@@ -33,6 +34,103 @@ describe("NFT Aggregator", function () {
       chainId == "5" ? "goerli" : chainId == "4" ? "rinkeby" : "homestead",
       INFURA_KEY,
     );
+
+    const genLooksrareHelper = async (
+      tokenID,
+      currency = "0x0000000000000000000000000000000000000000", // ETH by default
+      addresses,
+      priceEth
+    ) => {
+      const looksrareRoyaltyFeeRegistry = useLooksrareRoyaltyFeeRegistryContractContract(chainId, provider);
+      const looksrareStrategy = useLooksrareStrategyContract(chainId, provider);
+
+      const offerer = owner.address;
+      const contractAddress = deployedMock721.address;
+      const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
+      const priceBigNumber = hre.ethers.BigNumber.from((priceEth * 10 ** 18).toString());
+
+      // approve
+      await deployedMock721.connect(owner).setApprovalForAll(addresses["TRANSFER_MANAGER_ERC721"], true);
+      expect(await deployedMock721.ownerOf(tokenID)).to.be.equal(offerer);
+
+      const order = await createLooksrareParametersForNFTListing(
+        offerer,
+        contractAddress,
+        hre.ethers.BigNumber.from(tokenID), // tokenId
+        priceBigNumber, // price
+        currency,
+        chainId,
+        await getLooksrareNonce(offerer, chainId), // nonce
+        looksrareStrategy,
+        looksrareRoyaltyFeeRegistry,
+        duration,
+      );
+
+      const { v, r, s } = await signOrderForLooksrare(chainId, ownerSigner, order);
+
+      const {
+        nonce,
+        tokenId,
+        collection,
+        strategy,
+        signer,
+        isOrderAsk,
+        amount,
+        price,
+        startTime,
+        endTime,
+        minPercentageToAsk,
+        params,
+      } = order;
+
+      // goerli nft aggregator
+      const executorAddress = deployedNftAggregator.address;
+
+      const hexParam = await looksrare.encodeFunctionData("matchAskWithTakerBidUsingETHAndWETH", [
+        {
+          isOrderAsk: false,
+          taker: executorAddress,
+          price,
+          tokenId,
+          minPercentageToAsk,
+          params: params,
+        },
+        {
+          isOrderAsk,
+          signer,
+          collection,
+          price,
+          tokenId,
+          amount,
+          strategy,
+          currency,
+          nonce,
+          startTime,
+          endTime,
+          minPercentageToAsk,
+          params: params,
+          v,
+          r,
+          s,
+        },
+      ]);
+
+      const wholeHex = await looksrareLib.encodeFunctionData("_tradeHelper", [
+        price,
+        hexParam,
+        collection,
+        tokenId,
+        true, // failIfRevert,
+      ]);
+
+      const genHex = await libraryCall("_tradeHelper(uint256,bytes,address,uint256,bool)", wholeHex.slice(10));
+
+      return {
+        tradeData: genHex,
+        value: currency === "0x0000000000000000000000000000000000000000" ? priceBigNumber : 0,
+        marketId: "0", // looksrare
+      };
+    }
 
     const genSeaportHelper = async (
       tokenId,
@@ -463,7 +561,7 @@ describe("NFT Aggregator", function () {
           ],
         ];
 
-        const totalValue = getTotalValue(results);
+        const totalValue = getSeaportTotalValue(results);
 
         const failIfRevert = true;
 
@@ -517,6 +615,107 @@ describe("NFT Aggregator", function () {
 
         for (let i = 0; i < tokenIds.length; i++) {
           expect(await deployedMock721.ownerOf(tokenIds[i])).to.be.equal(second.address);
+        }
+      });
+
+      it("should allow batched looksrare and seaport purchases with both ETH and WETH transfer", async function() {
+        const seaportTokenIds = ['1', '2'];
+        const looksrareTokenIds = ['3', '4'];
+        const recipient = second.address;
+
+        for (let i = 0; i < seaportTokenIds.length; i++) {
+          await deployedMock721.connect(owner).mint(seaportTokenIds[i]);
+        }
+
+        for (let i = 0; i < looksrareTokenIds.length; i++) {
+          await deployedMock721.connect(owner).mint(looksrareTokenIds[i]);
+        }
+
+        // ====================================================================================================
+        const addresses = await getLooksrareAddresses(chainId);
+        const looksrareResults = await Promise.all(looksrareTokenIds.map(id => genLooksrareHelper(
+          id,
+          addresses['WETH'],
+          addresses,
+          "0.001"
+        )));
+
+        const TestToken = await hre.ethers.getContractFactory("NftToken");
+        const testWETH = TestToken.attach(addresses['WETH']);
+        await testWETH.approve(deployedNftAggregator.address, MAX_INT);
+        expect(Number(await testWETH.balanceOf(owner.address))).to.be.greaterThanOrEqual(Number(hre.ethers.BigNumber.from(('0.002' * 10 ** 18))));
+
+        // one time approval for WETH
+        await deployedNftAggregator.setOneTimeApproval([
+          {
+            token: addresses['WETH'],
+            operator: addresses['EXCHANGE'],
+            amount: MAX_INT,
+          },
+        ]);
+
+        // ====================================================================================================
+
+        const seaportResults = await Promise.all(seaportTokenIds.map(id => genSeaportHelper(
+          id,
+          "0x0000000000000000000000000000000000000000",
+          "0.012"
+        )));
+
+        // orderStruct for SeaportLibV1_1
+        const orderStruct = [
+          [
+            generateParameters(seaportResults),
+            [],
+            generateOfferArray(seaportResults.map(i => i.data.offer)),
+            generateOrderConsiderationArray(seaportResults.map(i => i.data.consideration)),
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            recipient,
+            seaportResults.length,
+          ],
+        ];
+
+        const seaportTotalValue = getSeaportTotalValue(seaportResults);
+        const looksrareTotalValue = getLooksrareTotalValue(looksrareResults);
+
+        const failIfRevert = true;
+
+        const inputData = [orderStruct, [seaportTotalValue], failIfRevert];
+        const wholeHex = await seaportLib.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
+
+        const genHex = await libraryCall(
+          "fulfillAvailableAdvancedOrders(SeaportLib1_1.SeaportBuyOrder[],uint256[],bool)",
+          wholeHex.slice(10),
+        );
+
+        const setData = {
+          tradeData: genHex,
+          value: seaportTotalValue,
+          marketId: "1",
+        };
+
+        const combinedOrders = [setData].concat(looksrareResults);
+        const totalValue = seaportTotalValue.add(looksrareTotalValue);
+
+        console.log('combinedOrders: ', combinedOrders);
+        console.log('totalValue: ', Number(totalValue));
+
+        await deployedNftAggregator
+          .connect(owner)
+          .batchTrade(
+            [[addresses['WETH']], [hre.ethers.BigNumber.from(('0.002' * 10 ** 18).toString())]],
+            combinedOrders,
+            [[], [], [0,0]],
+            { value: totalValue }
+          );
+          // erc20 details, tradeDetails, tradeInfo => [conversionDetails, dust details, feeDetails]
+
+        for (let i = 0; i < seaportTokenIds.length; i++) {
+          expect(await deployedMock721.ownerOf(seaportTokenIds[i])).to.be.equal(second.address);
+        }
+
+        for (let i = 0; i < looksrareTokenIds.length; i++) {
+          expect(await deployedMock721.ownerOf(looksrareTokenIds[i])).to.be.equal(second.address);
         }
       });
     });

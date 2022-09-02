@@ -144,7 +144,20 @@ const getSeaportOrder = async (
 };
 
 // @ts-ignore
-export const getTotalValue = (results): any => {
+export const getLooksrareTotalValue = (results): any => {
+  const totalValue: ethers.BigNumber = (results || [])
+  .map((i: any) => {
+    return ethers.BigNumber.from(i.value)
+  }).reduce(
+    (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
+    ethers.BigNumber.from(0),
+  );
+
+  return totalValue;
+}
+
+// @ts-ignore
+export const getSeaportTotalValue = (results): any => {
   const totalValue: ethers.BigNumber = (results || [])
   .map((i: any) => {
     const inner = i.data.consideration.map((j: any) => ethers.BigNumber.from(j.startAmount))

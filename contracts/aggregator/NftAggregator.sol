@@ -173,7 +173,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
     }
 
     function batchTradeWithETH(
-        TradeDetails[] calldata _tradeDetails,
+        TradeDetails[] calldata tradeDetails,
         address[] calldata dustTokens,
         FeeDetails calldata feeDetails    // [affiliateTokenId, ETH fee in Wei]
     )
@@ -185,7 +185,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
 
         _collectFee(feeDetails);
 
-        _trade(_tradeDetails);
+        _trade(tradeDetails);
 
         _returnDust(dustTokens);
     }
@@ -201,10 +201,8 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
 
     function batchTrade(
         ERC20Details calldata erc20Details,
-        bytes[] calldata _conversionDetails,
-        TradeDetails[] calldata _tradeDetails,
-        address[] calldata dustTokens,
-        FeeDetails calldata feeDetails    // [affiliateTokenId, ETH fee in Wei]
+        TradeDetails[] calldata tradeDetails,
+        MultiAssetInfo calldata tradeInfo
     ) external payable nonReentrant {
         if (!openForTrades) revert TradingNotOpen();
 
@@ -218,13 +216,13 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
             }
         }
 
-        _collectFee(feeDetails);
+        _collectFee(tradeInfo.feeDetails);
 
-        _conversionHelper(_conversionDetails);
+        _conversionHelper(tradeInfo.conversionDetails);
 
-        _trade(_tradeDetails);
+        _trade(tradeDetails);
 
-        _returnDust(dustTokens);
+        _returnDust(tradeInfo.dustTokens);
     }
 
     function multiAssetSwap(
@@ -246,7 +244,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         );
 
         // Convert any assets if needed
-        _conversionHelper(tradeInfo.converstionDetails);
+        _conversionHelper(tradeInfo.conversionDetails);
 
         // execute trades
         _trade(tradeDetails);
