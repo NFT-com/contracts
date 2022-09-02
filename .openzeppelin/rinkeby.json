@@ -2277,6 +2277,26 @@
       "kind": "uups"
     },
     {
+      "address": "0xc6A3fE370ec7D7Fc9C85e3bD84f86Af461aA3b81",
+      "txHash": "0x85b6dcfedbcf2d19d7ce4603a4ec8e16d321459cb4333fb8f89a703bb56e9fc9",
+      "kind": "uups"
+    },
+    {
+      "address": "0xb29c6DaaA0fc4C3F1DBEF5Da7d62B3d4DdB7c4Bf",
+      "txHash": "0x1c8d582a88a6defd4e8a944214b3901e98e304b7a6b31fff8d4a93413fa5fc3b",
+      "kind": "uups"
+    },
+    {
+      "address": "0x8E29892B27a299dBb5E516F8b3A48EB387E082df",
+      "txHash": "0x7ad3acfd4bb1e5b5d75f12e0860109879aeb6628d40a5e5c7f205a18f0a53914",
+      "kind": "uups"
+    },
+    {
+      "address": "0x3ABdDD4bFc79d404cFaBF8806CBCCCAa079bE892",
+      "txHash": "0x0f711ca688866eb3d79c17cf282875a27c84080255a8a2e259822149557f0db8",
+      "kind": "uups"
+    },
+    {
       "address": "0x428A3060A0aeE26d14b90545B327871DF75545bC",
       "txHash": "0x1a40396497473085f703f5df54d2eaeb1d0ae6e5bd52271f975ce93f118c3142",
       "kind": "uups"
@@ -2337,23 +2357,23 @@
       "kind": "uups"
     },
     {
-      "address": "0xc6A3fE370ec7D7Fc9C85e3bD84f86Af461aA3b81",
-      "txHash": "0x85b6dcfedbcf2d19d7ce4603a4ec8e16d321459cb4333fb8f89a703bb56e9fc9",
+      "address": "0x016BE273385c900E73BdF6782A4A21F1EEaFA49b",
+      "txHash": "0x23f1a23f61c09cd541e67dec85af0354df26dcd936c030cd1d741432267e7704",
       "kind": "uups"
     },
     {
-      "address": "0xb29c6DaaA0fc4C3F1DBEF5Da7d62B3d4DdB7c4Bf",
-      "txHash": "0x1c8d582a88a6defd4e8a944214b3901e98e304b7a6b31fff8d4a93413fa5fc3b",
+      "address": "0x187032638966a493d5F8815001f4A3f3587Eb43a",
+      "txHash": "0xe143380b097e5b9d43956e8a8b849bac0f5c1698404236f38ab139efffc0ea8a",
       "kind": "uups"
     },
     {
-      "address": "0x8E29892B27a299dBb5E516F8b3A48EB387E082df",
-      "txHash": "0x7ad3acfd4bb1e5b5d75f12e0860109879aeb6628d40a5e5c7f205a18f0a53914",
+      "address": "0xdC6529E6818ffDEAfb037931981EC1bf9de139C4",
+      "txHash": "0xa3ec6718f10049c224fbd8914c73ef9b49bcc8930396829979c103579e3be983",
       "kind": "uups"
     },
     {
-      "address": "0x3ABdDD4bFc79d404cFaBF8806CBCCCAa079bE892",
-      "txHash": "0x0f711ca688866eb3d79c17cf282875a27c84080255a8a2e259822149557f0db8",
+      "address": "0x7E0dA5de6de2Bd65621d3C6883c339907Fb821e8",
+      "txHash": "0x45b84beeb8ad024dcc0e85f8554f943f1ad59dec13dd0a4428fe2fff4edcce9c",
       "kind": "uups"
     }
   ],
@@ -28009,7 +28029,7 @@
             "label": "marketplaces",
             "offset": 0,
             "slot": "102",
-            "type": "t_array(t_struct(Marketplace)12786_storage)dyn_storage",
+            "type": "t_array(t_struct(Marketplace)12961_storage)dyn_storage",
             "contract": "MarketplaceRegistry",
             "src": "contracts/aggregator/MarketplaceRegistry.sol:11"
           }
@@ -28019,7 +28039,7 @@
             "label": "address",
             "numberOfBytes": "20"
           },
-          "t_array(t_struct(Marketplace)12786_storage)dyn_storage": {
+          "t_array(t_struct(Marketplace)12961_storage)dyn_storage": {
             "label": "struct Marketplace[]",
             "numberOfBytes": "32"
           },
@@ -28031,7 +28051,7 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_struct(Marketplace)12786_storage": {
+          "t_struct(Marketplace)12961_storage": {
             "label": "struct Marketplace",
             "members": [
               {
@@ -32390,9 +32410,9 @@
         }
       }
     },
-    "561457beb12172b3047926831bdd78030753810b41dc15c978004ef3b110bf8a": {
+    "f9dc898b436c7e11cf0280a4cba98455382c2cdcf4a1f548fe50dc78b4f8beec": {
       "address": "0x7fFB31463FB94cd0942f8070F2a7AE2d515854C0",
-      "txHash": "0xddebdb4242cb76bfd4fe0630e32dc15915002da5d82b42b91e671f194aebb219",
+      "txHash": "0xab73f629e53658b2eb1342f95eb748a29985798ef2d8bb254eb4fd4f84a26418",
       "layout": {
         "storage": [
           {
@@ -32466,15 +32486,15 @@
             "slot": "250",
             "type": "t_address",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:19"
+            "src": "contracts/aggregator/NftAggregator.sol:20"
           },
           {
             "label": "marketplaceRegistry",
             "offset": 0,
             "slot": "251",
-            "type": "t_contract(MarketplaceRegistry)12038",
+            "type": "t_contract(MarketplaceRegistry)12168",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:20"
+            "src": "contracts/aggregator/NftAggregator.sol:21"
           },
           {
             "label": "percentFeeToDao",
@@ -32482,7 +32502,7 @@
             "slot": "251",
             "type": "t_uint64",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:21"
+            "src": "contracts/aggregator/NftAggregator.sol:22"
           },
           {
             "label": "baseFee",
@@ -32490,7 +32510,7 @@
             "slot": "252",
             "type": "t_uint64",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:22"
+            "src": "contracts/aggregator/NftAggregator.sol:23"
           },
           {
             "label": "extra",
@@ -32498,7 +32518,7 @@
             "slot": "252",
             "type": "t_uint128",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:23"
+            "src": "contracts/aggregator/NftAggregator.sol:24"
           },
           {
             "label": "openForTrades",
@@ -32506,7 +32526,7 @@
             "slot": "252",
             "type": "t_bool",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:24"
+            "src": "contracts/aggregator/NftAggregator.sol:25"
           },
           {
             "label": "extraBool",
@@ -32514,7 +32534,7 @@
             "slot": "252",
             "type": "t_bool",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:25"
+            "src": "contracts/aggregator/NftAggregator.sol:26"
           },
           {
             "label": "converter",
@@ -32522,7 +32542,7 @@
             "slot": "253",
             "type": "t_address",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:26"
+            "src": "contracts/aggregator/NftAggregator.sol:27"
           },
           {
             "label": "nftProfile",
@@ -32530,7 +32550,7 @@
             "slot": "254",
             "type": "t_address",
             "contract": "NftAggregator",
-            "src": "contracts/aggregator/NftAggregator.sol:27"
+            "src": "contracts/aggregator/NftAggregator.sol:28"
           }
         ],
         "types": {
@@ -32550,7 +32570,7 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(MarketplaceRegistry)12038": {
+          "t_contract(MarketplaceRegistry)12168": {
             "label": "contract MarketplaceRegistry",
             "numberOfBytes": "20"
           },
