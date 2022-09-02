@@ -12,6 +12,7 @@ import "./AggregatorStructs.sol";
 contract TransferHelper is Initializable, ContextUpgradeable, SpecialTransferHelper {
     function __TransferHelper_init() internal initializer {
         __Context_init_unchained();
+        __SpecialTransfer_init();
     }
 
     function _checkCallResult(bool _success) internal pure {
