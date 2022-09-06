@@ -159,7 +159,10 @@
           },
           "t_enum(VestingInstallments)14058": {
             "label": "enum Vesting.VestingInstallments",
-            "members": ["MONTHLY", "QUARTERLY"]
+            "members": [
+              "MONTHLY",
+              "QUARTERLY"
+            ]
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
@@ -3006,7 +3009,14 @@
           },
           "t_enum(Blockchain)2888": {
             "label": "enum Blockchain",
-            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
+            "members": [
+              "ETHEREUM",
+              "HEDERA",
+              "POLYGON",
+              "SOLANA",
+              "TEZOS",
+              "FLOW"
+            ]
           },
           "t_contract(IRegex)2881": {
             "label": "contract IRegex"
@@ -3208,7 +3218,14 @@
           },
           "t_enum(Blockchain)21620": {
             "label": "enum Blockchain",
-            "members": ["ETHEREUM", "HEDERA", "POLYGON", "SOLANA", "TEZOS", "FLOW"]
+            "members": [
+              "ETHEREUM",
+              "HEDERA",
+              "POLYGON",
+              "SOLANA",
+              "TEZOS",
+              "FLOW"
+            ]
           },
           "t_contract(IRegex)21613": {
             "label": "contract IRegex"
@@ -3467,6 +3484,173 @@
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
+          }
+        }
+      }
+    },
+    "ad89e5f6786657924f5663507c7e96d83ec5f450102b22406130a182c7417842": {
+      "address": "0xE248Fd21D1066f8E59b46718B1EC1EdfBac0f73b",
+      "txHash": "0x5617f5f97e0a9854e7104112ed514396ce5999549c37666a460ca7cf6b4ea834",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "SpecialTransferHelper",
+            "src": "contracts/aggregator/SpecialTransferHelper.sol:103"
+          },
+          {
+            "label": "owner",
+            "offset": 0,
+            "slot": "250",
+            "type": "t_address",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:20"
+          },
+          {
+            "label": "marketplaceRegistry",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_contract(MarketplaceRegistry)12038",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:21"
+          },
+          {
+            "label": "baseFee",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_uint256",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:22"
+          },
+          {
+            "label": "openForTrades",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_bool",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:23"
+          },
+          {
+            "label": "extraBool",
+            "offset": 1,
+            "slot": "253",
+            "type": "t_bool",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:24"
+          },
+          {
+            "label": "percentFeeToDao",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_uint256",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:25"
+          },
+          {
+            "label": "converter",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_address",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:26"
+          },
+          {
+            "label": "nftProfile",
+            "offset": 0,
+            "slot": "256",
+            "type": "t_address",
+            "contract": "NftAggregator",
+            "src": "contracts/aggregator/NftAggregator.sol:27"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(MarketplaceRegistry)12038": {
+            "label": "contract MarketplaceRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
           }
         }
       }

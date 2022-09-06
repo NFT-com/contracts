@@ -27,7 +27,7 @@ interface ConsiderationObject {
 }
 
 interface ConsiderationObjMap {
-  [key: string]: Array<ConsiderationFulfillmentUnit>;
+  [key: string]:  Array<ConsiderationFulfillmentUnit>;
 }
 
 interface ConsiderationFulfillmentUnit {
@@ -160,7 +160,7 @@ export const getLooksrareTotalValue = (results): any => {
 export const getSeaportTotalValue = (results): any => {
   const totalValue: ethers.BigNumber = (results || [])
   .map((i: any) => {
-    const inner = i.data.consideration.map((j: any) => ethers.BigNumber.from(j.startAmount))
+    const inner = i.data.consideration.map((j: any) => ethers.BigNumber.from(j.token === "0x0000000000000000000000000000000000000000" ? j.startAmount : 0))
     return inner.reduce(
       (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
       ethers.BigNumber.from(0),
@@ -209,14 +209,14 @@ export const generateOfferArray = (array: any) => {
 
 export const generateOrderConsiderationArray = (
   array: Array<Array<ConsiderationObject>>,
-): Array<Array<ConsiderationFulfillmentUnit>> => {
+): Array<Array<ConsiderationFulfillmentUnit>> | undefined => {
   const mapIndex: ConsiderationObjMap = {};
   array.map((item: Array<ConsiderationObject>, index: number) =>
     item.map((i: ConsiderationObject, shortIndex: number) => {
-      if (mapIndex[i.recipient] == undefined) {
-        mapIndex[i.recipient] = [{ orderIndex: index.toString(), itemIndex: shortIndex.toString() }];
+      if (mapIndex[i.recipient + i.token] == undefined) {
+        mapIndex[i.recipient + i.token] = [{ orderIndex: index.toString(), itemIndex: shortIndex.toString() }];
       } else {
-        mapIndex[i.recipient].push({ orderIndex: index.toString(), itemIndex: shortIndex.toString() });
+        mapIndex[i.recipient + i.token].push({ orderIndex: index.toString(), itemIndex: shortIndex.toString() });
       }
     }),
   );

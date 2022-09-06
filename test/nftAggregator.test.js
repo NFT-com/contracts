@@ -12,9 +12,7 @@ const {
 } = require("./utils/aggregator/looksrareHelper");
 const { libraryCall, generateParameters, generateOfferArray, generateOrderConsiderationArray, getLooksrareTotalValue, getSeaportTotalValue } = require("../test/utils/aggregator/index");
 const { createSeaportParametersForNFTListing, signOrderForOpensea } = require("./utils/aggregator/seaportHelper");
-const { OPENSEA_CONDUIT_ADDRESS, MAX_INT } = require("./utils/aggregator/types");
-const { MAX_UINT64 } = require("ethereumjs-util");
-const { Test } = require("mocha");
+const { CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS, MAX_INT } = require("./utils/aggregator/types");
 
 describe("NFT Aggregator", function () {
   try {
@@ -382,7 +380,6 @@ describe("NFT Aggregator", function () {
         const currency = addresses["WETH"];
         const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
         const inputNonce = await getLooksrareNonce(offerer, chainId);
-        console.log('inputNonce: ', Number(inputNonce));
 
         // approve
         await deployedMock721.connect(owner).setApprovalForAll(addresses["TRANSFER_MANAGER_ERC721"], true);
@@ -674,7 +671,7 @@ describe("NFT Aggregator", function () {
 
         const looksrareResults = await Promise.all(looksrareTokenIds.map((id, index) => genLooksrareHelper(
           id,
-          addresses['WETH'], // deployedTest20.address,
+          addresses['WETH'],
           addresses,
           Number(nonce) + Number(index) + 1,
           "0.001",
@@ -693,6 +690,8 @@ describe("NFT Aggregator", function () {
         // approve
         await deployedTest20.connect(second).approve(deployedNftAggregator.address, MAX_INT);
         await deployedWETH.connect(second).approve(deployedNftAggregator.address, MAX_INT);
+        await deployedTest20.connect(second).approve(CROSS_CHAIN_SEAPORT_ADDRESS, MAX_INT);
+        await deployedWETH.connect(second).approve(CROSS_CHAIN_SEAPORT_ADDRESS, MAX_INT);
 
         // one time approval for WETH
         await deployedNftAggregator.setOneTimeApproval([
@@ -706,6 +705,16 @@ describe("NFT Aggregator", function () {
             operator: addresses['EXCHANGE'],
             amount: MAX_INT,
           },
+          {
+            token: addresses['WETH'],
+            operator: CROSS_CHAIN_SEAPORT_ADDRESS,
+            amount: MAX_INT,
+          },
+          {
+            token: deployedTest20.address,
+            operator: CROSS_CHAIN_SEAPORT_ADDRESS,
+            amount: MAX_INT,
+          },
         ]);
 
         expect(await deployedTest20.allowance(second.address, deployedNftAggregator.address)).to.be.equal(MAX_INT);
@@ -713,13 +722,15 @@ describe("NFT Aggregator", function () {
         
         expect(await deployedTest20.allowance(deployedNftAggregator.address, addresses['EXCHANGE'])).to.be.equal(MAX_INT);
         expect(await deployedWETH.allowance(deployedNftAggregator.address, addresses['EXCHANGE'])).to.be.equal(MAX_INT);
+        expect(await deployedTest20.allowance(second.address, CROSS_CHAIN_SEAPORT_ADDRESS)).to.be.equal(MAX_INT);
+        expect(await deployedWETH.allowance(second.address, CROSS_CHAIN_SEAPORT_ADDRESS)).to.be.equal(MAX_INT);
 
         // ====================================================================================================
 
-        const seaportResults = await Promise.all(seaportTokenIds.map(id => genSeaportHelper(
+        const seaportResults = await Promise.all(seaportTokenIds.map((id, index) => genSeaportHelper(
           id,
-          "0x0000000000000000000000000000000000000000",
-          "0.012"
+          index % 2 == 0 ? "0x0000000000000000000000000000000000000000" : deployedTest20.address, // even = ETH, odd = test ERC20
+          index % 2 == 0 ? "0.012" : "0.001" // smaller amount for test ERC20
         )));
 
         // orderStruct for SeaportLibV1_1
@@ -736,6 +747,7 @@ describe("NFT Aggregator", function () {
         ];
 
         const seaportTotalValue = getSeaportTotalValue(seaportResults);
+
         const looksrareTotalValue = getLooksrareTotalValue(looksrareResults);
 
         const failIfRevert = true;
@@ -763,7 +775,7 @@ describe("NFT Aggregator", function () {
             [
               [deployedTest20.address, addresses['WETH']],
               [
-                hre.ethers.BigNumber.from(looksrareTokenIds.length).mul((hre.ethers.BigNumber.from(10).pow(15))),
+                hre.ethers.BigNumber.from(seaportTokenIds.filter(i => i % 2 != 0).length).mul((hre.ethers.BigNumber.from(10).pow(15))), // testERC20 only for seaport
                 hre.ethers.BigNumber.from(looksrareTokenIds.length).mul((hre.ethers.BigNumber.from(10).pow(15)))
               ]
             ],
