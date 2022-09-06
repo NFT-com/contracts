@@ -676,7 +676,7 @@ describe("NFT Aggregator", function () {
           id,
           addresses['WETH'], // deployedTest20.address,
           addresses,
-          Number(nonce) + Number(index),
+          Number(nonce) + Number(index) + 1,
           "0.001",
           deployedMock721.address
         )));
