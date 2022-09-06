@@ -48,7 +48,7 @@ describe("NFT Aggregator", function () {
       const looksrareStrategy = useLooksrareStrategyContract(chainId, provider);
 
       const offerer = owner.address;
-      const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
+      const duration = hre.ethers.BigNumber.from(3 * 60 * 60 * 24); // 3 days
       const priceBigNumber = hre.ethers.BigNumber.from((priceEth * 10 ** 18).toString());
 
       // approve
@@ -169,7 +169,7 @@ describe("NFT Aggregator", function () {
     ) => {
       const offerer = owner.address;
       const contractAddress = deployedMock721.address;
-      const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
+      const duration = hre.ethers.BigNumber.from(3 * 60 * 60 * 24); // 3 days
       const startingPrice = hre.ethers.BigNumber.from((priceEth * 10 ** 18).toString());
       const endingPrice = hre.ethers.BigNumber.from((priceEth * 10 ** 18).toString());
     
