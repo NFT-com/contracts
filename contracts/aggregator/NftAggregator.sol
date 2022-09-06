@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./TransferHelper.sol";
 import "./MarketplaceRegistry.sol";
+// import "hardhat/console.sol";
 
 error InactiveMarket();
 error MAX_FEE_EXCEEDED();
@@ -205,7 +206,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
     ) external payable nonReentrant {
         if (!openForTrades) revert TradingNotOpen();
 
-        for (uint256 i = 0; i < erc20Details.tokenAddrs.length; ) 
+        for (uint256 i = 0; i < erc20Details.tokenAddrs.length; ) {
             erc20Details.tokenAddrs[i].call(
                 abi.encodeWithSelector(0x23b872dd, msg.sender, address(this), erc20Details.amounts[i])
             );
