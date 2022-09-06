@@ -209,7 +209,7 @@ export const generateOfferArray = (array: any) => {
 
 export const generateOrderConsiderationArray = (
   array: Array<Array<ConsiderationObject>>,
-): Array<Array<ConsiderationFulfillmentUnit>> | undefined => {
+): Array<Array<ConsiderationFulfillmentUnit>> => {
   const mapIndex: ConsiderationObjMap = {};
   array.map((item: Array<ConsiderationObject>, index: number) =>
     item.map((i: ConsiderationObject, shortIndex: number) => {
