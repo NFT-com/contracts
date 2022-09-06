@@ -96,12 +96,12 @@ const config: HardhatUserConfig = {
       accounts: {
         mnemonic,
       },
-      chainId: chainIds.rinkeby,
+      chainId: chainIds.rinkeby, // chainIds.rinkeby,
     },
     mainnet: getChainConfigPK("mainnet"),
     goerli: getChainConfig("goerli"),
     kovan: getChainConfig("kovan"),
-    rinkeby: getChainConfigPK("rinkeby"), //getChainConfigPK("rinkeby"),
+    rinkeby: getChainConfig("rinkeby"), //getChainConfigPK("rinkeby"),
     ropsten: getChainConfig("ropsten"),
   },
   contractSizer: {

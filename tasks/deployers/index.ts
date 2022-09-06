@@ -991,25 +991,28 @@ task("upgrade:GenesisKeyTeamClaim").setAction(async function (taskArguments, hre
 
 task("upgrade:NftAggregator").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
-  // const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
 
-  // const upgradedNftAggregator = await hre.upgrades.upgradeProxy(
-  //   (
-  //     await getTokens(hre)
-  //   ).deployedNftAggregator,
-  //   NftAggregator,
-  //   { unsafeAllow: ["delegatecall"] },
-  // );
+  const upgradedNftAggregator = await hre.upgrades.upgradeProxy(
+    (
+      await getTokens(hre)
+    ).deployedNftAggregator,
+    NftAggregator,
+    { 
+      unsafeAllow: ["delegatecall"],
+      unsafeAllowRenames: true
+    },
+  );
 
-  // await waitTx("upgradedNftAggregator", upgradedNftAggregator, hre);
+  await waitTx("upgradedNftAggregator", upgradedNftAggregator, hre);
 
-  await delayedVerifyImp("upgradedNftAggregator", "0xc7Ce15B068f96D8079Af45A5bab225e628bF96e6", hre);
+  await delayedVerifyImp("upgradedNftAggregator", upgradedNftAggregator.address, hre);
 });
 
 task("oneTimeApproval").setAction(async function (taskArguments, hre) {
-  console.log(chalk.green("starting to add approval for token..."));
   const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
   const deployedNftAggregator = NftAggregator.attach((await getTokens(hre)).deployedNftAggregator);
+  console.log(chalk.green("starting to add approval for token... ", deployedNftAggregator.address));
 
   await deployedNftAggregator.setOneTimeApproval([
     {

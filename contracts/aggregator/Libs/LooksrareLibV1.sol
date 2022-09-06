@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
-import "hardhat/console.sol";
 
 error InvalidChain();
 
@@ -25,12 +24,7 @@ library LooksrareLibV1 {
             revert InvalidChain();
         }
 
-        console.log('value: ', value);
-
         (bool success, ) = address(looksrareExchange).call{ value: value }(tradeData);
-
-        console.log('looksrare lib: ');
-        console.logBool(success);
 
         if (!success && revertTxFail) {
             // Copy revert reason from call

@@ -6,7 +6,6 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./TransferHelper.sol";
 import "./MarketplaceRegistry.sol";
-import "hardhat/console.sol";
 
 error InactiveMarket();
 error MAX_FEE_EXCEEDED();
@@ -19,11 +18,10 @@ interface INftProfile {
 contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, TransferHelper {
     address public owner;
     MarketplaceRegistry public marketplaceRegistry;
-    uint64 public percentFeeToDao; // 0 - 10000, where 10000 = 100% of fees
-    uint64 public baseFee; // 0 - 10000, where 10000 = 100% of fees
-    uint128 public extra; // extra for now
+    uint256 public baseFee; // 0 - 10000, where 10000 = 100% of fees
     bool public openForTrades;
     bool public extraBool;
+    uint256 public percentFeeToDao; // 0 - 10000, where 10000 = 100% of fees
     address public converter;
     address public nftProfile;
 
@@ -108,12 +106,12 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         emit NewNftProfile(_new);
     }
 
-    function setDaoFees(uint64 _percentFeeToDao) external onlyOwner {
+    function setDaoFees(uint256 _percentFeeToDao) external onlyOwner {
         if (_percentFeeToDao > 10000) revert MAX_FEE_EXCEEDED();
         percentFeeToDao = _percentFeeToDao;
     }
 
-    function setBaseFees(uint64 _baseFee) external onlyOwner {
+    function setBaseFees(uint256 _baseFee) external onlyOwner {
         if (_baseFee > 10000) revert MAX_FEE_EXCEEDED();
         baseFee = _baseFee;
     }
@@ -207,17 +205,10 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
     ) external payable nonReentrant {
         if (!openForTrades) revert TradingNotOpen();
 
-        console.log('start');
-
-        for (uint256 i = 0; i < erc20Details.tokenAddrs.length; ) {
-            console.log('inside tf: ', erc20Details.tokenAddrs[i]);
+        for (uint256 i = 0; i < erc20Details.tokenAddrs.length; ) 
             erc20Details.tokenAddrs[i].call(
                 abi.encodeWithSelector(0x23b872dd, msg.sender, address(this), erc20Details.amounts[i])
             );
-
-            console.log('inside tf 2: ', erc20Details.amounts[i]);
-
-            console.log('after balance: ', IERC20Upgradeable(erc20Details.tokenAddrs[i]).balanceOf(address(this)));
 
             unchecked {
                 ++i;

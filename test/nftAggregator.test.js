@@ -28,7 +28,7 @@ describe("NFT Aggregator", function () {
     const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
 
     // TODO: change once opensea supports goerli fully with zone
-    const chainId = 4; // 5 = goerli, hre.network.config.chainId
+    const chainId = hre.network.config.chainId; // 4 = rinkeby, 5 = goerli, hre.network.config.chainId
 
     const INFURA_KEY = "460ed70fa7394604a709b7dff23f1641";
     const provider = new ethers.providers.InfuraProvider(
@@ -41,18 +41,17 @@ describe("NFT Aggregator", function () {
       currency = "0x0000000000000000000000000000000000000000", // ETH by default
       addresses,
       inputNonce,
-      priceEth
+      priceEth,
+      contractAddress
     ) => {
       const looksrareRoyaltyFeeRegistry = useLooksrareRoyaltyFeeRegistryContractContract(chainId, provider);
       const looksrareStrategy = useLooksrareStrategyContract(chainId, provider);
 
       const offerer = owner.address;
-      const contractAddress = deployedMock721.address;
       const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
       const priceBigNumber = hre.ethers.BigNumber.from((priceEth * 10 ** 18).toString());
 
       // approve
-      console.log('addresses["TRANSFER_MANAGER_ERC721"]: ', addresses["TRANSFER_MANAGER_ERC721"]);
       await deployedMock721.connect(owner).setApprovalForAll(addresses["TRANSFER_MANAGER_ERC721"], true);
       expect(await deployedMock721.ownerOf(tokenID)).to.be.equal(offerer);
 
@@ -88,7 +87,7 @@ describe("NFT Aggregator", function () {
 
       const executorAddress = deployedNftAggregator.address;
 
-      const hexParam = await looksrare.encodeFunctionData("matchAskWithTakerBidUsingETHAndWETH", [
+      const hexParam = await looksrare.encodeFunctionData("matchAskWithTakerBid", [
         {
           isOrderAsk: false,
           taker: executorAddress,
@@ -117,8 +116,37 @@ describe("NFT Aggregator", function () {
         },
       ]);
 
+      const p = [
+        {
+          isOrderAsk: false,
+          taker: executorAddress,
+          price,
+          tokenId,
+          minPercentageToAsk,
+          params: params,
+        },
+        {
+          isOrderAsk,
+          signer,
+          collection,
+          price,
+          tokenId,
+          amount,
+          strategy,
+          currency,
+          nonce,
+          startTime,
+          endTime,
+          minPercentageToAsk,
+          params: params,
+          v,
+          r,
+          s,
+        },
+      ];
+
       const wholeHex = await looksrareLib.encodeFunctionData("_tradeHelper", [
-        price,
+        currency == "0x0000000000000000000000000000000000000000" ? price : hre.ethers.BigNumber.from(0),
         hexParam,
         collection,
         tokenId,
@@ -129,7 +157,7 @@ describe("NFT Aggregator", function () {
 
       return {
         tradeData: genHex,
-        value: currency === "0x0000000000000000000000000000000000000000" ? priceBigNumber : hre.ethers.BigNumber.from(0),
+        value: currency == "0x0000000000000000000000000000000000000000" ? priceBigNumber : hre.ethers.BigNumber.from(0),
         marketId: "0", // looksrare
       };
     }
@@ -389,7 +417,7 @@ describe("NFT Aggregator", function () {
           params,
         } = order;
 
-        // goerli nft aggregator
+        // local deployed nft aggregator
         const executorAddress = deployedNftAggregator.address;
 
         const hexParam = await looksrare.encodeFunctionData("matchAskWithTakerBidUsingETHAndWETH", [
@@ -624,7 +652,7 @@ describe("NFT Aggregator", function () {
 
       it("should allow batched looksrare and seaport purchases with both ETH and WETH transfer", async function() {
         const seaportTokenIds = ['1', '2'];
-        const looksrareTokenIds = ['3'];
+        const looksrareTokenIds = ['3', '4'];
         const recipient = second.address;
         const offerer = owner.address;
 
@@ -641,25 +669,30 @@ describe("NFT Aggregator", function () {
         const nonce = await getLooksrareNonce(offerer, chainId);
         const Test20 = await hre.ethers.getContractFactory("Test20");
         const deployedTest20 = await Test20.connect(second).deploy();
-        await deployedTest20.connect(second).approve(deployedNftAggregator.address, MAX_INT);
+
         expect(await deployedTest20.balanceOf(second.address)).to.be.equal(hre.ethers.BigNumber.from(1000000000).mul(hre.ethers.BigNumber.from(10).pow(18)));
 
         const looksrareResults = await Promise.all(looksrareTokenIds.map((id, index) => genLooksrareHelper(
           id,
-          deployedTest20.address, // addresses['WETH'],
+          addresses['WETH'], // deployedTest20.address,
           addresses,
           Number(nonce) + Number(index),
-          "0.001"
+          "0.001",
+          deployedMock721.address
         )));
 
         const TestWETH = await hre.ethers.getContractFactory("WETH");
         const deployedWETH = await TestWETH.attach(addresses['WETH']);
-        await deployedWETH.connect(second).approve(deployedNftAggregator.address, MAX_INT);
         const wethBalanceBefore = await deployedWETH.balanceOf(second.address);
+        await deployedWETH.connect(second).approve(deployedNftAggregator.address, MAX_INT);
         await deployedWETH.connect(second).deposit({ value: hre.ethers.BigNumber.from(10).pow(17) }); // 0.1 ETH
         const wethBalanceAfter = await deployedWETH.balanceOf(second.address);
-        
+
         expect(wethBalanceAfter.sub(wethBalanceBefore)).to.be.equal(hre.ethers.BigNumber.from(10).pow(17));
+
+        // approve
+        await deployedTest20.connect(second).approve(deployedNftAggregator.address, MAX_INT);
+        await deployedWETH.connect(second).approve(deployedNftAggregator.address, MAX_INT);
 
         // one time approval for WETH
         await deployedNftAggregator.setOneTimeApproval([
@@ -674,6 +707,12 @@ describe("NFT Aggregator", function () {
             amount: MAX_INT,
           },
         ]);
+
+        expect(await deployedTest20.allowance(second.address, deployedNftAggregator.address)).to.be.equal(MAX_INT);
+        expect(await deployedWETH.allowance(second.address, deployedNftAggregator.address)).to.be.equal(MAX_INT);
+        
+        expect(await deployedTest20.allowance(deployedNftAggregator.address, addresses['EXCHANGE'])).to.be.equal(MAX_INT);
+        expect(await deployedWETH.allowance(deployedNftAggregator.address, addresses['EXCHANGE'])).to.be.equal(MAX_INT);
 
         // ====================================================================================================
 
@@ -715,17 +754,18 @@ describe("NFT Aggregator", function () {
           marketId: "1",
         };
 
-        const combinedOrders = looksrareResults; // [setData].concat(looksrareResults);
-        const totalValue = looksrareTotalValue; // seaportTotalValue.add(looksrareTotalValue);
-
-        console.log('looksrareTotalValue: ', looksrareTotalValue);
+        const combinedOrders = [setData].concat(looksrareResults);
+        const totalValue = seaportTotalValue.add(looksrareTotalValue);
 
         await deployedNftAggregator
           .connect(second)
           .batchTrade(
             [
               [deployedTest20.address, addresses['WETH']],
-              [hre.ethers.BigNumber.from(10).pow(15), hre.ethers.BigNumber.from(10).pow(15)]
+              [
+                hre.ethers.BigNumber.from(looksrareTokenIds.length).mul((hre.ethers.BigNumber.from(10).pow(15))),
+                hre.ethers.BigNumber.from(looksrareTokenIds.length).mul((hre.ethers.BigNumber.from(10).pow(15)))
+              ]
             ],
             combinedOrders,
             [[], [], [0,0]],
@@ -733,16 +773,14 @@ describe("NFT Aggregator", function () {
           );
           // erc20 details, tradeDetails, tradeInfo => [conversionDetails, dust details, feeDetails]
 
-        // for (let i = 0; i < seaportTokenIds.length; i++) {
-        //   expect(await deployedMock721.ownerOf(seaportTokenIds[i])).to.be.equal(second.address);
-        // }
+        for (let i = 0; i < seaportTokenIds.length; i++) {
+          expect(await deployedMock721.ownerOf(seaportTokenIds[i])).to.be.equal(second.address);
+        }
 
         for (let i = 0; i < looksrareTokenIds.length; i++) {
           expect(await deployedMock721.ownerOf(looksrareTokenIds[i])).to.be.equal(second.address);
+          expect(wethBalanceAfter.sub(await deployedWETH.balanceOf(second.address))).to.be.equal(hre.ethers.BigNumber.from(looksrareTokenIds.length).mul((hre.ethers.BigNumber.from(10).pow(15))));
         }
-        
-        // weth difference should be 0.001
-        expect(wethBalanceBefore.sub(await testWETH.balanceOf(second.address))).to.be.equal(hre.ethers.BigNumber.from(10).pow(15));
       });
     });
   } catch (err) {

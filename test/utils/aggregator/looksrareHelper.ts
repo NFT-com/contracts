@@ -44,7 +44,7 @@ export async function createLooksrareParametersForNFTListing(
   // This variable is used to enforce a max slippage of 25% on all orders, if a collection change the fees to be >25%, the order will become invalid
   const minNetPriceRatio = 7500;
   return {
-    nonce,
+    nonce: BigNumber.from(nonce).toString(),
     tokenId: BigNumber.from(tokenId).toString(),
     collection: contractAddress,
     strategy: addresses?.STRATEGY_STANDARD_SALE,
