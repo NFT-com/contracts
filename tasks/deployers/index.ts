@@ -1014,36 +1014,23 @@ task("oneTimeApproval").setAction(async function (taskArguments, hre) {
   const deployedNftAggregator = NftAggregator.attach((await getTokens(hre)).deployedNftAggregator);
   console.log(chalk.green("starting to add approval for token... ", deployedNftAggregator.address));
 
-  await deployedNftAggregator.setOneTimeApproval([
-    {
-      token: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-      operator: "0xf42aa99F011A1fA7CDA90E5E98b277E306BcA83e",
-      amount: hre.ethers.BigNumber.from(0),
-    },
-  ]);
+  const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+  const WETH_ADDRESS = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
+  const LOOKSRARE_EXCHANGE = '0x59728544b08ab483533076417fbbb2fd0b17ce3a';
+  const SEAPORT_1_1 = '0x00000000006c3852cbef3e08e8df289169ede581';
+  const MAX_UINT = hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1);
 
   await deployedNftAggregator.setOneTimeApproval([
+    // {
+    //   token: USDC_ADDRESS,
+    //   operator: LOOKSRARE_EXCHANGE,
+    //   amount: MAX_UINT,
+    // },
     {
-      token: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-      operator: "0x1e0049783f008a0085193e00003d00cd54003c71",
-      amount: hre.ethers.BigNumber.from(0),
-    },
-  ]);
-
-  await deployedNftAggregator.setOneTimeApproval([
-    {
-      token: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-      operator: "0x59728544b08ab483533076417fbbb2fd0b17ce3a",
-      amount: hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1),
-    },
-  ]);
-
-  await deployedNftAggregator.setOneTimeApproval([
-    {
-      token: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-      operator: "0x00000000006c3852cbef3e08e8df289169ede581",
-      amount: hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1),
-    },
+      token: USDC_ADDRESS,
+      operator: SEAPORT_1_1,
+      amount: MAX_UINT,
+    }
   ]);
 });
 
