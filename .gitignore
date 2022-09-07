@@ -1,0 +1,30 @@
+# folders
+.coverage_artifacts/
+.coverage_cache/
+.coverage_contracts/
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+artifacts/
+build/
+cache/
+coverage/
+dist/
+node_modules/
+typechain/
+docs/
+
+# files
+*.env
+*.log
+*.tsbuildinfo
+coverage.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+internal.md*
+.DS_Store
+.openzeppelin/*

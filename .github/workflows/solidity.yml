@@ -1,0 +1,56 @@
+name: Solidity CI
+
+on: [push]
+
+jobs:        
+  test:
+    strategy:
+      matrix:
+        node-version: [16.x]
+        os: [ubuntu-latest]
+        
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Make envfile
+      uses: SpicyPizza/create-envfile@v1.3
+      with:
+        envkey_CICD: true
+        envkey_MNEMONIC: "laptop demise champion palace grab vapor either number coast patient then priority"
+        envkey_MNEMONIC_PUBLIC_ADDR: "0xe9CDA06820Cd42E5Df7D2B6780e1C9c4cb719A93"
+        envkey_MAINNET_PRIVATE_KEY: "0xb1a4373f2a59b540f016383744ef194f7108f0bd11b34bfdaac69e28030a35e7"
+        envkey_INFURA_API_KEY: "460ed70fa7394604a709b7dff23f1641"
+        envkey_ALCHEMY_API_KEY: "_H3tl1xfDKddnitmisPE4_0trJiEEaG4"
+        envkey_PUBLIC_SALE_PK: "0xfa89d778e50ec81a9bb84061ceecb9acc365fe7916a028db2756b539a85113d4"
+        envkey_PUBLIC_SALE_SIGNER_ADDRESS: "0x421589A31C1078FE02ED304541Bb739932bE8b5F"
+        envkey_TESTNET_PRIVATE_KEY: "0xb1a4373f2a59b540f016383744ef194f7108f0bd11b34bfdaac69e28030a35e7"
+        file_name: .env
+        fail_on_empty: false
+        
+    - id: yarn-cache
+      run: echo "::set-output name=dir::$(yarn cache dir)"
+    - uses: actions/cache@v1
+      with:
+        path: ${{ steps.yarn-cache.outputs.dir }}
+        key: ${{ matrix.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ matrix.os }}-yarn-
+    - run: npm install -g yarn
+    - run: yarn install
+    - run: yarn typechain
+    - run: yarn coverage
+
+    - name: ✅ Upload coverage to Codecov
+      uses: codecov/codecov-action@v3.1.0
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: ./docs/
+        verbose: true
