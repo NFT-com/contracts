@@ -219,8 +219,7 @@ describe("NFT Aggregator", function () {
       Mooncats = await ethers.getContractFactory("MoonCatRescue");
       deployedMooncats = await Mooncats.deploy();
       
-      // TODO: fix
-      CryptoPunks = await ethers.getContractFactory("MoonCatRescue");
+      CryptoPunks = await ethers.getContractFactory("CryptoPunksMarket");
       deployedCryptoPunks = await CryptoPunks.deploy();
 
       deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
@@ -1363,9 +1362,17 @@ describe("NFT Aggregator", function () {
       });
     });
 
-    it("should have support for mooncats", async function() {
+    it("should have support for mooncats and cryptopunks", async function() {
       const inputSeed = '0xc5604c3e1d0c4e18b23eb1f08e063483d113eb74f4383268d034ffee6265cb02'; // random bytes32 seed
       await deployedMooncats.activate();
+      await deployedCryptoPunks.setInitialOwner(owner.address, '1');
+      await deployedCryptoPunks.setInitialOwner(second.address, '2');
+      expect(await deployedCryptoPunks.balanceOf(owner.address)).to.be.equal(1);
+      expect(await deployedCryptoPunks.balanceOf(second.address)).to.be.equal(1);
+      expect(await deployedCryptoPunks.punksRemainingToAssign()).to.be.equal(10000 - 2);
+
+      await deployedCryptoPunks.connect(second).offerPunkForSale('2', 0);
+
       const catId = await deployedMooncats.connect(second).callStatic.rescueCat(inputSeed);
       const tx = await deployedMooncats.connect(second).rescueCat(inputSeed);
       const rc = await tx.wait(); // 0ms, as tx is already confirmed
@@ -1547,6 +1554,11 @@ describe("NFT Aggregator", function () {
               deployedMooncats.address,
               [deployedNftAggregator.address],
               [mooncatTID],
+            ],
+            [
+              deployedCryptoPunks.address,
+              [deployedNftAggregator.address],
+              ['2'],
             ]
           ],
           [
@@ -1577,6 +1589,9 @@ describe("NFT Aggregator", function () {
       expect(await deployedMooncats.balanceOf(second.address)).to.be.equal(0);
       expect(await deployedMooncats.balanceOf(deployedNftAggregator.address)).to.be.equal(1);
 
+      expect(await deployedCryptoPunks.balanceOf(second.address)).to.be.equal(0);
+      expect(await deployedCryptoPunks.balanceOf(deployedNftAggregator.address)).to.be.equal(1);
+
       await deployedNftAggregator.rescueMooncat(
         [
           deployedMooncats.address,
@@ -1585,8 +1600,18 @@ describe("NFT Aggregator", function () {
         ]
       );
 
+      await deployedNftAggregator.rescuePunk(
+        [
+          deployedCryptoPunks.address,
+          [owner.address],
+          ['2'],
+        ]
+      );
+      
       expect(await deployedMooncats.balanceOf(deployedNftAggregator.address)).to.be.equal(0);
       expect(await deployedMooncats.balanceOf(owner.address)).to.be.equal(1);
+      expect(await deployedCryptoPunks.balanceOf(deployedNftAggregator.address)).to.be.equal(0);
+      expect(await deployedCryptoPunks.balanceOf(owner.address)).to.be.equal(1);
     });
   } catch (err) {
     console.log("error: ", JSON.stringify(err.response, null, 2));
