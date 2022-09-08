@@ -39,10 +39,10 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         _;
     }
 
-    function initialize(address _marketRegistry) public initializer {
+    function initialize(address _marketRegistry, address _cryptoPunk, address _mooncat) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
-        __TransferHelper_init();
+        __TransferHelper_init(_cryptoPunk, _mooncat);
 
         owner = msg.sender;
         marketplaceRegistry = MarketplaceRegistry(_marketRegistry);
