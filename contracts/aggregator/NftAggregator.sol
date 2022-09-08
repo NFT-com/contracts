@@ -91,6 +91,20 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         }
     }
 
+    // Emergency function: 
+    function rescueMooncat(
+        ERC721Details calldata erc721Details
+    ) external onlyOwner {
+        _transferMoonCat(erc721Details);
+    }
+
+    // Emergency function: 
+    function rescuePunk(
+        ERC721Details calldata erc721Details
+    ) external onlyOwner {
+        _transferCryptoPunk(erc721Details);
+    }
+
     // GOV functions
     function setOwner(address _new) external onlyOwner {
         owner = _new;
