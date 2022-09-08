@@ -209,7 +209,7 @@ describe("NFT Aggregator", function () {
     // time. It receives a callback, which can be async.
     beforeEach(async function () {
       // Get the ContractFactory and Signers here.
-      [owner, second, addr1, ...addrs] = await ethers.getSigners();
+      [owner, second, addr1, affiliateUser, ...addrs] = await ethers.getSigners();
 
       LooksrareLibV1 = await ethers.getContractFactory("LooksrareLibV1");
       Mock721 = await ethers.getContractFactory("Test721");
@@ -1611,6 +1611,282 @@ describe("NFT Aggregator", function () {
       expect(await deployedMooncats.balanceOf(owner.address)).to.be.equal(1);
       expect(await deployedCryptoPunks.balanceOf(deployedNftAggregator.address)).to.be.equal(0);
       expect(await deployedCryptoPunks.balanceOf(owner.address)).to.be.equal(2);
+    });
+
+    it('should cover gov functions and fees on aggregator', async function() {
+      await deployedNftAggregator.setOwner(second.address);
+      expect(await deployedNftAggregator.owner()).to.be.equal(second.address);
+      await deployedNftAggregator.connect(second).setOwner(owner.address);
+      expect(await deployedNftAggregator.owner()).to.be.equal(owner.address);
+
+      await deployedNftAggregator.setConverter("0x0000000000000000000000000000000000000000");
+      await deployedNftAggregator.setNftProfile(deployedMock721.address);
+      await deployedNftAggregator.setDao(addr1.address); // unused address
+      const daoEthBalanceBefore = await ethers.provider.getBalance(addr1.address);
+
+      await expect(deployedNftAggregator.setDaoFee(10001)).to.be.revertedWith("MAX_FEE_EXCEEDED");
+      await deployedNftAggregator.setDaoFee(5000); // 50%
+      await deployedNftAggregator.setBaseFee(hre.ethers.BigNumber.from(10).pow(16)); // 0.01 ETH minimum
+      
+      await deployedNftAggregator.setOpenForTrades(false);
+
+      // trade setup
+      const recipient = second.address;
+        const offerer = owner.address;
+
+        const seaportTokenIds = ['1', '2'];
+        const looksrareTokenIds = ['3', '4'];
+        const affiliateTokenId = '5';
+        const erc1155 = [
+          {
+            to: recipient,
+            id: '1',
+            amount: 100,
+            data: ''
+          },
+          {
+            to: recipient,
+            id: '2',
+            amount: 200,
+            data: ''
+          }
+        ];
+
+        for (let i = 0; i < seaportTokenIds.length; i++) {
+          await deployedMock721.connect(owner).mint(seaportTokenIds[i]);
+        }
+
+        for (let i = 0; i < looksrareTokenIds.length; i++) {
+          await deployedMock721.connect(owner).mint(looksrareTokenIds[i]);
+        }
+
+        // mint tokenId 5 to affiliateUser
+        await deployedMock721.connect(affiliateUser).mint(affiliateTokenId);
+        const affiliateEthBalanceBefore = await ethers.provider.getBalance(affiliateUser.address);
+
+        for (let i = 0; i < erc1155.length; i++) {
+          await deployedMock1155.connect(owner).mint(
+            erc1155[i].to,
+            erc1155[i].id,
+            erc1155[i].amount,
+            erc1155[i].data,
+          );
+        }
+
+        expect(await deployedMock1155.balanceOf(recipient, '1')).to.be.equal(100);
+        expect(await deployedMock1155.balanceOf(recipient, '2')).to.be.equal(200);
+
+        // ====================================================================================================
+        const addresses = await getLooksrareAddresses(chainId);
+        const nonce = await getLooksrareNonce(offerer, chainId);
+        const Test20 = await hre.ethers.getContractFactory("Test20");
+        const deployedTest20 = await Test20.connect(second).deploy();
+
+        expect(await deployedTest20.balanceOf(second.address)).to.be.equal(hre.ethers.BigNumber.from(1000000000).mul(hre.ethers.BigNumber.from(10).pow(18)));
+
+        const looksrareResults = await Promise.all(looksrareTokenIds.map((id, index) => genLooksrareHelper(
+          id,
+          addresses['WETH'],
+          addresses,
+          Number(nonce) + Number(index) + 11,
+          "0.001",
+          deployedMock721.address
+        )));
+
+        const TestWETH = await hre.ethers.getContractFactory("WETH");
+        const deployedWETH = await TestWETH.attach(addresses['WETH']);
+        const wethBalanceBefore = await deployedWETH.balanceOf(second.address);
+        await deployedWETH.connect(second).approve(deployedNftAggregator.address, MAX_INT);
+        await deployedWETH.connect(second).deposit({ value: hre.ethers.BigNumber.from(10).pow(17) }); // 0.1 ETH
+        const wethBalanceAfter = await deployedWETH.balanceOf(second.address);
+
+        expect(wethBalanceAfter.sub(wethBalanceBefore)).to.be.equal(hre.ethers.BigNumber.from(10).pow(17));
+
+        // approve
+        await deployedTest20.connect(second).approve(deployedNftAggregator.address, MAX_INT);
+        await deployedWETH.connect(second).approve(deployedNftAggregator.address, MAX_INT);
+        await deployedTest20.connect(second).approve(CROSS_CHAIN_SEAPORT_ADDRESS, MAX_INT);
+        await deployedWETH.connect(second).approve(CROSS_CHAIN_SEAPORT_ADDRESS, MAX_INT);
+        await deployedMock1155.connect(second).setApprovalForAll(deployedNftAggregator.address, true);
+
+        expect(await deployedTest20.allowance(second.address, deployedNftAggregator.address)).to.be.equal(MAX_INT);
+        expect(await deployedWETH.allowance(second.address, deployedNftAggregator.address)).to.be.equal(MAX_INT);
+        expect(await deployedTest20.allowance(second.address, CROSS_CHAIN_SEAPORT_ADDRESS)).to.be.equal(MAX_INT);
+        expect(await deployedWETH.allowance(second.address, CROSS_CHAIN_SEAPORT_ADDRESS)).to.be.equal(MAX_INT);
+
+        // one time approval for ERC20s
+        await deployedNftAggregator.setOneTimeApproval([
+          {
+            token: addresses['WETH'],
+            operator: addresses['EXCHANGE'],
+            amount: MAX_INT,
+          },
+          {
+            token: deployedTest20.address,
+            operator: addresses['EXCHANGE'],
+            amount: MAX_INT,
+          },
+          {
+            token: addresses['WETH'],
+            operator: CROSS_CHAIN_SEAPORT_ADDRESS,
+            amount: MAX_INT,
+          },
+          {
+            token: deployedTest20.address,
+            operator: CROSS_CHAIN_SEAPORT_ADDRESS,
+            amount: MAX_INT,
+          },
+        ]);
+
+        expect(await deployedTest20.allowance(deployedNftAggregator.address, addresses['EXCHANGE'])).to.be.equal(MAX_INT);
+        expect(await deployedWETH.allowance(deployedNftAggregator.address, addresses['EXCHANGE'])).to.be.equal(MAX_INT);
+        expect(await deployedTest20.allowance(deployedNftAggregator.address, CROSS_CHAIN_SEAPORT_ADDRESS)).to.be.equal(MAX_INT);
+        expect(await deployedWETH.allowance(deployedNftAggregator.address, CROSS_CHAIN_SEAPORT_ADDRESS)).to.be.equal(MAX_INT);
+
+        // ====================================================================================================
+
+        const seaportResults = await Promise.all(seaportTokenIds.map((id, index) => genSeaportHelper(
+          id,
+          index % 2 == 0 ? "0x0000000000000000000000000000000000000000" : deployedTest20.address, // even = ETH, odd = test ERC20
+          index % 2 == 0 ? "0.012" : "0.001" // smaller amount for test ERC20
+        )));
+
+        // orderStruct for SeaportLibV1_1
+        const orderStruct = [
+          [
+            generateParameters(seaportResults),
+            [],
+            generateOfferArray(seaportResults.map(i => i.data.offer)),
+            generateOrderConsiderationArray(seaportResults.map(i => i.data.consideration)),
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            recipient,
+            seaportResults.length,
+          ],
+        ];
+
+        const seaportTotalValue = getSeaportTotalValue(seaportResults);
+
+        const looksrareTotalValue = getLooksrareTotalValue(looksrareResults);
+
+        const failIfRevert = true;
+
+        const inputData = [orderStruct, [seaportTotalValue], failIfRevert];
+        const wholeHex = await seaportLib.encodeFunctionData("fulfillAvailableAdvancedOrders", inputData);
+
+        const genHex = await libraryCall(
+          "fulfillAvailableAdvancedOrders(SeaportLib1_1.SeaportBuyOrder[],uint256[],bool)",
+          wholeHex.slice(10),
+        );
+
+        const setData = {
+          tradeData: genHex,
+          value: seaportTotalValue,
+          marketId: "1",
+        };
+
+        const combinedOrders = [setData].concat(looksrareResults);
+        const beforeEthBalance = await ethers.provider.getBalance(second.address);
+
+        // add an extra 1 ETH
+        const totalValue = seaportTotalValue.add(looksrareTotalValue).add(hre.ethers.BigNumber.from(10).pow(18));
+
+        // fails due to openForTrades = false
+        await expect(deployedNftAggregator
+          .connect(second)
+          .multiAssetSwap(
+            [
+              [deployedTest20.address, addresses['WETH']],
+              [
+                hre.ethers.BigNumber.from(seaportTokenIds.filter(i => i % 2 != 0).length).mul((hre.ethers.BigNumber.from(10).pow(15))), // testERC20 only for seaport
+                hre.ethers.BigNumber.from(looksrareTokenIds.length + 1).mul((hre.ethers.BigNumber.from(10).pow(15))) // add a little extra WETH
+              ]
+            ],
+            [],
+            [
+              [
+                deployedMock1155.address,
+                [1, 2],
+                [25, 30],
+              ]
+            ],
+            combinedOrders,
+            [[], [addresses['WETH']], [0,0]],
+            { value: totalValue }
+          )).to.be.revertedWith("TradingNotOpen");
+
+        await deployedNftAggregator.setOpenForTrades(true);
+
+        const profileTokenId = "5"; // paid to affiliateUser.address
+        const insufficientFee = hre.ethers.BigNumber.from(10).pow(15); // 0.001
+        const additionalEthFee = hre.ethers.BigNumber.from(10).pow(17); // 0.1 ETH
+
+        // reverts due to not meeting the minimum base fee
+        await expect(deployedNftAggregator
+        .connect(second)
+        .multiAssetSwap(
+          [
+            [deployedTest20.address, addresses['WETH']],
+            [
+              hre.ethers.BigNumber.from(seaportTokenIds.filter(i => i % 2 != 0).length).mul((hre.ethers.BigNumber.from(10).pow(15))), // testERC20 only for seaport
+              hre.ethers.BigNumber.from(looksrareTokenIds.length + 1).mul((hre.ethers.BigNumber.from(10).pow(15))) // add a little extra WETH
+            ]
+          ],
+          [],
+          [
+            [
+              deployedMock1155.address,
+              [1, 2],
+              [25, 30],
+            ]
+          ],
+          combinedOrders,
+          [[], [addresses['WETH']], [profileTokenId, insufficientFee]],
+          { value: totalValue.add(insufficientFee) }
+        )).to.be.revertedWith("UNMET_BASE_FEE");
+
+        // trade
+        await deployedNftAggregator
+        .connect(second)
+        .multiAssetSwap(
+          [
+            [deployedTest20.address, addresses['WETH']],
+            [
+              hre.ethers.BigNumber.from(seaportTokenIds.filter(i => i % 2 != 0).length).mul((hre.ethers.BigNumber.from(10).pow(15))), // testERC20 only for seaport
+              hre.ethers.BigNumber.from(looksrareTokenIds.length + 1).mul((hre.ethers.BigNumber.from(10).pow(15))) // add a little extra WETH
+            ]
+          ],
+          [],
+          [
+            [
+              deployedMock1155.address,
+              [1, 2],
+              [25, 30],
+            ]
+          ],
+          combinedOrders,
+          [[], [addresses['WETH']], [profileTokenId, additionalEthFee]],
+          { value: totalValue.add(additionalEthFee) }
+        );
+
+        const daoEthBalanceAfter = await ethers.provider.getBalance(addr1.address);
+        const affiliateEthBalanceAfter = await ethers.provider.getBalance(affiliateUser.address);
+
+        // 50 / 50 split of the 0.1 ETH
+        expect(daoEthBalanceAfter.sub(daoEthBalanceBefore)).to.be.equal(additionalEthFee.div(2));
+        expect(affiliateEthBalanceAfter.sub(affiliateEthBalanceBefore)).to.be.equal(additionalEthFee.div(2));
+
+        // 0 balance of WETH
+        expect(await deployedWETH.balanceOf(deployedNftAggregator.address)).to.be.equal(0);
+
+        const afterEthBalance = await ethers.provider.getBalance(second.address);
+        expect(beforeEthBalance.sub(afterEthBalance)).to.be.gt((seaportTotalValue.add(looksrareTotalValue))); // gas fees
+        expect(beforeEthBalance.sub(afterEthBalance)).to.be.lt(totalValue.sub(seaportTotalValue.add(looksrareTotalValue)));
+
+        // 1155 balances
+        expect(await deployedMock1155.balanceOf(deployedNftAggregator.address, '1')).to.be.equal(25);
+        expect(await deployedMock1155.balanceOf(deployedNftAggregator.address, '2')).to.be.equal(30);
+        expect(await deployedMock1155.balanceOf(second.address, '1')).to.be.equal(75);
+        expect(await deployedMock1155.balanceOf(second.address, '2')).to.be.equal(170);
     });
   } catch (err) {
     console.log("error: ", JSON.stringify(err.response, null, 2));
