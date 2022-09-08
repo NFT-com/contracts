@@ -10,9 +10,14 @@ import "./SpecialTransferHelper.sol";
 import "./AggregatorStructs.sol";
 
 contract TransferHelper is Initializable, ContextUpgradeable, SpecialTransferHelper {
-    function __TransferHelper_init() internal initializer {
+    address CRYPTO_PUNK;
+    address MOONCAT;
+
+    function __TransferHelper_init(address _cryptoPunk, address _mooncat) internal initializer {
         __Context_init_unchained();
         __SpecialTransfer_init();
+        CRYPTO_PUNK = _cryptoPunk;
+        MOONCAT = _mooncat;
     }
 
     function _checkCallResult(bool _success) internal pure {
@@ -93,11 +98,11 @@ contract TransferHelper is Initializable, ContextUpgradeable, SpecialTransferHel
         // transfer ERC721 tokens from the sender to this contract
         for (uint256 i = 0; i < erc721Details.length; i++) {
             // accept CryptoPunks
-            if (erc721Details[i].tokenAddr == 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB) {
+            if (erc721Details[i].tokenAddr == CRYPTO_PUNK) { // 0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB
                 _acceptCryptoPunk(erc721Details[i]);
             }
             // accept Mooncat
-            else if (erc721Details[i].tokenAddr == 0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6) {
+            else if (erc721Details[i].tokenAddr == MOONCAT) { // 0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6
                 _acceptMoonCat(erc721Details[i]);
             }
             // default

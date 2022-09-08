@@ -39,10 +39,10 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         _;
     }
 
-    function initialize(address _marketRegistry) public initializer {
+    function initialize(address _marketRegistry, address _cryptoPunk, address _mooncat) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
-        __TransferHelper_init();
+        __TransferHelper_init(_cryptoPunk, _mooncat);
 
         owner = msg.sender;
         marketplaceRegistry = MarketplaceRegistry(_marketRegistry);
@@ -89,6 +89,20 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         for (uint256 i = 0; i < ids.length; i++) {
             IERC1155Upgradeable(asset).safeTransferFrom(address(this), recipient, ids[i], amounts[i], "");
         }
+    }
+
+    // Emergency function: 
+    function rescueMooncat(
+        ERC721Details calldata erc721Details
+    ) external onlyOwner {
+        _transferMoonCat(erc721Details);
+    }
+
+    // Emergency function: 
+    function rescuePunk(
+        ERC721Details calldata erc721Details
+    ) external onlyOwner {
+        _transferCryptoPunk(erc721Details);
     }
 
     // GOV functions
