@@ -221,7 +221,6 @@ describe("NFT Aggregator", function () {
       
       CryptoPunks = await ethers.getContractFactory("CryptoPunksMarket");
       deployedCryptoPunks = await CryptoPunks.deploy();
-
       deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
       SeaportLib1_1 = await ethers.getContractFactory("SeaportLib1_1");
       deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
