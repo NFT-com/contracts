@@ -6,10 +6,10 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./TransferHelper.sol";
 import "./MarketplaceRegistry.sol";
-// import "hardhat/console.sol";
 
 error InactiveMarket();
 error MAX_FEE_EXCEEDED();
+error UNMET_BASE_FEE();
 error TradingNotOpen();
 
 interface INftProfile {
@@ -19,16 +19,18 @@ interface INftProfile {
 contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeable, TransferHelper {
     address public owner;
     MarketplaceRegistry public marketplaceRegistry;
-    uint256 public baseFee; // 0 - 10000, where 10000 = 100% of fees
+    uint256 public baseFee; // measured in WEI
     bool public openForTrades;
     bool public extraBool;
     uint256 public percentFeeToDao; // 0 - 10000, where 10000 = 100% of fees
     address public converter;
     address public nftProfile;
+    address public dao;
 
     event NewConverter(address indexed _new);
     event NewNftProfile(address indexed _new);
     event NewOwner(address indexed _new);
+    event NewDao(address indexed _new);
 
     function _onlyOwner() private view {
         require(msg.sender == owner);
@@ -111,7 +113,7 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         emit NewOwner(_new);
     }
 
-    function setConvertor(address _new) external onlyOwner {
+    function setConverter(address _new) external onlyOwner {
         converter = _new;
         emit NewConverter(_new);
     }
@@ -121,13 +123,18 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         emit NewNftProfile(_new);
     }
 
-    function setDaoFees(uint256 _percentFeeToDao) external onlyOwner {
+    function setDao(address _new) external onlyOwner {
+        dao = _new;
+        emit NewDao(_new);
+    }
+
+    function setDaoFee(uint256 _percentFeeToDao) external onlyOwner {
         if (_percentFeeToDao > 10000) revert MAX_FEE_EXCEEDED();
         percentFeeToDao = _percentFeeToDao;
     }
 
-    function setBaseFees(uint256 _baseFee) external onlyOwner {
-        if (_baseFee > 10000) revert MAX_FEE_EXCEEDED();
+    // sets base fee in WEI (ETH min)
+    function setBaseFee(uint256 _baseFee) external onlyOwner {
         baseFee = _baseFee;
     }
 
@@ -158,11 +165,14 @@ contract NftAggregator is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrade
         uint256 _wei = feeDetails._wei;
 
         if (_wei != 0) {
+            uint256 _weiToDao = _wei * (percentFeeToDao) / 10000;
+            if (_weiToDao < baseFee) revert UNMET_BASE_FEE();
+
             if (percentFeeToDao != 0) {
-                _transferEth(INftProfile(nftProfile).ownerOf(_profileTokenId), _wei * percentFeeToDao / 10000);
+                _transferEth(dao, _weiToDao);
             }
 
-            _transferEth(INftProfile(nftProfile).ownerOf(_profileTokenId), _wei * (10000 -  percentFeeToDao) / 10000);
+            _transferEth(INftProfile(nftProfile).ownerOf(_profileTokenId), _wei - _weiToDao);
         }
     }
 
