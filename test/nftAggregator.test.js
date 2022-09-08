@@ -1611,7 +1611,7 @@ describe("NFT Aggregator", function () {
       expect(await deployedMooncats.balanceOf(deployedNftAggregator.address)).to.be.equal(0);
       expect(await deployedMooncats.balanceOf(owner.address)).to.be.equal(1);
       expect(await deployedCryptoPunks.balanceOf(deployedNftAggregator.address)).to.be.equal(0);
-      expect(await deployedCryptoPunks.balanceOf(owner.address)).to.be.equal(1);
+      expect(await deployedCryptoPunks.balanceOf(owner.address)).to.be.equal(2);
     });
   } catch (err) {
     console.log("error: ", JSON.stringify(err.response, null, 2));
