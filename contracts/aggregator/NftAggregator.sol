@@ -9,8 +9,8 @@ import "./MarketplaceRegistry.sol";
 
 error InactiveMarket();
 error MAX_FEE_EXCEEDED();
-error UNMET_BASE_FEE();
 error TradingNotOpen();
+error UNMET_BASE_FEE();
 
 interface INftProfile {
     function ownerOf(uint256 _tokenId) external view returns (address);
