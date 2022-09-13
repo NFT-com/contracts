@@ -52,9 +52,9 @@ You may need to generate `PUBLIC_SALE_PK` and `PUBLIC_SALE_SIGNER_ADDRESS` being
 - [deployedSeaportLib1_1](https://etherscan.io/address/0x14be7c58087d73b8557438bf9ae3def395837176)
 - [deployedMarketplaceRegistry](https://etherscan.io/address/0x24851a6783fB586E49b1dC71FA40B8307802f2A5)
   - implementation => 0x10b7873e3bec36b84d4d5a05b32faa36d2639189
-- [deployedNftAggregator](https://etherscan.io/address/0xc7Ce15B068f96D8079Af45A5bab225e628bF96e6)
+- [deployedNftAggregator](https://etherscan.io/address/0xf2821154d4752862b49a7C7fA7728B76ea44495e)
 
-  - implementation => 0xd19700493d4488e0731039e96186d4194a73a572
+  - implementation => 0x6a5836b07d514aec702a478c88665485e05b15c0
 
 - [deployedNftBuyer](https://etherscan.io/address/)
 - [deployedNftGenesisStake](https://etherscan.io/address/)

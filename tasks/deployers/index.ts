@@ -102,7 +102,7 @@ const getTokens = async (hre: any) => {
     network == "goerli"
       ? "0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10"
       : network == "mainnet"
-      ? "0xc7Ce15B068f96D8079Af45A5bab225e628bF96e6"
+      ? "0xf2821154d4752862b49a7C7fA7728B76ea44495e"
       : network == "rinkeby"
       ? "0xF579F547f656385C5CAD740a7e7D37dD47A66c31"
       : "";
