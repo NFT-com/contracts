@@ -691,38 +691,40 @@ task("deploy:2b").setAction(async function (taskArguments, hre) {
 task("deploy:2c").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying nft tx router"));
 
-  const LooksrareLibV1 = await hre.ethers.getContractFactory("LooksrareLibV1");
-  const deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
-  await waitTx("deployedLooksrareLibV1", deployedLooksrareLibV1, hre);
+  // const LooksrareLibV1 = await hre.ethers.getContractFactory("LooksrareLibV1");
+  // const deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
+  // await waitTx("deployedLooksrareLibV1", deployedLooksrareLibV1, hre);
 
-  const SeaportLib1_1 = await hre.ethers.getContractFactory("SeaportLib1_1");
-  const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
-  await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
+  // const SeaportLib1_1 = await hre.ethers.getContractFactory("SeaportLib1_1");
+  // const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
+  // await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
 
-  const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
-  const deployedMarketplaceRegistry = await hre.upgrades.deployProxy(MarketplaceRegistry, [], {
-    kind: "uups",
-  });
-  await waitTx("deployedMarketplaceRegistry", deployedMarketplaceRegistry, hre);
+  // const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
+  // const deployedMarketplaceRegistry = await hre.upgrades.deployProxy(MarketplaceRegistry, [], {
+  //   kind: "uups",
+  // });
+  // await waitTx("deployedMarketplaceRegistry", deployedMarketplaceRegistry, hre);
 
+  const CryptoPunks = "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB";
+  const Mooncats = "0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6";
   const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
-  const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address], {
+  const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [(await getTokens(hre)).deployedMarketplaceRegistry /* deployedMarketplaceRegistry.address */, CryptoPunks, Mooncats], {
     kind: "uups",
     unsafeAllow: ["delegatecall"],
   });
 
   console.log(chalk.green("deployedNftAggregator: ", deployedNftAggregator.address));
-  await deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1?.address, true);
-  await deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
+  // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedLooksrareLibV1 /* deployedLooksrareLibV1?.address */, true);
+  // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedSeaportContract1_1 /* deployedSeaportLib1_1.address */, true);
 
   console.log(chalk.green(`${(TIME_DELAY * 3) / 1000} second delay`));
   await delay(TIME_DELAY * 3);
   console.log(chalk.green("verifying..."));
 
-  await verifyContract("deployedLooksrareLibV1", deployedLooksrareLibV1.address, [], hre);
-  await verifyContract("deployedSeaportLib1_1", deployedSeaportLib1_1.address, [], hre);
+  // await verifyContract("deployedLooksrareLibV1", deployedLooksrareLibV1.address, [], hre);
+  // await verifyContract("deployedSeaportLib1_1", deployedSeaportLib1_1.address, [], hre);
 
-  await getImplementation("deployedMarketplaceRegistry", deployedMarketplaceRegistry.address, hre);
+  // await getImplementation("deployedMarketplaceRegistry", deployedMarketplaceRegistry.address, hre);
   await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
 });
 

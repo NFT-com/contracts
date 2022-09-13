@@ -10,12 +10,13 @@ import "./SpecialTransferHelper.sol";
 import "./AggregatorStructs.sol";
 
 contract TransferHelper is Initializable, ContextUpgradeable, SpecialTransferHelper {
-    address CRYPTO_PUNK;
-    address MOONCAT;
+    address public CRYPTO_PUNK;
+    address public MOONCAT;
 
     function __TransferHelper_init(address _cryptoPunk, address _mooncat) internal initializer {
         __Context_init_unchained();
         __SpecialTransfer_init();
+
         CRYPTO_PUNK = _cryptoPunk;
         MOONCAT = _mooncat;
     }
@@ -151,4 +152,6 @@ contract TransferHelper is Initializable, ContextUpgradeable, SpecialTransferHel
             }
         }
     }
+
+    uint256[49] private __gap;
 }

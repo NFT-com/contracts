@@ -1844,30 +1844,6 @@ describe("NFT Aggregator", function () {
           { value: totalValue.add(insufficientFee) }
         )).to.be.revertedWith("UNMET_BASE_FEE");
 
-        // delegate calls fails with 0x0 address
-        await expect(deployedNftAggregator
-        .connect(second)
-        .multiAssetSwap(
-          [
-            [deployedTest20.address, addresses['WETH']],
-            [
-              hre.ethers.BigNumber.from(seaportTokenIds.filter(i => i % 2 != 0).length).mul((hre.ethers.BigNumber.from(10).pow(15))), // testERC20 only for seaport
-              hre.ethers.BigNumber.from(looksrareTokenIds.length + 1).mul((hre.ethers.BigNumber.from(10).pow(15))) // add a little extra WETH
-            ]
-          ],
-          [],
-          [
-            [
-              deployedMock1155.address,
-              [1, 2],
-              [25, 30],
-            ]
-          ],
-          combinedOrders,
-          [["0xc5604c3e1d0c4e18b23eb1f08e063483d113eb74f4383268d034ffee6265cb02"], [addresses['WETH']], [profileTokenId, additionalEthFee]],
-          { value: totalValue.add(additionalEthFee) }
-        )).to.be.revertedWith("InvalidTarget");
-
         // trade
         await deployedNftAggregator
         .connect(second)
