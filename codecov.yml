@@ -1,0 +1,9 @@
+ignore:
+  - "contracts/token/*"
+  - "contracts/origination/*"
+  - "contracts/marketplace/*"
+  - "contracts/airdrop/*"
+  - "contracts/royalties/*"
+  - "contracts/archive/*"
+  - "contracts/erc721a/*"
+  - "contracts/stake/lib/*"

@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+/**
+ * @dev groups profile token ids with ETH overhead
+ */
 struct FeeDetails {
     uint256 _profileTokenId;
     uint256 _wei;
@@ -46,6 +49,9 @@ struct Approvals {
     uint256 amount;
 }
 
+/**
+ * @dev Helps combine params so we don't face stack too deep errors
+ */
 struct MultiAssetInfo {
     bytes[] conversionDetails;
     address[] dustTokens;

@@ -5,9 +5,9 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./RegistryStructs.sol";
 
+/// @title A registry of marketplaces NFT.com can interface with and trade on
 contract MarketplaceRegistry is Initializable, UUPSUpgradeable {
     address public owner;
-
     Marketplace[] public marketplaces;
 
     event NewOwner(address indexed owner);
