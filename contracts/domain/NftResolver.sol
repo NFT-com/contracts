@@ -16,7 +16,7 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     address public owner;
 
     // ===================================================================================================
-    mapping(string => uint256) internal _nonce; // profile nonce for easy clearing of maps
+    mapping(string => uint256) internal _deprecatedNone;
     mapping(Blockchain => IRegex) internal _regexMap; // mapping of chain -> regex contract
     // Storage for owner of profile ======================================================================
     mapping(address => mapping(uint256 => AddressTuple[])) internal _ownerAddrList;
@@ -27,6 +27,7 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     mapping(address => RelatedProfiles[]) internal _approvedEvmList;
     mapping(bytes => bool) internal _approvedMap;
     // ===================================================================================================
+    mapping(string => mapping(address => uint256)) internal _nonce; // profile nonce for easy clearing of maps
 
     event UpdatedRegex(Blockchain _cid, IRegex _regexAddress);
     event AssociateEvmUser(address indexed owner, string profileUrl, address indexed associatedAddress);
@@ -119,7 +120,7 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
         uint256 l1 = inputTuples.length;
-        uint256 nonce = _nonce[profileUrl];
+        uint256 nonce = _nonce[profileUrl][msg.sender];
 
         for (uint256 i = 0; i < l1; ) {
             validateAddress(inputTuples[i].cid, inputTuples[i].chainAddr);
@@ -214,7 +215,7 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         _onlyProfileOwner(profileUrl);
         uint256 tokenId = nftProfile.getTokenId(profileUrl);
         uint256 l1 = _ownerAddrList[msg.sender][tokenId].length;
-        uint256 nonce = _nonce[profileUrl];
+        uint256 nonce = _nonce[profileUrl][msg.sender];
 
         for (uint256 i = 0; i < l1; ) {
             validateAddress(inputTuple.cid, inputTuple.chainAddr);
@@ -262,7 +263,7 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         delete _ownerAddrList[msg.sender][tokenId];
 
         unchecked {
-            ++_nonce[profileUrl];
+            ++_nonce[profileUrl][msg.sender];
         }
 
         emit ClearAllAssociatedAddresses(msg.sender, profileUrl);
