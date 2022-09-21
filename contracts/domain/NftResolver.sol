@@ -28,6 +28,7 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     mapping(bytes => bool) internal _approvedMap;
     // ===================================================================================================
     mapping(string => mapping(address => uint256)) internal _nonce; // profile nonce for easy clearing of maps
+    uint256 public maxArraySize;
 
     event UpdatedRegex(Blockchain _cid, IRegex _regexAddress);
     event AssociateEvmUser(address indexed owner, string profileUrl, address indexed associatedAddress);
@@ -126,12 +127,12 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             validateAddress(inputTuples[i].cid, inputTuples[i].chainAddr);
 
             if (_ownerNonEvmMap[nonce][abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)])
-                revert DuplicateAddress();
+                continue;
 
             if (_evmBased(inputTuples[i].cid)) {
                 address dest = Resolver._parseAddr(inputTuples[i].chainAddr);
                 if (_ownerEvmMap[nonce][dest][abi.encode(msg.sender, tokenId, inputTuples[i].cid)]) {
-                    revert DuplicateAddress();
+                    continue;
                 }
                 _ownerEvmMap[nonce][dest][abi.encode(msg.sender, tokenId, inputTuples[i].cid)] = true;
 
@@ -141,6 +142,8 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
                     abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)
                 ] = true;
             }
+
+            if (_ownerAddrList[msg.sender][tokenId].length >= maxArraySize) revert MaxArray();
 
             _ownerAddrList[msg.sender][tokenId].push(inputTuples[i]);
 
@@ -162,8 +165,9 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             // CHECKS
             if (pOwner == msg.sender) revert InvalidSelf();
             if (_approvedMap[abi.encode(pOwner, tokenId, msg.sender)] == true) {
-                revert DuplicateAddress();
+                continue;
             }
+            if (_approvedEvmList[msg.sender].length >= maxArraySize) revert MaxArray();
 
             // EFFECTS
             // easy access for associator to see their profiles
@@ -181,9 +185,8 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         }
     }
 
-    function removeAssociatedProfile(string memory url) external returns (bool) {
+    function removeAssociatedProfile(string memory url, address pOwner) external returns (bool) {
         uint256 tokenId = nftProfile.getTokenId(url);
-        address pOwner = nftProfile.profileOwner(url);
         uint256 l1 = _approvedEvmList[msg.sender].length;
 
         if (_approvedMap[abi.encode(pOwner, tokenId, msg.sender)]) {
@@ -356,5 +359,9 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
     function setOwner(address _new) external onlyOwner {
         owner = _new;
+    }
+
+    function setMaxArray(uint256 _num) external onlyOwner {
+        maxArraySize = _num;
     }
 }

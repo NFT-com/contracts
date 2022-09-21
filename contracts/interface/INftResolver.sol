@@ -2,11 +2,9 @@
 pragma solidity >=0.8.4;
 
 error AddressNotFound();
-error DuplicateAddress();
-error DuplicateEvmAddress();
+error MaxArray();
 error NotOwner();
 error InvalidAddress();
-error InvalidAuth();
 error InvalidRegex();
 error InvalidSelf();
 error ProfileNotFound();
