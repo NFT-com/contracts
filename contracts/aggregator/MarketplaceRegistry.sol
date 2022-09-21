@@ -38,17 +38,35 @@ contract MarketplaceRegistry is Initializable, UUPSUpgradeable {
         emit NewOwner(_new);
     }
 
+    /**
+     * @notice addMarketplace allows owner to add new marketplaces in future
+     * @param proxy is the address of the new proxy to add
+     * @param isLib is a boolean representing if the proxy is an library or not
+     */
     function addMarketplace(address proxy, bool isLib) external onlyOwner {
         marketplaces.push(Marketplace(proxy, isLib, true));
         emit NewMarketplace(proxy, isLib);
     }
 
+    /**
+     * @notice setMarketplaceStatus sets an existing marketplace's status
+     * to active or inactive
+     * @param marketId is the market id
+     * @param newStatus is a boolean dictating whether marketId is active or not
+     */
     function setMarketplaceStatus(uint256 marketId, bool newStatus) external onlyOwner {
         Marketplace storage market = marketplaces[marketId];
         market.isActive = newStatus;
         emit UpdateMarketplaceStatus(marketId, newStatus);
     }
 
+    /**
+     * @notice setMarketplaceProxy is a function that allows the owner to modify an existing market and set
+     * it's proxy address and whether or not it is a library or not
+     * @param marketId is the market id
+     * @param newProxy is the updated proxy address
+     * @param isLib is a boolean dictating whether newProxy is a library or not
+     */
     function setMarketplaceProxy(
         uint256 marketId,
         address newProxy,
