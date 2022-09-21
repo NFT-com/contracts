@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.so
 import "./SpecialTransferHelper.sol";
 import "./AggregatorStructs.sol";
 
+/// @title Helper contract used to transfer tokens
 contract TransferHelper is Initializable, ContextUpgradeable, SpecialTransferHelper {
     address public CRYPTO_PUNK;
     address public MOONCAT;
@@ -75,6 +76,11 @@ contract TransferHelper is Initializable, ContextUpgradeable, SpecialTransferHel
 
     receive() external payable {}
 
+    /**
+     * @notice _transferEth is a helper function that transfers ETH
+     * @param _to is the recipient
+     * @param _amount is the amount of ETH in WEI
+     */
     function _transferEth(address _to, uint256 _amount) internal {
         bool callStatus;
         assembly {
@@ -84,13 +90,20 @@ contract TransferHelper is Initializable, ContextUpgradeable, SpecialTransferHel
         require(callStatus, "_transferEth: Eth transfer failed");
     }
 
+    /**
+     * @notice _transferFromHelper is a helper function that transfers erc20s, erc721s and 1155s
+     * @param erc20Details is a struct containing fields for array of erc20s and amounts
+     * @param erc721Details is an array of erc721s, including tokenId, recipient and token contract
+     * @param erc1155Details is an array of erc1155s, including tokenIds, amounts and token contract.
+       Recipient is address(this)
+     */
     function _transferFromHelper(
         ERC20Details memory erc20Details,
         ERC721Details[] memory erc721Details,
         ERC1155Details[] memory erc1155Details
     ) internal {
-        // transfer ERC20 tokens from the sender to this contract
         for (uint256 i = 0; i < erc20Details.tokenAddrs.length; i++) {
+            // bytes4(keccak256('transferFrom(address,address,uint256)')) == 0x23b872dd
             erc20Details.tokenAddrs[i].call(
                 abi.encodeWithSelector(0x23b872dd, msg.sender, address(this), erc20Details.amounts[i])
             );
@@ -130,18 +143,22 @@ contract TransferHelper is Initializable, ContextUpgradeable, SpecialTransferHel
         }
     }
 
+    /**
+     * @notice _returnDust is a helper function that allows tokens to be returned at the end of a call
+     * @param _tokens is an array of ERC20 token contract addresses
+     */
     function _returnDust(
         address[] memory _tokens
     ) internal {
-        // return remaining ETH (if any)
-        assembly {
+        assembly { // send back ETH
             if gt(selfbalance(), 0) {
                 let callStatus := call(gas(), caller(), selfbalance(), 0, 0, 0, 0)
             }
         }
-        // return remaining tokens (if any)
+
         for (uint256 i = 0; i < _tokens.length; i++) {
             if (IERC20Upgradeable(_tokens[i]).balanceOf(address(this)) > 0) {
+                // bytes4(keccak256('transfer(address,uint256)')) == 0xa9059cbb
                 _tokens[i].call(
                     abi.encodeWithSelector(
                         0xa9059cbb,
