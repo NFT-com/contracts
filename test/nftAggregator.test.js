@@ -473,7 +473,7 @@ describe("NFT Aggregator", function () {
         try {
           await deployedNftAggregator
             .connect(second)
-            .batchTradeWithETH([{ marketId, value, tradeData: genHex }], [], [0,0], { value: totalValue });
+            .batchTradeWithETH([{ marketId, value, tradeData: genHex }], [[], [], [0,0]], { value: totalValue }); 
         } catch (err) {
           console.log("error while batch trading: ", err);
         }
@@ -568,7 +568,7 @@ describe("NFT Aggregator", function () {
 
         await deployedNftAggregator
           .connect(second)
-          .batchTradeWithETH(combinedOrders, [], [0,0], { value: totalValue });
+          .batchTradeWithETH(combinedOrders, [[], [], [0,0]], { value: totalValue });
 
         expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(second.address);
       });
@@ -627,7 +627,7 @@ describe("NFT Aggregator", function () {
         // reverts due to marketplace not being active
         await expect(deployedNftAggregator
           .connect(second)
-          .batchTradeWithETH(combinedOrders, [], [0,0], { value: totalValue })).to.be.reverted;
+          .batchTradeWithETH(combinedOrders, [[], [], [0,0]], { value: totalValue })).to.be.reverted;
 
         // due to no marketId being active
         await expect(deployedMarketplaceRegistry.setMarketplaceProxy('2', deployedLooksrareLibV1.address, false)).to.be.reverted;
@@ -650,7 +650,7 @@ describe("NFT Aggregator", function () {
 
         await deployedNftAggregator
           .connect(owner)
-          .batchTradeWithETH(combinedOrders2, [], [0,0], { value: totalValue });
+          .batchTradeWithETH(combinedOrders2, [[], [], [0,0]], { value: totalValue });
 
         for (let i = 0; i < tokenIds.length; i++) {
           expect(await deployedMock721.ownerOf(tokenIds[i])).to.be.equal(second.address);
@@ -1615,8 +1615,11 @@ describe("NFT Aggregator", function () {
 
     it('should cover gov functions and fees on aggregator', async function() {
       await deployedNftAggregator.setOwner(second.address);
+      await expect(deployedNftAggregator.connect(owner).acceptOwnership()).to.be.reverted;
+      await deployedNftAggregator.connect(second).acceptOwnership();
       expect(await deployedNftAggregator.owner()).to.be.equal(second.address);
       await deployedNftAggregator.connect(second).setOwner(owner.address);
+      await deployedNftAggregator.connect(owner).acceptOwnership();
       expect(await deployedNftAggregator.owner()).to.be.equal(owner.address);
 
       await deployedNftAggregator.setConverter("0x0000000000000000000000000000000000000000");

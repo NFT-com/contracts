@@ -7,6 +7,7 @@ import "../interface/punks/ICryptoPunks.sol";
 import "../interface/punks/IWrappedPunk.sol";
 import "../interface/mooncats/IMoonCatsRescue.sol";
 
+/// @title A special transfer contract for non-standard tokens
 contract SpecialTransferHelper is Initializable, ContextUpgradeable {
     struct ERC721Details {
         address tokenAddr;
@@ -18,6 +19,11 @@ contract SpecialTransferHelper is Initializable, ContextUpgradeable {
         __Context_init_unchained();
     }
 
+    /**
+     * @notice _uintToBytes5 is only used for mooncats, which initially had a bytes5 representation of tokenId
+     * @param id is the tokenId we wish to convert into a sliced bytes5
+       Recipient is address(this)
+     */
     function _uintToBytes5(uint256 id) internal pure returns (bytes5 slicedDataBytes5) {
         bytes memory _bytes = new bytes(32);
         assembly {
