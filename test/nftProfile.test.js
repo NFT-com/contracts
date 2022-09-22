@@ -218,6 +218,7 @@ describe("NFT Profile Auction / Minting", function () {
       await deployedNftResolver.setRegex(4, deployedTezosRegex.address);
       await deployedNftResolver.setRegex(5, deployedFlowRegex.address);
       await deployedProfileAuction.setMaxProfilePerAddress(100); // sufficient ceiling for tests overall, can modify within tests for more fine tuning
+      await deployedNftResolver.setMaxArray(100);
     });
 
     describe("NFT Profiles Tests", function () {
@@ -560,10 +561,11 @@ describe("NFT Profile Auction / Minting", function () {
         expect((await deployedNftResolver.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
         expect((await deployedNftResolver.associatedAddresses("testminter"))[2][1]).to.be.equal(addr3.address);
 
-        await expect(deployedNftResolver.connect(addr1).removeAssociatedProfile("jokes")).to.be.reverted; // due to profile not existing
+
+        await expect(deployedNftProfile.profileOwner("jokes")).to.be.reverted; // due to profile not existing
 
         // succeeds
-        await deployedNftResolver.connect(addr1).removeAssociatedProfile("testminter");
+        await deployedNftResolver.connect(addr1).removeAssociatedProfile("testminter", await deployedNftProfile.profileOwner("testminter"));
 
         expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(2);
         expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
