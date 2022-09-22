@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 error AddressNotFound();
 error MaxArray();
+error DuplicateAddress();
 error NotOwner();
 error InvalidAddress();
 error InvalidRegex();
