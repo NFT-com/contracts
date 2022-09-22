@@ -127,12 +127,12 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             validateAddress(inputTuples[i].cid, inputTuples[i].chainAddr);
 
             if (_ownerNonEvmMap[nonce][abi.encode(msg.sender, tokenId, inputTuples[i].cid, inputTuples[i].chainAddr)])
-                continue;
+                revert DuplicateAddress();
 
             if (_evmBased(inputTuples[i].cid)) {
                 address dest = Resolver._parseAddr(inputTuples[i].chainAddr);
                 if (_ownerEvmMap[nonce][dest][abi.encode(msg.sender, tokenId, inputTuples[i].cid)]) {
-                    continue;
+                    revert DuplicateAddress();
                 }
                 _ownerEvmMap[nonce][dest][abi.encode(msg.sender, tokenId, inputTuples[i].cid)] = true;
 
@@ -165,7 +165,7 @@ contract NftResolver is Initializable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             // CHECKS
             if (pOwner == msg.sender) revert InvalidSelf();
             if (_approvedMap[abi.encode(pOwner, tokenId, msg.sender)] == true) {
-                continue;
+                revert DuplicateAddress();
             }
             if (_approvedEvmList[msg.sender].length >= maxArraySize) revert MaxArray();
 
