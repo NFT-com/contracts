@@ -204,6 +204,30 @@ describe("NFT Profile Auction / Minting", function () {
       const { hash: h2, signature: s2 } = signHashProfile(second.address, "testminter2");
       await deployedProfileAuction.connect(second).genesisKeyClaimProfile("testminter2", 2, second.address, h2, s2);
       await deployedNftProfile.connect(second).transferFrom(second.address, addr1.address, 1); // transfer
+      
+      // owner edits
+      await deployedProfileAuction.setOwner(second.address);
+      await expect(deployedProfileAuction.connect(owner).setOwner(second.address)).to.be.reverted; // not owner
+      await deployedProfileAuction.connect(second).setOwner(owner.address);
+      expect(await deployedProfileAuction.owner()).to.be.equal(owner.address);
+
+      // profile auction gov
+      await deployedProfileAuction.setGovernor(second.address);
+      await expect(deployedProfileAuction.connect(owner).setGovernor(second.address)).to.be.reverted; // not owner
+      await deployedProfileAuction.connect(second).setGovernor(owner.address);
+      expect(await deployedProfileAuction.governor()).to.be.equal(owner.address);
+
+      // profile auction owner
+      await deployedNftProfile.setOwner(second.address);
+      await expect(deployedNftProfile.connect(owner).setOwner(second.address)).to.be.reverted; // not owner
+      await deployedNftProfile.connect(second).setOwner(owner.address);
+      expect(await deployedNftProfile.owner()).to.be.equal(owner.address);
+
+      // fees
+      await expect(deployedNftProfile.setProtocolFee(2001)).to.be.reverted; // > 2000 fee
+      await deployedNftProfile.setProtocolFee(1000);
+      expect(await deployedNftProfile.tokenURI(1)).to.be.equal(`https://api.nft.com/uri/testminter2`);
+      await expect(deployedNftProfile.tokenURI(100)).to.be.reverted;
 
       deployedNftResolver = await hre.upgrades.deployProxy(
         await hre.ethers.getContractFactory("NftResolver"),
@@ -663,6 +687,26 @@ describe("NFT Profile Auction / Minting", function () {
         expect((await deployedNftResolver.associatedAddresses("testminter"))[3][1]).to.be.equal(
           "HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE",
         );
+      });
+
+      // TODO: flesh out more when we have this live
+      it("should allow custom profile pricing", async function () {
+        // length premium
+        expect(await deployedProfileAuction.lengthPremium(1)).to.be.equal(1024);        
+        await deployedProfileAuction.setLengthPremium(1, 2000);
+        expect(await deployedProfileAuction.lengthPremium(1)).to.be.equal(2000);
+        await deployedProfileAuction.setLengthPremium(1, 1024);
+        expect(await deployedProfileAuction.lengthPremium(1)).to.be.equal(1024);      
+        
+        // yearly fee
+        expect(await deployedProfileAuction.yearlyFee()).to.be.equal(convertBigNumber(100));
+        await deployedProfileAuction.setYearlyFee(200);
+        expect(await deployedProfileAuction.yearlyFee()).to.be.equal(200);
+
+        // years to own
+        expect(await deployedProfileAuction.yearsToOwn()).to.be.equal(2);
+        await deployedProfileAuction.setYearsToOwn(3);
+        expect(await deployedProfileAuction.yearsToOwn()).to.be.equal(3);
       });
 
       it("should be able to associate contract addresses", async function () {

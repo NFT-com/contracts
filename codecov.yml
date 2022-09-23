@@ -7,3 +7,6 @@ ignore:
   - "contracts/archive/*"
   - "contracts/erc721a/*"
   - "contracts/stake/lib/*"
+  - "contracts/genesisKey/*"
+  - "contracts/domain/StringUtils.sol"
+  - "contracts/domain/regex/*"
