@@ -18,18 +18,12 @@ import {
   SeaportOrderComponents,
   SeaportOrderParameters,
   Maybe,
+  Domain
 } from "./types";
 
 import { BigNumber, BigNumberish, ethers } from "ethers";
 import { _TypedDataEncoder } from "ethers/lib/utils";
 import { Seaport__factory } from "../../../typechain/seaport/factories/Seaport__factory";
-
-interface Domain {
-  name: string;
-  version: string;
-  chainId: string | number;
-  verifyingContract: string;
-}
 
 export const NULL_ADDRESS = ethers.utils.getAddress("0x0000000000000000000000000000000000000000");
 

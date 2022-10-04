@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber, BigNumberish } from "ethers";
 
 export type Maybe<T> = T | null;
 export const SEAPORT_CONTRACT_NAME = "Seaport";
@@ -14,6 +14,68 @@ export const KNOWN_CONDUIT_KEYS_TO_CONDUIT = {
   [OPENSEA_CONDUIT_KEY]: OPENSEA_CONDUIT_ADDRESS,
 };
 
+export const data1155ParamType = `tuple(address token, uint256 tokenId, uint256 amount)[]`
+export const data721ParamType = `tuple(address token, uint256 tokenId)[]`
+
+export type TokenStandard = 'erc721' | 'erc1155'
+
+export const INTENT_SELL = 1
+export const INTENT_AUCTION = 2
+export const INTENT_BUY = 3
+
+export const OP_COMPLETE_SELL_OFFER = 1 // COMPLETE_SELL_OFFER
+export const OP_COMPLETE_BUY_OFFER = 2 // COMPLETE_BUY_OFFER
+export const OP_CANCEL_OFFER = 3 // CANCEL_OFFER
+export const OP_BID = 4 // BID
+export const OP_COMPLETE_AUCTION = 5 // COMPLETE_AUCTION
+export const OP_REFUND_AUCTION = 6 // REFUND_AUCTION
+export const OP_REFUND_AUCTION_STUCK_ITEM = 7 // REFUND_AUCTION_STUCK_ITEM
+
+export const DELEGATION_TYPE_INVALID = 0
+export const DELEGATION_TYPE_ERC721 = 1
+export const DELEGATION_TYPE_ERC1155 = 2
+
+export type Network = 'mainnet'
+
+export type NetworkMeta = {
+  id: number
+  rpcUrl: string
+  marketContract: string
+  erc721DelegateContract: string
+  erc1155DelegateContract: string
+  wethContract: string
+  apiBaseURL: string
+}
+
+export type TokenPair = {
+  token: string
+  tokenId: BigNumberish
+  amount: BigNumberish
+  tokenStandard: TokenStandard
+}
+
+export type X2Y2OrderItem = {
+  price: BigNumberish
+  data: string
+}
+
+export type X2Y2Order = {
+  salt: BigNumberish
+  user: string
+  network: BigNumberish
+  intent: BigNumberish
+  delegateType: BigNumberish
+  deadline: BigNumberish
+  currency: string
+  dataMask: string
+  items: X2Y2OrderItem[]
+  // signature
+  r: string
+  s: string
+  v: number
+  signVersion: number
+}
+
 export const CROSS_CHAIN_SEAPORT_ADDRESS = "0x00000000006c3852cbef3e08e8df289169ede581";
 export const SEAPORT_ZONE = "0x004c00500000ad104d7dbd00e3ae0a5c00560c00";
 export const SEAPORT_ZONE_RINKEBY = "0x00000000e88fe2628ebc5da81d2b3cead633e89e";
@@ -27,6 +89,13 @@ export enum OrderType {
   PARTIAL_OPEN = 1, // Partial fills supported, anyone can execute
   FULL_RESTRICTED = 2, // No partial fills, only offerer or zone can execute
   PARTIAL_RESTRICTED = 3, // Partial fills supported, only offerer or zone can execute
+}
+
+export interface Domain {
+  name: string;
+  version: string;
+  chainId: string | number;
+  verifyingContract: string;
 }
 
 export enum ItemType {

@@ -96,11 +96,16 @@
     "prettier": "prettier --config ./.prettierrc.yaml --write \"**/*.{js,json,md,sol,ts}\"",
     "prettier:check": "prettier --check --config ./.prettierrc.yaml \"**/*.{js,json,md,sol,ts}\"",
     "test": "hardhat test",
-    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain && typechain --target=ethers-v5 ./node_modules/@looksrare/sdk/dist/abis/*.json --out-dir ./typechain/looksrare && typechain --target=ethers-v5 ./abis/seaport.json --out-dir ./typechain/seaport"
+    "typechain-looksrare": "typechain --target=ethers-v5 ./node_modules/@looksrare/sdk/dist/abis/*.json --out-dir ./typechain/looksrare",
+    "typechain-seaport": "typechain --target=ethers-v5 ./abis/seaport.json --out-dir ./typechain/seaport",
+    "typechain-x2y2": "typechain --target=ethers-v5 ./abis/x2y2.json --out-dir ./typechain/x2y2",
+    "typechain-sudoswap": "typechain --target=ethers-v5 ./abis/sudoswap.json --out-dir ./typechain/sudoswap",
+    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain && yarn typechain-looksrare && yarn typechain-seaport && yarn typechain-x2y2 && yarn typechain-sudoswap"
   },
   "dependencies": {
     "@looksrare/sdk": "^0.8.1",
     "@openzeppelin/upgrades-core": "^1.19.1",
+    "@x2y2-io/sdk": "^0.2.0",
     "axios": "^0.27.2",
     "csv-parse": "^5.0.4",
     "csv-stringify": "^6.2.0",
