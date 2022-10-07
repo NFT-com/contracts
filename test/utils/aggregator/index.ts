@@ -73,8 +73,6 @@ const getLooksrarePrefix = (chainID: string) => {
   switch (Number(chainID)) {
     case 1:
       return "api";
-    case 4:
-      return "api-rinkeby";
     case 5:
       return "api-goerli";
     default:
@@ -86,8 +84,6 @@ const getSeaportBaseUrl = (chainID: string) => {
   switch (Number(chainID)) {
     case 1:
       return "https://api.opensea.io/v2/orders/mainnet/seaport";
-    case 4:
-      return "https://testnets-api.opensea.io/v2/orders/rinkeby/seaport";
     case 5:
       return "https://testnets-api.opensea.io/v2/orders/goerli/seaport";
     default:
@@ -174,10 +170,10 @@ export const getSeaportTotalValue = (results): any => {
 }
 
 // @ts-ignore
-export const generateParameters = (results): any => {
+export const generateParameters = (results, denominator: string): any => {
   return results.map((r: any) => {
     return {
-      denominator: "1",
+      denominator,
       numerator: "1",
       parameters: {
         conduitKey: r.data.conduitKey,

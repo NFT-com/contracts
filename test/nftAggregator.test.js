@@ -2,6 +2,9 @@ const { expect } = require("chai");
 const looksrareABI = require("../abis/looksrare.json");
 const seaportABI = require("../abis/seaport.json");
 const { ethers } = require("hardhat");
+const fetch = require('isomorphic-unfetch');
+const axios = require('axios');
+
 const {
   createLooksrareParametersForNFTListing,
   getLooksrareNonce,
@@ -12,6 +15,7 @@ const {
 } = require("./utils/aggregator/looksrareHelper");
 const { libraryCall, generateParameters, generateOfferArray, generateOrderConsiderationArray, getLooksrareTotalValue, getSeaportTotalValue } = require("../test/utils/aggregator/index");
 const { createSeaportParametersForNFTListing, signOrderForOpensea } = require("./utils/aggregator/seaportHelper");
+const { createX2Y2ParametersForNFTListing, encodeOrder } = require("./utils/aggregator/xy2yHelper");
 const { CROSS_CHAIN_SEAPORT_ADDRESS, OPENSEA_CONDUIT_ADDRESS, MAX_INT } = require("./utils/aggregator/types");
 
 describe("NFT Aggregator", function () {
@@ -20,22 +24,25 @@ describe("NFT Aggregator", function () {
     let MarketplaceRegistry, deployedMarketplaceRegistry;
     let LooksrareLibV1, deployedLooksrareLibV1;
     let SeaportLib1_1, deployedSeaportLib1_1;
+    let X2Y2LibV1, deployedX2Y2LibV1;
     let Mock721, deployedMock721;
     let Mock1155, deployedMock1155;
     let Mooncats, deployedMooncats;
     let CryptoPunks, deployedCryptoPunks;
+    let PausableZone, deployedPausableZone;
     let looksrare = new ethers.utils.Interface(looksrareABI);
     let seaport = new ethers.utils.Interface(seaportABI);
     const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
 
-    // TODO: change once opensea supports goerli fully with zone
-    const chainId = hre.network.config.chainId; // 4 = rinkeby, 5 = goerli, hre.network.config.chainId
+    const chainId = hre.network.config.chainId; // 5 = goerli
 
     const INFURA_KEY = "460ed70fa7394604a709b7dff23f1641";
     const provider = new ethers.providers.InfuraProvider(
-      chainId == "5" ? "goerli" : chainId == "4" ? "rinkeby" : "homestead",
+      chainId == "5" ? "goerli" : "homestead",
       INFURA_KEY,
     );
+
+    const ownerSigner2 = new ethers.Wallet(ownerSigner._signingKey().privateKey, provider);
 
     const genLooksrareHelper = async (
       tokenID,
@@ -182,6 +189,7 @@ describe("NFT Aggregator", function () {
       const collectionFee = null; // since this is a dummy 721 contract that has no royalties
     
       const data = createSeaportParametersForNFTListing(
+        deployedPausableZone.address,
         offerer,
         contractAddress,
         tokenId,
@@ -204,6 +212,9 @@ describe("NFT Aggregator", function () {
     const seaportLib = new ethers.utils.Interface(
       `[{"inputs":[],"name":"InputLengthMiconstsmatch","type":"error"},{"inputs":[],"name":"OPENSEA","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"components":[{"components":[{"components":[{"internalType":"address","name":"offerer","type":"address"},{"internalType":"address","name":"zone","type":"address"},{"components":[{"internalType":"enum ItemType","name":"itemType","type":"uint8"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"identifierOrCriteria","type":"uint256"},{"internalType":"uint256","name":"startAmount","type":"uint256"},{"internalType":"uint256","name":"endAmount","type":"uint256"}],"internalType":"struct OfferItem[]","name":"offer","type":"tuple[]"},{"components":[{"internalType":"enum ItemType","name":"itemType","type":"uint8"},{"internalType":"address","name":"token","type":"address"},{"internalType":"uint256","name":"identifierOrCriteria","type":"uint256"},{"internalType":"uint256","name":"startAmount","type":"uint256"},{"internalType":"uint256","name":"endAmount","type":"uint256"},{"internalType":"address payable","name":"recipient","type":"address"}],"internalType":"struct ConsiderationItem[]","name":"consideration","type":"tuple[]"},{"internalType":"enum OrderType","name":"orderType","type":"uint8"},{"internalType":"uint256","name":"startTime","type":"uint256"},{"internalType":"uint256","name":"endTime","type":"uint256"},{"internalType":"bytes32","name":"zoneHash","type":"bytes32"},{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"bytes32","name":"conduitKey","type":"bytes32"},{"internalType":"uint256","name":"totalOriginalConsiderationItems","type":"uint256"}],"internalType":"struct OrderParameters","name":"parameters","type":"tuple"},{"internalType":"uint120","name":"numerator","type":"uint120"},{"internalType":"uint120","name":"denominator","type":"uint120"},{"internalType":"bytes","name":"signature","type":"bytes"},{"internalType":"bytes","name":"extraData","type":"bytes"}],"internalType":"struct AdvancedOrder[]","name":"advancedOrders","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"enum Side","name":"side","type":"uint8"},{"internalType":"uint256","name":"index","type":"uint256"},{"internalType":"uint256","name":"identifier","type":"uint256"},{"internalType":"bytes32[]","name":"criteriaProof","type":"bytes32[]"}],"internalType":"struct CriteriaResolver[]","name":"criteriaResolvers","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"uint256","name":"itemIndex","type":"uint256"}],"internalType":"struct FulfillmentComponent[][]","name":"offerFulfillments","type":"tuple[][]"},{"components":[{"internalType":"uint256","name":"orderIndex","type":"uint256"},{"internalType":"uint256","name":"itemIndex","type":"uint256"}],"internalType":"struct FulfillmentComponent[][]","name":"considerationFulfillments","type":"tuple[][]"},{"internalType":"bytes32","name":"fulfillerConduitKey","type":"bytes32"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"maximumFulfilled","type":"uint256"}],"internalType":"struct SeaportLib1_1.SeaportBuyOrder[]","name":"openSeaBuys","type":"tuple[]"},{"internalType":"uint256[]","name":"msgValue","type":"uint256[]"},{"internalType":"bool","name":"revertIfTrxFails","type":"bool"}],"name":"fulfillAvailableAdvancedOrders","outputs":[],"stateMutability":"nonpayable","type":"function"}]`,
     );
+    const x2y2Lib = new ethers.utils.Interface(
+      `[{"inputs":[],"name":"X2Y2","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"components":[{"components":[{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"network","type":"uint256"},{"internalType":"uint256","name":"intent","type":"uint256"},{"internalType":"uint256","name":"delegateType","type":"uint256"},{"internalType":"uint256","name":"deadline","type":"uint256"},{"internalType":"contract IERC20Upgradeable","name":"currency","type":"address"},{"internalType":"bytes","name":"dataMask","type":"bytes"},{"components":[{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct OrderItem[]","name":"items","type":"tuple[]"},{"internalType":"bytes32","name":"r","type":"bytes32"},{"internalType":"bytes32","name":"s","type":"bytes32"},{"internalType":"uint8","name":"v","type":"uint8"},{"internalType":"uint8","name":"signVersion","type":"uint8"}],"internalType":"struct Order[]","name":"orders","type":"tuple[]"},{"components":[{"internalType":"enum Op","name":"op","type":"uint8"},{"internalType":"uint256","name":"orderIdx","type":"uint256"},{"internalType":"uint256","name":"itemIdx","type":"uint256"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"bytes32","name":"itemHash","type":"bytes32"},{"internalType":"contract IDelegate","name":"executionDelegate","type":"address"},{"internalType":"bytes","name":"dataReplacement","type":"bytes"},{"internalType":"uint256","name":"bidIncentivePct","type":"uint256"},{"internalType":"uint256","name":"aucMinIncrementPct","type":"uint256"},{"internalType":"uint256","name":"aucIncDurationSecs","type":"uint256"},{"components":[{"internalType":"uint256","name":"percentage","type":"uint256"},{"internalType":"address","name":"to","type":"address"}],"internalType":"struct Fee[]","name":"fees","type":"tuple[]"}],"internalType":"struct SettleDetail[]","name":"details","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"uint256","name":"deadline","type":"uint256"},{"internalType":"uint256","name":"amountToEth","type":"uint256"},{"internalType":"uint256","name":"amountToWeth","type":"uint256"},{"internalType":"address","name":"user","type":"address"},{"internalType":"bool","name":"canFail","type":"bool"}],"internalType":"struct SettleShared","name":"shared","type":"tuple"},{"internalType":"bytes32","name":"r","type":"bytes32"},{"internalType":"bytes32","name":"s","type":"bytes32"},{"internalType":"uint8","name":"v","type":"uint8"}],"internalType":"struct RunInput","name":"_input","type":"tuple"},{"internalType":"uint256","name":"_msgValue","type":"uint256"},{"internalType":"bool","name":"_revertIfTrxFails","type":"bool"}],"name":"_run","outputs":[],"stateMutability":"nonpayable","type":"function"}]`,
+    );
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -218,12 +229,16 @@ describe("NFT Aggregator", function () {
       deployedMock1155 = await Mock1155.deploy();
       Mooncats = await ethers.getContractFactory("MoonCatRescue");
       deployedMooncats = await Mooncats.deploy();
+      PausableZone = await ethers.getContractFactory("PausableZone");
+      deployedPausableZone = await PausableZone.deploy();
       
       CryptoPunks = await ethers.getContractFactory("CryptoPunksMarket");
       deployedCryptoPunks = await CryptoPunks.deploy();
       deployedLooksrareLibV1 = await LooksrareLibV1.deploy();
       SeaportLib1_1 = await ethers.getContractFactory("SeaportLib1_1");
       deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
+      X2Y2LibV1 = await ethers.getContractFactory("X2Y2LibV1");
+      deployedX2Y2LibV1 = await X2Y2LibV1.deploy();
 
       MarketplaceRegistry = await ethers.getContractFactory("MarketplaceRegistry");
       deployedMarketplaceRegistry = await upgrades.deployProxy(MarketplaceRegistry, [], {
@@ -232,9 +247,11 @@ describe("NFT Aggregator", function () {
 
       await deployedMarketplaceRegistry.addMarketplace(deployedLooksrareLibV1.address, true);
       await deployedMarketplaceRegistry.addMarketplace(deployedSeaportLib1_1.address, true);
+      await deployedMarketplaceRegistry.addMarketplace(deployedX2Y2LibV1.address, true);
 
       expect((await deployedMarketplaceRegistry.marketplaces(0)).proxy).to.be.equal(deployedLooksrareLibV1.address);
       expect((await deployedMarketplaceRegistry.marketplaces(1)).proxy).to.be.equal(deployedSeaportLib1_1.address);
+      expect((await deployedMarketplaceRegistry.marketplaces(2)).proxy).to.be.equal(deployedX2Y2LibV1.address);
 
       NftAggregator = await ethers.getContractFactory("NftAggregator");
       deployedNftAggregator = await upgrades.deployProxy(NftAggregator, [deployedMarketplaceRegistry.address, deployedCryptoPunks.address, deployedMooncats.address,], {
@@ -388,7 +405,7 @@ describe("NFT Aggregator", function () {
         const offerer = owner.address;
         const tokenID = "1";
         const currency = addresses["WETH"];
-        const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
+        const duration = hre.ethers.BigNumber.from(60 * 60 * 72); // 3 days
         const inputNonce = await getLooksrareNonce(offerer, chainId);
 
         // approve
@@ -481,13 +498,86 @@ describe("NFT Aggregator", function () {
         expect(await deployedMock721.ownerOf(tokenID)).to.be.equal(second.address);
       });
 
+      // it("should create x2y2 generated hexes for arbitrary x2y2 orders", async function () {
+      //   await deployedMock721.connect(owner).mint("1");
+
+      //   const contractAddress = deployedMock721.address;
+      //   const tokenId = "1";
+      //   const expirationTime = hre.ethers.BigNumber.from(Date.now()).div(1000).add(hre.ethers.BigNumber.from(60 * 60 * 24)).toString();
+      //   const price = hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString());
+
+      //   expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(owner.address);
+
+      //   // approve
+      //   await deployedMock721.connect(owner).setApprovalForAll(OPENSEA_CONDUIT_ADDRESS, true);
+
+      //   // API call listing (bc X2Y2 needs an approved signer)
+      //   const order = await createX2Y2ParametersForNFTListing(
+      //     'mainnet',
+      //     ownerSigner2,
+      //     contractAddress,
+      //     tokenId,
+      //     'erc721',
+      //     price,
+      //     expirationTime
+      //   )
+
+      //   console.log('order: ', order);
+
+      //   const headers = { 
+      //     headers: {
+      //       'Content-Type': 'application/json; charset=utf-8',
+      //       'X-API-Key': 'b81d7374-9363-4266-9e37-d0aee62c1c77'
+      //     }
+      //   }
+
+      //   const data = {
+      //     order: encodeOrder(order),
+      //     isBundle: false,
+      //     bundleName: '',
+      //     bundleDesc: '',
+      //     orderIds: [],
+      //     royalties: [],
+      //     changePrice: false,
+      //     isCollection: false, // for sell orders
+      //     isPrivate: false,
+      //     taker: null,
+      //   }
+
+      //   try {
+      //     const submitOrder = await axios.post(`https://api.x2y2.org/api/orders/add`, JSON.stringify(data), headers);
+      //     console.log('submitOrder: ', await submitOrder.data);
+      //   } catch (err) {
+      //     console.log('error with submitting order: ', err.response.data);
+      //   }
+
+      //   const option2 = {
+      //     headers: {
+      //      'X-API-Key': 'b81d7374-9363-4266-9e37-d0aee62c1c77'
+      //     },
+      //    }
+      //   const orders = await fetch(`https://api.x2y2.org/v1/orders?maker=${ownerSigner.address}&contract=${contractAddress}&token_id=${tokenId}`, option2);
+      //   console.log('orders: ', await orders.json());
+
+      //   // const totalOrder = [
+      //   //   [order],
+
+      //   // ]
+
+      //   // const totalValue = startingPrice;
+      //   // const failIfRevert = true;
+
+      //   // const inputData = [order, [startingPrice], failIfRevert];
+      //   // const wholeHex = await x2y2Lib.encodeFunctionData("_run", inputData);
+      // })
+
       it("should create opensea generated hexes for arbitrary seaport orders", async function () {
         await deployedMock721.connect(owner).mint("1");
 
         const offerer = owner.address;
         const contractAddress = deployedMock721.address;
         const tokenId = "1";
-        const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
+        const duration = hre.ethers.BigNumber.from(60 * 60 * 72); // 3 days
         const recipient = second.address;
         const currency = "0x0000000000000000000000000000000000000000"; // ETH
         const startingPrice = hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString());
@@ -501,6 +591,7 @@ describe("NFT Aggregator", function () {
         const collectionFee = null; // since this is a dummy 721 contract that has no royalties
 
         const data = createSeaportParametersForNFTListing(
+          deployedPausableZone.address,
           offerer,
           contractAddress,
           tokenId,
@@ -535,7 +626,7 @@ describe("NFT Aggregator", function () {
                   zoneHash: data.zoneHash,
                 },
                 signature: signature,
-                extraData: "0x",
+                extraData: [],
               },
             ],
             [],
@@ -590,7 +681,7 @@ describe("NFT Aggregator", function () {
         // orderStruct for SeaportLibV1_1
         const orderStruct = [
           [
-            generateParameters(results),
+            generateParameters(results, 1),
             [],
             generateOfferArray(results.map(i => i.data.offer)),
             generateOrderConsiderationArray(results.map(i => i.data.consideration)),
@@ -630,7 +721,7 @@ describe("NFT Aggregator", function () {
           .batchTradeWithETH(combinedOrders, [[], [], [0,0]], { value: totalValue })).to.be.reverted;
 
         // due to no marketId being active
-        await expect(deployedMarketplaceRegistry.setMarketplaceProxy('2', deployedLooksrareLibV1.address, false)).to.be.reverted;
+        await expect(deployedMarketplaceRegistry.setMarketplaceProxy('10', deployedLooksrareLibV1.address, false)).to.be.reverted;
 
         // swap marketIds
         await deployedMarketplaceRegistry.setMarketplaceProxy('0', deployedSeaportLib1_1.address, true);
@@ -748,7 +839,7 @@ describe("NFT Aggregator", function () {
         // orderStruct for SeaportLibV1_1
         const orderStruct = [
           [
-            generateParameters(seaportResults),
+            generateParameters(seaportResults, 1),
             [],
             generateOfferArray(seaportResults.map(i => i.data.offer)),
             generateOrderConsiderationArray(seaportResults.map(i => i.data.consideration)),
@@ -898,7 +989,7 @@ describe("NFT Aggregator", function () {
         // orderStruct for SeaportLibV1_1
         const orderStruct = [
           [
-            generateParameters(seaportResults),
+            generateParameters(seaportResults, 1),
             [],
             generateOfferArray(seaportResults.map(i => i.data.offer)),
             generateOrderConsiderationArray(seaportResults.map(i => i.data.consideration)),
@@ -1107,7 +1198,7 @@ describe("NFT Aggregator", function () {
         // orderStruct for SeaportLibV1_1
         const orderStruct = [
           [
-            generateParameters(seaportResults),
+            generateParameters(seaportResults, 1),
             [],
             generateOfferArray(seaportResults.map(i => i.data.offer)),
             generateOrderConsiderationArray(seaportResults.map(i => i.data.consideration)),
@@ -1286,7 +1377,7 @@ describe("NFT Aggregator", function () {
         // orderStruct for SeaportLibV1_1
         const orderStruct = [
           [
-            generateParameters(seaportResults),
+            generateParameters(seaportResults, 1),
             [],
             generateOfferArray(seaportResults.map(i => i.data.offer)),
             generateOrderConsiderationArray(seaportResults.map(i => i.data.consideration)),
@@ -1501,7 +1592,7 @@ describe("NFT Aggregator", function () {
       // orderStruct for SeaportLibV1_1
       const orderStruct = [
         [
-          generateParameters(seaportResults),
+          generateParameters(seaportResults, 1),
           [],
           generateOfferArray(seaportResults.map(i => i.data.offer)),
           generateOrderConsiderationArray(seaportResults.map(i => i.data.consideration)),
@@ -1757,7 +1848,7 @@ describe("NFT Aggregator", function () {
         // orderStruct for SeaportLibV1_1
         const orderStruct = [
           [
-            generateParameters(seaportResults),
+            generateParameters(seaportResults, 1),
             [],
             generateOfferArray(seaportResults.map(i => i.data.offer)),
             generateOrderConsiderationArray(seaportResults.map(i => i.data.consideration)),

@@ -5,5 +5,5 @@ interface ISudoSwap {}
 
 /// @title TODO
 library SudoSwapLibV1 {
-    address public constant SUDOSWAP = 0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b; // TODO: change
+    address public constant SUDOSWAP = 0x2B2e8cDA09bBA9660dCA5cB6233787738Ad68329;
 }

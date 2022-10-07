@@ -23,10 +23,8 @@ const chainIds = {
   ganache: 1337,
   goerli: 5,
   hardhat: 31337,
-  kovan: 42,
   mainnet: 1,
-  rinkeby: 4,
-  ropsten: 3,
+  sepolia: 11155111
 };
 
 // Ensure that we have all the environment variables we need.
@@ -91,18 +89,16 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`,
+        url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`,
       },
       accounts: {
         mnemonic,
       },
-      chainId: chainIds.rinkeby, // chainIds.rinkeby,
+      chainId: chainIds.goerli,
     },
     mainnet: getChainConfigPK("mainnet"),
     goerli: getChainConfig("goerli"),
-    kovan: getChainConfig("kovan"),
-    rinkeby: getChainConfig("rinkeby"), //getChainConfigPK("rinkeby"),
-    ropsten: getChainConfig("ropsten"),
+    sepolia: getChainConfig("sepolia"),
   },
   contractSizer: {
     alphaSort: true,

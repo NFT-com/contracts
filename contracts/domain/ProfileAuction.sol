@@ -38,6 +38,14 @@ interface INftProfile {
     function profileOwner(string memory _string) external view returns (address);
 }
 
+struct BatchClaimProfile {
+    string profileUrl;
+    uint256 tokenId;
+    address recipient;
+    bytes32 hash;
+    bytes signature;
+}
+
 error MaxProfiles();
 
 contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
@@ -252,6 +260,47 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             genesisKeyClaimNumber[tokenId] <= 4 ? 1000 * (365 days) : 365 days,
             0
         );
+    }
+
+    function genesisKeyBatchClaimProfile(
+        BatchClaimProfile[] memory claims
+    ) external nonReentrant {
+        for (uint256 i = 0; i < claims.length; ) {
+            string memory profileUrl = claims[i].profileUrl;
+            uint256 tokenId = claims[i].tokenId;
+            address recipient = claims[i].recipient;
+            bytes32 hash = claims[i].hash;
+            bytes memory signature = claims[i].signature;
+            
+            // checks
+            require(IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient, "gkp: !owner");
+            require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "gkp: !sig");
+            require(hashTransaction(msg.sender, profileUrl) == hash, "gkp: !hash");
+            uint256 profilesAllowed = genKeyWhitelistOnly ? 4 : 7;
+            require(genesisKeyClaimNumber[tokenId] != profilesAllowed);
+
+            // effects
+            genesisKeyClaimNumber[tokenId] += 1;
+
+            // interactions
+            INftProfile(nftProfile).createProfile(
+                recipient,
+                profileUrl,
+                genesisKeyClaimNumber[tokenId] <= 4 ? 1000 * (365 days) : 365 days
+            );
+
+            emit MintedProfile(
+                recipient,
+                profileUrl,
+                INftProfile(nftProfile).totalSupply() - 1,
+                genesisKeyClaimNumber[tokenId] <= 4 ? 1000 * (365 days) : 365 days,
+                0
+            );
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     // used for profile factory

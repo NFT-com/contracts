@@ -85,7 +85,7 @@
     "precommit": "prettier --write --tab-width 2 \"test/*.js\"",
     "compile": "hardhat compile && yarn typechain",
     "coverage": "rm -rf docs && hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.js\" && mv coverage docs",
-    "deploy": "hardhat deploy:1 --network rinkeby",
+    "deploy": "hardhat deploy:1 --network goerli",
     "airdrop:public": "ts-node ./test/utils/gen-merkle-root.ts --input ./test/utils/airdrop.json",
     "verify": "hardhat verify --network <network> <contract>",
     "deploy-debug": "hardhat deploy:NFT.com --show-stack-traces",
@@ -96,16 +96,22 @@
     "prettier": "prettier --config ./.prettierrc.yaml --write \"**/*.{js,json,md,sol,ts}\"",
     "prettier:check": "prettier --check --config ./.prettierrc.yaml \"**/*.{js,json,md,sol,ts}\"",
     "test": "hardhat test",
-    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain && typechain --target=ethers-v5 ./node_modules/@looksrare/sdk/dist/abis/*.json --out-dir ./typechain/looksrare && typechain --target=ethers-v5 ./abis/seaport.json --out-dir ./typechain/seaport"
+    "typechain-looksrare": "typechain --target=ethers-v5 ./node_modules/@looksrare/sdk/dist/abis/*.json --out-dir ./typechain/looksrare",
+    "typechain-seaport": "typechain --target=ethers-v5 ./abis/seaport.json --out-dir ./typechain/seaport",
+    "typechain-x2y2": "typechain --target=ethers-v5 ./abis/x2y2.json --out-dir ./typechain/x2y2",
+    "typechain-sudoswap": "typechain --target=ethers-v5 ./abis/sudoswap.json --out-dir ./typechain/sudoswap",
+    "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain && yarn typechain-looksrare && yarn typechain-seaport && yarn typechain-x2y2 && yarn typechain-sudoswap"
   },
   "dependencies": {
     "@looksrare/sdk": "^0.8.1",
     "@openzeppelin/upgrades-core": "^1.19.1",
+    "@x2y2-io/sdk": "^0.2.0",
     "axios": "^0.27.2",
     "csv-parse": "^5.0.4",
     "csv-stringify": "^6.2.0",
     "csvtojson": "^2.0.10",
     "delay": "^5.0.0",
-    "ethereumjs-abi": "^0.6.8"
+    "ethereumjs-abi": "^0.6.8",
+    "isomorphic-unfetch": "^3.1.0"
   }
 }

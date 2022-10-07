@@ -9,27 +9,20 @@ import {
   SEAPORT_CONTRACT_NAME,
   SEAPORT_CONTRACT_VERSION,
   SEAPORT_FEE_COLLLECTION_ADDRESS,
-  SEAPORT_FEE_COLLLECTION_ADDRESS_RINKEBY,
+  SEAPORT_FEE_COLLLECTION_ADDRESS_2,
   SEAPORT_ZONE,
   SEAPORT_ZONE_HASH,
-  SEAPORT_ZONE_RINKEBY,
   SEAPORT_ZONE_GOERLI,
   SeaportConsiderationItem,
   SeaportOrderComponents,
   SeaportOrderParameters,
   Maybe,
+  Domain
 } from "./types";
 
 import { BigNumber, BigNumberish, ethers } from "ethers";
 import { _TypedDataEncoder } from "ethers/lib/utils";
 import { Seaport__factory } from "../../../typechain/seaport/factories/Seaport__factory";
-
-interface Domain {
-  name: string;
-  version: string;
-  chainId: string | number;
-  verifyingContract: string;
-}
 
 export const NULL_ADDRESS = ethers.utils.getAddress("0x0000000000000000000000000000000000000000");
 
@@ -94,6 +87,7 @@ export const feeToConsiderationItem = ({
 };
 
 export function createSeaportParametersForNFTListing(
+  customZone = undefined,
   offerer: string,
   contractAddress: string,
   tokenId: string,
@@ -117,7 +111,7 @@ export function createSeaportParametersForNFTListing(
     },
   ];
   const openseaFee: Fee = {
-    recipient: chainId == "4" ? SEAPORT_FEE_COLLLECTION_ADDRESS_RINKEBY : SEAPORT_FEE_COLLLECTION_ADDRESS,
+    recipient: chainId == "5" ? SEAPORT_FEE_COLLLECTION_ADDRESS_2 : SEAPORT_FEE_COLLLECTION_ADDRESS,
     basisPoints: 250,
   };
 
@@ -142,12 +136,10 @@ export function createSeaportParametersForNFTListing(
     offerer: offerer ?? NULL_ADDRESS,
     zone:
       chainId === "5"
-        ? SEAPORT_ZONE_GOERLI
-        : chainId == "4"
-        ? SEAPORT_ZONE_RINKEBY
+        ? customZone || SEAPORT_ZONE_GOERLI
         : chainId === "1"
         ? SEAPORT_ZONE
-        : SEAPORT_ZONE_RINKEBY,
+        : customZone,
     offer: [
       {
         itemType: ItemType.ERC721,
@@ -179,6 +171,7 @@ export async function signOrderForOpensea(
     const counter = (await seaport.getCounter(orderParameters.offerer))?.toString();
 
     const domain = getTypedDataDomain(chainId ?? 1);
+
     const type = EIP_712_ORDER_TYPE;
     const value = {
       ...orderParameters,
