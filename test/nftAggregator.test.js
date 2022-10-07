@@ -29,12 +29,12 @@ describe("NFT Aggregator", function () {
     let Mock1155, deployedMock1155;
     let Mooncats, deployedMooncats;
     let CryptoPunks, deployedCryptoPunks;
+    let PausableZone, deployedPausableZone;
     let looksrare = new ethers.utils.Interface(looksrareABI);
     let seaport = new ethers.utils.Interface(seaportABI);
     const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
 
-    // TODO: change once opensea supports goerli fully with zone
-    const chainId = hre.network.config.chainId; // 5 = goerli, hre.network.config.chainId
+    const chainId = hre.network.config.chainId; // 5 = goerli
 
     const INFURA_KEY = "460ed70fa7394604a709b7dff23f1641";
     const provider = new ethers.providers.InfuraProvider(
@@ -189,6 +189,7 @@ describe("NFT Aggregator", function () {
       const collectionFee = null; // since this is a dummy 721 contract that has no royalties
     
       const data = createSeaportParametersForNFTListing(
+        deployedPausableZone.address,
         offerer,
         contractAddress,
         tokenId,
@@ -228,6 +229,8 @@ describe("NFT Aggregator", function () {
       deployedMock1155 = await Mock1155.deploy();
       Mooncats = await ethers.getContractFactory("MoonCatRescue");
       deployedMooncats = await Mooncats.deploy();
+      PausableZone = await ethers.getContractFactory("PausableZone");
+      deployedPausableZone = await PausableZone.deploy();
       
       CryptoPunks = await ethers.getContractFactory("CryptoPunksMarket");
       deployedCryptoPunks = await CryptoPunks.deploy();
@@ -402,7 +405,7 @@ describe("NFT Aggregator", function () {
         const offerer = owner.address;
         const tokenID = "1";
         const currency = addresses["WETH"];
-        const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
+        const duration = hre.ethers.BigNumber.from(60 * 60 * 72); // 3 days
         const inputNonce = await getLooksrareNonce(offerer, chainId);
 
         // approve
@@ -495,78 +498,78 @@ describe("NFT Aggregator", function () {
         expect(await deployedMock721.ownerOf(tokenID)).to.be.equal(second.address);
       });
 
-      it("should create x2y2 generated hexes for arbitrary x2y2 orders", async function () {
-        await deployedMock721.connect(owner).mint("1");
+      // it("should create x2y2 generated hexes for arbitrary x2y2 orders", async function () {
+      //   await deployedMock721.connect(owner).mint("1");
 
-        const contractAddress = deployedMock721.address;
-        const tokenId = "1";
-        const expirationTime = hre.ethers.BigNumber.from(Date.now()).div(1000).add(hre.ethers.BigNumber.from(60 * 60 * 24)).toString();
-        const price = hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString());
+      //   const contractAddress = deployedMock721.address;
+      //   const tokenId = "1";
+      //   const expirationTime = hre.ethers.BigNumber.from(Date.now()).div(1000).add(hre.ethers.BigNumber.from(60 * 60 * 24)).toString();
+      //   const price = hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString());
 
-        expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(owner.address);
+      //   expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(owner.address);
 
-        // approve
-        await deployedMock721.connect(owner).setApprovalForAll(OPENSEA_CONDUIT_ADDRESS, true);
+      //   // approve
+      //   await deployedMock721.connect(owner).setApprovalForAll(OPENSEA_CONDUIT_ADDRESS, true);
 
-        // API call listing (bc X2Y2 needs an approved signer)
-        const order = await createX2Y2ParametersForNFTListing(
-          'mainnet',
-          ownerSigner2,
-          contractAddress,
-          tokenId,
-          'erc721',
-          price,
-          expirationTime
-        )
+      //   // API call listing (bc X2Y2 needs an approved signer)
+      //   const order = await createX2Y2ParametersForNFTListing(
+      //     'mainnet',
+      //     ownerSigner2,
+      //     contractAddress,
+      //     tokenId,
+      //     'erc721',
+      //     price,
+      //     expirationTime
+      //   )
 
-        console.log('order: ', order);
+      //   console.log('order: ', order);
 
-        const headers = { 
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'X-API-Key': 'b81d7374-9363-4266-9e37-d0aee62c1c77'
-          }
-        }
+      //   const headers = { 
+      //     headers: {
+      //       'Content-Type': 'application/json; charset=utf-8',
+      //       'X-API-Key': 'b81d7374-9363-4266-9e37-d0aee62c1c77'
+      //     }
+      //   }
 
-        const data = {
-          order: encodeOrder(order),
-          isBundle: false,
-          bundleName: '',
-          bundleDesc: '',
-          orderIds: [],
-          royalties: [],
-          changePrice: false,
-          isCollection: false, // for sell orders
-          isPrivate: false,
-          taker: null,
-        }
+      //   const data = {
+      //     order: encodeOrder(order),
+      //     isBundle: false,
+      //     bundleName: '',
+      //     bundleDesc: '',
+      //     orderIds: [],
+      //     royalties: [],
+      //     changePrice: false,
+      //     isCollection: false, // for sell orders
+      //     isPrivate: false,
+      //     taker: null,
+      //   }
 
-        try {
-          const submitOrder = await axios.post(`https://api.x2y2.org/api/orders/add`, JSON.stringify(data), headers);
-          console.log('submitOrder: ', await submitOrder.data);
-        } catch (err) {
-          console.log('error with submitting order: ', err.response.data);
-        }
+      //   try {
+      //     const submitOrder = await axios.post(`https://api.x2y2.org/api/orders/add`, JSON.stringify(data), headers);
+      //     console.log('submitOrder: ', await submitOrder.data);
+      //   } catch (err) {
+      //     console.log('error with submitting order: ', err.response.data);
+      //   }
 
-        const option2 = {
-          headers: {
-           'X-API-Key': 'b81d7374-9363-4266-9e37-d0aee62c1c77'
-          },
-         }
-        const orders = await fetch(`https://api.x2y2.org/v1/orders?maker=${ownerSigner.address}&contract=${contractAddress}&token_id=${tokenId}`, option2);
-        console.log('orders: ', await orders.json());
+      //   const option2 = {
+      //     headers: {
+      //      'X-API-Key': 'b81d7374-9363-4266-9e37-d0aee62c1c77'
+      //     },
+      //    }
+      //   const orders = await fetch(`https://api.x2y2.org/v1/orders?maker=${ownerSigner.address}&contract=${contractAddress}&token_id=${tokenId}`, option2);
+      //   console.log('orders: ', await orders.json());
 
-        // const totalOrder = [
-        //   [order],
+      //   // const totalOrder = [
+      //   //   [order],
 
-        // ]
+      //   // ]
 
-        // const totalValue = startingPrice;
-        // const failIfRevert = true;
+      //   // const totalValue = startingPrice;
+      //   // const failIfRevert = true;
 
-        // const inputData = [order, [startingPrice], failIfRevert];
-        // const wholeHex = await x2y2Lib.encodeFunctionData("_run", inputData);
-      })
+      //   // const inputData = [order, [startingPrice], failIfRevert];
+      //   // const wholeHex = await x2y2Lib.encodeFunctionData("_run", inputData);
+      // })
 
       it("should create opensea generated hexes for arbitrary seaport orders", async function () {
         await deployedMock721.connect(owner).mint("1");
@@ -574,7 +577,7 @@ describe("NFT Aggregator", function () {
         const offerer = owner.address;
         const contractAddress = deployedMock721.address;
         const tokenId = "1";
-        const duration = hre.ethers.BigNumber.from(60 * 60 * 24); // 24 hours
+        const duration = hre.ethers.BigNumber.from(60 * 60 * 72); // 3 days
         const recipient = second.address;
         const currency = "0x0000000000000000000000000000000000000000"; // ETH
         const startingPrice = hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString());
@@ -588,6 +591,7 @@ describe("NFT Aggregator", function () {
         const collectionFee = null; // since this is a dummy 721 contract that has no royalties
 
         const data = createSeaportParametersForNFTListing(
+          deployedPausableZone.address,
           offerer,
           contractAddress,
           tokenId,
@@ -622,7 +626,7 @@ describe("NFT Aggregator", function () {
                   zoneHash: data.zoneHash,
                 },
                 signature: signature,
-                extraData: "0x",
+                extraData: [],
               },
             ],
             [],
@@ -1853,8 +1857,6 @@ describe("NFT Aggregator", function () {
             seaportResults.length,
           ],
         ];
-
-        console.log('!!!! orderStruct: ', JSON.stringify(orderStruct, null, 2));
 
         const seaportTotalValue = getSeaportTotalValue(seaportResults);
 

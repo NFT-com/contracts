@@ -87,6 +87,7 @@ export const feeToConsiderationItem = ({
 };
 
 export function createSeaportParametersForNFTListing(
+  customZone = undefined,
   offerer: string,
   contractAddress: string,
   tokenId: string,
@@ -110,7 +111,7 @@ export function createSeaportParametersForNFTListing(
     },
   ];
   const openseaFee: Fee = {
-    recipient: chainId == "4" ? SEAPORT_FEE_COLLLECTION_ADDRESS_2 : SEAPORT_FEE_COLLLECTION_ADDRESS,
+    recipient: chainId == "5" ? SEAPORT_FEE_COLLLECTION_ADDRESS_2 : SEAPORT_FEE_COLLLECTION_ADDRESS,
     basisPoints: 250,
   };
 
@@ -135,10 +136,10 @@ export function createSeaportParametersForNFTListing(
     offerer: offerer ?? NULL_ADDRESS,
     zone:
       chainId === "5"
-        ? SEAPORT_ZONE_GOERLI
+        ? customZone || SEAPORT_ZONE_GOERLI
         : chainId === "1"
         ? SEAPORT_ZONE
-        : SEAPORT_ZONE_GOERLI,
+        : customZone,
     offer: [
       {
         itemType: ItemType.ERC721,
@@ -170,6 +171,7 @@ export async function signOrderForOpensea(
     const counter = (await seaport.getCounter(orderParameters.offerer))?.toString();
 
     const domain = getTypedDataDomain(chainId ?? 1);
+
     const type = EIP_712_ORDER_TYPE;
     const value = {
       ...orderParameters,
