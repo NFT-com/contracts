@@ -16,7 +16,7 @@ async function mineNBlocks(n) {
   }
 }
 
-describe("NFT Token Staking (Rinkeby)", function () {
+describe("NFT Token Staking (Testnet)", function () {
   try {
     let NftToken, Vesting;
     let deployedNftToken, deployedVesting;

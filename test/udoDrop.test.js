@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 
-describe("Udo One Off NFT Drop (Rinkeby)", function () {
+describe("Udo One Off NFT Drop (Testnet)", function () {
   try {
     let UdoDrop;
     let deployedUdoDrop;

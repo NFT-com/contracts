@@ -22,7 +22,7 @@ const getNetwork = (hre: any) => {
 
 const getTokens = async (hre: any) => {
   const chainId = hre.network.config.chainId;
-  const network = chainId === 5 ? "goerli" : chainId === 4 ? "rinkeby" : chainId === 1 ? "mainnet" : chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 4 ? "mainnet" : chainId;
 
   const governor =
     network === "goerli"
@@ -41,8 +41,6 @@ const getTokens = async (hre: any) => {
       ? "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
       : network === "mainnet"
       ? "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-      : network == "rinkeby"
-      ? "0xc778417E063141139Fce010982780140Aa0cD5Ab"
       : "";
   const usdcAddress =
     network === "goerli"
@@ -103,40 +101,30 @@ const getTokens = async (hre: any) => {
       ? "0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10"
       : network == "mainnet"
       ? "0xf2821154d4752862b49a7C7fA7728B76ea44495e"
-      : network == "rinkeby"
-      ? "0xF579F547f656385C5CAD740a7e7D37dD47A66c31"
       : "";
   const deployedLooksrareLibV1 =
     network == "goerli"
       ? "0xD9c96BEC8D790cB460F7Ef3D23B5ad22b6684871"
       : network == "mainnet"
       ? "0xf3d4636d92977b16499c73b1fd3a759e45050d90"
-      : network == "rinkeby"
-      ? "0x8363F28dE86901f12a92150Bb4E0dBee72626bde"
       : "";
   const deployedSeaportContract1_1 =
     network == "goerli"
       ? "0xC7b0C89315F9A5E79a1c0b05B7f2aA1FC5587cd7"
       : network == "mainnet"
       ? "0x14be7c58087d73b8557438bf9ae3def395837176"
-      : network == "rinkeby"
-      ? "0x41D13d8A537e5B163A41fb0c1c8ec3af8e2C043e"
       : "";
   const deployedSeaportLib1_1 =
     network == "goerli"
       ? ""
       : network == "mainnet"
       ? "0x14be7c58087d73b8557438bf9ae3def395837176"
-      : network == "rinkeby"
-      ? "0xD7E288B574466FE673cD162A5558966FcAa6446E"
       : "";
   const deployedMarketplaceRegistry =
     network == "goerli"
       ? "0x7eC2fe955CFa0A9A5E6920Efc569cFCcB1a3B318"
       : network == "mainnet"
       ? "0x24851a6783fB586E49b1dC71FA40B8307802f2A5"
-      : network == "rinkeby"
-      ? "0x624548A10332fAe8B1e3D064F2fdD23eD4c4E645"
       : "";
   const profileMetadataLink = `https://${
     network === "goerli" ? "staging-api" : network === "mainnet" ? "prod-api" : ""

@@ -11,12 +11,12 @@ import {
   DELEGATION_TYPE_ERC721
 } from "./types";
 
+import { init } from '@x2y2-io/sdk'
 import { BigNumber, ethers } from "ethers";
 import { _TypedDataEncoder } from "ethers/lib/utils";
-import { GenesisKey__factory } from "../../../typechain/factories/GenesisKey__factory";
-import { ERC1155__factory } from "../../../typechain/factories/ERC1155__factory";
 
 const orderItemParamType = `tuple(uint256 price, bytes data)`
+const orderParamType = `tuple(uint256 salt, address user, uint256 network, uint256 intent, uint256 delegateType, uint256 deadline, address currency, bytes dataMask, ${orderItemParamType}[] items, bytes32 r, bytes32 s, uint8 v, uint8 signVersion)`
 const orderParamTypes = [
   `uint256`,
   `address`,
@@ -83,8 +83,14 @@ async function signOrder(
     ]
   )
   const orderHash = ethers.utils.keccak256(orderData)
+
+  console.log('ethers.utils.arrayify(orderHash): ', ethers.utils.arrayify(orderHash));
+
   // signMessage
   const orderSig = await signer.signMessage(ethers.utils.arrayify(orderHash))
+
+  console.log('orderSig: ', orderSig);
+  
   order.r = `0x${orderSig.slice(2, 66)}`
   order.s = `0x${orderSig.slice(66, 130)}`
   order.v = parseInt(orderSig.slice(130, 132), 16)
@@ -134,6 +140,10 @@ export async function signOrderForX2Y2(
   await signOrder(signer, order)
 }
 
+export function encodeOrder(order: X2Y2Order): string {
+  return ethers.utils.defaultAbiCoder.encode([orderParamType], [order])
+}
+
 export async function createX2Y2ParametersForNFTListing(
   network: Network,
   signer: ethers.Signer,
@@ -143,24 +153,8 @@ export async function createX2Y2ParametersForNFTListing(
   price: string,
   expirationTime: number,
 ): Promise<X2Y2Order> {
+  await init('b81d7374-9363-4266-9e37-d0aee62c1c77')
   const accountAddress = await signer.getAddress()
-
-  const networkMeta = getNetworkMeta(network)
-  const delegateContract =
-    tokenStandard === 'erc1155'
-      ? networkMeta.erc1155DelegateContract
-      : networkMeta.erc721DelegateContract
-  const contract =
-    tokenStandard === 'erc1155'
-      ? ERC1155__factory.connect(tokenAddress, signer)
-      : GenesisKey__factory.connect(tokenAddress, signer) // 721 mock
-  const approved = await contract.isApprovedForAll(
-    accountAddress,
-    delegateContract
-  )
-  if (!approved) {
-    throw new Error('The NFT has not been approved yet.')
-  }
 
   const data = encodeItemData([
     {

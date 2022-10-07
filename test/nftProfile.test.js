@@ -14,7 +14,7 @@ const Blockchain = {
   TEZOS: 4,
   FLOW: 5,
 };
-const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+const UNI_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 
 describe("NFT Profile Auction / Minting", function () {
   try {
@@ -168,7 +168,7 @@ describe("NFT Profile Auction / Minting", function () {
 
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       deployedNftBuyer = await NftBuyer.deploy(
-        RINKEBY_FACTORY_V2,
+        UNI_FACTORY_V2,
         deployedNftGenesisStake.address,
         deployedNftToken.address,
         wethAddress,
@@ -366,10 +366,16 @@ describe("NFT Profile Auction / Minting", function () {
         expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
 
         const { hash: h0, signature: s0 } = signHashProfile(owner.address, "gavin");
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h0, s0);
+        // await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h0, s0);
 
         const { hash: h1, signature: s1 } = signHashProfile(owner.address, "boled");
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address, h1, s1);
+        // await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address, h1, s1);
+
+        // batch claim
+        await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile([
+          ["gavin", 1, owner.address, h0, s0],
+          ["boled", 1, owner.address, h1, s1]
+        ])
 
         // should go thru
         const { hash: h2, signature: s2 } = signHashProfile(second.address, "satoshi");

@@ -9,10 +9,9 @@ import {
   SEAPORT_CONTRACT_NAME,
   SEAPORT_CONTRACT_VERSION,
   SEAPORT_FEE_COLLLECTION_ADDRESS,
-  SEAPORT_FEE_COLLLECTION_ADDRESS_RINKEBY,
+  SEAPORT_FEE_COLLLECTION_ADDRESS_2,
   SEAPORT_ZONE,
   SEAPORT_ZONE_HASH,
-  SEAPORT_ZONE_RINKEBY,
   SEAPORT_ZONE_GOERLI,
   SeaportConsiderationItem,
   SeaportOrderComponents,
@@ -111,7 +110,7 @@ export function createSeaportParametersForNFTListing(
     },
   ];
   const openseaFee: Fee = {
-    recipient: chainId == "4" ? SEAPORT_FEE_COLLLECTION_ADDRESS_RINKEBY : SEAPORT_FEE_COLLLECTION_ADDRESS,
+    recipient: chainId == "4" ? SEAPORT_FEE_COLLLECTION_ADDRESS_2 : SEAPORT_FEE_COLLLECTION_ADDRESS,
     basisPoints: 250,
   };
 
@@ -137,11 +136,9 @@ export function createSeaportParametersForNFTListing(
     zone:
       chainId === "5"
         ? SEAPORT_ZONE_GOERLI
-        : chainId == "4"
-        ? SEAPORT_ZONE_RINKEBY
         : chainId === "1"
         ? SEAPORT_ZONE
-        : SEAPORT_ZONE_RINKEBY,
+        : SEAPORT_ZONE_GOERLI,
     offer: [
       {
         itemType: ItemType.ERC721,

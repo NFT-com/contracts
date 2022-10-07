@@ -27,7 +27,7 @@ describe("Genesis Key Old Testing + Auction Mechanics", function () {
 
     const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
     const auctionSeconds = "604800"; // seconds in 1 week
-    const RINKEBY_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+    const UNI_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
     let wethAddress;
 
     // `beforeEach` will run before each test, re-deploying the contract every
@@ -90,7 +90,7 @@ describe("Genesis Key Old Testing + Auction Mechanics", function () {
 
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       deployedNftBuyer = await NftBuyer.deploy(
-        RINKEBY_FACTORY_V2,
+        UNI_FACTORY_V2,
         deployedNftGenesisStake.address,
         deployedNftToken.address,
         wethAddress,

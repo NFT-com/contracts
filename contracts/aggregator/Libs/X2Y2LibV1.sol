@@ -16,7 +16,7 @@ library X2Y2LibV1 {
         RunInput memory _input,
         uint256 _msgValue,
         bool _revertIfTrxFails
-    ) internal {
+    ) external {
         bytes memory _data = abi.encodeWithSelector(
             IX2Y2.run.selector,
             _input
