@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import chalk from "chalk";
 import csv from "csvtojson";
-import fs from "fs";
+import fs, { ftruncateSync } from "fs";
 import delay from "delay";
 import { parseBalanceMap } from "../../test/utils/parse-balance-map";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
@@ -1025,8 +1025,15 @@ task("oneTimeApproval").setAction(async function (taskArguments, hre) {
   ]);
 });
 
+task("deploy:z").setAction(async function (taskArguments, hre) {
+  const Test721 = await hre.ethers.getContractFactory("Test721");
+  const deployedTest721 = await Test721.deploy();
+
+  console.log('deployedTest721: ', deployedTest721.address);
+});
+
 task("z").setAction(async function (taskArguments, hre) {
   const Test721 = await hre.ethers.getContractFactory("Test721");
-  const deployed721 = Test721.attach("0x773d2e2c48140f7cbc1d58be09783d54f47d7d1f");
-  await deployed721.approve("0x1e0049783f008a0085193e00003d00cd54003c71", "1");
+  const deployed721 = Test721.attach("0x554CC509C75D8627090421A7dc0E1FfA6DCBB1Eb");
+  await deployed721.mint();
 });
