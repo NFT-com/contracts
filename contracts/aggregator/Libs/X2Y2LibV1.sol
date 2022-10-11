@@ -9,9 +9,9 @@ interface IX2Y2 {
     ) external;
 }
 
-library X2Y2LibV1 {
-    address public constant X2Y2 = 0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3;
+error InvalidChain();
 
+library X2Y2LibV1 {
     function _run(
         RunInput memory _input,
         uint256 _msgValue,
@@ -21,6 +21,16 @@ library X2Y2LibV1 {
             IX2Y2.run.selector,
             _input
         );
+
+        address X2Y2;
+        if (block.chainid == 1) {
+            // mainnet
+            X2Y2 = 0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3;
+        } else if (block.chainid == 5 || block.chainid == 31337) {
+            X2Y2 = 0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3; // TODO: fix with correct address
+        }
+            revert InvalidChain();
+        }
 
         (bool success, ) = X2Y2.call{ value: _msgValue }(_data);
 
