@@ -499,29 +499,31 @@ describe("NFT Aggregator", function () {
       // });
 
       it("should create x2y2 generated hexes for arbitrary x2y2 orders", async function () {
-        const x2y2Signer = new ethers.Wallet(process.env.X2Y2_PRIVATE_KEY, provider);
-        const MAINNET_MERGE_NFT = "0xE42caD6fC883877A76A26A16ed92444ab177E306";
+        const network = 'goerli';
+        // const x2y2Signer = new ethers.Wallet(process.env.X2Y2_PRIVATE_KEY, provider);
+        // const MAINNET_MERGE_NFT = "0xE42caD6fC883877A76A26A16ed92444ab177E306";
 
-        const Test721 = await hre.ethers.getContractFactory("Test721");
-        const deployed721 = Test721.attach(MAINNET_MERGE_NFT);
-        // const preSupply = await deployed721.totalSupply();
-        // await deployed721.connect(owner).mint();
-        // expect(await deployed721.ownerOf(preSupply)).to.be.equal(owner.address);
+        // const Test721 = await hre.ethers.getContractFactory("Test721");
+        // const deployed721 = Test721.attach(MAINNET_MERGE_NFT);
+        const deployed721 = deployedMock721;
+        const preSupply = await deployed721.totalSupply();
+        await deployed721.connect(owner).mint();
+        expect(await deployed721.ownerOf(preSupply)).to.be.equal(owner.address);
 
         const contractAddress = deployed721.address;
-        const tokenId = '89591'; // || preSupply.toString();
+        const tokenId = preSupply.toString(); // '89591';
         const expirationTime = hre.ethers.BigNumber.from(Date.now()).div(1000).add(hre.ethers.BigNumber.from(60 * 60 * 72)).toString();
         const price = hre.ethers.BigNumber.from((0.012 * 10 ** 18).toString());
 
-        // expect(await deployed721.ownerOf(tokenId)).to.be.equal(x2y2Signer.address);
+        expect(await deployed721.ownerOf(tokenId)).to.be.equal(ownerSigner.address);
 
         // approve
-        // await deployed721.connect(owner).setApprovalForAll(getNetworkMeta('mainnet')?.erc721DelegateContract, true);
+        await deployed721.connect(owner).setApprovalForAll(getNetworkMeta(network)?.erc721DelegateContract, true);
 
         // API call listing (bc X2Y2 needs an approved signer)
         const order = await createX2Y2ParametersForNFTListing(
-          'mainnet',
-          x2y2Signer,
+          network,
+          ownerSigner,
           contractAddress,
           tokenId,
           'erc721',
@@ -532,7 +534,7 @@ describe("NFT Aggregator", function () {
         const headers = { 
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'X-API-KEY': 'b81d7374-9363-4266-9e37-d0aee62c1c77'
+            'X-API-KEY': process.env.X2Y2_GOERLI_API_KEY
           }
         }
 
@@ -550,21 +552,23 @@ describe("NFT Aggregator", function () {
         }
 
         try {
-          // await axios.post(`https://api.x2y2.org/api/orders/add`, JSON.stringify(data), headers);
+          await axios.post(`${getNetworkMeta(network)?.apiBaseURL}/api/orders/add`, JSON.stringify(data), headers);
 
           // give x2y2 time to propagate order
-          // await delay(2000);
+          await delay(2000);
 
           const option2 = {
             headers: {
-            'X-API-Key': 'b81d7374-9363-4266-9e37-d0aee62c1c77'
+            'X-API-Key': process.env.X2Y2_GOERLI_API_KEY
             },
           }
-          const orders = await fetch(`https://api.x2y2.org/v1/orders?maker=${x2y2Signer.address}&contract=${contractAddress}&token_id=${tokenId}`, option2);
+          const orders = await fetch(`${getNetworkMeta(network)?.apiBaseURL}/v1/orders?maker=${ownerSigner.address}&contract=${contractAddress}&token_id=${tokenId}`, option2);
           const submittedOrders = await orders.json();
 
-          const x2y2SignerAddress = x2y2Signer.address
-          const runInput = await buyOrder(network, x2y2SignerAddress, submittedOrders?.data?.[0]);
+          // console.log('submittedOrders: ', JSON.stringify(submittedOrders, null, 2));
+
+          const ownerSignerAddress = ownerSigner.address
+          const runInput = await buyOrder(network, ownerSignerAddress, submittedOrders?.data?.[0]);
 
           const totalValue = submittedOrders?.data?.[0]?.currency == '0x0000000000000000000000000000000000000000' ?
             submittedOrders?.data?.[0]?.price :

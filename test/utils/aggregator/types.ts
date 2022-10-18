@@ -35,7 +35,7 @@ export const DELEGATION_TYPE_INVALID = 0
 export const DELEGATION_TYPE_ERC721 = 1
 export const DELEGATION_TYPE_ERC1155 = 2
 
-export type Network = 'mainnet'
+export type Network = 'mainnet' | 'goerli'
 
 export type NetworkMeta = {
   id: number

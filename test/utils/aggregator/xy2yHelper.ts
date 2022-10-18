@@ -50,6 +50,16 @@ export const getNetworkMeta = (network: Network): NetworkMeta => {
         wethContract: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
         apiBaseURL: 'https://api.x2y2.org',
       }
+    case 'goerli':
+      return {
+        id: 5,
+        rpcUrl: 'https://rpc.ankr.com/eth_goerli',
+        marketContract: '0x1891ecd5f7b1e751151d857265d6e6d08ae8989e',
+        erc721DelegateContract: '0x095be13d86000260852e4f92ea48dc333fa35249',
+        erc1155DelegateContract: '0x675B92ed07184635dEA2EF6fB403875DfA09d74A',
+        wethContract: '0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6',
+        apiBaseURL: 'https://goerli-api.x2y2.org',
+      }
   }
 }
 
@@ -158,7 +168,7 @@ export function decodeRunInput(data: string): RunInput {
 const headers = { 
   headers: {
     'Content-Type': 'application/json; charset=utf-8',
-    'X-API-KEY': 'b81d7374-9363-4266-9e37-d0aee62c1c77'
+    'X-API-KEY': process.env.X2Y2_GOERLI_API_KEY
   }
 }
 

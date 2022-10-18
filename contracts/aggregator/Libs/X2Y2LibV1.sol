@@ -27,8 +27,8 @@ library X2Y2LibV1 {
             // mainnet
             X2Y2 = 0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3;
         } else if (block.chainid == 5 || block.chainid == 31337) {
-            X2Y2 = 0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3; // TODO: fix with correct address
-        }
+            X2Y2 = 0x1891EcD5F7b1E751151d857265D6e6D08ae8989e;
+        } else {
             revert InvalidChain();
         }
 
