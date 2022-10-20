@@ -12,4 +12,9 @@ contract Test721 is ERC721 {
         _mint(msg.sender, totalSupply);
         totalSupply += 1;
     }
+
+    function mint(uint256 tokenId) public {
+        _mint(msg.sender, tokenId);
+        totalSupply += 1;
+    }
 }
