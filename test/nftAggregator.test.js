@@ -512,6 +512,12 @@ describe("NFT Aggregator", function () {
         const tokenId = '0'; // 0 - 9
 
         try {
+          const headers = { 
+            headers: {
+              'X-API-KEY': process.env.X2Y2_GOERLI_API_KEY
+            }
+          }
+          
           // Due to nature of X2Y2 signing, they check for goerli approvals and existence of NFT. We can't automate a forked goerli NFT here.
           // As a result, we are now creating multiple persistent listings that can be used for testing purposes. These listings have 10 years expiration
           // and have a buy now value of 0.64 ETH on goerli, making it unlikely for someone to buy given NFT.
@@ -534,12 +540,6 @@ describe("NFT Aggregator", function () {
               price,
               expirationTime
             )
-
-            const headers = { 
-              headers: {
-                'X-API-KEY': process.env.X2Y2_GOERLI_API_KEY
-              }
-            }
 
             const data = {
               order: encodeOrder(order),
