@@ -503,7 +503,7 @@ describe("NFT Aggregator", function () {
       it("should create x2y2 generated hexes for arbitrary x2y2 orders", async function () {
         // we must use deployed goerli test NFT bc x2y2 checks for existence and approval using the actual goerli network
         const GOERLI_NFT = "0x554CC509C75D8627090421A7dc0E1FfA6DCBB1Eb";
-        const createOrder = true;
+        const createOrder = false;
         const network = 'goerli';
         const Test721 = await hre.ethers.getContractFactory("Test721");
         const deployed721 = Test721.attach(GOERLI_NFT);
