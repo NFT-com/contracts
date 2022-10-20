@@ -505,7 +505,7 @@ describe("NFT Aggregator", function () {
         const GOERLI_NFT = "0x554CC509C75D8627090421A7dc0E1FfA6DCBB1Eb";
         const createOrder = false;
         const network = 'goerli';
-        const Test721 = await hre.ethers.getContractFactory("Test721");
+        const Test721 = await hre.ethers.getContractFactory("Test721_2");
         const deployed721 = Test721.attach(GOERLI_NFT);
 
         const contractAddress = deployed721.address;
@@ -598,8 +598,7 @@ describe("NFT Aggregator", function () {
       })
 
       it("should create opensea generated hexes for arbitrary seaport orders", async function () {
-        await deployedMock721.connect(owner).mint();
-        await deployedMock721.connect(owner).mint();
+        await deployedMock721.connect(owner).mint("1");
 
         const offerer = owner.address;
         const contractAddress = deployedMock721.address;
