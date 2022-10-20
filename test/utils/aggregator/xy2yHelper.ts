@@ -165,29 +165,27 @@ export function decodeRunInput(data: string): RunInput {
   )[0] as RunInput
 }
 
-const headers = { 
-  headers: {
-    'Content-Type': 'application/json; charset=utf-8',
-    'X-API-KEY': process.env.X2Y2_GOERLI_API_KEY
-  }
-}
-
 async function fetchOrderSign(
   caller: string,
   op: number,
   orderId: number,
   currency: string,
   price: string,
-  tokenId: string
+  royalty: number | undefined,
+  payback: number | undefined,
+  tokenId: string,
+  headers: any,
+  network: Network
 ): Promise<RunInput | undefined> {
   try {
-    const { data } = await axios.post('https://api.x2y2.org/api/orders/sign', JSON.stringify({
+    const { data } = await axios.post(`${getNetworkMeta(network)?.apiBaseURL}/api/orders/sign`, {
       caller,
       op,
       amountToEth: '0',
       amountToWeth: '0',
-      items: [{ orderId, currency, price, tokenId }],
-    }), headers)
+      items: [{ orderId, currency, price, royalty, payback, tokenId }],
+      check: false, // set false to skip nft ownership check
+    }, JSON.parse(headers))
 
     const inputData = (data.data ?? []) as { order_id: number; input: string }[]
     const input = inputData.find(d => d.order_id === orderId)
@@ -206,8 +204,11 @@ async function acceptOrder(
   orderId: number,
   currency: string,
   price: string,
+  royalty: number | undefined,
+  payback: number | undefined,
   tokenId: string,
-  callOverrides: ethers.Overrides = {}
+  callOverrides: ethers.Overrides = {},
+  headers: any,
 ) {
   const runInput: RunInput | undefined = await fetchOrderSign(
     accountAddress,
@@ -215,7 +216,11 @@ async function acceptOrder(
     orderId,
     currency,
     price,
-    tokenId
+    royalty,
+    payback,
+    tokenId,
+    headers,
+    network
   )
   // check
   let value: BigNumber = ethers.constants.Zero
@@ -245,7 +250,8 @@ export async function buyOrder(
   network: Network,
   accountAddress: string,
   order: Order,
-  callOverrides: ethers.Overrides = {}
+  callOverrides: ethers.Overrides = {},
+  headers: any
 ): Promise<RunInput | undefined> {
   if (
     !(order.id && order.price && order.token)
@@ -260,8 +266,11 @@ export async function buyOrder(
     order.id,
     order.currency,
     order.price,
+    undefined,
+    undefined,
     '',
-    callOverrides
+    callOverrides,
+    headers
   )
 }
 

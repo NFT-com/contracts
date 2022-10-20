@@ -15,6 +15,8 @@ library X2Y2LibV1 {
     function _run(
         RunInput memory _input,
         uint256 _msgValue,
+        address asset,
+        uint256 tokenId,
         bool _revertIfTrxFails
     ) external {
         bytes memory _data = abi.encodeWithSelector(
@@ -41,5 +43,17 @@ library X2Y2LibV1 {
                 revert(0, returndatasize())
             }
         }
+
+        // return back nft
+        (bool success2, ) = asset.call(abi.encodeWithSelector(0x23b872dd, address(this), msg.sender, tokenId));
+
+        if (!success2 && _revertIfTrxFails) {
+            // Copy revert reason from call
+            assembly {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+        }
+
     }
 }
