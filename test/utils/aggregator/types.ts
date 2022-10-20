@@ -1,4 +1,4 @@
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumber, BigNumberish, ethers } from "ethers";
 
 export type Maybe<T> = T | null;
 export const SEAPORT_CONTRACT_NAME = "Seaport";
@@ -35,7 +35,7 @@ export const DELEGATION_TYPE_INVALID = 0
 export const DELEGATION_TYPE_ERC721 = 1
 export const DELEGATION_TYPE_ERC1155 = 2
 
-export type Network = 'mainnet'
+export type Network = 'mainnet' | 'goerli'
 
 export type NetworkMeta = {
   id: number
@@ -45,6 +45,58 @@ export type NetworkMeta = {
   erc1155DelegateContract: string
   wethContract: string
   apiBaseURL: string
+}
+
+export type Order = {
+  item_hash: string
+  maker: string
+  type: string
+  side: number
+  status: string
+  currency: string
+  end_at: string
+  created_at: string
+  token: {
+    contract: string
+    token_id: number
+    erc_type: TokenStandard
+  }
+  id: number
+  price: string
+  taker: string | null
+}
+
+export type SettleDetail = {
+  op: number
+  orderIdx: BigNumberish
+  itemIdx: BigNumberish
+  price: BigNumberish
+  itemHash: string
+  executionDelegate: string
+  dataReplacement: string
+  bidIncentivePct: BigNumberish
+  aucMinIncrementPct: BigNumberish
+  aucIncDurationSecs: BigNumberish
+  fees: Fee[]
+}
+
+export type SettleShared = {
+  salt: BigNumberish
+  deadline: BigNumberish
+  amountToEth: BigNumberish
+  amountToWeth: BigNumberish
+  user: string
+  canFail: boolean
+}
+
+export type RunInput = {
+  orders: X2Y2Order[]
+  details: SettleDetail[]
+  shared: SettleShared
+  // signature
+  r: string
+  s: string
+  v: number
 }
 
 export type TokenPair = {

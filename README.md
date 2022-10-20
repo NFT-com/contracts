@@ -24,6 +24,7 @@ Welcome to the NFT.com Ethereum Smart Contract repository. To get setup, please 
 | GK Distributor       | https://etherscan.io/address/0x0eBa8d862AF4E01A0573B663FB3eb3A06D7937dE |
 | Looksrare Lib        | https://etherscan.io/address/0xf3d4636d92977b16499c73b1fd3a759e45050d90 |
 | Seaport 1.1 Lib      | https://etherscan.io/address/0x14be7c58087d73b8557438bf9ae3def395837176 |
+| X2Y2 Lib             | https://etherscan.io/address/                                           |
 | Marketplace Registry | https://etherscan.io/address/0x24851a6783fB586E49b1dC71FA40B8307802f2A5 |
 | NFT Aggregator       | https://etherscan.io/address/0xf2821154d4752862b49a7C7fA7728B76ea44495e |
 
@@ -40,10 +41,11 @@ Welcome to the NFT.com Ethereum Smart Contract repository. To get setup, please 
 | Profile Auction      | https://goerli.etherscan.io/address/0x40023d97Ca437B966C8f669C91a9740C639E21C3 |
 | Ethereum Regex       | https://goerli.etherscan.io/address/0x6379A115EA1E18E817f8B3aA4990E217822B1C38 |
 | Profile Resolver     | https://goerli.etherscan.io/address/0x3a3539B6727E74fa1c5D4d39B433F0fAB5BC4F4a |
-| Looksrare Lib        | https://goerli.etherscan.io/address/0x4A655899ef868E33436876F33e76F48835Fa3869 |
-| Seaport 1.1 Lib      | https://goerli.etherscan.io/address/0xCDaf866B13b4883a43c4b3Ef6b66f8859C848bF5 |
-| Marketplace Registry | https://goerli.etherscan.io/address/0x7eC2fe955CFa0A9A5E6920Efc569cFCcB1a3B318 |
-| NFT Aggregator       | https://goerli.etherscan.io/address/0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10 |
+| Looksrare Lib        | https://goerli.etherscan.io/address/0x55BbE37dAa3b72cBE75203CFF032F2f34B151e43 |
+| Seaport 1.1 Lib      | https://goerli.etherscan.io/address/0x5c1614A3299B65225550eBdCB7615c216B8dAd9d |
+| X2Y2 Lib             | https://goerli.etherscan.io/address/0x36D7407dDB103EE8D605759D4a129F500567289C |
+| Marketplace Registry | https://goerli.etherscan.io/address/0xeBc58f24393c8488DcD47CFC351F869618348dFC |
+| NFT Aggregator       | https://goerli.etherscan.io/address/0x89b030Ba3424C7A145c23dA2042cd46C073dE4e6 |
 
 ### Regex Generation
 

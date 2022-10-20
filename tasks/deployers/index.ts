@@ -6,6 +6,7 @@ import delay from "delay";
 import { parseBalanceMap } from "../../test/utils/parse-balance-map";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { combineOrders, LooksrareInput, SeaportCompleteInput } from "../../test/utils/aggregator/index";
+import { getNetworkMeta } from "../../test/utils/aggregator/xy2yHelper";
 
 const TIME_DELAY = 10000; // 10 seconds
 
@@ -98,31 +99,31 @@ const getTokens = async (hre: any) => {
       : "";
   const deployedNftAggregator =
     network == "goerli"
-      ? "0x165699Cf79Aaf3D15746c16fb63ef7dDCcb8dF10"
+      ? "0x89b030Ba3424C7A145c23dA2042cd46C073dE4e6"
       : network == "mainnet"
       ? "0xf2821154d4752862b49a7C7fA7728B76ea44495e"
       : "";
   const deployedLooksrareLibV1 =
     network == "goerli"
-      ? "0xD9c96BEC8D790cB460F7Ef3D23B5ad22b6684871"
+      ? "0x55BbE37dAa3b72cBE75203CFF032F2f34B151e43"
       : network == "mainnet"
       ? "0xf3d4636d92977b16499c73b1fd3a759e45050d90"
       : "";
-  const deployedSeaportContract1_1 =
+  const deployedSeaportLib1_1 =
     network == "goerli"
-      ? "0xC7b0C89315F9A5E79a1c0b05B7f2aA1FC5587cd7"
+      ? "0x5c1614A3299B65225550eBdCB7615c216B8dAd9d"
       : network == "mainnet"
       ? "0x14be7c58087d73b8557438bf9ae3def395837176"
       : "";
-  const deployedSeaportLib1_1 =
+  const deployedX2Y2Lib =
     network == "goerli"
-      ? ""
+      ? "0x36D7407dDB103EE8D605759D4a129F500567289C"
       : network == "mainnet"
-      ? "0x14be7c58087d73b8557438bf9ae3def395837176"
+      ? ""
       : "";
   const deployedMarketplaceRegistry =
     network == "goerli"
-      ? "0x7eC2fe955CFa0A9A5E6920Efc569cFCcB1a3B318"
+      ? "0xeBc58f24393c8488DcD47CFC351F869618348dFC"
       : network == "mainnet"
       ? "0x24851a6783fB586E49b1dC71FA40B8307802f2A5"
       : "";
@@ -156,8 +157,8 @@ const getTokens = async (hre: any) => {
     deployedNftResolver,
     deployedNftAggregator,
     deployedLooksrareLibV1,
-    deployedSeaportContract1_1,
     deployedSeaportLib1_1,
+    deployedX2Y2Lib,
     deployedMarketplaceRegistry,
   };
 };
@@ -688,33 +689,53 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   // const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
   // await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
 
+  // const X2Y2LibV1 = await hre.ethers.getContractFactory("X2Y2LibV1");
+  // const deployedX2Y2LibV1 = await X2Y2LibV1.deploy();
+  // await waitTx("deployedX2Y2LibV1", deployedX2Y2LibV1, hre);
+
   // const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
   // const deployedMarketplaceRegistry = await hre.upgrades.deployProxy(MarketplaceRegistry, [], {
   //   kind: "uups",
   // });
   // await waitTx("deployedMarketplaceRegistry", deployedMarketplaceRegistry, hre);
 
-  const CryptoPunks = "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB";
-  const Mooncats = "0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6";
-  const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
-  const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [(await getTokens(hre)).deployedMarketplaceRegistry /* deployedMarketplaceRegistry.address */, CryptoPunks, Mooncats], {
-    kind: "uups",
-    unsafeAllow: ["delegatecall"],
-  });
+  // const CryptoPunks = "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB";
+  // const Mooncats = "0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6";
+  // const NftAggregator = await hre.ethers.getContractFactory("NftAggregator");
+  // const deployedNftAggregator = await hre.upgrades.deployProxy(NftAggregator, [(await getTokens(hre)).deployedMarketplaceRegistry, CryptoPunks, Mooncats], {
+  //   kind: "uups",
+  //   unsafeAllow: ["delegatecall"],
+  // });
 
-  console.log(chalk.green("deployedNftAggregator: ", deployedNftAggregator.address));
-  // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedLooksrareLibV1 /* deployedLooksrareLibV1?.address */, true);
-  // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedSeaportContract1_1 /* deployedSeaportLib1_1.address */, true);
+  // const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
+  // const deployedMarketplaceRegistry = await MarketplaceRegistry.attach((await getTokens(hre)).deployedMarketplaceRegistry);
+  // console.log(chalk.green("deployedNftAggregator: ", deployedNftAggregator.address));
+  // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedLooksrareLibV1 /* deployedLooksrareLibV1.address */, true);
+  // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedSeaportLib1_1 /* deployedSeaportLib1_1.address */, true);
+  // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedX2Y2Lib /* deployedX2Y2LibV1.address */, true);
 
-  console.log(chalk.green(`${(TIME_DELAY * 3) / 1000} second delay`));
-  await delay(TIME_DELAY * 3);
-  console.log(chalk.green("verifying..."));
+  // console.log(chalk.green(`${(TIME_DELAY * 3) / 1000} second delay`));
+  // await delay(TIME_DELAY * 3);
+  // console.log(chalk.green("verifying..."));
 
-  // await verifyContract("deployedLooksrareLibV1", deployedLooksrareLibV1.address, [], hre);
-  // await verifyContract("deployedSeaportLib1_1", deployedSeaportLib1_1.address, [], hre);
+  await verifyContract("deployedLooksrareLibV1", (await getTokens(hre)).deployedLooksrareLibV1 /* deployedLooksrareLibV1.address */, [], hre);
+  await verifyContract("deployedSeaportLib1_1", (await getTokens(hre)).deployedSeaportLib1_1 /* deployedSeaportLib1_1.address */, [], hre);
+  await verifyContract("deployedX2Y2LibV1", (await getTokens(hre)).deployedX2Y2Lib /* deployedX2Y2LibV1.address */, [], hre);
 
   // await getImplementation("deployedMarketplaceRegistry", deployedMarketplaceRegistry.address, hre);
-  await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
+  // await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
+});
+
+task("add-x2y2-aggregator").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("adding x2y2 to aggregator"));
+  const X2Y2LibV1 = await hre.ethers.getContractFactory("X2Y2LibV1");
+  const deployedX2Y2LibV1 = await X2Y2LibV1.deploy();
+  await waitTx("deployedX2Y2LibV1", deployedX2Y2LibV1, hre);
+
+  const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
+  const deployedMarketplaceRegistry = await MarketplaceRegistry.attach((await getTokens(hre)).deployedMarketplaceRegistry);
+
+  await deployedMarketplaceRegistry.addMarketplace(deployedX2Y2LibV1.address, true);
 });
 
 task("testResolver").setAction(async function (taskArguments, hre) {
@@ -1025,8 +1046,21 @@ task("oneTimeApproval").setAction(async function (taskArguments, hre) {
   ]);
 });
 
+task("deploy:z").setAction(async function (taskArguments, hre) {
+  const Test721 = await hre.ethers.getContractFactory("Test721");
+  const deployedTest721 = await Test721.deploy();
+
+  console.log('deployedTest721: ', deployedTest721.address);
+});
+
 task("z").setAction(async function (taskArguments, hre) {
   const Test721 = await hre.ethers.getContractFactory("Test721");
-  const deployed721 = Test721.attach("0x773d2e2c48140f7cbc1d58be09783d54f47d7d1f");
-  await deployed721.approve("0x1e0049783f008a0085193e00003d00cd54003c71", "1");
+  const deployed721 = Test721.attach("0x554CC509C75D8627090421A7dc0E1FfA6DCBB1Eb");
+  await deployed721.mint();
+});
+
+task("z:approve:x2y2").setAction(async function (taskArguments, hre) {
+  const Test721 = await hre.ethers.getContractFactory("Test721");
+  const deployed721 = Test721.attach("0x554CC509C75D8627090421A7dc0E1FfA6DCBB1Eb");
+  await deployed721.setApprovalForAll(getNetworkMeta(getNetwork(hre))?.erc721DelegateContract, true);
 });

@@ -117,6 +117,7 @@ const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.6",
     settings: {
+      // viaIR: true,
       metadata: {
         // Not including the metadata hash
         // https://github.com/paulrberg/solidity-template/issues/31
@@ -128,6 +129,11 @@ const config: HardhatUserConfig = {
         enabled: true,
         runs: 0,
       },
+      // outputSelection: {
+      //   "*": {
+      //     "*": ["evm.assembly", "irOptimized"]
+      //   }
+      // }
     },
   },
   etherscan: {
