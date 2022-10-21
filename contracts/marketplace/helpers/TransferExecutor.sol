@@ -8,6 +8,8 @@ import "../interfaces/IERC20TransferProxy.sol";
 import "../interfaces/INftTransferProxy.sol";
 import "../interfaces/ITransferProxy.sol";
 import "../interfaces/ITransferExecutor.sol";
+import "../interfaces/IOwnable.sol";
+import "../interfaces/IERC165.sol";
 
 abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransferExecutor {
     using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -33,7 +35,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     event ProxyChange(bytes4 indexed assetType, address proxy);
     event WhitelistChange(address indexed token, bool value);
     event ProtocolFeeChange(uint256 fee);
-    event RoyaltyInfoChange(address indexed token, address indexed owner, uint256 percent);
+    event RoyaltyInfoChange(address indexed token, address indexed owner, uint256 percent, address indexed setter);
 
     function __TransferExecutor_init_unchained(
         INftTransferProxy _transferProxy,
@@ -52,16 +54,41 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         nftToken = _nftToken;
     }
 
+    // ADMIN over-ride
     function setRoyalty(
         address nftContract,
         address recipient,
         uint256 amount
     ) external onlyOwner {
         require(amount <= MAX_ROYALTY);
+
         royaltyInfo[nftContract].owner = recipient;
         royaltyInfo[nftContract].percent = uint96(amount);
 
-        emit RoyaltyInfoChange(nftContract, recipient, amount);
+        emit RoyaltyInfoChange(nftContract, recipient, amount, msg.sender);
+    }
+
+    /**
+     * @dev external function for owners / admins to self-set royalties for their contracts
+     * @param nftContract is the ERC721/ERC1155 collection in questions
+     * @param recipient is where royalties are sent to
+     * @param amount is the percentage of the atomic sale proceeds
+     */
+    function setRoyaltyOwnerAdmin(
+        address nftContract,
+        address recipient,
+        uint256 amount
+    ) external {
+        require(amount <= MAX_ROYALTY);
+        // bytes4 public constant INTERFACE_ID_ERC2981 = 0x2a55205a;
+        require(!IERC165(nftContract).supportsInterface(0x2a55205a), "!erc2981");
+        require(msg.sender == IOwnable(nftContract).owner() ||
+            msg.sender == IOwnable(nftContract).admin(), "!owner/!admin");
+
+        royaltyInfo[nftContract].owner = recipient;
+        royaltyInfo[nftContract].percent = uint96(amount);
+
+        emit RoyaltyInfoChange(nftContract, recipient, amount, msg.sender);
     }
 
     function changeProtocolFee(uint256 _fee) external onlyOwner {
