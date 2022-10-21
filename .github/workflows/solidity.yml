@@ -33,6 +33,9 @@ jobs:
         envkey_PUBLIC_SALE_SIGNER_ADDRESS: "0x421589A31C1078FE02ED304541Bb739932bE8b5F"
         envkey_TESTNET_PRIVATE_KEY: "0xb1a4373f2a59b540f016383744ef194f7108f0bd11b34bfdaac69e28030a35e7"
         envkey_X2Y2_GOERLI_API_KEY: "b81d7374-9363-4266-9e37-d0aee62c1c77"
+        envkey_ETHERSCAN_API_KEY: "25E9BG3FRGXFBFK6VRNEQ37W2A8784B475"
+        envkey_REPORT_GAS: "true"
+        envkey_COINMARKETCAP_API: "5ec52c38-7684-455d-8553-47e327d4687d"
         file_name: .env
         fail_on_empty: false
         
