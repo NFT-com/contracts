@@ -85,6 +85,7 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: ["./contracts/test/NftProfileV2a.sol"],
     src: "./contracts",
+    outputFile: ".gas_snapshot"
   },
   networks: {
     hardhat: {
