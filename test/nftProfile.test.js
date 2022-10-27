@@ -62,6 +62,7 @@ describe("NFT Profile Auction / Minting", function () {
       NftProfile = await hre.ethers.getContractFactory("NftProfile");
       ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
       ProfileAuctionV2 = await hre.ethers.getContractFactory("ProfileAuctionV2");
+      ProfileAuctionOct27Mainnet = await hre.ethers.getContractFactory("ProfileAuctionOct27Mainnet");
 
       [owner, second, addr1, addr2, addr3, addr4, addr5, ...addrs] = await ethers.getSigners();
       let coldWallet = owner.address;
@@ -176,7 +177,7 @@ describe("NFT Profile Auction / Minting", function () {
 
       ProfileAuction = await ethers.getContractFactory("ProfileAuction");
       deployedProfileAuction = await upgrades.deployProxy(
-        ProfileAuction,
+        ProfileAuctionOct27Mainnet,
         [deployedNftProfile.address, owner.address, deployedNftProfileHelper.address, deployedGenesisKey.address],
         { kind: "uups" },
       );
@@ -196,8 +197,11 @@ describe("NFT Profile Auction / Minting", function () {
       await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
 
       // allow upgrades
-      const upgradedProfileAuction = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2);
+      const upgradedProfileAuction = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuction);
       deployedProfileAuction = upgradedProfileAuction;
+
+      const upgradedProfileAuction2 = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2);
+      deployedProfileAuction = upgradedProfileAuction2;
 
       const { hash: h1, signature: s1 } = signHashProfile(second.address, "testminter");
       await deployedProfileAuction.connect(second).genesisKeyClaimProfile("testminter", 2, second.address, h1, s1);
@@ -445,7 +449,11 @@ describe("NFT Profile Auction / Minting", function () {
         const maxProfilePerAddress = await deployedProfileAuction.maxProfilePerAddress();
         await deployedProfileAuction.setMaxProfilePerAddress(1); // for testing purposes
 
-        await deployedProfileAuction.connect(addr5).publicClaim("profile_addr5", h15, s15); // should succeed
+        expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(false);
+        await expect(deployedProfileAuction.connect(addr5).publicClaim("profile_addr5", h15, s15)).to.be.revertedWith('pm: publicClaimBool');
+        await deployedProfileAuction.connect(owner).setPublicClaim(true);
+        expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(true);
+        await deployedProfileAuction.connect(addr5).publicClaim("profile_addr5", h15, s15); // succeeds
         expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(1); // 1 since previous action succeeded
 
         const { hash: h16, signature: s16 } = signHashProfile(addr5.address, "profile_addr5_2");
@@ -646,6 +654,7 @@ describe("NFT Profile Auction / Minting", function () {
         expect((await deployedNftResolver.associatedAddresses("testminter"))[5][1]).to.be.equal(
           "HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE",
         );
+        
         // remove non-evm (reverts due to not being owner)
         await expect(
           deployedNftResolver.connect(addr5).removeAssociatedAddress([0, addr5.address], "testminter"),

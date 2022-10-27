@@ -23,7 +23,7 @@ const getNetwork = (hre: any) => {
 
 const getTokens = async (hre: any) => {
   const chainId = hre.network.config.chainId;
-  const network = chainId === 5 ? "goerli" : chainId === 4 ? "mainnet" : chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
 
   const governor =
     network === "goerli"
@@ -972,18 +972,20 @@ task("upgrade:NftResolver").setAction(async function (taskArguments, hre) {
 });
 
 task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
-  console.log(chalk.green("starting to upgrade..."));
-  const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
+  // console.log(chalk.green("starting to upgrade..."));
 
-  const upgradedProfileAuction = await hre.upgrades.upgradeProxy(
-    (
-      await getTokens(hre)
-    ).deployedProfileAuction,
-    ProfileAuction,
-  );
-  console.log(chalk.green("upgraded profile auction: ", upgradedProfileAuction.address));
+  // const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 
-  await delayedVerifyImp("upgradedProfileAuction", upgradedProfileAuction.address, hre);
+  // const upgradedProfileAuctionAddressImp = await hre.upgrades.prepareUpgrade(
+  //   (
+  //     await getTokens(hre)
+  //   ).deployedProfileAuction,
+  //   ProfileAuction,
+  // );
+  // console.log(chalk.green("new profile auction imp: ", upgradedProfileAuctionAddressImp));
+
+  // GO TO OZ DEFENDER
+  await verifyContract(`upgrade ProfileAuction impl`, '0x02ef9836E1d41372c876c9a9cfb52eC1Eb849a65', [], hre);
 });
 
 task("upgrade:GenesisKeyTeamClaim").setAction(async function (taskArguments, hre) {

@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+// PULLED FROM https://etherscan.io/address/0xde5f08d80ce23e959cfff6bebbaf5998fe9aa7a8#code
+// only change was import "../domain/StringUtils.sol"; on the import section
+
 import "../interface/INftProfileHelper.sol";
 import "../interface/IGenesisKeyStake.sol";
-import "./StringUtils.sol";
+import "../domain/StringUtils.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -38,17 +41,7 @@ interface INftProfile {
     function profileOwner(string memory _string) external view returns (address);
 }
 
-struct BatchClaimProfile {
-    string profileUrl;
-    uint256 tokenId;
-    address recipient;
-    bytes32 hash;
-    bytes signature;
-}
-
-error MaxProfiles();
-
-contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
+contract ProfileAuctionOct27Mainnet is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     using StringUtils for *;
     using ECDSAUpgradeable for bytes32;
 
@@ -73,19 +66,13 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     mapping(uint256 => uint256) public lengthPremium; // premium multiple for profile length
     mapping(string => uint256) public ownedProfileStake; // genKey tokenId => staked token
     mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
-    mapping(address => uint256) public publicMinted; // record of profiles public minted per user
-
-    address public emptySlot; // empty slot for now, to be used in future
-    uint96 public maxProfilePerAddress; // max profiles that can be minted per address, set by DAO
-    bool public publicClaimBool;
 
     event UpdatedProfileStake(string _profileUrl, uint256 _stake);
     event MintedProfile(address _user, string _val, uint256 tokenId, uint256 _duration, uint256 _fee);
     event ExtendLicense(address _receiver, string _profileUrl, uint256 _duration, uint256 _fee, bool _expired);
     event NewLengthPremium(uint256 _length, uint256 _premium);
-    event NewYearlyFee(uint96 _fee);
-    event YearsToOwn(uint96 _years);
-    event NewMaxProfile(uint96 _max);
+    event NewYearlyFee(uint256 _fee);
+    event YearsToOwn(uint256 _years);
 
     modifier validAndUnusedURI(string memory _profileURI) {
         require(validURI(_profileURI));
@@ -197,11 +184,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         emit NewYearlyFee(_fee);
     }
 
-    function setMaxProfilePerAddress(uint96 _max) external onlyGovernor {
-        maxProfilePerAddress = _max;
-        emit NewMaxProfile(_max);
-    }
-
     function setYearsToOwn(uint96 _years) external onlyGovernor {
         yearsToOwn = _years;
         emit YearsToOwn(_years);
@@ -213,10 +195,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
     function setPublicMint(bool _val) external onlyGovernor {
         publicMintBool = _val;
-    }
-
-    function setPublicClaim(bool _val) external onlyGovernor {
-        publicClaimBool = _val;
     }
 
     function hashTransaction(address sender, string memory profileUrl) private pure returns (bytes32) {
@@ -267,68 +245,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         );
     }
 
-    function genesisKeyBatchClaimProfile(
-        BatchClaimProfile[] memory claims
-    ) external nonReentrant {
-        for (uint256 i = 0; i < claims.length; ) {
-            string memory profileUrl = claims[i].profileUrl;
-            uint256 tokenId = claims[i].tokenId;
-            address recipient = claims[i].recipient;
-            bytes32 hash = claims[i].hash;
-            bytes memory signature = claims[i].signature;
-            
-            // checks
-            require(IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient, "gkp: !owner");
-            require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "gkp: !sig");
-            require(hashTransaction(msg.sender, profileUrl) == hash, "gkp: !hash");
-            uint256 profilesAllowed = genKeyWhitelistOnly ? 4 : 7;
-            require(genesisKeyClaimNumber[tokenId] != profilesAllowed);
-
-            // effects
-            genesisKeyClaimNumber[tokenId] += 1;
-
-            // interactions
-            INftProfile(nftProfile).createProfile(
-                recipient,
-                profileUrl,
-                genesisKeyClaimNumber[tokenId] <= 4 ? 1000 * (365 days) : 365 days
-            );
-
-            emit MintedProfile(
-                recipient,
-                profileUrl,
-                INftProfile(nftProfile).totalSupply() - 1,
-                genesisKeyClaimNumber[tokenId] <= 4 ? 1000 * (365 days) : 365 days,
-                0
-            );
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    // used for profile factory
-    function publicClaim(
-        string memory profileUrl,
-        bytes32 hash,
-        bytes memory signature
-    ) external nonReentrant validAndUnusedURI(profileUrl) {
-        // checks
-        require(publicClaimBool, "pm: publicClaimBool");
-        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pm: !sig");
-        require(hashTransaction(msg.sender, profileUrl) == hash, "pm: !hash");
-        if (publicMinted[msg.sender] == maxProfilePerAddress) revert MaxProfiles();
-
-        // effects
-        publicMinted[msg.sender] += 1;
-
-        // grace period of 1 year (unless DAO intervention)
-        INftProfile(nftProfile).createProfile(msg.sender, profileUrl, 365 days);
-
-        emit MintedProfile(msg.sender, profileUrl, INftProfile(nftProfile).totalSupply() - 1, 365 days, 0);
-    }
-
     function publicMint(
         string memory profileUrl,
         uint256 duration,
@@ -343,9 +259,10 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pm: !sig");
         require(hashTransaction(msg.sender, profileUrl) == hash, "pm: !hash");
 
+        // effects
         // interactions
         if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
-            permitNFT(msg.sender, address(this), v, r, s); // approve token
+            permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
         }
 
         require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pm: !funds");
@@ -421,7 +338,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     function ownProfile(string memory profileUrl) external nonReentrant {
         // checks
         require(publicMintBool, "op: public minting is disabled");
-        require(ownedProfileStake[profileUrl] == 0);
         uint256 xNftKeyReq = (getFee(profileUrl, 365 days) * yearsToOwn * IGenesisKeyStake(contract2).totalSupply()) /
             IGenesisKeyStake(contract2).totalStakedNftCoin();
         require(xNftKeyReq != 0, "op: !0");
