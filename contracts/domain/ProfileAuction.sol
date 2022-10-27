@@ -318,7 +318,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         require(publicClaimBool, "pm: publicClaimBool");
         require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pm: !sig");
         require(hashTransaction(msg.sender, profileUrl) == hash, "pm: !hash");
-        if (publicMinted[msg.sender] == maxProfilePerAddress) revert MaxProfiles();
+        if (publicMinted[msg.sender] >= maxProfilePerAddress) revert MaxProfiles();
 
         // effects
         publicMinted[msg.sender] += 1;
