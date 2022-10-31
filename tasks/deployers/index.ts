@@ -989,8 +989,9 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
     );
     console.log(chalk.green("new profile auction imp: ", upgradedProfileAuctionAddressImp));
   
+    console.log('upgradedProfileAuctionAddressImp: ', upgradedProfileAuctionAddressImp);
     // GO TO OZ DEFENDER
-    await verifyContract(`upgrade ProfileAuction impl`, '0x02ef9836E1d41372c876c9a9cfb52eC1Eb849a65', [], hre);
+    // await verifyContract(`upgrade ProfileAuction impl`, '0x02ef9836E1d41372c876c9a9cfb52eC1Eb849a65', [], hre);
   } else if (network == 'goerli') {
     const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 

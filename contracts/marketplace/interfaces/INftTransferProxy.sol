@@ -20,7 +20,6 @@ interface INftTransferProxy {
         address from,
         address to,
         uint256 id,
-        uint256 value,
-        bytes calldata data
+        uint256 value
     ) external;
 }

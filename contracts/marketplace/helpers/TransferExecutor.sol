@@ -236,8 +236,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                 from,
                 to,
                 tokenId,
-                value,
-                ""
+                value
             );
         } else {
             // non standard assets
