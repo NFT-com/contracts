@@ -76,7 +76,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     mapping(address => uint256) public publicMinted; // record of profiles public minted per user
 
     address public emptySlot; // empty slot for now, to be used in future
-    uint96 public maxProfilePerAddress; // max profiles that can be minted per address, set by DAO
+    uint88 public maxProfilePerAddress; // max profiles that can be minted per address, set by DAO
     bool public publicClaimBool;
 
     event UpdatedProfileStake(string _profileUrl, uint256 _stake);
@@ -85,7 +85,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     event NewLengthPremium(uint256 _length, uint256 _premium);
     event NewYearlyFee(uint96 _fee);
     event YearsToOwn(uint96 _years);
-    event NewMaxProfile(uint96 _max);
+    event NewMaxProfile(uint88 _max);
 
     modifier validAndUnusedURI(string memory _profileURI) {
         require(validURI(_profileURI));
@@ -197,7 +197,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         emit NewYearlyFee(_fee);
     }
 
-    function setMaxProfilePerAddress(uint96 _max) external onlyGovernor {
+    function setMaxProfilePerAddress(uint88 _max) external onlyGovernor {
         maxProfilePerAddress = _max;
         emit NewMaxProfile(_max);
     }
@@ -421,9 +421,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     function ownProfile(string memory profileUrl) external nonReentrant {
         // checks
         require(publicMintBool, "op: public minting is disabled");
-        require(ownedProfileStake[profileUrl] == 0);
+        require(ownedProfileStake[profileUrl] == 0); //
         uint256 xNftKeyReq = (getFee(profileUrl, 365 days) * yearsToOwn * IGenesisKeyStake(contract2).totalSupply()) /
-            IGenesisKeyStake(contract2).totalStakedNftCoin();
+            IGenesisKeyStake(contract2).totalStakedCoin();
         require(xNftKeyReq != 0, "op: !0");
 
         // effects

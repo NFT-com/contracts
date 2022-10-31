@@ -7,6 +7,7 @@ import { parseBalanceMap } from "../../test/utils/parse-balance-map";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { combineOrders, LooksrareInput, SeaportCompleteInput } from "../../test/utils/aggregator/index";
 import { getNetworkMeta } from "../../test/utils/aggregator/xy2yHelper";
+import { TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE } from "hardhat/builtin-tasks/task-names";
 
 const TIME_DELAY = 10000; // 10 seconds
 
@@ -972,20 +973,39 @@ task("upgrade:NftResolver").setAction(async function (taskArguments, hre) {
 });
 
 task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
-  // console.log(chalk.green("starting to upgrade..."));
+  const chainId = hre.network.config.chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
 
-  // const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
+  console.log(chalk.green("starting to upgrade..."));
 
-  // const upgradedProfileAuctionAddressImp = await hre.upgrades.prepareUpgrade(
-  //   (
-  //     await getTokens(hre)
-  //   ).deployedProfileAuction,
-  //   ProfileAuction,
-  // );
-  // console.log(chalk.green("new profile auction imp: ", upgradedProfileAuctionAddressImp));
+  if (network == "mainnet") {
+    const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 
-  // GO TO OZ DEFENDER
-  await verifyContract(`upgrade ProfileAuction impl`, '0x02ef9836E1d41372c876c9a9cfb52eC1Eb849a65', [], hre);
+    const upgradedProfileAuctionAddressImp = await hre.upgrades.prepareUpgrade(
+      (
+        await getTokens(hre)
+      ).deployedProfileAuction,
+      ProfileAuction,
+    );
+    console.log(chalk.green("new profile auction imp: ", upgradedProfileAuctionAddressImp));
+  
+    // GO TO OZ DEFENDER
+    await verifyContract(`upgrade ProfileAuction impl`, '0x02ef9836E1d41372c876c9a9cfb52eC1Eb849a65', [], hre);
+  } else if (network == 'goerli') {
+    const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
+
+    const upgradedProfileAuction = await hre.upgrades.upgradeProxy(
+      (
+        await getTokens(hre)
+      ).deployedProfileAuction,
+      ProfileAuction
+    );
+    console.log(chalk.green("upgradedProfileAuction: ", upgradedProfileAuction.address));
+        
+    await delayedVerifyImp("upgradedProfileAuction", upgradedProfileAuction.address, hre);
+  } else {
+    console.log(chalk.green('unsupported network: ' + network));
+  }
 });
 
 task("upgrade:GenesisKeyTeamClaim").setAction(async function (taskArguments, hre) {

@@ -3,9 +3,10 @@ pragma solidity >=0.8.4;
 
 // PULLED FROM https://etherscan.io/address/0xde5f08d80ce23e959cfff6bebbaf5998fe9aa7a8#code
 // only change was import "../domain/StringUtils.sol"; on the import section
+// chnaged IGenesisKeyStake as well
 
 import "../interface/INftProfileHelper.sol";
-import "../interface/IGenesisKeyStake.sol";
+import "./IGenesisKeyStake_Old.sol";
 import "../domain/StringUtils.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";

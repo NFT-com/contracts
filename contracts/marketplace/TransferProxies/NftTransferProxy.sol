@@ -20,7 +20,141 @@ contract NftTransferProxy is INftTransferProxy, Initializable, UUPSUpgradeable, 
         address to,
         uint256 tokenId
     ) external override onlyOperator {
-        token.safeTransferFrom(from, to, tokenId);
+        // token.safeTransferFrom(from, to, tokenId);
+        _performERC721Transfer(address(token), from, to, tokenId);
+    }
+
+    /**
+     * @dev Internal function to transfer an ERC721 token from a given
+     *      originator to a given recipient. Sufficient approvals must be set on
+     *      the contract performing the transfer. Note that this function does
+     *      not check whether the receiver can accept the ERC721 token (i.e. it
+     *      does not use `safeTransferFrom`). From Seaport.
+     *
+     * @param token      The ERC721 token to transfer.
+     * @param from       The originator of the transfer.
+     * @param to         The recipient of the transfer.
+     * @param identifier The tokenId to transfer.
+     */
+    function _performERC721Transfer(
+        address token,
+        address from,
+        address to,
+        uint256 identifier
+    ) internal {
+        // Utilize assembly to perform an optimized ERC721 token transfer.
+        assembly {
+            // If the token has no code, revert.
+            if iszero(extcodesize(token)) {
+                mstore(
+                    0x0,
+                    0x5f15d67200000000000000000000000000000000000000000000000000000000
+                ) // abi.encodeWithSignature("NoContract(address)")
+                mstore(0x4, token)
+                revert(0x0, 0x24) // 0x24 = 36 = 4 (function selector) + 32 (address)
+            }
+
+            // The free memory pointer memory slot will be used when populating
+            // call data for the transfer; read the value and restore it later.
+            let memPointer := mload(0x40)
+
+            // Write call data to memory starting with function selector.
+            mstore(0x0, 0x23b872dd00000000000000000000000000000000000000000000000000000000)
+            // 0x23b872dd = bytes4(keccak256("transferFrom(address,address,uint256)"))
+            mstore(0x04, from)
+            mstore(0x24, to)
+            mstore(0x44, identifier)
+
+            // Perform the call, ignoring return data.
+            let success := call(
+                gas(),
+                token,
+                0,
+                0x0,
+                0x64, // 0x64 = 100 = 4 (function selector) + 32 (address) + 32 (address) + 32 (uint256)
+                0,
+                0
+            )
+
+            // If the transfer reverted:
+            if iszero(success) {
+                // If it returned a message, bubble it up as long as sufficient
+                // gas remains to do so:
+                if returndatasize() {
+                    // Ensure that sufficient gas is available to copy
+                    // returndata while expanding memory where necessary. Start
+                    // by computing word size of returndata & allocated memory.
+                    // Round up to the nearest full word.
+                    let returnDataWords := div(
+                        add(returndatasize(), 0x1f), // 0x1f = 31 = 32 (word size) - 1 (rounding)
+                        0x20 // 0x20 = 32 (word size)
+                    )
+
+                    // Note: use the free memory pointer in place of msize() to
+                    // work around a Yul warning that prevents accessing msize
+                    // directly when the IR pipeline is activated.
+                    let msizeWords := div(memPointer, 0x20) // 0x20 = 32 (word size)
+
+                    // Next, compute the cost of the returndatacopy.
+                    let cost := mul(3, returnDataWords)
+
+                    // Then, compute cost of new memory allocation.
+                    if gt(returnDataWords, msizeWords) {
+                        cost := add(
+                            cost,
+                            add(
+                                mul(
+                                    sub(returnDataWords, msizeWords),
+                                    3
+                                ),
+                                div(
+                                    sub(
+                                        mul(returnDataWords, returnDataWords),
+                                        mul(msizeWords, msizeWords)
+                                    ),
+                                    0x200 // 0x200 = 512 (word size squared)
+                                )
+                            )
+                        )
+                    }
+
+                    // Finally, add a small constant and compare to gas
+                    // remaining; bubble up the revert data if enough gas is
+                    // still available.
+                    if lt(add(cost, 0x20), gas()) {
+                        // Copy returndata to memory; overwrite existing memory.
+                        returndatacopy(0, 0, returndatasize())
+
+                        // Revert, giving memory region with copied returndata.
+                        revert(0, returndatasize())
+                    }
+                }
+
+                // Otherwise revert with a generic error message.
+                mstore(
+                    0x0,
+                    0xf486bc8700000000000000000000000000000000000000000000000000000000
+                )
+                // abi.encodeWithSignature(
+                //     "TokenTransferGenericFailure(address,address,address,uint256,uint256)"
+                // )
+                mstore(0x4, token)
+                mstore(0x24, from)
+                mstore(0x44, to)
+                mstore(0x64, identifier)
+                mstore(0x84, 1)
+                revert(
+                    0x0,
+                    0xa4 // 0xa4 = 164 = 4 (function selector) + 3 * 32 (address) + 2 * 32 (uint256)
+                )
+            }
+
+            // Restore the original free memory pointer.
+            mstore(0x40, memPointer)
+
+            // Restore the zero slot to zero.
+            mstore(0x60, 0)
+        }
     }
 
     function erc1155safeTransferFrom(
