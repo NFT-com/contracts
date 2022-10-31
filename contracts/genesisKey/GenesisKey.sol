@@ -178,7 +178,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     // function used for internal testing
     function mintKey(address _recipient) external onlyOwner {
-        if (totalSupply() == MAX_SUPPLY) revert MaxSupply();
+        if (totalSupply() >= MAX_SUPPLY) revert MaxSupply();
         _mint(_recipient, 1, "", false);
     }
 
