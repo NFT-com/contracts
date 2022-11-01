@@ -384,7 +384,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         require(publicMintBool, "el: public minting is disabled");
 
         if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
-            permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
+            permitNFT(msg.sender, address(this), v, r, s);
         }
 
         require(transferTokens(msg.sender, getFee(profileUrl, duration)), "el: insufficient funds");
@@ -408,7 +408,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         // effects
         // interactions
         if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
-            permitNFT(msg.sender, address(this), v, r, s); // approve NFT token
+            permitNFT(msg.sender, address(this), v, r, s);
         }
 
         require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pe: insufficient funds");

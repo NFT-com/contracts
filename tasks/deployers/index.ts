@@ -979,19 +979,19 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("starting to upgrade..."));
 
   if (network == "mainnet") {
-    const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
+    // const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 
-    const upgradedProfileAuctionAddressImp = await hre.upgrades.prepareUpgrade(
-      (
-        await getTokens(hre)
-      ).deployedProfileAuction,
-      ProfileAuction,
-    );
-    console.log(chalk.green("new profile auction imp: ", upgradedProfileAuctionAddressImp));
+    // const upgradedProfileAuctionAddressImp = await hre.upgrades.prepareUpgrade(
+    //   (
+    //     await getTokens(hre)
+    //   ).deployedProfileAuction,
+    //   ProfileAuction,
+    // );
+    // console.log(chalk.green("new profile auction imp: ", upgradedProfileAuctionAddressImp));
   
-    console.log('upgradedProfileAuctionAddressImp: ', upgradedProfileAuctionAddressImp);
+    // console.log('upgradedProfileAuctionAddressImp: ', upgradedProfileAuctionAddressImp);
     // GO TO OZ DEFENDER
-    // await verifyContract(`upgrade ProfileAuction impl`, '0x02ef9836E1d41372c876c9a9cfb52eC1Eb849a65', [], hre);
+    await verifyContract(`upgrade ProfileAuction impl`, '0x29c85cecc3fe7d34f41b56f0f9ace37e897eb6b0', [], hre);
   } else if (network == 'goerli') {
     const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 
