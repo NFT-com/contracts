@@ -95,6 +95,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     function bulkTransfer(uint256[] calldata tokenIds, address _to) external {
         for (uint256 i; i < tokenIds.length;) {
+            if (_genesisKeyLockUp[tokenIds[i]].currentLockup != 0) revert PausedTransfer();
             _transfer(msg.sender, _to, tokenIds[i]);
             unchecked { i++; }
         }
@@ -105,6 +106,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         address to,
         uint256 tokenId
     ) public override {
+        if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
         _transfer(from, to, tokenId);
     }
 
@@ -113,6 +115,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         address to,
         uint256 tokenId
     ) public override {
+        if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
         safeTransferFrom(from, to, tokenId, "");
     }
 
@@ -125,6 +128,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         uint256 tokenId,
         bytes memory _data
     ) public override {
+        if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
         _transfer(from, to, tokenId);
         if (to.isContract() && !_checkContractOnERC721Received(from, to, tokenId, _data)) {
             revert TransferToNonERC721ReceiverImplementer();
@@ -145,6 +149,42 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     function setSigner(address _signer) external onlyOwner {
         signerAddress = _signer;
+    }
+
+    function currentXP(uint256 tokenId)
+        external
+        view
+        returns (
+            bool locked,
+            uint256 current,
+            uint256 total
+        )
+    {
+        uint256 start = _genesisKeyLockUp[tokenId].currentLockup;
+        if (start != 0) {
+            locked = true;
+            current = block.timestamp - start;
+        }
+        total = current + _genesisKeyLockUp[tokenId].totalLockup;
+    }
+
+    function toggleLockup(uint256 tokenId) internal {
+        require(msg.sender == ownerOf(tokenId));
+        uint256 start = _genesisKeyLockUp[tokenId].currentLockup;
+        if (start == 0) {
+            if (!lockupBoolean) revert LockUpUnavailable();
+            _genesisKeyLockUp[tokenId].currentLockup = uint128(block.timestamp);
+        } else {
+            _genesisKeyLockUp[tokenId].totalLockup += uint128(block.timestamp - start);
+            _genesisKeyLockUp[tokenId].currentLockup = 0;
+        }
+    }
+
+    function toggleLockup(uint256[] calldata tokenIds) external {
+        uint256 n = tokenIds.length;
+        for (uint256 i = 0; i < n; ++i) {
+            toggleLockup(tokenIds[i]);
+        }
     }
 
     // initial weth price is the high price (starting point)
