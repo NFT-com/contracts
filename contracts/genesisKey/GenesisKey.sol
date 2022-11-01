@@ -216,12 +216,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         safeTransferETH(multiSig, address(this).balance);
     }
 
-    // function used for internal testing
-    function mintKey(address _recipient) external onlyOwner {
-        if (totalSupply() >= MAX_SUPPLY) revert MaxSupply();
-        _mint(_recipient, 1, "", false);
-    }
-
     function publicBuyKey() external payable nonReentrant {
         // checks
         require(startPublicSale, "GEN_KEY: invalid time");
@@ -229,8 +223,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         if (totalSupply() != MAX_SUPPLY) revert MaxSupply();
         if (latestClaimTokenId == 5000) revert MaxSupply();
 
-        uint256 currPrice = getCurrentPrice();
-        require(msg.value >= currPrice, "GEN_KEY: INSUFFICIENT FUNDS");
+        uint256 currPrice = finalEthPrice;
+        require(msg.value >= finalEthPrice, "GEN_KEY: INSUFFICIENT FUNDS");
 
         // effects
         latestClaimTokenId += 1;
@@ -242,23 +236,5 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
         safeTransferETH(multiSig, address(this).balance);
         _adminTransfer(address(this), msg.sender, latestClaimTokenId);
-    }
-
-    // public function for returning the current price
-    function getCurrentPrice() public view returns (uint256) {
-        require(startPublicSale, "GEN_KEY: invalid time");
-        uint256 secondsPassed = 0;
-
-        secondsPassed = block.timestamp - publicSaleStartSecond;
-
-        if (secondsPassed >= publicSaleDurationSeconds) {
-            return finalEthPrice;
-        } else {
-            uint256 totalPriceChange = initialEthPrice - finalEthPrice;
-            uint256 currentPriceChange = totalPriceChange.mul(secondsPassed).div(publicSaleDurationSeconds);
-            uint256 currentPrice = initialEthPrice - currentPriceChange;
-
-            return currentPrice;
-        }
     }
 }
