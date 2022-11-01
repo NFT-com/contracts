@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2022-11-01T16:18:46.082Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36" etag="Pc-g3wChcHwQ7-0tMC0k" version="20.4.0" type="github">
+<mxfile host="app.diagrams.net" modified="2022-11-01T16:20:02.695Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36" etag="3cm4hOjFRhaKM4BKNB4W" version="20.4.0" type="github">
   <diagram id="tM3bY4V2VyqjAo--8nE5" name="Page-1">
-    <mxGraphModel dx="2951" dy="1619" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1722" dy="944" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -98,12 +98,12 @@
         <mxCell id="DZ-_d3KtzLlh04xcQ-5O-68" value="Upload Winners to&amp;nbsp;&lt;br&gt;Claim Contract" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=8;" vertex="1" parent="1">
           <mxGeometry x="270" y="655" width="90" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-69" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;fontSize=8;startArrow=classic;startFill=1;endArrow=none;endFill=0;" edge="1" parent="1" source="DZ-_d3KtzLlh04xcQ-5O-5">
+        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-69" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;fontSize=8;startArrow=classic;startFill=1;endArrow=none;endFill=0;strokeColor=#82b366;fillColor=#d5e8d4;" edge="1" parent="1" source="DZ-_d3KtzLlh04xcQ-5O-5">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="530" y="885" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-73" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=8;startArrow=classic;startFill=1;endArrow=none;endFill=0;" edge="1" parent="1" source="DZ-_d3KtzLlh04xcQ-5O-5" target="DZ-_d3KtzLlh04xcQ-5O-34">
+        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-73" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=8;startArrow=classic;startFill=1;endArrow=none;endFill=0;fillColor=#d5e8d4;strokeColor=#82b366;" edge="1" parent="1" source="DZ-_d3KtzLlh04xcQ-5O-5" target="DZ-_d3KtzLlh04xcQ-5O-34">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="795" y="590" />
@@ -117,7 +117,7 @@
         <mxCell id="DZ-_d3KtzLlh04xcQ-5O-21" value="Contains logic for originating&amp;nbsp;&lt;br&gt;Genesis Keys, assigning mints&lt;br&gt;to NFT.com Profile, and&amp;nbsp;&lt;br&gt;how NFT.com Profiles are&amp;nbsp;&lt;br&gt;governed in the future" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="DZ-_d3KtzLlh04xcQ-5O-5">
           <mxGeometry y="40" width="190" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-71" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;fontSize=8;startArrow=classic;startFill=1;endArrow=none;endFill=0;" edge="1" parent="1" source="DZ-_d3KtzLlh04xcQ-5O-7">
+        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-71" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;fontSize=8;startArrow=classic;startFill=1;endArrow=none;endFill=0;fillColor=#d5e8d4;strokeColor=#82b366;" edge="1" parent="1" source="DZ-_d3KtzLlh04xcQ-5O-7">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="789" y="960" as="targetPoint" />
           </mxGeometry>
@@ -137,13 +137,13 @@
         <mxCell id="DZ-_d3KtzLlh04xcQ-5O-64" value="Claim Genesis Keys" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;" vertex="1" parent="1">
           <mxGeometry x="472" y="736" width="140" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-70" value="Mint NFT.com Profile" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-70" value="Mint NFT.com Profile" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#97D077;" vertex="1" parent="1">
           <mxGeometry x="545" y="885" width="130" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-72" value="Mint NFT.com Profile" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-72" value="Mint NFT.com Profile" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#97D077;" vertex="1" parent="1">
           <mxGeometry x="660" y="975" width="130" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-74" value="Submits Signer Hash + Filter Reserved/Blacklist Profile URLs" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="DZ-_d3KtzLlh04xcQ-5O-74" value="Submits Signer Hash + Filter Reserved/Blacklist Profile URLs" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#97D077;" vertex="1" parent="1">
           <mxGeometry x="440" y="560" width="350" height="30" as="geometry" />
         </mxCell>
       </root>
