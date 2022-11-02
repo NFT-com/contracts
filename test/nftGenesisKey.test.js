@@ -140,26 +140,18 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       });
 
       it("should allow users to correctly bulk transfer keys they own", async function () {
-        await deployedGenesisKey.connect(owner).mintKey(owner.address);
-        expect(await deployedGenesisKey.totalSupply()).to.eq(1);
-        await deployedGenesisKey.connect(owner).mintKey(owner.address);
-        expect(await deployedGenesisKey.totalSupply()).to.eq(2);
-        await deployedGenesisKey.connect(owner).mintKey(owner.address);
-        expect(await deployedGenesisKey.totalSupply()).to.eq(3);
+        for (let i = 0; i < 1000; i++) {
+          await deployedGenesisKey.connect(owner).mintKey(owner.address);
+          expect(await deployedGenesisKey.totalSupply()).to.eq(i + 1);
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(owner.address);
+        }
 
-        expect(await deployedGenesisKey.ownerOf(1)).to.eq(owner.address);
-        expect(await deployedGenesisKey.ownerOf(2)).to.eq(owner.address);
-        expect(await deployedGenesisKey.ownerOf(3)).to.eq(owner.address);
-
-        await expect(deployedGenesisKey.connect(owner).bulkTransfer([1, 2, 3, 4], addr1.address)).to.be.reverted; // reverts due to token id 4 not existing
+        await expect(deployedGenesisKey.connect(owner).bulkTransfer([1, 2, 3, 1001], addr1.address)).to.be.reverted; // reverts due to token id 1001 not existing
         await expect(deployedGenesisKey.connect(owner).bulkTransfer([0, 1, 2], addr1.address)).to.be.reverted; // reverts due to token id 0 not existing
-        expect(await deployedGenesisKey.ownerOf(1)).to.eq(owner.address);
-        expect(await deployedGenesisKey.ownerOf(2)).to.eq(owner.address);
-        expect(await deployedGenesisKey.ownerOf(3)).to.eq(owner.address);
-        await deployedGenesisKey.connect(owner).bulkTransfer([1, 2, 3], addr1.address);
-        expect(await deployedGenesisKey.ownerOf(1)).to.eq(addr1.address);
-        expect(await deployedGenesisKey.ownerOf(2)).to.eq(addr1.address);
-        expect(await deployedGenesisKey.ownerOf(3)).to.eq(addr1.address);
+        await deployedGenesisKey.connect(owner).bulkTransfer(Array.from({length: 1000}, (_, i) => i + 1), addr1.address); // 1 - 1000 inclusive
+        for (let i = 0; i < 1000; i++) {
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(addr1.address);
+        }        
       });
     });
 
