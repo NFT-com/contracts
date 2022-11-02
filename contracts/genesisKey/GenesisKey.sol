@@ -224,6 +224,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     }
 
     // TODO: depending on deprecation strategy, remove this function altogether
+    // TODO: replace with gnosis multisig function that can allocate Genesis Keys remaining on this contract (save some gas fees)
     function publicBuyKey() external payable nonReentrant {
         // checks
         require(startPublicSale, "GEN_KEY: invalid time");
