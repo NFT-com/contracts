@@ -415,487 +415,487 @@ describe("NFT Profile Auction / Minting", function () {
         expect(await deployedNftProfile.tokenUsed('craig_wright_x')).to.be.true;
       });
 
-      // it("should allow proper regex association of cross chain addresses", async function () {
-      //   expect(await deployedGenesisKey.ownerOf('1')).to.be.equal(owner.address);
-      //   expect(await deployedGenesisKey.ownerOf('2')).to.be.equal(second.address);
-
-      //   expect(await deployedHederaRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
-      //   expect(await deployedHederaRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
-      //   expect(await deployedHederaRegex.matches("0x956Ae058bb6fF5C5784050526142006327D5186a")).to.be.equal(false);
-
-      //   expect(await deployedHederaRegex.matches("0.0.1")).to.be.equal(true);
-      //   expect(await deployedHederaRegex.matches("0.0.99")).to.be.equal(true);
-      //   expect(await deployedHederaRegex.matches("0.0.112233")).to.be.equal(true);
-      //   expect(await deployedHederaRegex.matches("0.0.12")).to.be.equal(true);
-      //   expect(await deployedHederaRegex.matches("0.0.991")).to.be.equal(true);
-      //   expect(await deployedHederaRegex.matches("0.0.112203")).to.be.equal(true);
-
-      //   expect(await deployedEthereumRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(true);
-      //   expect(await deployedEthereumRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(true);
-      //   expect(await deployedEthereumRegex.matches("0x956Ae058bb6fF5C5784050526142006327D5186a")).to.be.equal(true);
-      //   expect(await deployedEthereumRegex.matches("0.0.1")).to.be.equal(false);
-      //   expect(await deployedEthereumRegex.matches("0.0.23")).to.be.equal(false);
-      //   expect(await deployedEthereumRegex.matches("0123123")).to.be.equal(false);
-
-      //   expect(await deployedHederaRegex.matches("0.1.7777777")).to.be.equal(false);
-      //   expect(await deployedHederaRegex.matches("1.0.")).to.be.equal(false);
-      //   expect(await deployedHederaRegex.matches("112233")).to.be.equal(false);
-
-      //   expect(await deployedSolanaRegex.matches("112233")).to.be.equal(false);
-      //   expect(await deployedSolanaRegex.matches("0.1.7777777")).to.be.equal(false);
-      //   expect(await deployedSolanaRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
-      //   expect(await deployedSolanaRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
-      //   expect(await deployedSolanaRegex.matches("EQ1RbBVQx2gs5PQQgMrVx96wZ5ts65GJbEYTGBMnvddS")).to.be.equal(true);
-      //   expect(await deployedSolanaRegex.matches("3Q5XWkkEvmWFYPRyneCuhvJvhaRawhHQc1oK6XZUFc6b")).to.be.equal(true);
-      //   expect(await deployedSolanaRegex.matches("DMXWb5EUdtzQESof1vaV2kjqUEQFebtZPwR9Vf4txbp6")).to.be.equal(true);
-      //   expect(await deployedSolanaRegex.matches("3Q5XWkkEvmWFYPRyneCuhvJvhaRawhHQc1oK6XZUFc6b")).to.be.equal(true);
-
-      //   expect(await deployedFlowRegex.matches("0x55ad22f01ef568a1")).to.be.equal(true);
-      //   expect(await deployedFlowRegex.matches("0xf919ee77447b7497")).to.be.equal(true);
-      //   expect(await deployedFlowRegex.matches("0x97ff37b1368e5387")).to.be.equal(true);
-      //   expect(await deployedFlowRegex.matches("0x18eb4ee6b3c026d2")).to.be.equal(true);
-
-      //   expect(await deployedFlowRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
-      //   expect(await deployedFlowRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
-      //   expect(await deployedFlowRegex.matches("EQ1RbBVQx2gs5PQQgMrVx96wZ5ts65GJbEYTGBMnvddS")).to.be.equal(false);
-      //   expect(await deployedFlowRegex.matches("DMXWb5EUdtzQESof1vaV2kjqUEQFebtZPwR9Vf4txbp6")).to.be.equal(false);
-
-      //   expect(await deployedTezosRegex.matches("tz3RKYFsLuQzKBtmYuLNas7uMu3AsYd4QdsA")).to.be.equal(true);
-      //   expect(await deployedTezosRegex.matches("KT1TjHyHTnL4VMQQyD75pr3ZTemyPvQxRPpA")).to.be.equal(true);
-      //   expect(await deployedTezosRegex.matches("tz1hWN1N3feet6DXBy2dnzsxaHpp27wpweAk")).to.be.equal(true);
-      //   expect(await deployedTezosRegex.matches("tz1c4GjeL8bzRJQgj9tNzzaCRzB8APGMGdyy")).to.be.equal(true);
-
-      //   expect(await deployedTezosRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
-      //   expect(await deployedTezosRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
-      //   expect(await deployedTezosRegex.matches("EQ1RbBVQx2gs5PQQgMrVx96wZ5ts65GJbEYTGBMnvddS")).to.be.equal(false);
-      //   expect(await deployedTezosRegex.matches("DMXWb5EUdtzQESof1vaV2kjqUEQFebtZPwR9Vf4txbp6")).to.be.equal(false);
-      // });
-
-      // it("should allow genesis key owners to claim profiles", async function () {
-      //   expect(await deployedProfileAuction.genKeyWhitelistOnly()).to.be.true;
-      //   expect(await deployedProfileAuction.publicMintBool()).to.be.false;
-
-      //   expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(owner.address);
-      //   expect(await deployedGenesisKey.ownerOf(2)).to.be.equal(secondSigner.address);
-
-      //   expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
-
-      //   const { hash: h0, signature: s0 } = signHashProfile(owner.address, "gavin");
-      //   // await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h0, s0);
-
-      //   const { hash: h1, signature: s1 } = signHashProfile(owner.address, "boled");
-      //   // await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address, h1, s1);
-
-      //   // batch claim
-      //   await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile([
-      //     ["gavin", 1, owner.address, h0, s0],
-      //     ["boled", 1, owner.address, h1, s1]
-      //   ])
-
-      //   // should go thru
-      //   const { hash: h2, signature: s2 } = signHashProfile(second.address, "satoshi");
-      //   await deployedProfileAuction.connect(second).genesisKeyClaimProfile("satoshi", 2, second.address, h2, s2);
-
-      //   // no more merkle tree claims -> now general claims
-      //   await deployedProfileAuction.connect(owner).setGenKeyWhitelistOnly(false);
-
-      //   // reverts due to owner not having ownership over tokenId 1
-      //   const { hash: h3, signature: s3 } = signHashProfile(owner.address, "1");
-      //   await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 2, owner.address, h3, s3)).to.be
-      //     .reverted;
-
-      //   const { hash: h4, signature: s4 } = signHashProfile(owner.address, "profile0");
-      //   await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 1, owner.address, h4, s4);
-
-      //   const { hash: h5, signature: s5 } = signHashProfile(owner.address, "gavin");
-      //   await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h5, s5)).to
-      //     .be.reverted;
-
-      //   const { hash: h6, signature: s6 } = signHashProfile(owner.address, "boled");
-      //   await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address, h6, s6)).to
-      //     .be.reverted;
-
-      //   const { hash: h7, signature: s7 } = signHashProfile(owner.address, "profile1");
-      //   const { hash: h8, signature: s8 } = signHashProfile(owner.address, "profile2");
-      //   const { hash: h9, signature: s9 } = signHashProfile(owner.address, "profile3");
-      //   const { hash: h10, signature: s10 } = signHashProfile(owner.address, "profile4");
-      //   await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 1, owner.address, h7, s7);
-      //   await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 1, owner.address, h8, s8);
-      //   await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 1, owner.address, h9, s9);
-      //   await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 1, owner.address, h10, s10);
-
-      //   // reverts due to expiry
-      //   await expect(
-      //     deployedProfileAuction.connect(owner).purchaseExpiredProfile("profile4", 86400, 27, ZERO_BYTES, ZERO_BYTES),
-      //   ).to.be.reverted;
-
-      //   const { hash: h11, signature: s11 } = signHashProfile(owner.address, "profile5");
-      //   await expect(
-      //     deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 1, owner.address, h11, s11),
-      //   ).to.be.reverted;
-
-      //   expect(await deployedNftProfile.totalSupply()).to.be.equal(10);
-      //   // open public mint
-      //   await deployedProfileAuction.connect(owner).setPublicMint(true);
-
-      //   // approve first
-      //   await deployedNftToken.connect(owner).approve(deployedProfileAuction.address, MAX_UINT);
-      //   await deployedNftToken.connect(second).approve(deployedProfileAuction.address, MAX_UINT);
-      //   const { hash: h12, signature: s12 } = signHashProfile(owner.address, "profile5");
-      //   const { hash: h13, signature: s13 } = signHashProfile(owner.address, "profile6");
-      //   const { hash: h14, signature: s14 } = signHashProfile(owner.address, "profile7");
-
-      //   await deployedProfileAuction.connect(owner).publicMint("profile5", 0, 27, ZERO_BYTES, ZERO_BYTES, h12, s12);
-
-      //   await deployedProfileAuction.connect(owner).publicMint("profile6", 0, 27, ZERO_BYTES, ZERO_BYTES, h13, s13);
-
-      //   await deployedProfileAuction.connect(owner).publicMint("profile7", 0, 27, ZERO_BYTES, ZERO_BYTES, h14, s14);
-
-      //   // only used for this portion =====================================================================================
-      //   await deployedProfileAuction.connect(owner).setPublicMint(false);
-      //   const { hash: h15, signature: s15 } = signHashProfile(addr5.address, "profile_addr5");
-      //   expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(0); // 0 publicly minted profiles for addr5
-      //   await expect(deployedProfileAuction.connect(addr5).publicClaim("test_profile_addr5", h15, s15)).to.be.reverted; // signature mismatch
-
-      //   const maxProfilePerAddress = await deployedProfileAuction.maxProfilePerAddress();
-      //   await deployedProfileAuction.setMaxProfilePerAddress(1); // for testing purposes
-
-      //   expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(false);
-      //   await expect(deployedProfileAuction.connect(addr5).publicClaim("profile_addr5", h15, s15)).to.be.revertedWith('pm: publicClaimBool');
-      //   await deployedProfileAuction.connect(owner).setPublicClaim(true);
-      //   expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(true);
-      //   await deployedProfileAuction.connect(addr5).publicClaim("profile_addr5", h15, s15); // succeeds
-      //   expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(1); // 1 since previous action succeeded
-
-      //   const { hash: h16, signature: s16 } = signHashProfile(addr5.address, "profile_addr5_2");
-      //   // should fail because max profile met (1 / 1)
-      //   await expect(deployedProfileAuction.connect(addr5).publicClaim("profile_addr5_2", h16, s16)).to.be.reverted;
-
-      //   await deployedProfileAuction.setMaxProfilePerAddress(2); // return back to norm
-      //   await deployedProfileAuction.connect(addr5).publicClaim("profile_addr5_2", h16, s16); // succeeds due to this bar being set
-      //   expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(2); // 2 since previous action succeeded
-
-      //   await deployedProfileAuction.setMaxProfilePerAddress(maxProfilePerAddress); // return back to norm
-      //   // ================================================================================================================
-
-      //   // go back
-      //   await deployedProfileAuction.connect(owner).setPublicMint(true);
-
-      //   // should this work?
-      //   await deployedProfileAuction.connect(owner).extendLicense("profile5", 86400, 27, ZERO_BYTES, ZERO_BYTES);
-      //   await deployedNftToken.connect(owner).transfer(second.address, convertBigNumber(10000));
-
-      //   expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
-      //   await deployedProfileAuction
-      //     .connect(second)
-      //     .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES);
-      //   expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(second.address);
-      //   await deployedNftProfile.connect(owner).tradeMarkTransfer([["profile6", owner.address]]);
-      //   expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
-
-      //   expect(await deployedNftProfile.totalSupply()).to.be.equal(15);
-      // });
-
-      // it("should allow profiles to associate other addresses", async function () {
-      //   await deployedNftResolver
-      //     .connect(second)
-      //     .addAssociatedAddresses(
-      //       [[0, process.env.CICD ? process.env.MNEMONIC_PUBLIC_ADDR : "0x59495589849423692778a8c5aaca62ca80f875a4"]],
-      //       "testminter",
-      //     );
-
-      //   // reverts due to checksum address being the same
-      //   await expect(
-      //     deployedNftResolver
-      //       .connect(second)
-      //       .addAssociatedAddresses(
-      //         [[0, process.env.CICD ? process.env.MNEMONIC_PUBLIC_ADDR : "0x59495589849423692778a8c5aaCA62CA80f875a4"]],
-      //         "testminter",
-      //       ),
-      //   ).to.be.reverted;
-
-      //   // empty array since not found
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(0);
-
-      //   // bi-directional (owner verification)
-      //   await deployedNftResolver.connect(owner).associateSelfWithUsers(["testminter"]);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(1);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0); // chainId
-      //   // associated address
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(
-      //     process.env.CICD ? process.env.MNEMONIC_PUBLIC_ADDR : "0x59495589849423692778a8c5aaca62ca80f875a4",
-      //   );
-
-      //   await expect(
-      //     deployedNftResolver
-      //       .connect(second)
-      //       .addAssociatedAddresses(
-      //         [[0, process.env.CICD ? process.env.MNEMONIC_PUBLIC_ADDR : "0x59495589849423692778a8c5aaCA62CA80f875a4"]],
-      //         "testminter",
-      //       ),
-      //   ).to.be.reverted; // reverts due to duplicate address
-
-      //   await deployedNftResolver
-      //     .connect(second)
-      //     .addAssociatedAddresses([[0, "0x59495589849423692778a8c5aaCA62CA80f875af"]], "testminter");
-
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(1);
-
-      //   console.log("testminter before clearing: ", await deployedNftResolver.associatedAddresses("testminter"));
-
-      //   await deployedNftResolver.connect(second).clearAssociatedAddresses("testminter");
-
-      //   console.log("testminter after clearing: ", await deployedNftResolver.associatedAddresses("testminter"));
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(0);
-      // });
-
-      // it("should allow two different profiles to associate same address", async function () {
-      //   await deployedNftResolver.connect(second).addAssociatedAddresses(
-      //     [
-      //       [0, addr1.address],
-      //       [0, addr2.address],
-      //       [0, addr3.address],
-      //       [0, addr4.address],
-      //     ],
-      //     "testminter",
-      //   );
-
-      //   await deployedNftResolver.connect(addr1).addAssociatedAddresses(
-      //     [
-      //       [0, addr2.address],
-      //       [0, addr3.address],
-      //       [0, addr4.address],
-      //     ],
-      //     "testminter2",
-      //   );
-      // });
-
-      // it("should allow multiple addresses to be added at the same time", async function () {
-      //   await deployedNftResolver.connect(second).addAssociatedAddresses(
-      //     [
-      //       [0, addr1.address],
-      //       [0, addr2.address],
-      //       [0, addr3.address],
-      //       [0, addr4.address],
-      //     ],
-      //     "testminter",
-      //   );
-
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(0);
-
-      //   await expect(
-      //     deployedNftResolver.connect(second).addAssociatedAddresses(
-      //       [
-      //         [0, addr1.address],
-      //         [0, addr2.address],
-      //         [0, addr3.address],
-      //         [0, addr4.address],
-      //       ],
-      //       "testminter",
-      //     ),
-      //   ).to.be.reverted;
-
-      //   await deployedNftResolver.connect(addr1).associateSelfWithUsers(["testminter"]);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(1);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
-
-      //   await deployedNftResolver.connect(addr2).associateSelfWithUsers(["testminter"]);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(2);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr2.address);
-
-      //   await deployedNftResolver.connect(addr3).associateSelfWithUsers(["testminter"]);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(3);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[2][1]).to.be.equal(addr3.address);
-
-
-      //   await expect(deployedNftProfile.profileOwner("jokes")).to.be.reverted; // due to profile not existing
-
-      //   // succeeds
-      //   await deployedNftResolver.connect(addr1).removeAssociatedProfile("testminter", await deployedNftProfile.profileOwner("testminter"));
-
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(2);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr2.address);
-
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(2);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr3.address);
-
-      //   // re add self
-      //   await deployedNftResolver.connect(addr1).associateSelfWithUsers(["testminter"]);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(3);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
-
-      //   await deployedNftResolver.connect(addr4).associateSelfWithUsers(["testminter"]);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(4);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[3][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[3][1]).to.be.equal(addr4.address);
-
-      //   // reset
-      //   await deployedNftResolver.connect(second).clearAssociatedAddresses("testminter");
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(0);
-      //   await deployedNftResolver.connect(second).addAssociatedAddresses(
-      //     [
-      //       [0, addr1.address],
-      //       [0, addr2.address],
-      //       [0, addr3.address],
-      //       [0, addr4.address],
-      //       [1, "0.0.4123"],
-      //       [3, "HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE"],
-      //     ],
-      //     "testminter",
-      //   );
-
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(6);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr2.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[2][1]).to.be.equal(addr3.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[3][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[3][1]).to.be.equal(addr4.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[4][0]).to.be.equal(1);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[4][1]).to.be.equal("0.0.4123");
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[5][0]).to.be.equal(3);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[5][1]).to.be.equal(
-      //     "HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE",
-      //   );
-
-      //   // remove non-evm (reverts due to not being owner)
-      //   await expect(
-      //     deployedNftResolver.connect(addr5).removeAssociatedAddress([0, addr5.address], "testminter"),
-      //   ).to.be.reverted;
-
-      //   // reverts due to address not being found
-      //   await expect(
-      //     deployedNftResolver.connect(second).removeAssociatedAddress([0, addr5.address], "testminter"),
-      //   ).to.be.reverted;
-
-      //   // reverts due to address not being correct for chain
-      //   await expect(
-      //     deployedNftResolver.connect(second).removeAssociatedAddress([1, addr5.address], "testminter"),
-      //   ).to.be.reverted;
-
-      //   await deployedNftResolver.connect(second).removeAssociatedAddress([1, "0.0.4123"], "testminter");
-
-      //   // verify new associated addresses after removing hedera
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(5);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr2.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[2][1]).to.be.equal(addr3.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[3][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[3][1]).to.be.equal(addr4.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[4][0]).to.be.equal(3);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[4][1]).to.be.equal(
-      //     "HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE",
-      //   );
-
-      //   // remove EVM address
-      //   await deployedNftResolver.connect(second).removeAssociatedAddress([0, addr4.address], "testminter");
-
-      //   // verify new associated addresses after removing ETH
-      //   expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(4);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr2.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[2][1]).to.be.equal(addr3.address);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[3][0]).to.be.equal(3);
-      //   expect((await deployedNftResolver.associatedAddresses("testminter"))[3][1]).to.be.equal(
-      //     "HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE",
-      //   );
-      // });
-
-      // // TODO: flesh out more when we have this live
-      // it("should allow custom profile pricing", async function () {
-      //   // length premium
-      //   expect(await deployedProfileAuction.lengthPremium(1)).to.be.equal(1024);        
-      //   await deployedProfileAuction.setLengthPremium(1, 2000);
-      //   expect(await deployedProfileAuction.lengthPremium(1)).to.be.equal(2000);
-      //   await deployedProfileAuction.setLengthPremium(1, 1024);
-      //   expect(await deployedProfileAuction.lengthPremium(1)).to.be.equal(1024);      
+      it("should allow proper regex association of cross chain addresses", async function () {
+        expect(await deployedGenesisKey.ownerOf('1')).to.be.equal(owner.address);
+        expect(await deployedGenesisKey.ownerOf('2')).to.be.equal(second.address);
+
+        expect(await deployedHederaRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
+        expect(await deployedHederaRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
+        expect(await deployedHederaRegex.matches("0x956Ae058bb6fF5C5784050526142006327D5186a")).to.be.equal(false);
+
+        expect(await deployedHederaRegex.matches("0.0.1")).to.be.equal(true);
+        expect(await deployedHederaRegex.matches("0.0.99")).to.be.equal(true);
+        expect(await deployedHederaRegex.matches("0.0.112233")).to.be.equal(true);
+        expect(await deployedHederaRegex.matches("0.0.12")).to.be.equal(true);
+        expect(await deployedHederaRegex.matches("0.0.991")).to.be.equal(true);
+        expect(await deployedHederaRegex.matches("0.0.112203")).to.be.equal(true);
+
+        expect(await deployedEthereumRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(true);
+        expect(await deployedEthereumRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(true);
+        expect(await deployedEthereumRegex.matches("0x956Ae058bb6fF5C5784050526142006327D5186a")).to.be.equal(true);
+        expect(await deployedEthereumRegex.matches("0.0.1")).to.be.equal(false);
+        expect(await deployedEthereumRegex.matches("0.0.23")).to.be.equal(false);
+        expect(await deployedEthereumRegex.matches("0123123")).to.be.equal(false);
+
+        expect(await deployedHederaRegex.matches("0.1.7777777")).to.be.equal(false);
+        expect(await deployedHederaRegex.matches("1.0.")).to.be.equal(false);
+        expect(await deployedHederaRegex.matches("112233")).to.be.equal(false);
+
+        expect(await deployedSolanaRegex.matches("112233")).to.be.equal(false);
+        expect(await deployedSolanaRegex.matches("0.1.7777777")).to.be.equal(false);
+        expect(await deployedSolanaRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
+        expect(await deployedSolanaRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
+        expect(await deployedSolanaRegex.matches("EQ1RbBVQx2gs5PQQgMrVx96wZ5ts65GJbEYTGBMnvddS")).to.be.equal(true);
+        expect(await deployedSolanaRegex.matches("3Q5XWkkEvmWFYPRyneCuhvJvhaRawhHQc1oK6XZUFc6b")).to.be.equal(true);
+        expect(await deployedSolanaRegex.matches("DMXWb5EUdtzQESof1vaV2kjqUEQFebtZPwR9Vf4txbp6")).to.be.equal(true);
+        expect(await deployedSolanaRegex.matches("3Q5XWkkEvmWFYPRyneCuhvJvhaRawhHQc1oK6XZUFc6b")).to.be.equal(true);
+
+        expect(await deployedFlowRegex.matches("0x55ad22f01ef568a1")).to.be.equal(true);
+        expect(await deployedFlowRegex.matches("0xf919ee77447b7497")).to.be.equal(true);
+        expect(await deployedFlowRegex.matches("0x97ff37b1368e5387")).to.be.equal(true);
+        expect(await deployedFlowRegex.matches("0x18eb4ee6b3c026d2")).to.be.equal(true);
+
+        expect(await deployedFlowRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
+        expect(await deployedFlowRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
+        expect(await deployedFlowRegex.matches("EQ1RbBVQx2gs5PQQgMrVx96wZ5ts65GJbEYTGBMnvddS")).to.be.equal(false);
+        expect(await deployedFlowRegex.matches("DMXWb5EUdtzQESof1vaV2kjqUEQFebtZPwR9Vf4txbp6")).to.be.equal(false);
+
+        expect(await deployedTezosRegex.matches("tz3RKYFsLuQzKBtmYuLNas7uMu3AsYd4QdsA")).to.be.equal(true);
+        expect(await deployedTezosRegex.matches("KT1TjHyHTnL4VMQQyD75pr3ZTemyPvQxRPpA")).to.be.equal(true);
+        expect(await deployedTezosRegex.matches("tz1hWN1N3feet6DXBy2dnzsxaHpp27wpweAk")).to.be.equal(true);
+        expect(await deployedTezosRegex.matches("tz1c4GjeL8bzRJQgj9tNzzaCRzB8APGMGdyy")).to.be.equal(true);
+
+        expect(await deployedTezosRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
+        expect(await deployedTezosRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
+        expect(await deployedTezosRegex.matches("EQ1RbBVQx2gs5PQQgMrVx96wZ5ts65GJbEYTGBMnvddS")).to.be.equal(false);
+        expect(await deployedTezosRegex.matches("DMXWb5EUdtzQESof1vaV2kjqUEQFebtZPwR9Vf4txbp6")).to.be.equal(false);
+      });
+
+      it("should allow genesis key owners to claim profiles", async function () {
+        expect(await deployedProfileAuction.genKeyWhitelistOnly()).to.be.true;
+        expect(await deployedProfileAuction.publicMintBool()).to.be.false;
+
+        expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(owner.address);
+        expect(await deployedGenesisKey.ownerOf(2)).to.be.equal(secondSigner.address);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
+
+        const { hash: h0, signature: s0 } = signHashProfile(owner.address, "gavin");
+        // await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h0, s0);
+
+        const { hash: h1, signature: s1 } = signHashProfile(owner.address, "boled");
+        // await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address, h1, s1);
+
+        // batch claim
+        await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile([
+          ["gavin", 1, owner.address, h0, s0],
+          ["boled", 1, owner.address, h1, s1]
+        ])
+
+        // should go thru
+        const { hash: h2, signature: s2 } = signHashProfile(second.address, "satoshi");
+        await deployedProfileAuction.connect(second).genesisKeyClaimProfile("satoshi", 2, second.address, h2, s2);
+
+        // no more merkle tree claims -> now general claims
+        await deployedProfileAuction.connect(owner).setGenKeyWhitelistOnly(false);
+
+        // reverts due to owner not having ownership over tokenId 1
+        const { hash: h3, signature: s3 } = signHashProfile(owner.address, "1");
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 2, owner.address, h3, s3)).to.be
+          .reverted;
+
+        const { hash: h4, signature: s4 } = signHashProfile(owner.address, "profile0");
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 1, owner.address, h4, s4);
+
+        const { hash: h5, signature: s5 } = signHashProfile(owner.address, "gavin");
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h5, s5)).to
+          .be.reverted;
+
+        const { hash: h6, signature: s6 } = signHashProfile(owner.address, "boled");
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address, h6, s6)).to
+          .be.reverted;
+
+        const { hash: h7, signature: s7 } = signHashProfile(owner.address, "profile1");
+        const { hash: h8, signature: s8 } = signHashProfile(owner.address, "profile2");
+        const { hash: h9, signature: s9 } = signHashProfile(owner.address, "profile3");
+        const { hash: h10, signature: s10 } = signHashProfile(owner.address, "profile4");
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 1, owner.address, h7, s7);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 1, owner.address, h8, s8);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 1, owner.address, h9, s9);
+        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 1, owner.address, h10, s10);
+
+        // reverts due to expiry
+        await expect(
+          deployedProfileAuction.connect(owner).purchaseExpiredProfile("profile4", 86400, 27, ZERO_BYTES, ZERO_BYTES),
+        ).to.be.reverted;
+
+        const { hash: h11, signature: s11 } = signHashProfile(owner.address, "profile5");
+        await expect(
+          deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 1, owner.address, h11, s11),
+        ).to.be.reverted;
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(10);
+        // open public mint
+        await deployedProfileAuction.connect(owner).setPublicMint(true);
+
+        // approve first
+        await deployedNftToken.connect(owner).approve(deployedProfileAuction.address, MAX_UINT);
+        await deployedNftToken.connect(second).approve(deployedProfileAuction.address, MAX_UINT);
+        const { hash: h12, signature: s12 } = signHashProfile(owner.address, "profile5");
+        const { hash: h13, signature: s13 } = signHashProfile(owner.address, "profile6");
+        const { hash: h14, signature: s14 } = signHashProfile(owner.address, "profile7");
+
+        await deployedProfileAuction.connect(owner).publicMint("profile5", 0, 27, ZERO_BYTES, ZERO_BYTES, h12, s12);
+
+        await deployedProfileAuction.connect(owner).publicMint("profile6", 0, 27, ZERO_BYTES, ZERO_BYTES, h13, s13);
+
+        await deployedProfileAuction.connect(owner).publicMint("profile7", 0, 27, ZERO_BYTES, ZERO_BYTES, h14, s14);
+
+        // only used for this portion =====================================================================================
+        await deployedProfileAuction.connect(owner).setPublicMint(false);
+        const { hash: h15, signature: s15 } = signHashProfile(addr5.address, "profile_addr5");
+        expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(0); // 0 publicly minted profiles for addr5
+        await expect(deployedProfileAuction.connect(addr5).publicClaim("test_profile_addr5", h15, s15)).to.be.reverted; // signature mismatch
+
+        const maxProfilePerAddress = await deployedProfileAuction.maxProfilePerAddress();
+        await deployedProfileAuction.setMaxProfilePerAddress(1); // for testing purposes
+
+        expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(false);
+        await expect(deployedProfileAuction.connect(addr5).publicClaim("profile_addr5", h15, s15)).to.be.revertedWith('pm: publicClaimBool');
+        await deployedProfileAuction.connect(owner).setPublicClaim(true);
+        expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(true);
+        await deployedProfileAuction.connect(addr5).publicClaim("profile_addr5", h15, s15); // succeeds
+        expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(1); // 1 since previous action succeeded
+
+        const { hash: h16, signature: s16 } = signHashProfile(addr5.address, "profile_addr5_2");
+        // should fail because max profile met (1 / 1)
+        await expect(deployedProfileAuction.connect(addr5).publicClaim("profile_addr5_2", h16, s16)).to.be.reverted;
+
+        await deployedProfileAuction.setMaxProfilePerAddress(2); // return back to norm
+        await deployedProfileAuction.connect(addr5).publicClaim("profile_addr5_2", h16, s16); // succeeds due to this bar being set
+        expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(2); // 2 since previous action succeeded
+
+        await deployedProfileAuction.setMaxProfilePerAddress(maxProfilePerAddress); // return back to norm
+        // ================================================================================================================
+
+        // go back
+        await deployedProfileAuction.connect(owner).setPublicMint(true);
+
+        // should this work?
+        await deployedProfileAuction.connect(owner).extendLicense("profile5", 86400, 27, ZERO_BYTES, ZERO_BYTES);
+        await deployedNftToken.connect(owner).transfer(second.address, convertBigNumber(10000));
+
+        expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
+        await deployedProfileAuction
+          .connect(second)
+          .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES);
+        expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(second.address);
+        await deployedNftProfile.connect(owner).tradeMarkTransfer([["profile6", owner.address]]);
+        expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(15);
+      });
+
+      it("should allow profiles to associate other addresses", async function () {
+        await deployedNftResolver
+          .connect(second)
+          .addAssociatedAddresses(
+            [[0, process.env.CICD ? process.env.MNEMONIC_PUBLIC_ADDR : "0x59495589849423692778a8c5aaca62ca80f875a4"]],
+            "testminter",
+          );
+
+        // reverts due to checksum address being the same
+        await expect(
+          deployedNftResolver
+            .connect(second)
+            .addAssociatedAddresses(
+              [[0, process.env.CICD ? process.env.MNEMONIC_PUBLIC_ADDR : "0x59495589849423692778a8c5aaCA62CA80f875a4"]],
+              "testminter",
+            ),
+        ).to.be.reverted;
+
+        // empty array since not found
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(0);
+
+        // bi-directional (owner verification)
+        await deployedNftResolver.connect(owner).associateSelfWithUsers(["testminter"]);
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(1);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0); // chainId
+        // associated address
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(
+          process.env.CICD ? process.env.MNEMONIC_PUBLIC_ADDR : "0x59495589849423692778a8c5aaca62ca80f875a4",
+        );
+
+        await expect(
+          deployedNftResolver
+            .connect(second)
+            .addAssociatedAddresses(
+              [[0, process.env.CICD ? process.env.MNEMONIC_PUBLIC_ADDR : "0x59495589849423692778a8c5aaCA62CA80f875a4"]],
+              "testminter",
+            ),
+        ).to.be.reverted; // reverts due to duplicate address
+
+        await deployedNftResolver
+          .connect(second)
+          .addAssociatedAddresses([[0, "0x59495589849423692778a8c5aaCA62CA80f875af"]], "testminter");
+
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(1);
+
+        console.log("testminter before clearing: ", await deployedNftResolver.associatedAddresses("testminter"));
+
+        await deployedNftResolver.connect(second).clearAssociatedAddresses("testminter");
+
+        console.log("testminter after clearing: ", await deployedNftResolver.associatedAddresses("testminter"));
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(0);
+      });
+
+      it("should allow two different profiles to associate same address", async function () {
+        await deployedNftResolver.connect(second).addAssociatedAddresses(
+          [
+            [0, addr1.address],
+            [0, addr2.address],
+            [0, addr3.address],
+            [0, addr4.address],
+          ],
+          "testminter",
+        );
+
+        await deployedNftResolver.connect(addr1).addAssociatedAddresses(
+          [
+            [0, addr2.address],
+            [0, addr3.address],
+            [0, addr4.address],
+          ],
+          "testminter2",
+        );
+      });
+
+      it("should allow multiple addresses to be added at the same time", async function () {
+        await deployedNftResolver.connect(second).addAssociatedAddresses(
+          [
+            [0, addr1.address],
+            [0, addr2.address],
+            [0, addr3.address],
+            [0, addr4.address],
+          ],
+          "testminter",
+        );
+
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(0);
+
+        await expect(
+          deployedNftResolver.connect(second).addAssociatedAddresses(
+            [
+              [0, addr1.address],
+              [0, addr2.address],
+              [0, addr3.address],
+              [0, addr4.address],
+            ],
+            "testminter",
+          ),
+        ).to.be.reverted;
+
+        await deployedNftResolver.connect(addr1).associateSelfWithUsers(["testminter"]);
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(1);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
+
+        await deployedNftResolver.connect(addr2).associateSelfWithUsers(["testminter"]);
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(2);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr2.address);
+
+        await deployedNftResolver.connect(addr3).associateSelfWithUsers(["testminter"]);
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(3);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[2][1]).to.be.equal(addr3.address);
+
+
+        await expect(deployedNftProfile.profileOwner("jokes")).to.be.reverted; // due to profile not existing
+
+        // succeeds
+        await deployedNftResolver.connect(addr1).removeAssociatedProfile("testminter", await deployedNftProfile.profileOwner("testminter"));
+
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(2);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr2.address);
+
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(2);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr3.address);
+
+        // re add self
+        await deployedNftResolver.connect(addr1).associateSelfWithUsers(["testminter"]);
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(3);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
+
+        await deployedNftResolver.connect(addr4).associateSelfWithUsers(["testminter"]);
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(4);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[3][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[3][1]).to.be.equal(addr4.address);
+
+        // reset
+        await deployedNftResolver.connect(second).clearAssociatedAddresses("testminter");
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(0);
+        await deployedNftResolver.connect(second).addAssociatedAddresses(
+          [
+            [0, addr1.address],
+            [0, addr2.address],
+            [0, addr3.address],
+            [0, addr4.address],
+            [1, "0.0.4123"],
+            [3, "HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE"],
+          ],
+          "testminter",
+        );
+
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(6);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr2.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[2][1]).to.be.equal(addr3.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[3][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[3][1]).to.be.equal(addr4.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[4][0]).to.be.equal(1);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[4][1]).to.be.equal("0.0.4123");
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[5][0]).to.be.equal(3);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[5][1]).to.be.equal(
+          "HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE",
+        );
+
+        // remove non-evm (reverts due to not being owner)
+        await expect(
+          deployedNftResolver.connect(addr5).removeAssociatedAddress([0, addr5.address], "testminter"),
+        ).to.be.reverted;
+
+        // reverts due to address not being found
+        await expect(
+          deployedNftResolver.connect(second).removeAssociatedAddress([0, addr5.address], "testminter"),
+        ).to.be.reverted;
+
+        // reverts due to address not being correct for chain
+        await expect(
+          deployedNftResolver.connect(second).removeAssociatedAddress([1, addr5.address], "testminter"),
+        ).to.be.reverted;
+
+        await deployedNftResolver.connect(second).removeAssociatedAddress([1, "0.0.4123"], "testminter");
+
+        // verify new associated addresses after removing hedera
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(5);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr2.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[2][1]).to.be.equal(addr3.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[3][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[3][1]).to.be.equal(addr4.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[4][0]).to.be.equal(3);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[4][1]).to.be.equal(
+          "HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE",
+        );
+
+        // remove EVM address
+        await deployedNftResolver.connect(second).removeAssociatedAddress([0, addr4.address], "testminter");
+
+        // verify new associated addresses after removing ETH
+        expect((await deployedNftResolver.associatedAddresses("testminter")).length).to.be.equal(4);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[0][1]).to.be.equal(addr1.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[1][1]).to.be.equal(addr2.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[2][0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[2][1]).to.be.equal(addr3.address);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[3][0]).to.be.equal(3);
+        expect((await deployedNftResolver.associatedAddresses("testminter"))[3][1]).to.be.equal(
+          "HWHCU7orwrmAmPa1kicZ31MSwTJsHo7HTLGFrUPHokxE",
+        );
+      });
+
+      // TODO: flesh out more when we have this live
+      it("should allow custom profile pricing", async function () {
+        // length premium
+        expect(await deployedProfileAuction.lengthPremium(1)).to.be.equal(1024);        
+        await deployedProfileAuction.setLengthPremium(1, 2000);
+        expect(await deployedProfileAuction.lengthPremium(1)).to.be.equal(2000);
+        await deployedProfileAuction.setLengthPremium(1, 1024);
+        expect(await deployedProfileAuction.lengthPremium(1)).to.be.equal(1024);      
         
-      //   // yearly fee
-      //   expect(await deployedProfileAuction.yearlyFee()).to.be.equal(convertBigNumber(100));
-      //   await deployedProfileAuction.setYearlyFee(200);
-      //   expect(await deployedProfileAuction.yearlyFee()).to.be.equal(200);
+        // yearly fee
+        expect(await deployedProfileAuction.yearlyFee()).to.be.equal(convertBigNumber(100));
+        await deployedProfileAuction.setYearlyFee(200);
+        expect(await deployedProfileAuction.yearlyFee()).to.be.equal(200);
 
-      //   // years to own
-      //   expect(await deployedProfileAuction.yearsToOwn()).to.be.equal(2);
-      //   await deployedProfileAuction.setYearsToOwn(3);
-      //   expect(await deployedProfileAuction.yearsToOwn()).to.be.equal(3);
-      // });
+        // years to own
+        expect(await deployedProfileAuction.yearsToOwn()).to.be.equal(2);
+        await deployedProfileAuction.setYearsToOwn(3);
+        expect(await deployedProfileAuction.yearsToOwn()).to.be.equal(3);
+      });
 
-      // it("should be able to associate contract addresses", async function () {
-      //   expect((await deployedNftResolver.associatedContract("testminter"))[0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedContract("testminter"))[1]).to.be.equal("");
+      it("should be able to associate contract addresses", async function () {
+        expect((await deployedNftResolver.associatedContract("testminter"))[0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedContract("testminter"))[1]).to.be.equal("");
 
-      //   await expect(
-      //     deployedNftResolver.connect(addr5).setAssociatedContract([0, addr5.address], "testminter"),
-      //   ).to.be.reverted;
+        await expect(
+          deployedNftResolver.connect(addr5).setAssociatedContract([0, addr5.address], "testminter"),
+        ).to.be.reverted;
 
-      //   await deployedNftResolver.connect(second).setAssociatedContract([0, addr5.address], "testminter");
+        await deployedNftResolver.connect(second).setAssociatedContract([0, addr5.address], "testminter");
 
-      //   // due to notminted not being a real profile
-      //   await expect(deployedNftResolver.associatedContract("notminted")).to.be.reverted;
-      //   expect((await deployedNftResolver.associatedContract("testminter"))[0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedContract("testminter"))[1]).to.be.equal(addr5.address);
+        // due to notminted not being a real profile
+        await expect(deployedNftResolver.associatedContract("notminted")).to.be.reverted;
+        expect((await deployedNftResolver.associatedContract("testminter"))[0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedContract("testminter"))[1]).to.be.equal(addr5.address);
 
-      //   await expect(deployedNftResolver.connect(addr5).clearAssociatedContract("testminter")).to.be.reverted;
+        await expect(deployedNftResolver.connect(addr5).clearAssociatedContract("testminter")).to.be.reverted;
 
-      //   // unminted profile
-      //   await expect(deployedNftResolver.connect(addr5).clearAssociatedContract("unmintedProfile")).to.be.reverted;
+        // unminted profile
+        await expect(deployedNftResolver.connect(addr5).clearAssociatedContract("unmintedProfile")).to.be.reverted;
 
-      //   await deployedNftResolver.connect(second).clearAssociatedContract("testminter");
-      //   expect((await deployedNftResolver.associatedContract("testminter"))[0]).to.be.equal(0);
-      //   expect((await deployedNftResolver.associatedContract("testminter"))[1]).to.be.equal("");
-      // });
+        await deployedNftResolver.connect(second).clearAssociatedContract("testminter");
+        expect((await deployedNftResolver.associatedContract("testminter"))[0]).to.be.equal(0);
+        expect((await deployedNftResolver.associatedContract("testminter"))[1]).to.be.equal("");
+      });
 
-      // it("should be able to parse addresses from string", async function () {
-      //   expect(await deployedNftResolver.parseAddr(addr1.address)).to.be.equal(addr1.address);
+      it("should be able to parse addresses from string", async function () {
+        expect(await deployedNftResolver.parseAddr(addr1.address)).to.be.equal(addr1.address);
 
-      //   // reverts due to not being a valid address with invalid letters
-      //   await expect(deployedNftResolver.parseAddr("notAddress")).to.be.reverted;
-      // });
+        // reverts due to not being a valid address with invalid letters
+        await expect(deployedNftResolver.parseAddr("notAddress")).to.be.reverted;
+      });
 
-      // it("should be able to set owner", async function () {
-      //   expect(await deployedNftResolver.owner()).to.be.equal(owner.address);
-      //   await deployedNftResolver.connect(owner).setOwner(second.address);
-      //   expect(await deployedNftResolver.owner()).to.be.equal(second.address);
-      //   await deployedNftResolver.connect(second).setOwner(addr1.address);
-      //   expect(await deployedNftResolver.owner()).to.be.equal(addr1.address);
-      //   await deployedNftResolver.connect(addr1).setOwner(second.address);
-      //   expect(await deployedNftResolver.owner()).to.be.equal(second.address);
-      // });
+      it("should be able to set owner", async function () {
+        expect(await deployedNftResolver.owner()).to.be.equal(owner.address);
+        await deployedNftResolver.connect(owner).setOwner(second.address);
+        expect(await deployedNftResolver.owner()).to.be.equal(second.address);
+        await deployedNftResolver.connect(second).setOwner(addr1.address);
+        expect(await deployedNftResolver.owner()).to.be.equal(addr1.address);
+        await deployedNftResolver.connect(addr1).setOwner(second.address);
+        expect(await deployedNftResolver.owner()).to.be.equal(second.address);
+      });
 
-      // it("should correctly diagnose evm based enums", async function () {
-      //   // unit tests for evm based system
-      //   expect(await deployedNftResolver.evmBased(Blockchain.ETHEREUM)).to.be.equal(true);
-      //   expect(await deployedNftResolver.evmBased(Blockchain.POLYGON)).to.be.equal(true);
-      //   expect(await deployedNftResolver.evmBased(Blockchain.HEDERA)).to.be.equal(false);
-      //   expect(await deployedNftResolver.evmBased(Blockchain.SOLANA)).to.be.equal(false);
-      //   expect(await deployedNftResolver.evmBased(Blockchain.TEZOS)).to.be.equal(false);
-      //   expect(await deployedNftResolver.evmBased(Blockchain.FLOW)).to.be.equal(false);
-      // });
+      it("should correctly diagnose evm based enums", async function () {
+        // unit tests for evm based system
+        expect(await deployedNftResolver.evmBased(Blockchain.ETHEREUM)).to.be.equal(true);
+        expect(await deployedNftResolver.evmBased(Blockchain.POLYGON)).to.be.equal(true);
+        expect(await deployedNftResolver.evmBased(Blockchain.HEDERA)).to.be.equal(false);
+        expect(await deployedNftResolver.evmBased(Blockchain.SOLANA)).to.be.equal(false);
+        expect(await deployedNftResolver.evmBased(Blockchain.TEZOS)).to.be.equal(false);
+        expect(await deployedNftResolver.evmBased(Blockchain.FLOW)).to.be.equal(false);
+      });
 
-      // it("should upgrade profile contract to V2", async function () {
-      //   const ProfileAuctionV2 = await ethers.getContractFactory("ProfileAuctionV2");
+      it("should upgrade profile contract to V2", async function () {
+        const ProfileAuctionV2 = await ethers.getContractFactory("ProfileAuctionV2");
 
-      //   let deployedProfileAuctionV2 = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2);
+        let deployedProfileAuctionV2 = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2);
 
-      //   expect(await deployedProfileAuctionV2.getVariable()).to.be.equal("hello");
+        expect(await deployedProfileAuctionV2.getVariable()).to.be.equal("hello");
 
-      //   expect(await deployedProfileAuctionV2.testFunction()).to.be.equal(12345);
-      // });
+        expect(await deployedProfileAuctionV2.testFunction()).to.be.equal(12345);
+      });
     });
   } catch (err) {
     console.log("error: ", err);
