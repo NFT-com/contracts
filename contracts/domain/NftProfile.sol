@@ -81,10 +81,9 @@ contract NftProfile is
         }
     }
 
-    function _validUrl(string memory url) private view {
+    function _validURI(string memory url) private view {
         address nftProfileHelperAddress = IProfileAuction(profileAuctionContract).nftProfileHelperAddress();
         require(INftProfileHelper(nftProfileHelperAddress)._validURI(url), "!validNewUrl");
-        require(!tokenUsed(url), "!unused");
     }
 
     /**
@@ -102,7 +101,7 @@ contract NftProfile is
             _tokenUsedURIs[_profiles[i].newUrl] = tokenId; // edit new
 
             // make sure new url confirms and is not taken
-            _validUrl(_profiles[i].newUrl);
+            _validURI(_profiles[i].newUrl);
 
             _tokenURIs[tokenId] = _profiles[i].newUrl; // set 
         }
@@ -169,7 +168,8 @@ contract NftProfile is
         uint256 _duration
     ) external override {
         require(msg.sender == profileAuctionContract);
-        _validUrl(_profileURI);
+        _validURI(_profileURI);
+        require(!tokenUsed(_profileURI), "!unused");
 
         uint256 preSupply = totalSupply();
         _mint(_receiver, 1, "", false);
