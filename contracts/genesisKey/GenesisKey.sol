@@ -223,25 +223,29 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         safeTransferETH(multiSig, address(this).balance);
     }
 
-    function publicBuyKey() external payable nonReentrant {
+    function publicBuyKey(uint256 amount) external payable nonReentrant {
         // checks
         require(startPublicSale, "GEN_KEY: invalid time");
-        require(block.timestamp > 1651705200, "Q.E.D"); // 5/4/22 11pm utc
+        require(amount != 0, "!0");
         if (totalSupply() != MAX_SUPPLY) revert MaxSupply();
         if (latestClaimTokenId == 5000) revert MaxSupply();
 
-        uint256 currPrice = finalEthPrice;
+        uint256 totalFunds = finalEthPrice * amount;
         require(msg.value >= finalEthPrice, "GEN_KEY: INSUFFICIENT FUNDS");
 
         // effects
-        latestClaimTokenId += 1;
+        latestClaimTokenId += amount;
 
         // interactions
-        if (msg.value > currPrice) {
-            safeTransferETH(msg.sender, msg.value - currPrice);
+        if (msg.value > totalFunds) {
+            safeTransferETH(msg.sender, msg.value - totalFunds);
         }
 
         safeTransferETH(multiSig, address(this).balance);
-        _adminTransfer(address(this), msg.sender, latestClaimTokenId);
+
+        // mints reverse
+        for (uint256 i = 0; i < amount; i++) {
+            _adminTransfer(address(this), msg.sender, latestClaimTokenId - i);
+        }
     }
 }
