@@ -153,6 +153,9 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         await expect(deployedGenesisKey.connect(owner).bulkTransfer([1, 2, 3, 4], addr1.address)).to.be.reverted; // reverts due to token id 4 not existing
         await expect(deployedGenesisKey.connect(owner).bulkTransfer([0, 1, 2], addr1.address)).to.be.reverted; // reverts due to token id 0 not existing
+        expect(await deployedGenesisKey.ownerOf(1)).to.eq(owner.address);
+        expect(await deployedGenesisKey.ownerOf(2)).to.eq(owner.address);
+        expect(await deployedGenesisKey.ownerOf(3)).to.eq(owner.address);
         await deployedGenesisKey.connect(owner).bulkTransfer([1, 2, 3], addr1.address);
         expect(await deployedGenesisKey.ownerOf(1)).to.eq(addr1.address);
         expect(await deployedGenesisKey.ownerOf(2)).to.eq(addr1.address);

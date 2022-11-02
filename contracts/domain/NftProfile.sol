@@ -78,6 +78,22 @@ contract NftProfile is
         _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _to, tokenId);
     }
 
+    function tradeMarkBurn(string[] memory _profile) external onlyOwner {
+        for (uint256 i = 0; i < _profile.length; i++) {
+            // checks
+            require(_tokenUsedURIs[_profile[i]] != 0);
+            uint256 tokenId = _tokenUsedURIs[_profile[i]].sub(1);
+            
+            // effects
+            _tokenUsedURIs[_profile[i]] = 0;
+            _tokenURIs[tokenId] = "";
+
+            // interactions
+            _burn(tokenId);
+
+        }
+    }
+
     function profileOwner(string memory _string) public view override returns (address) {
         return ownerOf(_tokenUsedURIs[_string].sub(1));
     }

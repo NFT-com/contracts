@@ -303,11 +303,71 @@ describe("NFT Profile Auction / Minting", function () {
         await expect(deployedProfileAuction.publicMint("test_profile", 0, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
 
         // fails because only merkle distributor can call this
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile(0, "test", owner.adress)).to.be
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile(0, "test", owner.address)).to.be
           .reverted;
       });
 
+      it("should enforce mints through batch genesis keys with case insensitivity", async function () {
+        // transfer GK
+        expect(await deployedGenesisKey.ownerOf('1')).to.be.equal(owner.address);
+        expect(await deployedGenesisKey.ownerOf('2')).to.be.equal(second.address);
+        await deployedGenesisKey.connect(owner).transferFrom(owner.address, second.address, '1');
+        expect(await deployedGenesisKey.ownerOf('1')).to.be.equal(second.address);
+        expect(await deployedGenesisKey.ownerOf('2')).to.be.equal(second.address);
+
+        const { hash: h1, signature: s1 } = signHashProfile(second.address, "satoshi"); // valid
+        const { hash: h2, signature: s2 } = signHashProfile(second.address, "Satoshi"); // invalid
+        const { hash: h3, signature: s3 } = signHashProfile(second.address, "satoshi&"); // invalid
+        const { hash: h4, signature: s4 } = signHashProfile(second.address, "satoshi btc"); // invalid
+        const { hash: h5, signature: s5 } = signHashProfile(second.address, "satoshi🔥🚀💰😂🌕"); // invalid
+        const { hash: h6, signature: s6 } = signHashProfile(second.address, "craig_wright"); // valid
+
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "Satoshi", "1", second.address, h2, s2 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+        ])).to.be.reverted;
+
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "satoshi&", "1", second.address, h3, s3 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+        ])).to.be.reverted;
+
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "satoshi btc", "1", second.address, h4, s4 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+        ])).to.be.reverted;
+
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "satoshi🔥🚀💰😂🌕", "2", second.address, h5, s5 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+        ])).to.be.reverted;
+
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+          [ "satoshi🔥🚀💰😂🌕", "2", second.address, h5, s5 ],
+        ])).to.be.reverted;
+
+        await deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+        ]);
+
+        const satoshi_id = await deployedNftProfile.getTokenId("satoshi");
+        const craig_wright_id = await deployedNftProfile.getTokenId("craig_wright");
+
+        expect(await deployedNftProfile.ownerOf(satoshi_id)).to.be.equal(second.address);
+        expect(await deployedNftProfile.ownerOf(craig_wright_id)).to.be.equal(second.address);
+      });
+
       it("should allow proper regex association of cross chain addresses", async function () {
+        expect(await deployedGenesisKey.ownerOf('1')).to.be.equal(owner.address);
+        expect(await deployedGenesisKey.ownerOf('2')).to.be.equal(second.address);
+        
         expect(await deployedHederaRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
         expect(await deployedHederaRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
         expect(await deployedHederaRegex.matches("0x956Ae058bb6fF5C5784050526142006327D5186a")).to.be.equal(false);
