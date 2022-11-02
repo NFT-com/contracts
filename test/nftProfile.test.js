@@ -377,10 +377,14 @@ describe("NFT Profile Auction / Minting", function () {
         expect(await deployedNftProfile.ownerOf(satoshi_id)).to.be.equal(owner.address);
         expect(await deployedNftProfile.ownerOf(craig_wright_id)).to.be.equal(second.address);
 
-        await expect(deployedNftProfile.connect(owner).tradeMarkEdit([['satoshi', 'a'], ['craig_wright', 'b'], ['n/a', 'c']])).to.be.reverted; // reverts due to n/a not being a profile
+        // reverts due to n/a not being a profile
+        await expect(deployedNftProfile.connect(owner).tradeMarkEdit([['satoshi', 'a'], ['craig_wright', 'b'], ['n/a', 'c']])).to.be.reverted;
+
+        // fails due to nft valid uri check
+        await expect(deployedNftProfile.connect(owner).tradeMarkEdit([['satoshi', 'satoshi_A'], ['craig_wright', 'craig_wright_x']])).to.be.revertedWith('!validNewUrl');
 
         // should succeed
-        await deployedNftProfile.connect(owner).tradeMarkEdit([['satoshi', 'satoshi_x'], ['craig_wright', 'craig_wright_x']]);
+        expect(await deployedNftProfile.connect(owner).tradeMarkEdit([['satoshi', 'satoshi_x'], ['craig_wright', 'craig_wright_x']]));
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(4);
         expect(await deployedNftProfile.tokenURI(2)).to.be.equal(`https://api.nft.com/uri/satoshi_x`);

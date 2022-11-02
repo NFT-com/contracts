@@ -2,6 +2,8 @@
 pragma solidity >=0.8.4;
 
 import "../interface/INftProfile.sol";
+import "../interface/IProfileAuction.sol";
+import "../interface/INftProfileHelper.sol";
 import "../erc721a/ERC721AProfileUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -92,7 +94,12 @@ contract NftProfile is
             // effects
             _tokenUsedURIs[_profiles[i].oldUrl] = 0; // edit old
             _tokenUsedURIs[_profiles[i].newUrl] = tokenId; // edit new
-            _tokenURIs[tokenId] = _profiles[i].newUrl; // set new
+
+            // make sure new url confirms and is not taken
+            address nftProfileHelperAddress = IProfileAuction(profileAuctionContract).nftProfileHelperAddress();
+            require(INftProfileHelper(nftProfileHelperAddress)._validURI(_profiles[i].newUrl), "!validNewUrl");
+
+            _tokenURIs[tokenId] = _profiles[i].newUrl; // set 
         }
     }
 
