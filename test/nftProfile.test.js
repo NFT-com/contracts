@@ -307,7 +307,7 @@ describe("NFT Profile Auction / Minting", function () {
           .reverted;
       });
 
-      it("should enforce mints through batch genesis keys with case insensitivity", async function () {
+      it("should enforce mints through batch genesis keys with case insensitivity and enforce trademark burns", async function () {
         // transfer GK
         expect(await deployedGenesisKey.ownerOf('1')).to.be.equal(owner.address);
         expect(await deployedGenesisKey.ownerOf('2')).to.be.equal(second.address);
@@ -362,12 +362,14 @@ describe("NFT Profile Auction / Minting", function () {
 
         expect(await deployedNftProfile.ownerOf(satoshi_id)).to.be.equal(second.address);
         expect(await deployedNftProfile.ownerOf(craig_wright_id)).to.be.equal(second.address);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
       });
 
       it("should allow proper regex association of cross chain addresses", async function () {
         expect(await deployedGenesisKey.ownerOf('1')).to.be.equal(owner.address);
         expect(await deployedGenesisKey.ownerOf('2')).to.be.equal(second.address);
-        
+
         expect(await deployedHederaRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
         expect(await deployedHederaRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
         expect(await deployedHederaRegex.matches("0x956Ae058bb6fF5C5784050526142006327D5186a")).to.be.equal(false);
@@ -539,7 +541,7 @@ describe("NFT Profile Auction / Minting", function () {
           .connect(second)
           .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES);
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(second.address);
-        await deployedNftProfile.connect(owner).tradeMarkTransfer("profile6", owner.address);
+        await deployedNftProfile.connect(owner).tradeMarkTransfer([["profile6", owner.address]]);
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(15);

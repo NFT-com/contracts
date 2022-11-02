@@ -68,16 +68,21 @@ contract NftProfile is
 
     /**
      @dev transfers trademarked profile to recipient
-     @param _profile profile url being transferred
-     @param _to receiver of profile
+     @param _profiles profile url being transferred
     */
-    function tradeMarkTransfer(string memory _profile, address _to) external onlyOwner {
-        require(_tokenUsedURIs[_profile] != 0);
-        uint256 tokenId = _tokenUsedURIs[_profile].sub(1);
+    function tradeMarkTransfer(TrademarkTransfer[] memory _profiles) external onlyOwner {
+        for(uint256 i = 0; i < _profiles.length; i++) {
+            require(_tokenUsedURIs[_profiles[i].url] != 0);
+            uint256 tokenId = _tokenUsedURIs[_profiles[i].url].sub(1);
 
-        _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _to, tokenId);
+            _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _profiles[i].to, tokenId);
+        }
     }
 
+    /**
+     @dev burns trademarked profiles
+     @param _profile array of profiles being burned
+    */
     function tradeMarkBurn(string[] memory _profile) external onlyOwner {
         for (uint256 i = 0; i < _profile.length; i++) {
             // checks
@@ -89,6 +94,12 @@ contract NftProfile is
             _tokenURIs[tokenId] = "";
 
             // interactions
+
+            // transfer to sender
+            if (ERC721AProfileUpgradeable.ownerOf(tokenId) != msg.sender) {
+                _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), msg.sender, tokenId);
+            }
+
             _burn(tokenId);
 
         }

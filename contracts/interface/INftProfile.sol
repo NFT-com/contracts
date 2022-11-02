@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
+struct TrademarkTransfer {
+    string url;
+    address to;
+}
+
 interface INftProfile {
     event ExtendExpiry(string _profileURI, uint256 _extendedExpiry);
 
