@@ -279,8 +279,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             
             // checks
             require(IERC721EnumerableUpgradeable(genesisKeyContract).ownerOf(tokenId) == recipient, "gkp: !owner");
-            require(validURI(profileUrl), "gkp: !validURI");
-            require(!INftProfile(nftProfile).tokenUsed(profileUrl), "gkp: !unused");
+            // require(validURI(profileUrl), "gkp: !validURI");
+            // require(!INftProfile(nftProfile).tokenUsed(profileUrl), "gkp: !unused");
             require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "gkp: !sig");
             require(hashTransaction(msg.sender, profileUrl) == hash, "gkp: !hash");
             uint256 profilesAllowed = genKeyWhitelistOnly ? 4 : 7;

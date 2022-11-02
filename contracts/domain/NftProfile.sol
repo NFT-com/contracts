@@ -81,6 +81,12 @@ contract NftProfile is
         }
     }
 
+    function _validUrl(string memory url) private view {
+        address nftProfileHelperAddress = IProfileAuction(profileAuctionContract).nftProfileHelperAddress();
+        require(INftProfileHelper(nftProfileHelperAddress)._validURI(url), "!validNewUrl");
+        require(!tokenUsed(url), "!unused");
+    }
+
     /**
      @dev edits trademarked profiles to valid url
      @param _profiles array of profiles being burned
@@ -96,8 +102,7 @@ contract NftProfile is
             _tokenUsedURIs[_profiles[i].newUrl] = tokenId; // edit new
 
             // make sure new url confirms and is not taken
-            address nftProfileHelperAddress = IProfileAuction(profileAuctionContract).nftProfileHelperAddress();
-            require(INftProfileHelper(nftProfileHelperAddress)._validURI(_profiles[i].newUrl), "!validNewUrl");
+            _validUrl(_profiles[i].newUrl);
 
             _tokenURIs[tokenId] = _profiles[i].newUrl; // set 
         }
@@ -112,7 +117,7 @@ contract NftProfile is
      @param _string profile URI
      @return true is a profile exists and is minted for a given string
     */
-    function tokenUsed(string memory _string) external view override returns (bool) {
+    function tokenUsed(string memory _string) public view override returns (bool) {
         return _tokenUsedURIs[_string] != 0;
     }
 
@@ -164,6 +169,8 @@ contract NftProfile is
         uint256 _duration
     ) external override {
         require(msg.sender == profileAuctionContract);
+        _validUrl(_profileURI);
+
         uint256 preSupply = totalSupply();
         _mint(_receiver, 1, "", false);
         setTokenURI(preSupply, _profileURI);
