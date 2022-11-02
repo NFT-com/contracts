@@ -6,6 +6,11 @@ struct TrademarkTransfer {
     address to;
 }
 
+struct TrademarkEdit {
+    string oldUrl;
+    string newUrl;
+}
+
 interface INftProfile {
     event ExtendExpiry(string _profileURI, uint256 _extendedExpiry);
 

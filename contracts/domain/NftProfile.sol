@@ -57,8 +57,8 @@ contract NftProfile is
      @param _tokenURI the string name of a NFT.com profile
     */
     function setTokenURI(uint256 _tokenId, string memory _tokenURI) private {
-        require(_exists(_tokenId));
-        require(_tokenUsedURIs[_tokenURI] == 0);
+        require(_exists(_tokenId), "exists");
+        require(_tokenUsedURIs[_tokenURI] == 0, "unsuedURI");
 
         _tokenURIs[_tokenId] = _tokenURI;
 
@@ -80,28 +80,19 @@ contract NftProfile is
     }
 
     /**
-     @dev burns trademarked profiles
-     @param _profile array of profiles being burned
+     @dev edits trademarked profiles to valid url
+     @param _profiles array of profiles being burned
     */
-    function tradeMarkBurn(string[] memory _profile) external onlyOwner {
-        for (uint256 i = 0; i < _profile.length; i++) {
+    function tradeMarkEdit(TrademarkEdit[] memory _profiles) external onlyOwner {
+        for (uint256 i = 0; i < _profiles.length; i++) {
             // checks
-            require(_tokenUsedURIs[_profile[i]] != 0);
-            uint256 tokenId = _tokenUsedURIs[_profile[i]].sub(1);
+            require(_tokenUsedURIs[_profiles[i].oldUrl] != 0);
+            uint256 tokenId = _tokenUsedURIs[_profiles[i].oldUrl].sub(1);
             
             // effects
-            _tokenUsedURIs[_profile[i]] = 0;
-            _tokenURIs[tokenId] = "";
-
-            // interactions
-
-            // transfer to sender
-            if (ERC721AProfileUpgradeable.ownerOf(tokenId) != msg.sender) {
-                _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), msg.sender, tokenId);
-            }
-
-            _burn(tokenId);
-
+            _tokenUsedURIs[_profiles[i].oldUrl] = 0; // edit old
+            _tokenUsedURIs[_profiles[i].newUrl] = tokenId; // edit new
+            _tokenURIs[tokenId] = _profiles[i].newUrl; // set new
         }
     }
 
