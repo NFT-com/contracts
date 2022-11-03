@@ -94,7 +94,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     }
 
     function bulkTransfer(uint256[] calldata tokenIds, address _to) external {
-        for (uint256 i; i < tokenIds.length;) {
+        for (uint256 i = 0; i < tokenIds.length;) {
             if (_genesisKeyLockUp[tokenIds[i]].currentLockup != 0) revert PausedTransfer();
             _transfer(msg.sender, _to, tokenIds[i]);
             unchecked { i++; }
