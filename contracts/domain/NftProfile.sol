@@ -93,17 +93,17 @@ contract NftProfile is
     function tradeMarkEdit(TrademarkEdit[] memory _profiles) external onlyOwner {
         for (uint256 i = 0; i < _profiles.length; i++) {
             // checks
-            require(_tokenUsedURIs[_profiles[i].oldUrl] != 0);
-            uint256 tokenId = _tokenUsedURIs[_profiles[i].oldUrl].sub(1);
+            require(_tokenUsedURIs[_profiles[i].oldUrl] != 0); // make sure old url exists as tokenId
+            uint256 tokenId = _tokenUsedURIs[_profiles[i].oldUrl].sub(1); // get tokenId of old url
             
             // effects
-            _tokenUsedURIs[_profiles[i].oldUrl] = 0; // edit old
-            _tokenUsedURIs[_profiles[i].newUrl] = tokenId; // edit new
+            _tokenUsedURIs[_profiles[i].oldUrl] = 0; // edit old url to be 0 (unusued)
+            _tokenUsedURIs[_profiles[i].newUrl] = tokenId.add(1); // set new url to be tokenId
 
             // make sure new url confirms and is not taken
             _validURI(_profiles[i].newUrl);
 
-            _tokenURIs[tokenId] = _profiles[i].newUrl; // set 
+            _tokenURIs[tokenId] = _profiles[i].newUrl; // set new tokenID <> tokenURL mapping
         }
     }
 
