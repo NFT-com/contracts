@@ -402,7 +402,7 @@ describe("NFT Profile Auction / Minting", function () {
 
         await deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
           [ "satoshi", "1", second.address, h7, s7 ],
-          [ "craig_wright", "2", second.address, h8, s8 ],
+          [ "craig_wright", "1", second.address, h8, s8 ],
         ]);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(6);
@@ -411,8 +411,27 @@ describe("NFT Profile Auction / Minting", function () {
         await expect(deployedNftProfile.tokenURI(6)).to.be.reverted;
         expect(await deployedNftProfile.tokenUsed('satoshi')).to.be.true;
         expect(await deployedNftProfile.tokenUsed('craig_wright')).to.be.true;
-        expect(await deployedNftProfile.tokenUsed('satoshi_x')).to.be.true;
-        expect(await deployedNftProfile.tokenUsed('craig_wright_x')).to.be.true;
+
+        const { hash: h9, signature: s9 } = signHashProfile(second.address, "satoshi_y"); // valid
+        const { hash: h10, signature: s10 } = signHashProfile(second.address, "craig_wright_y"); // valid
+
+        // exceeds 4 mints per key
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi_y", "1", second.address, h9, s9 ],
+          [ "craig_wright_y", "1", second.address, h10, s10 ],
+        ])).to.be.reverted;
+
+        await deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi_y", "1", second.address, h9, s9 ],
+          [ "craig_wright_y", "2", second.address, h10, s10 ],
+        ]);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
+        expect(await deployedNftProfile.tokenURI(6)).to.be.equal(`https://api.nft.com/uri/satoshi_y`);
+        expect(await deployedNftProfile.tokenURI(7)).to.be.equal(`https://api.nft.com/uri/craig_wright_y`);
+        await expect(deployedNftProfile.tokenURI(8)).to.be.reverted;
+        expect(await deployedNftProfile.tokenUsed('satoshi_y')).to.be.true;
+        expect(await deployedNftProfile.tokenUsed('craig_wright_y')).to.be.true;
       });
 
       it("should allow proper regex association of cross chain addresses", async function () {

@@ -143,13 +143,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         lockupBoolean = !lockupBoolean;
     }
 
-    function mintKey(address _recipient) external onlyOwner {
-        if (block.chainid == 5) { // goerli support only
-            if (totalSupply() == MAX_SUPPLY) revert MaxSupply();
-            _mint(_recipient, 1, "", false);
-        }
-    }
-
     function currentXP(uint256 tokenId)
         external
         view
