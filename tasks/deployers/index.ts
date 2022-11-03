@@ -951,15 +951,29 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
 
   const GenesisKey = await hre.ethers.getContractFactory(network === "goerli" ? "GenesisKeyOld" : "GenesisKey");
 
-  const upgradedGenesisKey = await hre.upgrades.upgradeProxy(
-    (
-      await getTokens(hre)
-    ).deployedGenesisKeyAddress,
-    GenesisKey,
-  );
-  console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
-
-  await delayedVerifyImp("upgradedGenesisKey", upgradedGenesisKey.address, hre);
+  if (network == "mainnet") {
+    const upgradedGKImp = await hre.upgrades.prepareUpgrade(
+      (
+        await getTokens(hre)
+      ).deployedGenesisKeyAddress,
+      GenesisKey,
+    );
+    console.log(chalk.green("new profile auction imp: ", upgradedGKImp));
+  
+    console.log('upgradedGKImp: ', upgradedGKImp);
+    // GO TO OZ DEFENDER
+    await verifyContract(`upgrade ProfileAuction impl`, `${upgradedGKImp}`, [], hre);
+  } else {
+    const upgradedGenesisKey = await hre.upgrades.upgradeProxy(
+      (
+        await getTokens(hre)
+      ).deployedGenesisKeyAddress,
+      GenesisKey,
+    );
+    console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
+  
+    await delayedVerifyImp("upgradedGenesisKey", upgradedGenesisKey.address, hre);
+  }
 });
 
 task("upgrade:NftResolver").setAction(async function (taskArguments, hre) {
@@ -991,7 +1005,7 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
   
     console.log('upgradedProfileAuctionAddressImp: ', upgradedProfileAuctionAddressImp);
     // GO TO OZ DEFENDER
-    // await verifyContract(`upgrade ProfileAuction impl`, '0x29c85cecc3fe7d34f41b56f0f9ace37e897eb6b0', [], hre);
+    await verifyContract(`upgrade ProfileAuction impl`, `${upgradedProfileAuctionAddressImp}`, [], hre);
   } else if (network == 'goerli') {
     const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 

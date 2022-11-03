@@ -74,9 +74,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       GenesisKeyTeamDistributor = await ethers.getContractFactory("GenesisKeyTeamDistributor");
       deployedGkTeamDistributor = await GenesisKeyTeamDistributor.deploy(deployedGenesisKeyTeamClaim.address);
 
-      // only set pause transfer until public sale is over
-      await deployedGenesisKey.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
-
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       deployedNftBuyer = await NftBuyer.deploy(
         UNI_FACTORY_V2,
@@ -134,29 +131,118 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         expect(await deployedGenesisKey.owner()).to.eq(owner.address);
       });
 
-      it("should let owner set duration in seconds of public auction", async function () {
-        await deployedGenesisKey.setPublicSaleDuration(Number(auctionSeconds) + 100);
-        expect(await deployedGenesisKey.publicSaleDurationSeconds()).to.eq(Number(auctionSeconds) + 100);
+      it("should allow users to correctly bulk transfer keys they own", async function () {
+        for (let i = 0; i < 1000; i++) {
+          await deployedGenesisKey.connect(owner).mintKey(owner.address);
+          expect(await deployedGenesisKey.totalSupply()).to.eq(i + 1);
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(owner.address);
+        }
+
+        await expect(deployedGenesisKey.connect(owner).bulkTransfer([1, 2, 3, 1001], addr1.address)).to.be.reverted; // reverts due to token id 1001 not existing
+        await expect(deployedGenesisKey.connect(owner).bulkTransfer([0, 1, 2], addr1.address)).to.be.reverted; // reverts due to token id 0 not existing
+        await deployedGenesisKey.connect(owner).bulkTransfer(Array.from({length: 1000}, (_, i) => i + 1), addr1.address); // 1 - 1000 inclusive
+        for (let i = 0; i < 1000; i++) {
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(addr1.address);
+        }
+
+        // send to GK to test deprecation
+        await deployedGenesisKey.connect(addr1).bulkTransfer(Array.from({length: 1000}, (_, i) => i + 1), deployedGenesisKey.address); // 1 - 1000 inclusive
+        for (let i = 0; i < 1000; i++) {
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
+        }
+
+        expect(await deployedGenesisKey.latestClaimTokenId()).to.eq(0);
+        await deployedGenesisKey.connect(owner).deprecateGK(600);
+        expect(await deployedGenesisKey.latestClaimTokenId()).to.eq(600);
+
+        for (let i = 0; i < 1000; i++) {
+          if (i < 600) {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
+          } else {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
+          }
+        }
+
+        // reverts due to not having the correct number of GKs
+        await expect(deployedGenesisKey.connect(owner).deprecateGK(600)).to.be.reverted;
+
+        // should successfully process an additional 100
+        await deployedGenesisKey.connect(owner).deprecateGK(100);
+
+        for (let i = 0; i < 1000; i++) {
+          if (i < 700) {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
+          } else {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
+          }
+        }
+
+        // deprecate key 1 by 1
+        for (let i = 0; i < 150; i++) {
+          await deployedGenesisKey.connect(owner).deprecateGK(1);
+        }
+
+        for (let i = 0; i < 1000; i++) {
+          if (i < 850) {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
+          } else {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
+          }
+        }
+
+        // deprecate key by pair
+        for (let i = 0; i < (150 / 2); i++) {
+          await deployedGenesisKey.connect(owner).deprecateGK(2);
+        }
+
+        for (let i = 0; i < 1000; i++) {
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
+        }
+
+        await expect(deployedGenesisKey.connect(owner).deprecateGK(1)).to.be.reverted;
+        await expect(deployedGenesisKey.connect(owner).deprecateGK(0)).to.be.revertedWith("!0");
       });
 
-      it("should allow users to correctly bulk transfer keys they own", async function () {
-        await deployedGenesisKey.connect(owner).mintKey(owner.address);
-        expect(await deployedGenesisKey.totalSupply()).to.eq(1);
-        await deployedGenesisKey.connect(owner).mintKey(owner.address);
-        expect(await deployedGenesisKey.totalSupply()).to.eq(2);
-        await deployedGenesisKey.connect(owner).mintKey(owner.address);
-        expect(await deployedGenesisKey.totalSupply()).to.eq(3);
+      it("should allow for GK staking", async function () {
+        for (let i = 0; i < 1000; i++) {
+          await deployedGenesisKey.connect(owner).mintKey(owner.address);
+          expect(await deployedGenesisKey.totalSupply()).to.eq(i + 1);
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(owner.address);
+        }
+        
+        expect(await deployedGenesisKey.lockupBoolean()).to.be.false;
 
-        expect(await deployedGenesisKey.ownerOf(1)).to.eq(owner.address);
-        expect(await deployedGenesisKey.ownerOf(2)).to.eq(owner.address);
-        expect(await deployedGenesisKey.ownerOf(3)).to.eq(owner.address);
+        // reverts due to lockUp boolean being false
+        await expect(deployedGenesisKey.connect(owner).toggleLockup([25])).to.be.reverted;
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
 
-        await expect(deployedGenesisKey.connect(owner).bulkTransfer([1, 2, 3, 4], addr1.address)).to.be.reverted; // reverts due to token id 4 not existing
-        await expect(deployedGenesisKey.connect(owner).bulkTransfer([0, 1, 2], addr1.address)).to.be.reverted; // reverts due to token id 0 not existing
-        await deployedGenesisKey.connect(owner).bulkTransfer([1, 2, 3], addr1.address);
-        expect(await deployedGenesisKey.ownerOf(1)).to.eq(addr1.address);
-        expect(await deployedGenesisKey.ownerOf(2)).to.eq(addr1.address);
-        expect(await deployedGenesisKey.ownerOf(3)).to.eq(addr1.address);
+        expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
+
+        // owner != ownerOf(2)
+        await expect(deployedGenesisKey.connect(second).toggleLockup([25])).to.be.reverted;
+
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean(); // false
+
+        // reverts due to lockUp boolean being false
+        await expect(deployedGenesisKey.connect(owner).toggleLockup([21])).to.be.reverted;
+
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean(); // true
+
+        await deployedGenesisKey.connect(owner).toggleLockup([21]);
+        expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
+        await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 21)).to.be.reverted;
+        await expect(deployedGenesisKey.connect(owner).bulkTransfer([21], second.address, 21)).to.be.reverted;
+
+        console.log("currentXP 1: ", await deployedGenesisKey.currentXP(21));
+        console.log("currentXP 2: ", await deployedGenesisKey.currentXP(25));
+
+        await deployedGenesisKey.connect(owner).toggleLockup([21]);
+        await deployedGenesisKey.transferFrom(owner.address, second.address, 21);
+        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
+        expect(await deployedGenesisKey.ownerOf(21)).to.be.equal(second.address);
+
+        console.log("currentXP after 2: ", await deployedGenesisKey.currentXP(21));
+        console.log("currentXP after 1: ", await deployedGenesisKey.currentXP(25));
       });
     });
 

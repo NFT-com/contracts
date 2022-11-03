@@ -143,14 +143,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         lockupBoolean = !lockupBoolean;
     }
 
-    function setPublicSaleDuration(uint96 _seconds) external onlyOwner {
-        publicSaleDurationSeconds = _seconds;
-    }
-
-    function setSigner(address _signer) external onlyOwner {
-        signerAddress = _signer;
-    }
-
     function currentXP(uint256 tokenId)
         external
         view
@@ -187,15 +179,22 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         }
     }
 
-    // initial weth price is the high price (starting point)
-    // final weth price is the lowest floor price we allow
-    // num keys for sale is total keys allowed to mint
-    function initializePublicSale(uint96 _initialEthPrice, uint96 _finalEthPrice) external onlyOwner {
-        require(!startPublicSale, "GEN_KEY: sale already initialized");
-        initialEthPrice = _initialEthPrice;
-        finalEthPrice = _finalEthPrice;
-        publicSaleStartSecond = uint96(block.timestamp);
-        startPublicSale = true;
+    // function used for internal testing
+    function mintKey(address _recipient) external onlyOwner {
+        if (block.chainid == 5) {
+            if (totalSupply() == MAX_SUPPLY) revert MaxSupply();
+            _mint(_recipient, 1, "", false);
+        }
+    }
+
+    function deprecateGK(uint256 _amount) external onlyOwner {
+        require(_amount != 0, "!0");
+        uint256 i = latestClaimTokenId + 1; // start at 1
+        latestClaimTokenId += _amount;
+        while (i <= latestClaimTokenId) {
+            _adminTransfer(address(this), multiSig, i);
+            unchecked { i++; }
+        }
     }
 
     function _startTokenId() internal pure override returns (uint256) {
@@ -214,27 +213,5 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     // helper function for transferring eth from the public auction to MS
     function transferETH() external onlyOwner {
         safeTransferETH(multiSig, address(this).balance);
-    }
-
-    function publicBuyKey() external payable nonReentrant {
-        // checks
-        require(startPublicSale, "GEN_KEY: invalid time");
-        require(block.timestamp > 1651705200, "Q.E.D"); // 5/4/22 11pm utc
-        if (totalSupply() != MAX_SUPPLY) revert MaxSupply();
-        if (latestClaimTokenId == 5000) revert MaxSupply();
-
-        uint256 currPrice = finalEthPrice;
-        require(msg.value >= finalEthPrice, "GEN_KEY: INSUFFICIENT FUNDS");
-
-        // effects
-        latestClaimTokenId += 1;
-
-        // interactions
-        if (msg.value > currPrice) {
-            safeTransferETH(msg.sender, msg.value - currPrice);
-        }
-
-        safeTransferETH(multiSig, address(this).balance);
-        _adminTransfer(address(this), msg.sender, latestClaimTokenId);
     }
 }

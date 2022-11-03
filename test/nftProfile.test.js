@@ -303,11 +303,141 @@ describe("NFT Profile Auction / Minting", function () {
         await expect(deployedProfileAuction.publicMint("test_profile", 0, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
 
         // fails because only merkle distributor can call this
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile(0, "test", owner.adress)).to.be
+        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile(0, "test", owner.address)).to.be
           .reverted;
       });
 
+      it("should enforce mints through batch genesis keys with case insensitivity and enforce trademark edits", async function () {
+        // transfer GK
+        expect(await deployedGenesisKey.ownerOf('1')).to.be.equal(owner.address);
+        expect(await deployedGenesisKey.ownerOf('2')).to.be.equal(second.address);
+        await deployedGenesisKey.connect(owner).transferFrom(owner.address, second.address, '1');
+        expect(await deployedGenesisKey.ownerOf('1')).to.be.equal(second.address);
+        expect(await deployedGenesisKey.ownerOf('2')).to.be.equal(second.address);
+
+        const { hash: h1, signature: s1 } = signHashProfile(second.address, "satoshi"); // valid
+        const { hash: h2, signature: s2 } = signHashProfile(second.address, "Satoshi"); // invalid
+        const { hash: h3, signature: s3 } = signHashProfile(second.address, "satoshi&"); // invalid
+        const { hash: h4, signature: s4 } = signHashProfile(second.address, "satoshi btc"); // invalid
+        const { hash: h5, signature: s5 } = signHashProfile(second.address, "satoshi🔥🚀💰😂🌕"); // invalid
+        const { hash: h6, signature: s6 } = signHashProfile(second.address, "craig_wright"); // valid
+
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "Satoshi", "1", second.address, h2, s2 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+        ])).to.be.revertedWith('gkp: !validURI');
+
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "satoshi&", "1", second.address, h3, s3 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+        ])).to.be.revertedWith('gkp: !validURI');
+
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "satoshi btc", "1", second.address, h4, s4 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+        ])).to.be.revertedWith('gkp: !validURI');
+
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "satoshi🔥🚀💰😂🌕", "2", second.address, h5, s5 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+        ])).to.be.revertedWith('gkp: !validURI');
+
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+          [ "satoshi🔥🚀💰😂🌕", "2", second.address, h5, s5 ],
+        ])).to.be.revertedWith('gkp: !validURI');
+
+        await deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h1, s1 ],
+          [ "craig_wright", "2", second.address, h6, s6 ],
+        ]);
+
+        const satoshi_id = await deployedNftProfile.getTokenId("satoshi");
+        const craig_wright_id = await deployedNftProfile.getTokenId("craig_wright");
+
+        expect(satoshi_id).to.be.equal(2);
+        expect(craig_wright_id).to.be.equal(3);
+
+        expect(await deployedNftProfile.ownerOf(satoshi_id)).to.be.equal(second.address);
+        expect(await deployedNftProfile.ownerOf(craig_wright_id)).to.be.equal(second.address);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(4);
+        expect(await deployedNftProfile.tokenURI(2)).to.be.equal(`https://api.nft.com/uri/satoshi`);
+        expect(await deployedNftProfile.tokenURI(3)).to.be.equal(`https://api.nft.com/uri/craig_wright`);
+        await expect(deployedNftProfile.tokenURI(4)).to.be.reverted;
+        expect(await deployedNftProfile.tokenUsed('satoshi')).to.be.true;
+        expect(await deployedNftProfile.tokenUsed('craig_wright')).to.be.true;
+
+        await deployedNftProfile.connect(second).transferFrom(second.address, owner.address, satoshi_id); // transfer satoshi to owner
+        expect(await deployedNftProfile.ownerOf(satoshi_id)).to.be.equal(owner.address);
+        expect(await deployedNftProfile.ownerOf(craig_wright_id)).to.be.equal(second.address);
+
+        // reverts due to n/a not being a profile
+        await expect(deployedNftProfile.connect(owner).tradeMarkEdit([['satoshi', 'a'], ['craig_wright', 'b'], ['n/a', 'c']])).to.be.reverted;
+
+        // fails due to nft valid uri check
+        await expect(deployedNftProfile.connect(owner).tradeMarkEdit([['satoshi', 'satoshi_A'], ['craig_wright', 'craig_wright_x']])).to.be.revertedWith('!validNewUrl');
+
+        // should succeed
+        expect(await deployedNftProfile.connect(owner).tradeMarkEdit([['satoshi', 'satoshi_x'], ['craig_wright', 'craig_wright_x']]));
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(4);
+        expect(await deployedNftProfile.tokenURI(2)).to.be.equal(`https://api.nft.com/uri/satoshi_x`);
+        expect(await deployedNftProfile.tokenURI(3)).to.be.equal(`https://api.nft.com/uri/craig_wright_x`);
+        await expect(deployedNftProfile.tokenURI(4)).to.be.reverted;
+        expect(await deployedNftProfile.tokenUsed('satoshi')).to.be.false;
+        expect(await deployedNftProfile.tokenUsed('craig_wright')).to.be.false;
+
+        expect(await deployedNftProfile.tokenUsed('satoshi_x')).to.be.true;
+        expect(await deployedNftProfile.tokenUsed('craig_wright_x')).to.be.true;
+
+        // remint should work
+        const { hash: h7, signature: s7 } = signHashProfile(second.address, "satoshi"); // valid
+        const { hash: h8, signature: s8 } = signHashProfile(second.address, "craig_wright"); // valid
+
+        await deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi", "1", second.address, h7, s7 ],
+          [ "craig_wright", "1", second.address, h8, s8 ],
+        ]);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(6);
+        expect(await deployedNftProfile.tokenURI(4)).to.be.equal(`https://api.nft.com/uri/satoshi`);
+        expect(await deployedNftProfile.tokenURI(5)).to.be.equal(`https://api.nft.com/uri/craig_wright`);
+        await expect(deployedNftProfile.tokenURI(6)).to.be.reverted;
+        expect(await deployedNftProfile.tokenUsed('satoshi')).to.be.true;
+        expect(await deployedNftProfile.tokenUsed('craig_wright')).to.be.true;
+
+        const { hash: h9, signature: s9 } = signHashProfile(second.address, "satoshi_y"); // valid
+        const { hash: h10, signature: s10 } = signHashProfile(second.address, "craig_wright_y"); // valid
+
+        // exceeds 4 mints per key
+        await expect(deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi_y", "1", second.address, h9, s9 ],
+          [ "craig_wright_y", "1", second.address, h10, s10 ],
+        ])).to.be.reverted;
+
+        await deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile([
+          [ "satoshi_y", "1", second.address, h9, s9 ],
+          [ "craig_wright_y", "2", second.address, h10, s10 ],
+        ]);
+
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(8);
+        expect(await deployedNftProfile.tokenURI(6)).to.be.equal(`https://api.nft.com/uri/satoshi_y`);
+        expect(await deployedNftProfile.tokenURI(7)).to.be.equal(`https://api.nft.com/uri/craig_wright_y`);
+        await expect(deployedNftProfile.tokenURI(8)).to.be.reverted;
+        expect(await deployedNftProfile.tokenUsed('satoshi_y')).to.be.true;
+        expect(await deployedNftProfile.tokenUsed('craig_wright_y')).to.be.true;
+      });
+
       it("should allow proper regex association of cross chain addresses", async function () {
+        expect(await deployedGenesisKey.ownerOf('1')).to.be.equal(owner.address);
+        expect(await deployedGenesisKey.ownerOf('2')).to.be.equal(second.address);
+
         expect(await deployedHederaRegex.matches("0xa58112df57A29a5DFd7a22164a38216b56f39960")).to.be.equal(false);
         expect(await deployedHederaRegex.matches("0x18613D38367ddE6522D36f3546b9777880d88cA3")).to.be.equal(false);
         expect(await deployedHederaRegex.matches("0x956Ae058bb6fF5C5784050526142006327D5186a")).to.be.equal(false);
@@ -479,7 +609,7 @@ describe("NFT Profile Auction / Minting", function () {
           .connect(second)
           .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES);
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(second.address);
-        await deployedNftProfile.connect(owner).tradeMarkTransfer("profile6", owner.address);
+        await deployedNftProfile.connect(owner).tradeMarkTransfer([["profile6", owner.address]]);
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(15);

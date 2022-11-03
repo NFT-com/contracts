@@ -2,6 +2,8 @@
 pragma solidity >=0.8.4;
 
 import "../interface/INftProfile.sol";
+import "../interface/IProfileAuction.sol";
+import "../interface/INftProfileHelper.sol";
 import "../erc721a/ERC721AProfileUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -57,8 +59,8 @@ contract NftProfile is
      @param _tokenURI the string name of a NFT.com profile
     */
     function setTokenURI(uint256 _tokenId, string memory _tokenURI) private {
-        require(_exists(_tokenId));
-        require(_tokenUsedURIs[_tokenURI] == 0);
+        require(_exists(_tokenId), "exists");
+        require(_tokenUsedURIs[_tokenURI] == 0, "unsuedURI");
 
         _tokenURIs[_tokenId] = _tokenURI;
 
@@ -68,14 +70,41 @@ contract NftProfile is
 
     /**
      @dev transfers trademarked profile to recipient
-     @param _profile profile url being transferred
-     @param _to receiver of profile
+     @param _profiles profile url being transferred
     */
-    function tradeMarkTransfer(string memory _profile, address _to) external onlyOwner {
-        require(_tokenUsedURIs[_profile] != 0);
-        uint256 tokenId = _tokenUsedURIs[_profile].sub(1);
+    function tradeMarkTransfer(TrademarkTransfer[] memory _profiles) external onlyOwner {
+        for(uint256 i = 0; i < _profiles.length; i++) {
+            require(_tokenUsedURIs[_profiles[i].url] != 0);
+            uint256 tokenId = _tokenUsedURIs[_profiles[i].url].sub(1);
 
-        _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _to, tokenId);
+            _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _profiles[i].to, tokenId);
+        }
+    }
+
+    function _validURI(string memory url) private view {
+        address nftProfileHelperAddress = IProfileAuction(profileAuctionContract).nftProfileHelperAddress();
+        require(INftProfileHelper(nftProfileHelperAddress)._validURI(url), "!validNewUrl");
+    }
+
+    /**
+     @dev edits trademarked profiles to valid url
+     @param _profiles array of profiles being burned
+    */
+    function tradeMarkEdit(TrademarkEdit[] memory _profiles) external onlyOwner {
+        for (uint256 i = 0; i < _profiles.length; i++) {
+            // checks
+            require(_tokenUsedURIs[_profiles[i].oldUrl] != 0); // make sure old url exists as tokenId
+            uint256 tokenId = _tokenUsedURIs[_profiles[i].oldUrl].sub(1); // get tokenId of old url
+            
+            // effects
+            _tokenUsedURIs[_profiles[i].oldUrl] = 0; // edit old url to be 0 (unusued)
+            _tokenUsedURIs[_profiles[i].newUrl] = tokenId.add(1); // set new url to be tokenId
+
+            // make sure new url confirms and is not taken
+            _validURI(_profiles[i].newUrl);
+
+            _tokenURIs[tokenId] = _profiles[i].newUrl; // set new tokenID <> tokenURL mapping
+        }
     }
 
     function profileOwner(string memory _string) public view override returns (address) {
@@ -87,7 +116,7 @@ contract NftProfile is
      @param _string profile URI
      @return true is a profile exists and is minted for a given string
     */
-    function tokenUsed(string memory _string) external view override returns (bool) {
+    function tokenUsed(string memory _string) public view override returns (bool) {
         return _tokenUsedURIs[_string] != 0;
     }
 
@@ -139,6 +168,9 @@ contract NftProfile is
         uint256 _duration
     ) external override {
         require(msg.sender == profileAuctionContract);
+        _validURI(_profileURI);
+        require(!tokenUsed(_profileURI), "!unused");
+
         uint256 preSupply = totalSupply();
         _mint(_receiver, 1, "", false);
         setTokenURI(preSupply, _profileURI);
