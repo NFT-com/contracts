@@ -101,16 +101,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         }
     }
 
-    function deprecateGK(uint256 _amount) external onlyOwner {
-        require(_amount != 0, "!0");
-        uint256 i = latestClaimTokenId + 1; // start at 1
-        latestClaimTokenId += _amount;
-        while (i <= latestClaimTokenId) {
-            _adminTransfer(address(this), multiSig, i);
-            unchecked { i++; }
-        }
-    }
-
     function transferFrom(
         address from,
         address to,
@@ -160,14 +150,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         }
     }
 
-    function setPublicSaleDuration(uint96 _seconds) external onlyOwner {
-        publicSaleDurationSeconds = _seconds;
-    }
-
-    function setSigner(address _signer) external onlyOwner {
-        signerAddress = _signer;
-    }
-
     function currentXP(uint256 tokenId)
         external
         view
@@ -204,15 +186,14 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         }
     }
 
-    // initial weth price is the high price (starting point)
-    // final weth price is the lowest floor price we allow
-    // num keys for sale is total keys allowed to mint
-    function initializePublicSale(uint96 _initialEthPrice, uint96 _finalEthPrice) external onlyOwner {
-        require(!startPublicSale, "GEN_KEY: sale already initialized");
-        initialEthPrice = _initialEthPrice;
-        finalEthPrice = _finalEthPrice;
-        publicSaleStartSecond = uint96(block.timestamp);
-        startPublicSale = true;
+    function deprecateGK(uint256 _amount) external onlyOwner {
+        require(_amount != 0, "!0");
+        uint256 i = latestClaimTokenId + 1; // start at 1
+        latestClaimTokenId += _amount;
+        while (i <= latestClaimTokenId) {
+            _adminTransfer(address(this), multiSig, i);
+            unchecked { i++; }
+        }
     }
 
     function _startTokenId() internal pure override returns (uint256) {
