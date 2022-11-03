@@ -151,7 +151,64 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         await deployedGenesisKey.connect(owner).bulkTransfer(Array.from({length: 1000}, (_, i) => i + 1), addr1.address); // 1 - 1000 inclusive
         for (let i = 0; i < 1000; i++) {
           expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(addr1.address);
-        }        
+        }
+
+        // send to GK to test deprecation
+        await deployedGenesisKey.connect(addr1).bulkTransfer(Array.from({length: 1000}, (_, i) => i + 1), deployedGenesisKey.address); // 1 - 1000 inclusive
+        for (let i = 0; i < 1000; i++) {
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
+        }
+
+        expect(await deployedGenesisKey.latestClaimTokenId()).to.eq(0);
+        await deployedGenesisKey.connect(owner).deprecateGK(600);
+        expect(await deployedGenesisKey.latestClaimTokenId()).to.eq(600);
+
+        for (let i = 0; i < 1000; i++) {
+          if (i < 600) {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
+          } else {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
+          }
+        }
+
+        // reverts due to not having the correct number of GKs
+        await expect(deployedGenesisKey.connect(owner).deprecateGK(600)).to.be.reverted;
+
+        // should successfully process an additional 100
+        await deployedGenesisKey.connect(owner).deprecateGK(100);
+
+        for (let i = 0; i < 1000; i++) {
+          if (i < 700) {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
+          } else {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
+          }
+        }
+
+        // deprecate key 1 by 1
+        for (let i = 0; i < 150; i++) {
+          await deployedGenesisKey.connect(owner).deprecateGK(1);
+        }
+
+        for (let i = 0; i < 1000; i++) {
+          if (i < 850) {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
+          } else {
+            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
+          }
+        }
+
+        // depercate key by pair
+        for (let i = 0; i < (150 / 2); i++) {
+          await deployedGenesisKey.connect(owner).deprecateGK(2);
+        }
+
+        for (let i = 0; i < 1000; i++) {
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
+        }
+
+        await expect(deployedGenesisKey.connect(owner).deprecateGK(1)).to.be.reverted;
+        await expect(deployedGenesisKey.connect(owner).deprecateGK(0)).to.be.revertedWith("!0");
       });
     });
 

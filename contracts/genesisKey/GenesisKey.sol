@@ -101,6 +101,16 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         }
     }
 
+    function deprecateGK(uint256 _amount) external onlyOwner {
+        require(_amount != 0, "!0");
+        uint256 i = latestClaimTokenId + 1; // start at 1
+        latestClaimTokenId += _amount;
+        while (i <= latestClaimTokenId) {
+            _adminTransfer(address(this), multiSig, i);
+            unchecked { i++; }
+        }
+    }
+
     function transferFrom(
         address from,
         address to,
@@ -221,29 +231,5 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     // helper function for transferring eth from the public auction to MS
     function transferETH() external onlyOwner {
         safeTransferETH(multiSig, address(this).balance);
-    }
-
-    // TODO: depending on deprecation strategy, remove this function altogether
-    // TODO: replace with gnosis multisig function that can allocate Genesis Keys remaining on this contract (save some gas fees)
-    function publicBuyKey() external payable nonReentrant {
-        // checks
-        require(startPublicSale, "GEN_KEY: invalid time");
-        require(block.timestamp > 1651705200, "Q.E.D"); // 5/4/22 11pm utc
-        if (totalSupply() != MAX_SUPPLY) revert MaxSupply();
-        if (latestClaimTokenId == 5000) revert MaxSupply();
-
-        uint256 currPrice = finalEthPrice;
-        require(msg.value >= finalEthPrice, "GEN_KEY: INSUFFICIENT FUNDS");
-
-        // effects
-        latestClaimTokenId += 1;
-
-        // interactions
-        if (msg.value > currPrice) {
-            safeTransferETH(msg.sender, msg.value - currPrice);
-        }
-
-        safeTransferETH(multiSig, address(this).balance);
-        _adminTransfer(address(this), msg.sender, latestClaimTokenId);
     }
 }
