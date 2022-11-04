@@ -949,7 +949,7 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
   const chainId = hre.network.config.chainId;
   const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
 
-  const GenesisKey = await hre.ethers.getContractFactory(network === "goerli" ? "GenesisKeyOld" : "GenesisKey");
+  const GenesisKey = await hre.ethers.getContractFactory(network === "goerli" ? "GenesisKey" : "GenesisKey");
 
   if (network == "mainnet") {
     const upgradedGKImp = await hre.upgrades.prepareUpgrade(
