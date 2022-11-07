@@ -58,7 +58,7 @@ describe("NFT Profile Auction / Minting", function () {
       NftToken = await hre.ethers.getContractFactory("NftToken");
       NftProfileHelper = await hre.ethers.getContractFactory("NftProfileHelper");
       GenesisKey = await hre.ethers.getContractFactory("GenesisKeyOld");
-      NftStake = await hre.ethers.getContractFactory("GenesisNftStake");
+      NftStake = await hre.ethers.getContractFactory("NftStake");
       NftProfile = await hre.ethers.getContractFactory("NftProfile");
       ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
       ProfileAuctionV2 = await hre.ethers.getContractFactory("ProfileAuctionV2");
@@ -490,7 +490,7 @@ describe("NFT Profile Auction / Minting", function () {
         expect(await deployedTezosRegex.matches("DMXWb5EUdtzQESof1vaV2kjqUEQFebtZPwR9Vf4txbp6")).to.be.equal(false);
       });
 
-      it("should allow genesis key owners to claim profiles", async function () {
+      it("should allow genesis key owners to claim profiles and test profile extensions using ETH and ERC20s", async function () {
         expect(await deployedProfileAuction.genKeyWhitelistOnly()).to.be.true;
         expect(await deployedProfileAuction.publicMintBool()).to.be.false;
 
@@ -600,14 +600,45 @@ describe("NFT Profile Auction / Minting", function () {
         // go back
         await deployedProfileAuction.connect(owner).setPublicMint(true);
 
-        // should this work?
-        await deployedProfileAuction.connect(owner).extendLicense("profile5", 86400, 27, ZERO_BYTES, ZERO_BYTES);
+        deployedProfileAuction.setUsdc("0x0000000000000000000000000000000000000000"); // null address
+
+        expect(await ethers.provider.getBalance(deployedNftBuyer.address)).to.be.equal(0);
+        await deployedProfileAuction.connect(owner).setYearlyFee("10000000000000000")
+
+        // reverts due to not enough ETH being passed
+        await expect(deployedProfileAuction.connect(owner).extendLicense("profile5", 86400, 27, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
+        
+        const feeRent = await deployedProfileAuction.getFee("profile5", 86400);
+        console.log(`fee rent ETH for profile5 for 86400 is: ${Number(feeRent)}`);
+
+        // don't need signature bc owner already approved
+        await deployedProfileAuction.connect(owner).extendLicense("profile5", 86400, 27, ZERO_BYTES, ZERO_BYTES, { value: "10000000000000000" });
+
+        expect(await ethers.provider.getBalance(deployedNftBuyer.address)).to.be.equal(feeRent);
+
         await deployedNftToken.connect(owner).transfer(second.address, convertBigNumber(10000));
 
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
+
+        // reverts due to ETH not being sent
+        await expect(deployedProfileAuction
+          .connect(second)
+          .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
+
+        const feeRent2 = await deployedProfileAuction.getFee("profile6", 86400);
+        console.log(`fee rent ETH for profile6 for 86400 is: ${Number(feeRent2)}`);
+
         await deployedProfileAuction
           .connect(second)
-          .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES);
+          .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES, { value: "10000000000000000" });
+
+        // try to purchase profile 5 (fail bc not expired yet)
+        await expect(deployedProfileAuction
+          .connect(second)
+          .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES, { value: "10000000000000000" })).to.be.revertedWith('!expired');
+
+        expect(await ethers.provider.getBalance(deployedNftBuyer.address)).to.be.equal(feeRent.add(feeRent2));
+
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(second.address);
         await deployedNftProfile.connect(owner).tradeMarkTransfer([["profile6", owner.address]]);
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);

@@ -189,13 +189,17 @@ contract NftProfile is
         uint256 _duration,
         address _licensee
     ) external override {
+        // checks
         require(_exists(_tokenUsedURIs[_profileURI]), "!exists");
         require(msg.sender == profileAuctionContract, "only auction");
         require(ownerOf(_tokenUsedURIs[_profileURI].sub(1)) == _licensee, "!owner");
 
+        // effects
+        // add addition if not expired
         if (_expiryTimeline[_profileURI] >= block.timestamp) {
             _expiryTimeline[_profileURI] += _duration;
         } else {
+            // set current timestamp to expiry + _duration
             _expiryTimeline[_profileURI] = block.timestamp + _duration;
         }
         emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);
@@ -206,14 +210,17 @@ contract NftProfile is
         uint256 _duration,
         address _receiver
     ) external override {
+        // checks
         require(msg.sender == profileAuctionContract, "only auction");
         require(_exists(_tokenUsedURIs[_profileURI]));
         require(_expiryTimeline[_profileURI] < block.timestamp, "!expired");
         uint256 tokenId = _tokenUsedURIs[_profileURI].sub(1);
         require(ownerOf(tokenId) != _receiver, "!receiver");
 
+        // effects
         _expiryTimeline[_profileURI] = block.timestamp + _duration;
 
+        // interactions
         _transferAdmin(ERC721AProfileUpgradeable.ownerOf(tokenId), _receiver, tokenId);
 
         emit ExtendExpiry(_profileURI, _expiryTimeline[_profileURI]);

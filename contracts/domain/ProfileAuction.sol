@@ -148,19 +148,20 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
     /**
      @notice helper function transfer tokens
-     @param _user user transferring tokens
      @param _amount number of tokens being transferred
     */
-    function transferTokens(address _user, uint256 _amount) private returns (bool) {
+    function transferTokens(uint256 _amount) private returns (bool) {
         if (usdc_ == address(0)) {
             if (msg.value >= _amount) {
-                safeTransferETH(_user, msg.value - _amount);
+                safeTransferETH(contract1, _amount); // send amount to contract1
+                safeTransferETH(msg.sender, msg.value - _amount); // refund excess
                 return true;
             } else {
                 return false;
             }
         } else {
-            return IERC20Upgradeable(usdc_).transferFrom(_user, contract1, _amount);
+            // send amount to contract1
+            return IERC20Upgradeable(usdc_).transferFrom(msg.sender, contract1, _amount);
         }
     }
 
@@ -375,7 +376,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             permitNFT(msg.sender, address(this), v, r, s); // approve token
         }
 
-        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pm: !funds");
+        require(transferTokens(getFee(profileUrl, duration)), "pm: !funds");
 
         INftProfile(nftProfile).createProfile(msg.sender, profileUrl, duration);
 
@@ -411,11 +412,13 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     ) external payable nonReentrant {
         require(publicMintBool, "el: public minting is disabled");
 
-        if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
-            permitNFT(msg.sender, address(this), v, r, s);
+        if (usdc_ != address(0)) {
+            if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
+                permitNFT(msg.sender, address(this), v, r, s);
+            }
         }
 
-        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "el: insufficient funds");
+        require(transferTokens(getFee(profileUrl, duration)), "el: insufficient funds");
 
         INftProfile(nftProfile).extendLicense(profileUrl, duration, msg.sender);
 
@@ -435,11 +438,13 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         // effects
         // interactions
-        if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
-            permitNFT(msg.sender, address(this), v, r, s);
+        if (usdc_ != address(0)) {
+            if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
+                permitNFT(msg.sender, address(this), v, r, s);
+            }
         }
 
-        require(transferTokens(msg.sender, getFee(profileUrl, duration)), "pe: insufficient funds");
+        require(transferTokens(getFee(profileUrl, duration)), "pe: insufficient funds");
 
         INftProfile(nftProfile).purchaseExpiredProfile(profileUrl, duration, msg.sender);
 
@@ -449,7 +454,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     function ownProfile(string memory profileUrl) external nonReentrant {
         // checks
         require(publicMintBool, "op: public minting is disabled");
-        require(ownedProfileStake[profileUrl] == 0); //
+        require(ownedProfileStake[profileUrl] == 0);
+        require(contract2 != address(0x0), "op: !0x0");
+
         uint256 xNftKeyReq = (getFee(profileUrl, 365 days) * yearsToOwn * IGenesisKeyStake(contract2).totalSupply()) /
             IGenesisKeyStake(contract2).totalStakedCoin();
         require(xNftKeyReq != 0, "op: !0");
@@ -469,6 +476,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     function redeemProfile(string memory profileUrl) public nonReentrant {
         // checks
         require(publicMintBool, "rp: public minting is disabled");
+        require(contract2 != address(0x0), "rp: !0x0");
         require(ownedProfileStake[profileUrl] != 0, "rp: profile is not staked");
         require(INftProfile(nftProfile).profileOwner(profileUrl) == msg.sender, "rp: profile is not owned by user");
 

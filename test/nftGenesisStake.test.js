@@ -58,7 +58,7 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
       await deployedGenesisKey.connect(owner).mintKey(owner.address);
       await deployedGenesisKey.connect(owner).mintKey(secondSigner.address);
 
-      NftStake = await ethers.getContractFactory("GenesisNftStake");
+      NftStake = await ethers.getContractFactory("NftStake");
       deployedNftGenesisStake = await NftStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
 
       await owner.sendTransaction({ to: addr1.address, value: convertTinyNumber(1) });
