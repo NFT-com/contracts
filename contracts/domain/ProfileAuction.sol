@@ -80,8 +80,22 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     bool public publicClaimBool;
 
     event UpdatedProfileStake(string _profileUrl, uint256 _stake);
-    event MintedProfile(address _user, string _val, uint256 tokenId, uint256 _duration, uint256 _fee);
-    event ExtendLicense(address _receiver, string _profileUrl, uint256 _duration, uint256 _fee, bool _expired);
+    event MintedProfile(
+        address _user,
+        string _val,
+        uint256 tokenId,
+        uint256 _duration,
+        uint256 _fee,
+        address _paymentToken
+    );
+    event ExtendLicense(
+        address _receiver,
+        string _profileUrl,
+        uint256 _duration,
+        uint256 _fee,
+        bool _expired,
+        address _paymentToken
+    );
     event NewLengthPremium(uint256 _length, uint256 _premium);
     event NewYearlyFee(uint96 _fee);
     event YearsToOwn(uint96 _years);
@@ -138,7 +152,16 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
      @param _amount number of tokens being transferred
     */
     function transferTokens(address _user, uint256 _amount) private returns (bool) {
-        return IERC20Upgradeable(usdc_).transferFrom(_user, contract1, _amount);
+        if (usdc_ == address(0)) {
+            if (msg.value >= _amount) {
+                safeTransferETH(_user, msg.value - _amount);
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return IERC20Upgradeable(usdc_).transferFrom(_user, contract1, _amount);
+        }
     }
 
     /**
@@ -263,7 +286,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             profileUrl,
             INftProfile(nftProfile).totalSupply() - 1,
             genesisKeyClaimNumber[tokenId] <= 4 ? 1000 * (365 days) : 365 days,
-            0
+            0,
+            usdc_
         );
     }
 
@@ -301,7 +325,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
                 profileUrl,
                 INftProfile(nftProfile).totalSupply() - 1,
                 genesisKeyClaimNumber[tokenId] <= 4 ? 1000 * (365 days) : 365 days,
-                0
+                0,
+                usdc_
             );
 
             unchecked {
@@ -328,7 +353,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         // grace period of 1 year (unless DAO intervention)
         INftProfile(nftProfile).createProfile(msg.sender, profileUrl, 365 days);
 
-        emit MintedProfile(msg.sender, profileUrl, INftProfile(nftProfile).totalSupply() - 1, 365 days, 0);
+        emit MintedProfile(msg.sender, profileUrl, INftProfile(nftProfile).totalSupply() - 1, 365 days, 0, usdc_);
     }
 
     function publicMint(
@@ -339,7 +364,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         bytes32 s,
         bytes32 hash,
         bytes memory signature
-    ) external nonReentrant validAndUnusedURI(profileUrl) {
+    ) external payable nonReentrant validAndUnusedURI(profileUrl) {
         // checks
         require(publicMintBool, "pm: !publicMint");
         require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pm: !sig");
@@ -359,7 +384,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             profileUrl,
             INftProfile(nftProfile).totalSupply() - 1,
             duration,
-            getFee(profileUrl, duration)
+            getFee(profileUrl, duration),
+            usdc_
         );
     }
 
@@ -382,7 +408,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external nonReentrant {
+    ) external payable nonReentrant {
         require(publicMintBool, "el: public minting is disabled");
 
         if (IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
@@ -393,7 +419,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         INftProfile(nftProfile).extendLicense(profileUrl, duration, msg.sender);
 
-        emit ExtendLicense(msg.sender, profileUrl, duration, getFee(profileUrl, duration), false);
+        emit ExtendLicense(msg.sender, profileUrl, duration, getFee(profileUrl, duration), false, usdc_);
     }
 
     function purchaseExpiredProfile(
@@ -402,7 +428,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external nonReentrant {
+    ) external payable nonReentrant {
         // checks
         require(publicMintBool, "pe: public minting is disabled");
         require(ownedProfileStake[profileUrl] == 0, "pe: profile is already staked");
@@ -417,7 +443,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
         INftProfile(nftProfile).purchaseExpiredProfile(profileUrl, duration, msg.sender);
 
-        emit ExtendLicense(msg.sender, profileUrl, duration, getFee(profileUrl, duration), true);
+        emit ExtendLicense(msg.sender, profileUrl, duration, getFee(profileUrl, duration), true, usdc_);
     }
 
     function ownProfile(string memory profileUrl) external nonReentrant {
@@ -453,5 +479,10 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         require(IERC20Upgradeable(contract2).transferFrom(address(this), msg.sender, ownedProfileStake[profileUrl]));
 
         emit UpdatedProfileStake(profileUrl, 0);
+    }
+
+    function safeTransferETH(address to, uint256 value) internal {
+        (bool success, ) = to.call{ value: value }(new bytes(0));
+        require(success, "STE");
     }
 }

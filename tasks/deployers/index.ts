@@ -702,11 +702,12 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   // const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
   // await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
 
-  // const X2Y2LibV1 = await hre.ethers.getContractFactory("X2Y2LibV1");
-  // const deployedX2Y2LibV1 = await X2Y2LibV1.deploy();
-  // await waitTx("deployedX2Y2LibV1", deployedX2Y2LibV1, hre);
+  const X2Y2LibV1 = await hre.ethers.getContractFactory("X2Y2LibV1");
+  const deployedX2Y2LibV1 = await X2Y2LibV1.deploy();
+  await waitTx("deployedX2Y2LibV1", deployedX2Y2LibV1, hre);
 
-  // const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
+  const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
+  const deployedMarketplaceRegistry = MarketplaceRegistry.attach((await getTokens(hre)).deployedMarketplaceRegistry);
   // const deployedMarketplaceRegistry = await hre.upgrades.deployProxy(MarketplaceRegistry, [], {
   //   kind: "uups",
   // });
@@ -725,15 +726,15 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   // console.log(chalk.green("deployedNftAggregator: ", deployedNftAggregator.address));
   // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedLooksrareLibV1 /* deployedLooksrareLibV1.address */, true);
   // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedSeaportLib1_1 /* deployedSeaportLib1_1.address */, true);
-  // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedX2Y2Lib /* deployedX2Y2LibV1.address */, true);
+  await deployedMarketplaceRegistry.addMarketplace(/* (await getTokens(hre)).deployedX2Y2Lib  */ deployedX2Y2LibV1.address, true);
 
   // console.log(chalk.green(`${(TIME_DELAY * 3) / 1000} second delay`));
   // await delay(TIME_DELAY * 3);
   // console.log(chalk.green("verifying..."));
 
-  await verifyContract("deployedLooksrareLibV1", (await getTokens(hre)).deployedLooksrareLibV1 /* deployedLooksrareLibV1.address */, [], hre);
-  await verifyContract("deployedSeaportLib1_1", (await getTokens(hre)).deployedSeaportLib1_1 /* deployedSeaportLib1_1.address */, [], hre);
-  await verifyContract("deployedX2Y2LibV1", (await getTokens(hre)).deployedX2Y2Lib /* deployedX2Y2LibV1.address */, [], hre);
+  // await verifyContract("deployedLooksrareLibV1", (await getTokens(hre)).deployedLooksrareLibV1 /* deployedLooksrareLibV1.address */, [], hre);
+  // await verifyContract("deployedSeaportLib1_1", (await getTokens(hre)).deployedSeaportLib1_1 /* deployedSeaportLib1_1.address */, [], hre);
+  // await verifyContract("deployedX2Y2LibV1", (await getTokens(hre)).deployedX2Y2Lib /* deployedX2Y2LibV1.address */, [], hre);
 
   // await getImplementation("deployedMarketplaceRegistry", deployedMarketplaceRegistry.address, hre);
   // await getImplementation("deployedNftAggregator", deployedNftAggregator.address, hre);
