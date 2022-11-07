@@ -15,8 +15,8 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
     let deployedWETH;
     let NftProfileHelper;
     let deployedNftProfileHelper;
-    let GenesisStake;
-    let deployedNftGenesisStake;
+    let NftStake;
+    let deployedNftStake;
     let GenesisKeyTeamClaim;
     let deployedGenesisKeyTeamClaim;
     let GenesisKeyTeamDistributor;
@@ -63,8 +63,8 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         { kind: "uups" },
       );
 
-      GenesisStake = await ethers.getContractFactory("GenesisNftStake");
-      deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
+      NftStake = await ethers.getContractFactory("NftStake");
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
 
       GenesisKeyTeamClaim = await ethers.getContractFactory("GenesisKeyTeamClaim");
       deployedGenesisKeyTeamClaim = await upgrades.deployProxy(GenesisKeyTeamClaim, [deployedGenesisKey.address], {
@@ -77,7 +77,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       deployedNftBuyer = await NftBuyer.deploy(
         UNI_FACTORY_V2,
-        deployedNftGenesisStake.address,
+        deployedNftStake.address,
         deployedNftToken.address,
         wethAddress,
       );
@@ -93,7 +93,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
       await deployedProfileAuction.setUsdc(deployedNftToken.address);
       await deployedProfileAuction.setContract1(deployedNftBuyer.address);
-      await deployedProfileAuction.setContract2(deployedNftGenesisStake.address);
+      await deployedProfileAuction.setContract2(deployedNftStake.address);
 
       await deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
     });

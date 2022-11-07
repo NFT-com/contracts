@@ -33,8 +33,8 @@ describe("NFT Profile Auction / Minting", function () {
     let merkleResult;
     let deployedGenesisKey;
     let deployedWETH;
-    let GenesisStake;
-    let deployedNftGenesisStake;
+    let NftStake;
+    let deployedNftStake;
     let GenesisKeyTeamClaim;
     let deployedGenesisKeyTeamClaim;
     let GenesisKeyTeamDistributor;
@@ -58,7 +58,7 @@ describe("NFT Profile Auction / Minting", function () {
       NftToken = await hre.ethers.getContractFactory("NftToken");
       NftProfileHelper = await hre.ethers.getContractFactory("NftProfileHelper");
       GenesisKey = await hre.ethers.getContractFactory("GenesisKeyOld");
-      GenesisStake = await hre.ethers.getContractFactory("GenesisNftStake");
+      NftStake = await hre.ethers.getContractFactory("GenesisNftStake");
       NftProfile = await hre.ethers.getContractFactory("NftProfile");
       ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
       ProfileAuctionV2 = await hre.ethers.getContractFactory("ProfileAuctionV2");
@@ -149,7 +149,7 @@ describe("NFT Profile Auction / Minting", function () {
           { value: wethMin },
         );
 
-      deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
 
       await owner.sendTransaction({ to: addr1.address, value: convertSmallNumber(1) });
       await deployedWETH.connect(addr1).transfer(ownerSigner.address, await deployedWETH.balanceOf(addr1.address));
@@ -170,7 +170,7 @@ describe("NFT Profile Auction / Minting", function () {
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       deployedNftBuyer = await NftBuyer.deploy(
         UNI_FACTORY_V2,
-        deployedNftGenesisStake.address,
+        deployedNftStake.address,
         deployedNftToken.address,
         wethAddress,
       );
@@ -184,7 +184,7 @@ describe("NFT Profile Auction / Minting", function () {
 
       deployedProfileAuction.setUsdc(deployedNftToken.address);
       deployedProfileAuction.setContract1(deployedNftBuyer.address);
-      deployedProfileAuction.setContract2(deployedNftGenesisStake.address);
+      deployedProfileAuction.setContract2(deployedNftStake.address);
 
       // ===============================================================
       deployedEthereumRegex = await (await hre.ethers.getContractFactory("EthereumRegex")).deploy();

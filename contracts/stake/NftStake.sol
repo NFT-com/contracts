@@ -7,22 +7,16 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
+contract NftStake is ERC20Permit, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     address public immutable nftToken;
-    address public immutable nftKeyGenesis;
-    mapping(uint256 => address) public stakedKeys; // maps tokenId => address
-    mapping(address => uint256) public stakedAddress; // maps address => number of keys staked
 
-    event NewStakedKey(uint256 indexed tokenId, address indexed staker, uint256 totalStakedKeys);
-
-    constructor(address _nftToken, address _nftKeyGenesis)
-        ERC20Permit("Staked NFT.com Genesis Key")
-        ERC20("Staked NFT.com Genesis Key", "sNFT")
+    constructor(address _nftToken)
+        ERC20Permit("Staked NFT.com Token")
+        ERC20("Staked NFT.com Token", "xNFT")
     {
         nftToken = _nftToken;
-        nftKeyGenesis = _nftKeyGenesis;
     }
 
     /**
@@ -46,33 +40,16 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
     /**
      @notice function for allowing a user to stake
      @param _amount amount of NFT tokens to stake
-     @param _tokenId of Genesis Key being staked
      @param v optional vSig param for permit
      @param r optional rSig param for permit
      @param s optional sSig param for permit
     */
     function enter(
         uint256 _amount,
-        uint256 _tokenId,
         uint8 v,
         bytes32 r,
         bytes32 s
     ) public nonReentrant {
-        // no stake yet
-        if (stakedKeys[_tokenId] != msg.sender) {
-            // checks
-            require(IERC721(nftKeyGenesis).ownerOf(_tokenId) == msg.sender, "!GK1");
-
-            // effects: assigned key to msg.sender
-            stakedKeys[_tokenId] = msg.sender;
-            stakedAddress[msg.sender] += 1;
-
-            // interactions
-            IERC721(nftKeyGenesis).transferFrom(msg.sender, address(this), _tokenId);
-
-            emit NewStakedKey(_tokenId, msg.sender, stakedAddress[msg.sender]);
-        }
-
         // only apply approve permit for first time
         if (IERC20(address(this)).allowance(msg.sender, address(this)) < _amount) {
             permitXNFT(msg.sender, address(this), v, r, s); // approve xNFT token
@@ -91,28 +68,11 @@ contract GenesisNftStake is ERC20Permit, ReentrancyGuard {
         }
     }
 
-    // simply collects NFT tokens without withdrawing Gen Key
-    function collectTokens(uint256 _xNftAmount, uint256 _tokenId) public nonReentrant {
-        require(stakedKeys[_tokenId] == msg.sender, "!GEN_KEY");
-        uint256 totalSupply = totalSupply();
-
-        uint256 nftAmount = (_xNftAmount * (IERC20(nftToken).balanceOf(address(this)))) / totalSupply;
-        _burn(msg.sender, _xNftAmount);
-        IERC20(nftToken).safeTransfer(msg.sender, nftAmount);
-    }
-
-    function leave(uint256 _xNftAmount, uint256 _tokenId) public nonReentrant {
-        require(stakedKeys[_tokenId] == msg.sender, "!GEN_KEY");
-        require(stakedAddress[msg.sender] != 0, "GEN_KEY != 0");
-
+    function leave(uint256 _xNftAmount) public nonReentrant {
         // reset assignment
-        stakedKeys[_tokenId] = address(0x0);
-        stakedAddress[msg.sender] -= 1;
-
         uint256 totalSupply = totalSupply();
         uint256 nftAmount = (_xNftAmount * (IERC20(nftToken).balanceOf(address(this)))) / totalSupply;
         _burn(msg.sender, _xNftAmount);
         IERC20(nftToken).safeTransfer(msg.sender, nftAmount);
-        IERC721(nftKeyGenesis).transferFrom(address(this), msg.sender, _tokenId);
     }
 }

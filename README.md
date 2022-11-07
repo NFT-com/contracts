@@ -46,6 +46,12 @@ Welcome to the NFT.com Ethereum Smart Contract repository. To get setup, please 
 | X2Y2 Lib             | https://goerli.etherscan.io/address/0x36D7407dDB103EE8D605759D4a129F500567289C |
 | Marketplace Registry | https://goerli.etherscan.io/address/0xeBc58f24393c8488DcD47CFC351F869618348dFC |
 | NFT Aggregator       | https://goerli.etherscan.io/address/0x89b030Ba3424C7A145c23dA2042cd46C073dE4e6 |
+| NFT Marketplace      | https://goerli.etherscan.io/address/0xa75F995f252ba5F7C17f834b314201271d32eC35 |
+| Marketplace Event    | https://goerli.etherscan.io/address/0xca2A56282ac2B8B42c506225c2bD4dbB8169aC25 |
+| NFT Transfer Proxy   | https://goerli.etherscan.io/address/0x73994Fc4aC9EAb8e8E1c29E5C9d27A761D9Ab1eF |
+| ERC20 Transfer Proxy | https://goerli.etherscan.io/address/0xCD979ec33B43eCE6523B41BA5c9e409568eDFB97 |
+| CK Transfer Proxy    | https://goerli.etherscan.io/address/0xB8E272017D402E6e9243953CFef1AC256F3E2e84 |
+| Validation Logic     | https://goerli.etherscan.io/address/0x69267B594C79F6C37d827B7f8D2bdDb755307Be8 |
 
 ### Regex Generation
 
