@@ -56,9 +56,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     mapping(uint256 => LockupInfo) private _genesisKeyLockUp;
 
     uint256 public constant MAX_SUPPLY = 10000;
-    uint256 public latestClaimTokenId;
-
-    mapping(address => uint256) public lockupCount; // tracks lockups / address
+    uint256 public latestClaimTokenId; // Deprecated
 
     event ClaimedGenesisKey(address indexed _user, uint256 _amount, uint256 _blockNum, bool _whitelist);
 
@@ -97,6 +95,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     function bulkTransfer(uint256[] calldata tokenIds, address _to) external {
         for (uint256 i = 0; i < tokenIds.length;) {
+            // staked keys cannot be transferred
             if (_genesisKeyLockUp[tokenIds[i]].currentLockup != 0) revert PausedTransfer();
             _transfer(msg.sender, _to, tokenIds[i]);
             unchecked { i++; }
@@ -108,6 +107,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         address to,
         uint256 tokenId
     ) public override {
+        // staked keys cannot be transferred
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
         _transfer(from, to, tokenId);
     }
@@ -117,6 +117,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         address to,
         uint256 tokenId
     ) public override {
+        // staked keys cannot be transferred
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
         safeTransferFrom(from, to, tokenId, "");
     }
@@ -130,6 +131,7 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         uint256 tokenId,
         bytes memory _data
     ) public override {
+        // staked keys cannot be transferred
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
         _transfer(from, to, tokenId);
         if (to.isContract() && !_checkContractOnERC721Received(from, to, tokenId, _data)) {
@@ -150,32 +152,32 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         view
         returns (
             bool locked,
-            uint256 current,
-            uint256 total
+            uint128 current,
+            uint128 total
         )
     {
-        uint256 start = _genesisKeyLockUp[tokenId].currentLockup;
-        if (start != 0) {
+        uint128 start = _genesisKeyLockUp[tokenId].currentLockup;
+        if (start != 0) { // staked
             locked = true;
-            current = block.timestamp - start;
+            current = uint128(block.timestamp) - start;
         }
         total = current + _genesisKeyLockUp[tokenId].totalLockup;
     }
 
     function toggleLockup(uint256 tokenId) internal {
         require(msg.sender == ownerOf(tokenId));
-        uint256 start = _genesisKeyLockUp[tokenId].currentLockup;
-        if (start == 0) {
+        uint128 start = _genesisKeyLockUp[tokenId].currentLockup;
+        if (start == 0) { // unstaked -> staked
             if (!lockupBoolean) revert LockUpUnavailable();
             _genesisKeyLockUp[tokenId].currentLockup = uint128(block.timestamp);
-            lockupCount[msg.sender] += 1;
-        } else {
+        } else { // staked -> unstaked
             _genesisKeyLockUp[tokenId].totalLockup += uint128(block.timestamp - start);
             _genesisKeyLockUp[tokenId].currentLockup = 0;
-            lockupCount[msg.sender] -= 1;
         }
     }
 
+    // User A has GK # 1, 3, 9, 11 (4 keys)
+    // toggleLockup([3, 11])
     function toggleLockup(uint256[] calldata tokenIds) external {
         uint256 n = tokenIds.length;
         for (uint256 i = 0; i < n; ++i) {

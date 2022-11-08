@@ -177,25 +177,20 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         await deployedGenesisKey.connect(owner).toggleLockupBoolean(); // true
 
-        expect(await deployedGenesisKey.lockupCount(owner.address)).to.be.equal(0); // 0 key locked up
-
         await deployedGenesisKey.connect(owner).toggleLockup([21]);
         expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
-        expect(await deployedGenesisKey.lockupCount(owner.address)).to.be.equal(1); // 1 key locked up
 
         await deployedGenesisKey.connect(owner).toggleLockup([20]);
-        expect(await deployedGenesisKey.lockupCount(owner.address)).to.be.equal(2); // 2 keys locked up 
         await deployedGenesisKey.connect(owner).toggleLockup([20]);
-        expect(await deployedGenesisKey.lockupCount(owner.address)).to.be.equal(1); // 2 key locked up 
 
+        // token 20 = unstaked, 21 staked
         await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 21)).to.be.reverted;
         await expect(deployedGenesisKey.connect(owner).bulkTransfer([21], second.address, 21)).to.be.reverted;
 
         console.log("currentXP 1: ", await deployedGenesisKey.currentXP(21));
         console.log("currentXP 2: ", await deployedGenesisKey.currentXP(25));
 
-        expect(await deployedGenesisKey.lockupCount(second.address)).to.be.equal(0);
-
+        // token 21 is unstaked
         await deployedGenesisKey.connect(owner).toggleLockup([21]);
         await deployedGenesisKey.transferFrom(owner.address, second.address, 21);
         expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
