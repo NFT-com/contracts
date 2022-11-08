@@ -150,57 +150,6 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         for (let i = 0; i < 1000; i++) {
           expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
         }
-
-        expect(await deployedGenesisKey.latestClaimTokenId()).to.eq(0);
-        await deployedGenesisKey.connect(owner).deprecateGK(600);
-        expect(await deployedGenesisKey.latestClaimTokenId()).to.eq(600);
-
-        for (let i = 0; i < 1000; i++) {
-          if (i < 600) {
-            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
-          } else {
-            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
-          }
-        }
-
-        // reverts due to not having the correct number of GKs
-        await expect(deployedGenesisKey.connect(owner).deprecateGK(600)).to.be.reverted;
-
-        // should successfully process an additional 100
-        await deployedGenesisKey.connect(owner).deprecateGK(100);
-
-        for (let i = 0; i < 1000; i++) {
-          if (i < 700) {
-            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
-          } else {
-            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
-          }
-        }
-
-        // deprecate key 1 by 1
-        for (let i = 0; i < 150; i++) {
-          await deployedGenesisKey.connect(owner).deprecateGK(1);
-        }
-
-        for (let i = 0; i < 1000; i++) {
-          if (i < 850) {
-            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
-          } else {
-            expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
-          }
-        }
-
-        // deprecate key by pair
-        for (let i = 0; i < (150 / 2); i++) {
-          await deployedGenesisKey.connect(owner).deprecateGK(2);
-        }
-
-        for (let i = 0; i < 1000; i++) {
-          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(await deployedGenesisKey.multiSig());
-        }
-
-        await expect(deployedGenesisKey.connect(owner).deprecateGK(1)).to.be.reverted;
-        await expect(deployedGenesisKey.connect(owner).deprecateGK(0)).to.be.revertedWith("!0");
       });
 
       it("should allow for GK staking", async function () {
@@ -228,13 +177,24 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         await deployedGenesisKey.connect(owner).toggleLockupBoolean(); // true
 
+        expect(await deployedGenesisKey.lockupCount(owner.address)).to.be.equal(0); // 0 key locked up
+
         await deployedGenesisKey.connect(owner).toggleLockup([21]);
         expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
+        expect(await deployedGenesisKey.lockupCount(owner.address)).to.be.equal(1); // 1 key locked up
+
+        await deployedGenesisKey.connect(owner).toggleLockup([20]);
+        expect(await deployedGenesisKey.lockupCount(owner.address)).to.be.equal(2); // 2 keys locked up 
+        await deployedGenesisKey.connect(owner).toggleLockup([20]);
+        expect(await deployedGenesisKey.lockupCount(owner.address)).to.be.equal(1); // 2 key locked up 
+
         await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 21)).to.be.reverted;
         await expect(deployedGenesisKey.connect(owner).bulkTransfer([21], second.address, 21)).to.be.reverted;
 
         console.log("currentXP 1: ", await deployedGenesisKey.currentXP(21));
         console.log("currentXP 2: ", await deployedGenesisKey.currentXP(25));
+
+        expect(await deployedGenesisKey.lockupCount(second.address)).to.be.equal(0);
 
         await deployedGenesisKey.connect(owner).toggleLockup([21]);
         await deployedGenesisKey.transferFrom(owner.address, second.address, 21);

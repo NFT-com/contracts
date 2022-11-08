@@ -53,10 +53,12 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
 
     mapping(bytes32 => bool) public cancelledOrFinalized; // Deprecated
     mapping(address => bool) public whitelistedTransfer; // Deperecated
-    mapping(uint256 => LockupInfo) private _genesisKeyLockUp; // Deprecated
+    mapping(uint256 => LockupInfo) private _genesisKeyLockUp;
 
     uint256 public constant MAX_SUPPLY = 10000;
     uint256 public latestClaimTokenId;
+
+    mapping(address => uint256) public lockupCount; // tracks lockups / address
 
     event ClaimedGenesisKey(address indexed _user, uint256 _amount, uint256 _blockNum, bool _whitelist);
 
@@ -166,9 +168,11 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         if (start == 0) {
             if (!lockupBoolean) revert LockUpUnavailable();
             _genesisKeyLockUp[tokenId].currentLockup = uint128(block.timestamp);
+            lockupCount[msg.sender] += 1;
         } else {
             _genesisKeyLockUp[tokenId].totalLockup += uint128(block.timestamp - start);
             _genesisKeyLockUp[tokenId].currentLockup = 0;
+            lockupCount[msg.sender] -= 1;
         }
     }
 
@@ -184,16 +188,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         if (block.chainid == 5) {
             if (totalSupply() == MAX_SUPPLY) revert MaxSupply();
             _mint(_recipient, 1, "", false);
-        }
-    }
-
-    function deprecateGK(uint256 _amount) external onlyOwner {
-        require(_amount != 0, "!0");
-        uint256 i = latestClaimTokenId + 1; // start at 1
-        latestClaimTokenId += _amount;
-        while (i <= latestClaimTokenId) {
-            _adminTransfer(address(this), multiSig, i);
-            unchecked { i++; }
         }
     }
 
