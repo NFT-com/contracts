@@ -1011,6 +1011,7 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
 
   const GenesisKey = await hre.ethers.getContractFactory(network === "goerli" ? "GenesisKey" : "GenesisKey");
 
+  // TODO: verify latest @ 0x6e97723b9ad593bF8A22F8BFaab38c016273aB17
   if (network == "mainnet") {
     const upgradedGKImp = await hre.upgrades.prepareUpgrade(
       (
