@@ -22,7 +22,6 @@ contract ERC20TransferProxy is IERC20TransferProxy, Initializable, UUPSUpgradeab
         address to,
         uint256 value
     ) external override onlyOperator {
-        // token.safeTransferFrom(from, to, value);
         _performERC20Transfer(address(token), from, to, value);
     }
 

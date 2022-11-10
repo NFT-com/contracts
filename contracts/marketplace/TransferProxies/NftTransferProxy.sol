@@ -20,7 +20,6 @@ contract NftTransferProxy is INftTransferProxy, Initializable, UUPSUpgradeable, 
         address to,
         uint256 tokenId
     ) external override onlyOperator {
-        // token.safeTransferFrom(from, to, tokenId);
         _performERC721Transfer(address(token), from, to, tokenId);
     }
 
