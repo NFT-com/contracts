@@ -207,7 +207,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             : ROYALTY.NEITHER;
 
         // interactions (i.e. perform swap, fees and royalties)
-        for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
+        for (uint256 i = 0; i < sellOrder.takeAssets.length;) {
             // send assets from buyer to seller (payment for goods)
             transfer(
                 sellOrder.auctionType,
@@ -220,9 +220,13 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 royaltyScore == ROYALTY.FUNGIBLE_TAKE_ASSETS,
                 sellOrder.makeAssets
             );
+
+            unchecked {
+                ++i;
+            }
         }
 
-        for (uint256 j = 0; j < sellOrder.makeAssets.length; j++) {
+        for (uint256 j = 0; j < sellOrder.makeAssets.length;) {
             // send assets from seller to buyer (goods)
             transfer(
                 sellOrder.auctionType,
@@ -233,6 +237,10 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
                 royaltyScore == ROYALTY.FUNGIBLE_MAKE_ASSETS,
                 sellOrder.takeAssets // nft asset for royalty calculation
             );
+
+            unchecked {
+                ++j;
+            }
         }
 
         require(marketplaceEvent.emitBuyNow(sellHash, sellOrder, v, r, s));

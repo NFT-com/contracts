@@ -4,6 +4,17 @@ import csv from "csvtojson";
 import fs from "fs";
 import delay from "delay";
 import { parseBalanceMap } from "../../test/utils/parse-balance-map";
+import {
+  ETH_ASSET_CLASS,
+  signMarketplaceOrder,
+  ERC20_ASSET_CLASS,
+  ERC721_ASSET_CLASS,
+  ERC1155_ASSET_CLASS,
+  CRYPTO_KITTY,
+  convertSmallNftToken,
+  AuctionType,
+  MAX_UINT
+} from "../../test/utils/sign-utils";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { combineOrders, LooksrareInput, SeaportCompleteInput } from "../../test/utils/aggregator/index";
 import { getNetworkMeta } from "../../test/utils/aggregator/xy2yHelper";
@@ -156,12 +167,6 @@ const getTokens = async (hre: any) => {
     deployedVestingAddress,
     deployedGenesisKeyAddress,
     genesisKeyTeamDistributorAddress,
-    deployedMarketplaceEvent,
-    deployedNftMarketplace,
-    deployedNftTransferProxy,
-    deployedERC20TransferProxy,
-    deployedCryptoKittyTransferProxy,
-    deployedValidationLogic,
     profileMetadataLink,
     deployedNftBuyer,
     ipfsHash,
@@ -176,6 +181,12 @@ const getTokens = async (hre: any) => {
     deployedX2Y2Lib,
     deployedNftStake,
     deployedMarketplaceRegistry,
+    deployedMarketplaceEvent,
+    deployedNftMarketplace,
+    deployedNftTransferProxy,
+    deployedERC20TransferProxy,
+    deployedCryptoKittyTransferProxy,
+    deployedValidationLogic,
   };
 };
 
@@ -937,6 +948,105 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
   // 
   await getImplementation("deployedMarketplaceEvent", deployedMarketplaceEvent.address, hre);
   await getImplementation("deployedNftMarketplace", deployedNftMarketplace.address, hre);
+});
+
+task("test:nativePurchase").setAction(async function (taskArguments, hre) {
+  try {
+    const chainId = hre.network.config.chainId;
+    const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
+  
+    if (network != "goerli") {
+      console.log(chalk.red(`native purchase flow must be on goerli`));
+      return;
+    }
+  
+    console.log(chalk.green(`starting a native purchase flow on goerli`));
+  
+    const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
+    const deployedNftMarketplace = NftMarketplace.attach((await getTokens(hre)).deployedNftMarketplace);
+    const NftTransferProxy = await hre.ethers.getContractFactory("NftTransferProxy");
+    const deployedNftTransferProxy = NftTransferProxy.attach((await getTokens(hre)).deployedNftTransferProxy);
+    const GenesisKey = await hre.ethers.getContractFactory("GenesisKey");
+    const deployedGenesisKey = GenesisKey.attach((await getTokens(hre)).deployedGenesisKeyAddress);
+
+    // const ERC20TransferProxy = await hre.ethers.getContractFactory("ERC20TransferProxy");
+    // const deployedERC20TransferProxy = ERC20TransferProxy.attach((await getTokens(hre)).deployedERC20TransferProxy);
+    // const CryptoKittyTransferProxy = await hre.ethers.getContractFactory("CryptoKittyTransferProxy");
+    // const deployedCryptoKittyTransferProxy = CryptoKittyTransferProxy.attach((await getTokens(hre)).deployedCryptoKittyTransferProxy);
+    // const ValidationLogic = await hre.ethers.getContractFactory("ValidationLogic");
+    // const deployedValidationLogic = ValidationLogic.attach((await getTokens(hre)).deployedValidationLogic);
+    // const MarketplaceEvent = await hre.ethers.getContractFactory("MarketplaceEvent");
+    // const deployedMarketplaceEvent = MarketplaceEvent.attach((await getTokens(hre)).deployedMarketplaceEvent);
+  
+    const ownerAddress = '0x59495589849423692778a8c5aaca62ca80f875a4';
+    const sellAsset = deployedGenesisKey.address; // genesis key on goerli
+    const sellAssetTokenId = 9912;
+  
+    const takeAsset = '0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6'; // weth on goerli
+  
+    // approvals
+    await deployedGenesisKey.approve(deployedNftTransferProxy.address, sellAssetTokenId);
+  
+    const ownerSigner = hre.ethers.Wallet.fromMnemonic(process.env.MNEMONIC || '');
+    const buyerSigner = hre.ethers.Wallet.fromMnemonic(process.env.MNEMONIC || '', "m/44'/60'/0'/0/1");
+  
+    // TODO: make this call manually
+    // await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
+  
+    // should succeed
+    // await deployedNftMarketplace.connect(buyer).approveOrder_(buyOrder);
+  
+    console.log(chalk.green(`signing...`));
+  
+    const {
+      v: v0,
+      r: r0,
+      s: s0,
+      order: sellOrder,
+    } = await signMarketplaceOrder(
+      ownerSigner,
+      [ // makerAsset Array
+        [
+          ERC721_ASSET_CLASS, // asset class
+          ["address", "uint256", "bool"], // types
+          [sellAsset, sellAssetTokenId, true], // values
+          [1, 0], // data to be encoded
+        ],
+      ],
+      hre.ethers.constants.AddressZero,
+      [[ERC20_ASSET_CLASS, ["address"], [takeAsset], [convertSmallNftToken(10), convertSmallNftToken(1)]]],
+      0,
+      0,
+      Number(await deployedNftMarketplace.nonces(ownerAddress)),
+      hre.ethers.provider,
+      deployedNftMarketplace.address,
+      AuctionType.English,
+    );
+  
+    const {
+      v: v1,
+      r: r1,
+      s: s1,
+      order: buyOrder,
+    } = await signMarketplaceOrder(
+      buyerSigner,
+      [[ERC20_ASSET_CLASS, ["address"], [takeAsset], [convertSmallNftToken(5), 0]]],
+      ownerAddress,
+      [[ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [sellAsset, sellAssetTokenId, true], [1, 0]]],
+      0,
+      0,
+      Number(await deployedNftMarketplace.nonces(ownerAddress)),
+      hre.ethers.provider,
+      deployedNftMarketplace.address,
+      AuctionType.English,
+    );
+  
+    console.log(chalk.green(`executing...`));
+  
+    await deployedNftMarketplace.executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 // STEP 4 Airdrop (wait until ready)

@@ -72,7 +72,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         } else if (sellTakeAssetClass == LibAsset.ERC20_ASSET_CLASS) {
             return abi.decode(buyMakeAssetTypeData, (address)) == abi.decode(sellTakeAssetTypeData, (address));
         } else if (sellTakeAssetClass == LibAsset.ETH_ASSET_CLASS) {
-            // no need to handle LibAsset.ETH_ASSET_CLASS since that is handled at run time
+            // no need to handle LibAsset.ETH_ASSET_CLASS since that is handled during execution
             return true;
         } else {
             // should not come here

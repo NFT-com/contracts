@@ -2,38 +2,17 @@ const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
 const {
-  sign,
-  getDigest,
-  getHash,
-  convertToHash,
-  ERC20_PERMIT_TYPEHASH,
   ETH_ASSET_CLASS,
   signMarketplaceOrder,
   ERC20_ASSET_CLASS,
   ERC721_ASSET_CLASS,
   ERC1155_ASSET_CLASS,
   CRYPTO_KITTY,
-  COLLECTION,
-  getAssetHash,
-  makeSalt,
-  encode,
-  MARKETPLACE_ORDER_TYPEHASH,
+  convertNftToken,
+  convertSmallNftToken,
+  AuctionType,
+  MAX_UINT
 } = require("./utils/sign-utils");
-
-// whole number
-const convertNftToken = tokens => {
-  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(18)));
-};
-
-const convertSmallNftToken = tokens => {
-  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(16)));
-};
-
-const AuctionType = {
-  FixedPrice: 0,
-  English: 1,
-  Decreasing: 2,
-};
 
 describe("NFT.com Marketplace", function () {
   try {
@@ -69,7 +48,6 @@ describe("NFT.com Marketplace", function () {
     let TESTNET_XEENUS;
     const UNI_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
     const UNI_ROUTER_V2 = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
-    const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.

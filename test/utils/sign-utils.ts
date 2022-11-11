@@ -1,10 +1,26 @@
 import { BigNumber, ethers, BigNumberish, BytesLike } from "ethers";
 import { keccak256, defaultAbiCoder, toUtf8Bytes, solidityPack, _TypedDataEncoder } from "ethers/lib/utils";
-import { getChainId, RSV, signData } from "./rpc";
+import { getChainId, RSV } from "./rpc";
 import abi from "ethereumjs-abi";
 import Web3 from "web3";
 
 const web3 = new Web3();
+
+export const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
+
+export const AuctionType = {
+  FixedPrice: 0,
+  English: 1,
+  Decreasing: 2,
+};
+
+export const convertNftToken = (tokens: string | number): BigNumber => {
+  return BigNumber.from(`${tokens}`).mul(BigNumber.from(10).pow(BigNumber.from(18)));
+};
+
+export const convertSmallNftToken = (tokens: string | number): BigNumber => {
+  return BigNumber.from(`${tokens}`).mul(BigNumber.from(10).pow(BigNumber.from(16)));
+};
 
 export const signHashPublicSale = (inputHash: string): any => {
   const hash = "0x" + abi.soliditySHA3(["string"], [inputHash + new Date().getTime().toString()]).toString("hex");
