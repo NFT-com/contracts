@@ -2,6 +2,8 @@ const { expect } = require("chai");
 const looksrareABI = require("../abis/looksrare.json");
 const seaportABI = require("../abis/seaport.json");
 const x2y2ABI = require("../abis/x2y2.json");
+const nftNativeTradingImport = require("../artifacts/contracts/marketplace/NftMarketplace.sol/NftMarketplace.json");
+const nftNativeTradingABI = nftNativeTradingImport.abi;
 const { ethers } = require("hardhat");
 const fetch = require('isomorphic-unfetch');
 const axios = require('axios');
@@ -36,6 +38,7 @@ describe("NFT Aggregator", function () {
     let looksrare = new ethers.utils.Interface(looksrareABI);
     let seaport = new ethers.utils.Interface(seaportABI);
     let x2y2 = new ethers.utils.Interface(x2y2ABI);
+    let nftNativeTrading = new ethers.utils.Interface(nftNativeTradingABI);
     const ownerSigner = ethers.Wallet.fromMnemonic(process.env.MNEMONIC);
 
     const chainId = hre.network.config.chainId; // 5 = goerli
@@ -216,6 +219,9 @@ describe("NFT Aggregator", function () {
     );
     const x2y2Lib = new ethers.utils.Interface(
       `[{"inputs":[],"name":"InvalidChain","type":"error"},{"inputs":[{"components":[{"components":[{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"network","type":"uint256"},{"internalType":"uint256","name":"intent","type":"uint256"},{"internalType":"uint256","name":"delegateType","type":"uint256"},{"internalType":"uint256","name":"deadline","type":"uint256"},{"internalType":"contract IERC20Upgradeable","name":"currency","type":"address"},{"internalType":"bytes","name":"dataMask","type":"bytes"},{"components":[{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct OrderItem[]","name":"items","type":"tuple[]"},{"internalType":"bytes32","name":"r","type":"bytes32"},{"internalType":"bytes32","name":"s","type":"bytes32"},{"internalType":"uint8","name":"v","type":"uint8"},{"internalType":"uint8","name":"signVersion","type":"uint8"}],"internalType":"struct Order[]","name":"orders","type":"tuple[]"},{"components":[{"internalType":"enum Op","name":"op","type":"uint8"},{"internalType":"uint256","name":"orderIdx","type":"uint256"},{"internalType":"uint256","name":"itemIdx","type":"uint256"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"bytes32","name":"itemHash","type":"bytes32"},{"internalType":"contract IDelegate","name":"executionDelegate","type":"address"},{"internalType":"bytes","name":"dataReplacement","type":"bytes"},{"internalType":"uint256","name":"bidIncentivePct","type":"uint256"},{"internalType":"uint256","name":"aucMinIncrementPct","type":"uint256"},{"internalType":"uint256","name":"aucIncDurationSecs","type":"uint256"},{"components":[{"internalType":"uint256","name":"percentage","type":"uint256"},{"internalType":"address","name":"to","type":"address"}],"internalType":"struct Fee[]","name":"fees","type":"tuple[]"}],"internalType":"struct SettleDetail[]","name":"details","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"uint256","name":"deadline","type":"uint256"},{"internalType":"uint256","name":"amountToEth","type":"uint256"},{"internalType":"uint256","name":"amountToWeth","type":"uint256"},{"internalType":"address","name":"user","type":"address"},{"internalType":"bool","name":"canFail","type":"bool"}],"internalType":"struct SettleShared","name":"shared","type":"tuple"},{"internalType":"bytes32","name":"r","type":"bytes32"},{"internalType":"bytes32","name":"s","type":"bytes32"},{"internalType":"uint8","name":"v","type":"uint8"}],"internalType":"struct RunInput","name":"_input","type":"tuple"},{"internalType":"uint256","name":"_msgValue","type":"uint256"},{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bool","name":"_revertIfTrxFails","type":"bool"}],"name":"_run","outputs":[],"stateMutability":"nonpayable","type":"function"}]`,
+    );
+    const nativeTradingLibrary = new ethers.utils.Interface(
+      
     );
 
     // `beforeEach` will run before each test, re-deploying the contract every
