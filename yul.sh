@@ -1,1 +1,0 @@
-jq -r '.output.contracts."contracts/domain/ProfileAuction.sol"."ProfileAuction"."irOptimized"' artifacts/build-info/51ce80f1b8eb4edb017138be5ddd5c4a.json | cat > yul/ProfileAuction.yul
