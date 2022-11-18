@@ -237,7 +237,7 @@ export const signMarketplaceOrder = async (
     "NFT.com Marketplace",
     deployedNftMarketplaceAddress,
     getHash(
-      ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "uint256", "uint8", "bool"],
+      ["bytes32", "address", "bytes32", "address", "bytes32", "uint256", "uint256", "uint256", "uint256", "uint8"],
       [
         MARKETPLACE_ORDER_TYPEHASH,
         signer.address,
