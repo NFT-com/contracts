@@ -47,8 +47,7 @@ contract MarketplaceEvent is Initializable, UUPSUpgradeable, OwnableUpgradeable,
             sellOrder.start,
             sellOrder.end,
             sellOrder.nonce,
-            sellOrder.salt,
-            sellOrder.royaltyOptIn
+            sellOrder.salt
         );
 
         emitMatch2(sellOrder, sellHash, buyOrder, buyHash);
@@ -86,8 +85,7 @@ contract MarketplaceEvent is Initializable, UUPSUpgradeable, OwnableUpgradeable,
             sellOrder.start,
             sellOrder.end,
             sellOrder.nonce,
-            sellOrder.salt,
-            sellOrder.royaltyOptIn
+            sellOrder.salt
         );
 
         emitMatch2(sellOrder, sellHash, sellOrder, 0x0000000000000000000000000000000000000000000000000000000000000000);
@@ -161,8 +159,7 @@ contract MarketplaceEvent is Initializable, UUPSUpgradeable, OwnableUpgradeable,
             buyOrder.start,
             buyOrder.end,
             buyOrder.nonce,
-            buyOrder.salt,
-            buyOrder.royaltyOptIn
+            buyOrder.salt
         );
 
         emit Match3B(

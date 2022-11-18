@@ -26,8 +26,7 @@ interface IMarketplaceEvent {
         uint256 start,
         uint256 end,
         uint256 nonce,
-        uint256 salt,
-        bool royaltyOptIn
+        uint256 salt
     );
     event Match2B(
         bytes32 indexed makerStructHash,
@@ -45,8 +44,7 @@ interface IMarketplaceEvent {
         uint256 start,
         uint256 end,
         uint256 nonce,
-        uint256 salt,
-        bool royaltyOptIn
+        uint256 salt
     );
     event Match3B(
         bytes32 indexed takerStructHash,

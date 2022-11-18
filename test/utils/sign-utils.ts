@@ -69,7 +69,7 @@ export const GENESIS_KEY_TYPEHASH = convertToHash("GenesisBid(uint256 _wethToken
 export const BID_TYPEHASH = convertToHash("Bid(uint256 _nftTokens,bool _genKey,string _profileURI,address _owner)");
 
 export const MARKETPLACE_ORDER_TYPEHASH = convertToHash(
-  "Order(address maker,Asset[] makeAssets,address taker,Asset[] takeAssets,uint256 salt,uint256 start,uint256 end,uint256 nonce,uint8 auctionType,bool royaltyOptIn)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
+  "Order(address maker,Asset[] makeAssets,address taker,Asset[] takeAssets,uint256 salt,uint256 start,uint256 end,uint256 nonce,uint8 auctionType)Asset(AssetType assetType,bytes data)AssetType(bytes4 assetClass,bytes data)",
 );
 
 export const convertBigNumber = (tokens: number): BigNumberish => {
@@ -223,8 +223,7 @@ export const signMarketplaceOrder = async (
   nonce: number,
   provider: any,
   deployedNftMarketplaceAddress: string,
-  auctionType: number,
-  royaltyOptIn: boolean = false
+  auctionType: number
 ): Promise<any> => {
   const salt = makeSalt();
 
@@ -249,8 +248,7 @@ export const signMarketplaceOrder = async (
         start,
         end,
         nonce,
-        auctionType,
-        royaltyOptIn
+        auctionType
       ],
     ),
   );
@@ -270,8 +268,7 @@ export const signMarketplaceOrder = async (
       start,
       end,
       nonce,
-      auctionType,
-      royaltyOptIn
+      auctionType
     ],
   };
 };
