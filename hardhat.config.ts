@@ -72,6 +72,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
     case "avalanche":
       jsonRpcUrl = "https://api.avax.network/ext/bc/C/rpc";
       break;
+    case "avalancheTestnet":
+      jsonRpcUrl = "https://api.avax-test.network/ext/bc/C/rpc";
+      break;
     case "bsc":
       jsonRpcUrl = "https://bsc-dataseed1.binance.org";
       break;
