@@ -140,13 +140,19 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
 
         await expect(deployedGenesisKey.connect(owner).bulkTransfer([1, 2, 3, 1001], addr1.address)).to.be.reverted; // reverts due to token id 1001 not existing
         await expect(deployedGenesisKey.connect(owner).bulkTransfer([0, 1, 2], addr1.address)).to.be.reverted; // reverts due to token id 0 not existing
-        await deployedGenesisKey.connect(owner).bulkTransfer(Array.from({length: 1000}, (_, i) => i + 1), addr1.address); // 1 - 1000 inclusive
+        await deployedGenesisKey.connect(owner).bulkTransfer(
+          Array.from({ length: 1000 }, (_, i) => i + 1),
+          addr1.address,
+        ); // 1 - 1000 inclusive
         for (let i = 0; i < 1000; i++) {
           expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(addr1.address);
         }
 
         // send to GK to test deprecation
-        await deployedGenesisKey.connect(addr1).bulkTransfer(Array.from({length: 1000}, (_, i) => i + 1), deployedGenesisKey.address); // 1 - 1000 inclusive
+        await deployedGenesisKey.connect(addr1).bulkTransfer(
+          Array.from({ length: 1000 }, (_, i) => i + 1),
+          deployedGenesisKey.address,
+        ); // 1 - 1000 inclusive
         for (let i = 0; i < 1000; i++) {
           expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
         }
@@ -158,7 +164,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
           expect(await deployedGenesisKey.totalSupply()).to.eq(i + 1);
           expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(owner.address);
         }
-        
+
         expect(await deployedGenesisKey.lockupBoolean()).to.be.false;
 
         // reverts due to lockUp boolean being false

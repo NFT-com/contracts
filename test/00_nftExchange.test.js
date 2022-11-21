@@ -11,7 +11,7 @@ const {
   convertNftToken,
   convertSmallNftToken,
   AuctionType,
-  MAX_UINT
+  MAX_UINT,
 } = require("./utils/sign-utils");
 
 describe("NFT.com Marketplace", function () {

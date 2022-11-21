@@ -27,9 +27,9 @@ describe("Origination Testing", function () {
     const ids = [id1, id2, id3];
     const debug = false;
 
-    const calculatedTokenMaxSupply = id => BigNumber.from(id).and(SUPPLY_MASK);
-    const calculatedTokenIndex = id => BigNumber.from(id).and(INDEX_MASK).shr(SUPPLY_BITS);
-    const calculatedOriginUint256 = id => BigNumber.from(BigNumber.from(id).shr(INDEX_BITS + SUPPLY_BITS)).shl(160);
+    const calculatedTokenMaxSupply = (id) => BigNumber.from(id).and(SUPPLY_MASK);
+    const calculatedTokenIndex = (id) => BigNumber.from(id).and(INDEX_MASK).shr(SUPPLY_BITS);
+    const calculatedOriginUint256 = (id) => BigNumber.from(BigNumber.from(id).shr(INDEX_BITS + SUPPLY_BITS)).shl(160);
 
     // helper function for encoding packed tokenId
     const createTokenId = (address, index, maxSupply) => {

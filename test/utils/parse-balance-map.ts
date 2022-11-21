@@ -77,7 +77,7 @@ export function parseBalanceMap(balances: OldFormat | NewFormat[]): MerkleDistri
 
   // construct a tree
   const tree = new BalanceTree(
-    sortedAddresses.map(address => ({ account: address, amount: dataByAddress[address].amount })),
+    sortedAddresses.map((address) => ({ account: address, amount: dataByAddress[address].amount })),
   );
 
   // generate claims

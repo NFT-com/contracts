@@ -6,17 +6,9 @@ pragma abicoder v2;
 interface IDelegate {
     function delegateType() external view returns (uint256);
 
-    function executeSell(
-        address seller,
-        address buyer,
-        bytes calldata data
-    ) external returns (bool);
+    function executeSell(address seller, address buyer, bytes calldata data) external returns (bool);
 
-    function executeBuy(
-        address seller,
-        address buyer,
-        bytes calldata data
-    ) external returns (bool);
+    function executeBuy(address seller, address buyer, bytes calldata data) external returns (bool);
 
     function executeBid(
         address seller,
@@ -25,15 +17,7 @@ interface IDelegate {
         bytes calldata data
     ) external returns (bool);
 
-    function executeAuctionComplete(
-        address seller,
-        address buyer,
-        bytes calldata data
-    ) external returns (bool);
+    function executeAuctionComplete(address seller, address buyer, bytes calldata data) external returns (bool);
 
-    function executeAuctionRefund(
-        address seller,
-        address lastBidder,
-        bytes calldata data
-    ) external returns (bool);
+    function executeAuctionRefund(address seller, address lastBidder, bytes calldata data) external returns (bool);
 }

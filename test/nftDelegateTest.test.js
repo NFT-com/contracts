@@ -22,7 +22,8 @@ describe("Nft Delegate Test", function () {
         await deployedDelegateCallTest.connect(second).testDelegateCall("0x0000000000000000000000000000000000000000");
         const afterEthBalance = await ethers.provider.getBalance(deployedDelegateCallTest.address);
         expect(ethBalance).to.be.equal(afterEthBalance);
-        expect(deployedDelegateCallTest.connect(second).testDelegateCall(deployedDelegateCallTest.address)).to.be.reverted;
+        expect(deployedDelegateCallTest.connect(second).testDelegateCall(deployedDelegateCallTest.address)).to.be
+          .reverted;
       });
     });
   } catch (err) {

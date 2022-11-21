@@ -14,119 +14,119 @@ export const KNOWN_CONDUIT_KEYS_TO_CONDUIT = {
   [OPENSEA_CONDUIT_KEY]: OPENSEA_CONDUIT_ADDRESS,
 };
 
-export const data1155ParamType = `tuple(address token, uint256 tokenId, uint256 amount)[]`
-export const data721ParamType = `tuple(address token, uint256 tokenId)[]`
+export const data1155ParamType = `tuple(address token, uint256 tokenId, uint256 amount)[]`;
+export const data721ParamType = `tuple(address token, uint256 tokenId)[]`;
 
-export type TokenStandard = 'erc721' | 'erc1155'
+export type TokenStandard = "erc721" | "erc1155";
 
-export const INTENT_SELL = 1
-export const INTENT_AUCTION = 2
-export const INTENT_BUY = 3
+export const INTENT_SELL = 1;
+export const INTENT_AUCTION = 2;
+export const INTENT_BUY = 3;
 
-export const OP_COMPLETE_SELL_OFFER = 1 // COMPLETE_SELL_OFFER
-export const OP_COMPLETE_BUY_OFFER = 2 // COMPLETE_BUY_OFFER
-export const OP_CANCEL_OFFER = 3 // CANCEL_OFFER
-export const OP_BID = 4 // BID
-export const OP_COMPLETE_AUCTION = 5 // COMPLETE_AUCTION
-export const OP_REFUND_AUCTION = 6 // REFUND_AUCTION
-export const OP_REFUND_AUCTION_STUCK_ITEM = 7 // REFUND_AUCTION_STUCK_ITEM
+export const OP_COMPLETE_SELL_OFFER = 1; // COMPLETE_SELL_OFFER
+export const OP_COMPLETE_BUY_OFFER = 2; // COMPLETE_BUY_OFFER
+export const OP_CANCEL_OFFER = 3; // CANCEL_OFFER
+export const OP_BID = 4; // BID
+export const OP_COMPLETE_AUCTION = 5; // COMPLETE_AUCTION
+export const OP_REFUND_AUCTION = 6; // REFUND_AUCTION
+export const OP_REFUND_AUCTION_STUCK_ITEM = 7; // REFUND_AUCTION_STUCK_ITEM
 
-export const DELEGATION_TYPE_INVALID = 0
-export const DELEGATION_TYPE_ERC721 = 1
-export const DELEGATION_TYPE_ERC1155 = 2
+export const DELEGATION_TYPE_INVALID = 0;
+export const DELEGATION_TYPE_ERC721 = 1;
+export const DELEGATION_TYPE_ERC1155 = 2;
 
-export type Network = 'mainnet' | 'goerli'
+export type Network = "mainnet" | "goerli";
 
 export type NetworkMeta = {
-  id: number
-  rpcUrl: string
-  marketContract: string
-  erc721DelegateContract: string
-  erc1155DelegateContract: string
-  wethContract: string
-  apiBaseURL: string
-}
+  id: number;
+  rpcUrl: string;
+  marketContract: string;
+  erc721DelegateContract: string;
+  erc1155DelegateContract: string;
+  wethContract: string;
+  apiBaseURL: string;
+};
 
 export type Order = {
-  item_hash: string
-  maker: string
-  type: string
-  side: number
-  status: string
-  currency: string
-  end_at: string
-  created_at: string
+  item_hash: string;
+  maker: string;
+  type: string;
+  side: number;
+  status: string;
+  currency: string;
+  end_at: string;
+  created_at: string;
   token: {
-    contract: string
-    token_id: number
-    erc_type: TokenStandard
-  }
-  id: number
-  price: string
-  taker: string | null
-}
+    contract: string;
+    token_id: number;
+    erc_type: TokenStandard;
+  };
+  id: number;
+  price: string;
+  taker: string | null;
+};
 
 export type SettleDetail = {
-  op: number
-  orderIdx: BigNumberish
-  itemIdx: BigNumberish
-  price: BigNumberish
-  itemHash: string
-  executionDelegate: string
-  dataReplacement: string
-  bidIncentivePct: BigNumberish
-  aucMinIncrementPct: BigNumberish
-  aucIncDurationSecs: BigNumberish
-  fees: Fee[]
-}
+  op: number;
+  orderIdx: BigNumberish;
+  itemIdx: BigNumberish;
+  price: BigNumberish;
+  itemHash: string;
+  executionDelegate: string;
+  dataReplacement: string;
+  bidIncentivePct: BigNumberish;
+  aucMinIncrementPct: BigNumberish;
+  aucIncDurationSecs: BigNumberish;
+  fees: Fee[];
+};
 
 export type SettleShared = {
-  salt: BigNumberish
-  deadline: BigNumberish
-  amountToEth: BigNumberish
-  amountToWeth: BigNumberish
-  user: string
-  canFail: boolean
-}
+  salt: BigNumberish;
+  deadline: BigNumberish;
+  amountToEth: BigNumberish;
+  amountToWeth: BigNumberish;
+  user: string;
+  canFail: boolean;
+};
 
 export type RunInput = {
-  orders: X2Y2Order[]
-  details: SettleDetail[]
-  shared: SettleShared
+  orders: X2Y2Order[];
+  details: SettleDetail[];
+  shared: SettleShared;
   // signature
-  r: string
-  s: string
-  v: number
-}
+  r: string;
+  s: string;
+  v: number;
+};
 
 export type TokenPair = {
-  token: string
-  tokenId: BigNumberish
-  amount: BigNumberish
-  tokenStandard: TokenStandard
-}
+  token: string;
+  tokenId: BigNumberish;
+  amount: BigNumberish;
+  tokenStandard: TokenStandard;
+};
 
 export type X2Y2OrderItem = {
-  price: BigNumberish
-  data: string
-}
+  price: BigNumberish;
+  data: string;
+};
 
 export type X2Y2Order = {
-  salt: BigNumberish
-  user: string
-  network: BigNumberish
-  intent: BigNumberish
-  delegateType: BigNumberish
-  deadline: BigNumberish
-  currency: string
-  dataMask: string
-  items: X2Y2OrderItem[]
+  salt: BigNumberish;
+  user: string;
+  network: BigNumberish;
+  intent: BigNumberish;
+  delegateType: BigNumberish;
+  deadline: BigNumberish;
+  currency: string;
+  dataMask: string;
+  items: X2Y2OrderItem[];
   // signature
-  r: string
-  s: string
-  v: number
-  signVersion: number
-}
+  r: string;
+  s: string;
+  v: number;
+  signVersion: number;
+};
 
 export const CROSS_CHAIN_SEAPORT_ADDRESS = "0x00000000006c3852cbef3e08e8df289169ede581";
 export const SEAPORT_ZONE = "0x004c00500000ad104d7dbd00e3ae0a5c00560c00";

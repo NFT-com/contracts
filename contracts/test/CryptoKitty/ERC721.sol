@@ -15,11 +15,7 @@ abstract contract ERC721 {
 
     function transfer(address _to, uint256 _tokenId) external virtual;
 
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) external virtual;
+    function transferFrom(address _from, address _to, uint256 _tokenId) external virtual;
 
     // Events
     // event Transfer(address from, address to, uint256 tokenId);

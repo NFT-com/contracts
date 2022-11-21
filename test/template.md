@@ -1,9 +1,6 @@
 const { expect } = require("chai");
 
-describe("template", function () {
-try {
-let Contract;
-let deployedContract;
+describe("template", function () { try { let Contract; let deployedContract;
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
@@ -21,7 +18,4 @@ let deployedContract;
       console.log("TBD");
     });
 
-} catch (err) {
-console.log("error: ", err);
-}
-});
+} catch (err) { console.log("error: ", err); } });

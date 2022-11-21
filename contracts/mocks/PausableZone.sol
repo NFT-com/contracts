@@ -21,9 +21,7 @@ interface ZoneInterface {
 }
 
 contract PausableZone is ZoneInterface {
-    constructor() {
-
-    }
+    constructor() {}
 
     function isValidOrder(
         bytes32 orderHash,

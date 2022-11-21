@@ -13,13 +13,15 @@ import {
   CRYPTO_KITTY,
   convertSmallNftToken,
   AuctionType,
-  MAX_UINT
+  MAX_UINT,
 } from "../../test/utils/sign-utils";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { combineOrders, LooksrareInput, SeaportCompleteInput } from "../../test/utils/aggregator/index";
 import { getNetworkMeta } from "../../test/utils/aggregator/xy2yHelper";
+import { chainIdToNetwork, networkType } from "../../hardhat.config";
+import { contracts } from "../../constants";
 
-const UNI_V2_FACTORY = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
+const UNI_V2_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 const TIME_DELAY = 10000; // 10 seconds
 
 const mainnetBool = (hre: any) => {
@@ -35,158 +37,38 @@ const getNetwork = (hre: any) => {
 
 const getTokens = async (hre: any) => {
   const chainId = hre.network.config.chainId;
-  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
 
-  const governor =
-    network === "goerli"
-      ? "0x59495589849423692778a8c5aaCA62CA80f875a4"
-      : network === "mainnet"
-      ? "0xbCe52D4698fdE9484901121A7Feb0741BA6d4dF3" // 0xfD64d3f48BA28727608bD6E200AFeaca26Dd7e20 gnosis
-      : "";
-  const multiSig =
-    network === "goerli"
-      ? "0x59495589849423692778a8c5aaCA62CA80f875a4"
-      : network === "mainnet"
-      ? "0xfD64d3f48BA28727608bD6E200AFeaca26Dd7e20"
-      : "";
-  const wethAddress =
-    network === "goerli"
-      ? "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
-      : network === "mainnet"
-      ? "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-      : "";
-  const usdcAddress =
-    network === "goerli"
-      ? "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
-      : network === "mainnet"
-      ? "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
-      : "";
-  const deployedNftTokenAddress =
-    network == "goerli"
-      ? "0x7ffe04f3213d893bb4ebe76fbb49ca2a8f9c4610"
-      : network === "mainnet"
-      ? "0x8C42428a747281B03F10C80e978C107D4d85E37F"
-      : "";
-  const deployedVestingAddress =
-    network == "goerli"
-      ? "0x0638A014c45BE910d4611bAfaBcC8219A075788B"
-      : network === "mainnet"
-      ? "0x774c2204D9e50CD9d6A579D194c067360604933f"
-      : "";
-  const deployedGenesisKeyAddress =
-    network == "goerli"
-      ? "0xe0060010c2c81A817f4c52A9263d4Ce5c5B66D55"
-      : network === "mainnet"
-      ? "0x8fB5a7894AB461a59ACdfab8918335768e411414"
-      : "";
-  const genesisKeyTeamDistributorAddress =
-    network == "goerli"
-      ? "0x85c7fBFD62C4470Ee6C0Eb8a722c92d7cD840A11"
-      : network === "mainnet"
-      ? "0x5fb1941b5415b4817d9CC62f8039F7A4B366Ff8F"
-      : "";
-  const deployedGenesisKeyTeamClaimAddress =
-    network == "goerli"
-      ? "0x7B7d88d7718294E27575aA7F4d1e2F25fF51b81c"
-      : network === "mainnet"
-      ? "0xfc99E6b4447a17EA0C6162854fcb572ddC8FbB37"
-      : "";
-  const deployedProfileAuction =
-    network == "goerli"
-      ? "0x40023d97Ca437B966C8f669C91a9740C639E21C3"
-      : network === "mainnet"
-      ? "0x30f649D418AF7358f9c8CB036219fC7f1B646309"
-      : "";
-  const deployedNftProfile =
-    network == "goerli"
-      ? "0x9Ef7A34dcCc32065802B1358129a226B228daB4E"
-      : network === "mainnet"
-      ? "0x98ca78e89Dd1aBE48A53dEe5799F24cC1A462F2D"
-      : "";
-  const deployedNftResolver =
-    network == "goerli"
-      ? "0x3a3539B6727E74fa1c5D4d39B433F0fAB5BC4F4a"
-      : network === "mainnet"
-      ? "0xA657C988e8aC39D3268D390eB7c522a535B10453"
-      : "";
-  const deployedNftAggregator =
-    network == "goerli"
-      ? "0x89b030Ba3424C7A145c23dA2042cd46C073dE4e6"
-      : network == "mainnet"
-      ? "0xf2821154d4752862b49a7C7fA7728B76ea44495e"
-      : "";
-  const deployedLooksrareLibV1 =
-    network == "goerli"
-      ? "0x55BbE37dAa3b72cBE75203CFF032F2f34B151e43"
-      : network == "mainnet"
-      ? "0xf3d4636d92977b16499c73b1fd3a759e45050d90"
-      : "";
-  const deployedSeaportLib1_1 =
-    network == "goerli"
-      ? "0x5c1614A3299B65225550eBdCB7615c216B8dAd9d"
-      : network == "mainnet"
-      ? "0x14be7c58087d73b8557438bf9ae3def395837176"
-      : "";
-  const deployedX2Y2Lib =
-    network == "goerli"
-      ? "0x36D7407dDB103EE8D605759D4a129F500567289C"
-      : network == "mainnet"
-      ? ""
-      : "";
-  const deployedMarketplaceRegistry =
-    network == "goerli"
-      ? "0xeBc58f24393c8488DcD47CFC351F869618348dFC"
-      : network == "mainnet"
-      ? "0x24851a6783fB586E49b1dC71FA40B8307802f2A5"
-      : "";
-  const profileMetadataLink = `https://${
-    network === "goerli" ? "staging-api" : network === "mainnet" ? "prod-api" : ""
-  }.nft.com/uri/`;
-  const deployedNftBuyer =
-    network == "goerli" ? "0x25918Aba0854eF22130389Ece3c9A1c46d3e6eF7" : network === "mainnet" ? "" : "";
-  const deployedMarketplaceEvent = network == "goerli" ? "0xca2A56282ac2B8B42c506225c2bD4dbB8169aC25" : network === "mainnet" ? "" : "";
-  const deployedNftMarketplace = network == "goerli" ? "0xa75F995f252ba5F7C17f834b314201271d32eC35" : network === "mainnet" ? "" : "";
-  const deployedNftTransferProxy = network == "goerli" ? "0x73994Fc4aC9EAb8e8E1c29E5C9d27A761D9Ab1eF" : network === "mainnet" ? "" : "";
-  const deployedERC20TransferProxy = network == "goerli" ? "0xCD979ec33B43eCE6523B41BA5c9e409568eDFB97" : network === "mainnet" ? "" : "";
-  const deployedCryptoKittyTransferProxy = network == "goerli" ? "0xB8E272017D402E6e9243953CFef1AC256F3E2e84" : network === "mainnet" ? "" : "";
-  const deployedValidationLogic = network == "goerli" ? "0x69267B594C79F6C37d827B7f8D2bdDb755307Be8" : network === "mainnet" ? "" : "";
-  const deployedNftStake =
-    network == "goerli" ? "0x6c7B5e7300e7a43fCEa7396BfB461623B1840A96" : network === "mainnet" ? "" : "";
-  const ipfsHash =
-    network == "goerli"
-      ? "ipfs://QmdzBQBCoFxkrtkh3gkQ6U59VmvwEh4c6VUf7LHyYjqqBL/"
-      : network == "mainnet"
-      ? "ipfs://QmWjL5P4P9324pNDfDTHpwwNLWrwXEFUNuaR2r93sxd7mF/"
-      : "";
+  const network = chainIdToNetwork[chainId];
 
   return {
-    governor,
-    wethAddress,
-    usdcAddress,
-    deployedNftTokenAddress,
-    deployedVestingAddress,
-    deployedGenesisKeyAddress,
-    genesisKeyTeamDistributorAddress,
-    profileMetadataLink,
-    deployedNftBuyer,
-    ipfsHash,
-    deployedGenesisKeyTeamClaimAddress,
-    multiSig,
-    deployedProfileAuction,
-    deployedNftProfile,
-    deployedNftResolver,
-    deployedNftAggregator,
-    deployedLooksrareLibV1,
-    deployedSeaportLib1_1,
-    deployedX2Y2Lib,
-    deployedNftStake,
-    deployedMarketplaceRegistry,
-    deployedMarketplaceEvent,
-    deployedNftMarketplace,
-    deployedNftTransferProxy,
-    deployedERC20TransferProxy,
-    deployedCryptoKittyTransferProxy,
-    deployedValidationLogic,
+    governor: contracts.governor[network as keyof networkType] || "",
+    wethAddress: contracts.wethAddress[network as keyof networkType] || "",
+    usdcAddress: contracts.usdcAddress[network as keyof networkType] || "",
+    deployedNftTokenAddress: contracts.deployedNftTokenAddress[network as keyof networkType] || "",
+    deployedVestingAddress: contracts.deployedVestingAddress[network as keyof networkType] || "",
+    deployedGenesisKeyAddress: contracts.deployedGenesisKeyAddress[network as keyof networkType] || "",
+    genesisKeyTeamDistributorAddress: contracts.genesisKeyTeamDistributorAddress[network as keyof networkType] || "",
+    profileMetadataLink: contracts.profileMetadataLink[network as keyof networkType] || "",
+    deployedNftBuyer: contracts.deployedNftBuyer[network as keyof networkType] || "",
+    ipfsHash: contracts.ipfsHash[network as keyof networkType] || "",
+    deployedGenesisKeyTeamClaimAddress:
+      contracts.deployedGenesisKeyTeamClaimAddress[network as keyof networkType] || "",
+    multiSig: contracts.multiSig[network as keyof networkType] || "",
+    deployedProfileAuction: contracts.deployedProfileAuction[network as keyof networkType] || "",
+    deployedNftProfile: contracts.deployedNftProfile[network as keyof networkType] || "",
+    deployedNftResolver: contracts.deployedNftResolver[network as keyof networkType] || "",
+    deployedNftAggregator: contracts.deployedNftAggregator[network as keyof networkType] || "",
+    deployedLooksrareLibV1: contracts.deployedLooksrareLibV1[network as keyof networkType] || "",
+    deployedSeaportLib1_1: contracts.deployedSeaportLib1_1[network as keyof networkType] || "",
+    deployedX2Y2Lib: contracts.deployedX2Y2Lib[network as keyof networkType] || "",
+    deployedNftStake: contracts.deployedNftStake[network as keyof networkType] || "",
+    deployedMarketplaceRegistry: contracts.deployedMarketplaceRegistry[network as keyof networkType] || "",
+    deployedMarketplaceEvent: contracts.deployedMarketplaceEvent[network as keyof networkType] || "",
+    deployedNftMarketplace: contracts.deployedNftMarketplace[network as keyof networkType] || "",
+    deployedNftTransferProxy: contracts.deployedNftTransferProxy[network as keyof networkType] || "",
+    deployedERC20TransferProxy: contracts.deployedERC20TransferProxy[network as keyof networkType] || "",
+    deployedCryptoKittyTransferProxy: contracts.deployedCryptoKittyTransferProxy[network as keyof networkType] || "",
+    deployedValidationLogic: contracts.deployedValidationLogic[network as keyof networkType] || "",
   };
 };
 
@@ -308,16 +190,16 @@ task("init:vest").setAction(async function (taskArguments, hre) {
   try {
     // Address,Amount,Parsed Token,Begin,,Cliff,,End,,Installment
     const jsonCSV = await csv().fromFile("./vesting.csv");
-    const address = jsonCSV.map(row => row.Address);
-    const amount = jsonCSV.map(row =>
+    const address = jsonCSV.map((row) => row.Address);
+    const amount = jsonCSV.map((row) =>
       hre.ethers.BigNumber.from(row.ParsedToken.replaceAll(",", "").replace(".00", "")).mul(
         hre.ethers.BigNumber.from(10).pow(18),
       ),
     );
-    const vestingBegin = jsonCSV.map(row => row.Begin);
-    const vestingCliff = jsonCSV.map(row => row.Cliff);
-    const vestingEnd = jsonCSV.map(row => row.End);
-    const vestingInstallment = jsonCSV.map(row => row.Installment);
+    const vestingBegin = jsonCSV.map((row) => row.Begin);
+    const vestingCliff = jsonCSV.map((row) => row.Cliff);
+    const vestingEnd = jsonCSV.map((row) => row.End);
+    const vestingInstallment = jsonCSV.map((row) => row.Installment);
 
     const result = await deployedVesting.initializeVesting(
       address,
@@ -566,8 +448,8 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
     "0x7C7A81A4E96d57B827b9e801651a4be16A95A0F5": "1",
     "0xA6c5e4C08087a560c8c8087d11692411951BEBc7": "1",
     "0x118Ca661F189376DdD8f9a32Be6bbc963Eb46D7B": "1",
-    "0xF1279239d782Cd522649fbE086046d2Cc6f54ab1": "1"
-
+    "0xF1279239d782Cd522649fbE086046d2Cc6f54ab1": "1",
+    "0x577Acf21a0EE097Ee5E0Eb068A5128e381750eDd": "1"
   }`);
 
   const insiderGKClaimJSON_Testnet = JSON.parse(`{
@@ -740,7 +622,10 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   // console.log(chalk.green("deployedNftAggregator: ", deployedNftAggregator.address));
   // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedLooksrareLibV1 /* deployedLooksrareLibV1.address */, true);
   // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedSeaportLib1_1 /* deployedSeaportLib1_1.address */, true);
-  await deployedMarketplaceRegistry.addMarketplace(/* (await getTokens(hre)).deployedX2Y2Lib  */ deployedX2Y2LibV1.address, true);
+  await deployedMarketplaceRegistry.addMarketplace(
+    /* (await getTokens(hre)).deployedX2Y2Lib  */ deployedX2Y2LibV1.address,
+    true,
+  );
 
   // console.log(chalk.green(`${(TIME_DELAY * 3) / 1000} second delay`));
   // await delay(TIME_DELAY * 3);
@@ -761,7 +646,11 @@ task("add-x2y2-aggregator").setAction(async function (taskArguments, hre) {
   await waitTx("deployedX2Y2LibV1", deployedX2Y2LibV1, hre);
 
   const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
-  const deployedMarketplaceRegistry = await MarketplaceRegistry.attach((await getTokens(hre)).deployedMarketplaceRegistry);
+  const deployedMarketplaceRegistry = await MarketplaceRegistry.attach(
+    (
+      await getTokens(hre)
+    ).deployedMarketplaceRegistry,
+  );
 
   await deployedMarketplaceRegistry.addMarketplace(deployedX2Y2LibV1.address, true);
 });
@@ -861,19 +750,23 @@ task("deploy:buyer/stake").setAction(async function (taskArguments, hre) {
 
   await verifyContract(
     "deployedNftStake",
-    (await getTokens(hre)).deployedNftStake,
-    [(await getTokens(hre)).deployedNftTokenAddress,],
+    (
+      await getTokens(hre)
+    ).deployedNftStake,
+    [(await getTokens(hre)).deployedNftTokenAddress],
     hre,
   );
 
   await verifyContract(
     "deployedNftBuyer",
-    (await getTokens(hre)).deployedNftBuyer,
+    (
+      await getTokens(hre)
+    ).deployedNftBuyer,
     [
       UNI_V2_FACTORY,
       (await getTokens(hre)).deployedNftStake,
       (await getTokens(hre)).deployedNftTokenAddress,
-      (await getTokens(hre)).wethAddress
+      (await getTokens(hre)).wethAddress,
     ],
     hre,
   );
@@ -948,7 +841,7 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
   await getImplementation("deployedERC20TransferProxy", deployedERC20TransferProxy.address, hre);
   await getImplementation("deployedCryptoKittyTransferProxy", deployedCryptoKittyTransferProxy.address, hre);
   await getImplementation("deployedValidationLogic", deployedValidationLogic.address, hre);
-  // 
+  //
   await getImplementation("deployedMarketplaceEvent", deployedMarketplaceEvent.address, hre);
   await getImplementation("deployedNftMarketplace", deployedNftMarketplace.address, hre);
 });
@@ -957,14 +850,14 @@ task("test:nativePurchase").setAction(async function (taskArguments, hre) {
   try {
     const chainId = hre.network.config.chainId;
     const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
-  
+
     if (network != "goerli") {
       console.log(chalk.red(`native purchase flow must be on goerli`));
       return;
     }
-  
+
     console.log(chalk.green(`starting a native purchase flow on goerli`));
-  
+
     const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
     const deployedNftMarketplace = NftMarketplace.attach((await getTokens(hre)).deployedNftMarketplace);
     const NftTransferProxy = await hre.ethers.getContractFactory("NftTransferProxy");
@@ -980,27 +873,27 @@ task("test:nativePurchase").setAction(async function (taskArguments, hre) {
     // const deployedValidationLogic = ValidationLogic.attach((await getTokens(hre)).deployedValidationLogic);
     // const MarketplaceEvent = await hre.ethers.getContractFactory("MarketplaceEvent");
     // const deployedMarketplaceEvent = MarketplaceEvent.attach((await getTokens(hre)).deployedMarketplaceEvent);
-  
-    const ownerAddress = '0x59495589849423692778a8c5aaca62ca80f875a4';
+
+    const ownerAddress = "0x59495589849423692778a8c5aaca62ca80f875a4";
     const sellAsset = deployedGenesisKey.address; // genesis key on goerli
     const sellAssetTokenId = 9912;
-  
-    const takeAsset = '0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6'; // weth on goerli
-  
+
+    const takeAsset = "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6"; // weth on goerli
+
     // approvals
     await deployedGenesisKey.approve(deployedNftTransferProxy.address, sellAssetTokenId);
-  
-    const ownerSigner = hre.ethers.Wallet.fromMnemonic(process.env.MNEMONIC || '');
-    const buyerSigner = hre.ethers.Wallet.fromMnemonic(process.env.MNEMONIC || '', "m/44'/60'/0'/0/1");
-  
+
+    const ownerSigner = hre.ethers.Wallet.fromMnemonic(process.env.MNEMONIC || "");
+    const buyerSigner = hre.ethers.Wallet.fromMnemonic(process.env.MNEMONIC || "", "m/44'/60'/0'/0/1");
+
     // TODO: make this call manually
     // await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
-  
+
     // should succeed
     // await deployedNftMarketplace.connect(buyer).approveOrder_(buyOrder);
-  
+
     console.log(chalk.green(`signing...`));
-  
+
     const {
       v: v0,
       r: r0,
@@ -1008,7 +901,8 @@ task("test:nativePurchase").setAction(async function (taskArguments, hre) {
       order: sellOrder,
     } = await signMarketplaceOrder(
       ownerSigner,
-      [ // makerAsset Array
+      [
+        // makerAsset Array
         [
           ERC721_ASSET_CLASS, // asset class
           ["address", "uint256", "bool"], // types
@@ -1025,7 +919,7 @@ task("test:nativePurchase").setAction(async function (taskArguments, hre) {
       deployedNftMarketplace.address,
       AuctionType.English,
     );
-  
+
     const {
       v: v1,
       r: r1,
@@ -1043,9 +937,9 @@ task("test:nativePurchase").setAction(async function (taskArguments, hre) {
       deployedNftMarketplace.address,
       AuctionType.English,
     );
-  
+
     console.log(chalk.green(`executing...`));
-  
+
     await deployedNftMarketplace.executeSwap(sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]);
   } catch (err) {
     console.log(err);
@@ -1133,10 +1027,15 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
     //   GenesisKey,
     // );
     // console.log(chalk.green("new profile auction imp: ", upgradedGKImp));
-  
+
     // console.log('upgradedGKImp: ', upgradedGKImp);
     // GO TO OZ DEFENDER
-    await verifyContract(`upgrade GenesisKey impl`, '0x6e97723b9ad593bf8a22f8bfaab38c016273ab17', /*`${'upgradedGKImp'}`*/ [], hre);
+    await verifyContract(
+      `upgrade GenesisKey impl`,
+      "0x6e97723b9ad593bf8a22f8bfaab38c016273ab17",
+      /*`${'upgradedGKImp'}`*/ [],
+      hre,
+    );
   } else {
     const upgradedGenesisKey = await hre.upgrades.upgradeProxy(
       (
@@ -1145,7 +1044,7 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
       GenesisKey,
     );
     console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
-  
+
     await delayedVerifyImp("upgradedGenesisKey", upgradedGenesisKey.address, hre);
   }
 });
@@ -1176,24 +1075,24 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
       ProfileAuction,
     );
     console.log(chalk.green("new profile auction imp: ", upgradedProfileAuctionAddressImp));
-  
-    console.log('upgradedProfileAuctionAddressImp: ', upgradedProfileAuctionAddressImp);
+
+    console.log("upgradedProfileAuctionAddressImp: ", upgradedProfileAuctionAddressImp);
     // GO TO OZ DEFENDER
     await verifyContract(`upgrade ProfileAuction impl`, `${upgradedProfileAuctionAddressImp}`, [], hre);
-  } else if (network == 'goerli') {
+  } else if (network == "goerli") {
     const ProfileAuction = await hre.ethers.getContractFactory("ProfileAuction");
 
     const upgradedProfileAuction = await hre.upgrades.upgradeProxy(
       (
         await getTokens(hre)
       ).deployedProfileAuction,
-      ProfileAuction
+      ProfileAuction,
     );
     console.log(chalk.green("upgradedProfileAuction: ", upgradedProfileAuction.address));
-        
+
     await delayedVerifyImp("upgradedProfileAuction", upgradedProfileAuction.address, hre);
   } else {
-    console.log(chalk.green('unsupported network: ' + network));
+    console.log(chalk.green("unsupported network: " + network));
   }
 });
 
@@ -1221,9 +1120,9 @@ task("upgrade:NftAggregator").setAction(async function (taskArguments, hre) {
       await getTokens(hre)
     ).deployedNftAggregator,
     NftAggregator,
-    { 
+    {
       unsafeAllow: ["delegatecall"],
-      unsafeAllowRenames: true
+      unsafeAllowRenames: true,
     },
   );
 
@@ -1237,10 +1136,10 @@ task("oneTimeApproval").setAction(async function (taskArguments, hre) {
   const deployedNftAggregator = NftAggregator.attach((await getTokens(hre)).deployedNftAggregator);
   console.log(chalk.green("starting to add approval for token... ", deployedNftAggregator.address));
 
-  const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-  const WETH_ADDRESS = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
-  const LOOKSRARE_EXCHANGE = '0x59728544b08ab483533076417fbbb2fd0b17ce3a';
-  const SEAPORT_1_1 = '0x00000000006c3852cbef3e08e8df289169ede581';
+  const USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+  const WETH_ADDRESS = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+  const LOOKSRARE_EXCHANGE = "0x59728544b08ab483533076417fbbb2fd0b17ce3a";
+  const SEAPORT_1_1 = "0x00000000006c3852cbef3e08e8df289169ede581";
   const MAX_UINT = hre.ethers.BigNumber.from(2).pow(hre.ethers.BigNumber.from(256)).sub(1);
 
   await deployedNftAggregator.setOneTimeApproval([
@@ -1253,7 +1152,7 @@ task("oneTimeApproval").setAction(async function (taskArguments, hre) {
       token: USDC_ADDRESS,
       operator: SEAPORT_1_1,
       amount: MAX_UINT,
-    }
+    },
   ]);
 });
 
@@ -1261,7 +1160,7 @@ task("deploy:z").setAction(async function (taskArguments, hre) {
   const Test721 = await hre.ethers.getContractFactory("Test721");
   const deployedTest721 = await Test721.deploy();
 
-  console.log('deployedTest721: ', deployedTest721.address);
+  console.log("deployedTest721: ", deployedTest721.address);
 });
 
 task("z").setAction(async function (taskArguments, hre) {

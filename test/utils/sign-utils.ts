@@ -223,7 +223,7 @@ export const signMarketplaceOrder = async (
   nonce: number,
   provider: any,
   deployedNftMarketplaceAddress: string,
-  auctionType: number
+  auctionType: number,
 ): Promise<any> => {
   const salt = makeSalt();
 
@@ -248,7 +248,7 @@ export const signMarketplaceOrder = async (
         start,
         end,
         nonce,
-        auctionType
+        auctionType,
       ],
     ),
   );
@@ -268,7 +268,7 @@ export const signMarketplaceOrder = async (
       start,
       end,
       nonce,
-      auctionType
+      auctionType,
     ],
   };
 };

@@ -19,7 +19,7 @@ import { NetworkUserConfig } from "hardhat/types";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
-const chainIds = {
+export const chainIds = {
   ganache: 1337,
   goerli: 5,
   hardhat: 31337,
@@ -33,6 +33,17 @@ const chainIds = {
   "avalanche-fuji": 43113,
   bsc: 56,
 };
+
+export interface networkType {
+  goerli: string;
+  mainnet: string;
+  "polygon-mainnet": string;
+  "polygon-mumbai": string;
+  "avalanche-mainnet": string;
+  "avalanche-fuji": string;
+}
+
+export const chainIdToNetwork = Object.fromEntries(Object.entries(chainIds).map(([key, value]) => [value, key]));
 
 // Ensure that we have all the environment variables we need.
 const mnemonic: string | undefined = process.env.MNEMONIC;
@@ -95,7 +106,7 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: ["./contracts/test/NftProfileV2a.sol"],
     src: "./contracts",
-    outputFile: ".gas_snapshot"
+    outputFile: ".gas_snapshot",
   },
   networks: {
     hardhat: {
@@ -161,9 +172,9 @@ const config: HardhatUserConfig = {
       },
       outputSelection: {
         "*": {
-          "*": ["evm.assembly", "irOptimized"]
-        }
-      }
+          "*": ["evm.assembly", "irOptimized"],
+        },
+      },
     },
   },
   typechain: {

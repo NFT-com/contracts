@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 
-const convertNftToken = tokens => {
+const convertNftToken = (tokens) => {
   return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(18)));
 };
 
