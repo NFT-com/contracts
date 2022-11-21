@@ -29,8 +29,8 @@ const chainIds = {
   "polygon-mainnet": 137,
   "polygon-mumbai": 80001,
   "arbitrum-mainnet": 42161,
-  avalanche: 43114,
-  avalancheTestnet: 43113,
+  "avalanche-mainnet": 43114,
+  "avalanche-fuji": 43113,
   bsc: 56,
 };
 
@@ -69,12 +69,6 @@ function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
 function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
   let jsonRpcUrl: string;
   switch (chain) {
-    case "avalanche":
-      jsonRpcUrl = "https://api.avax.network/ext/bc/C/rpc";
-      break;
-    case "avalancheTestnet":
-      jsonRpcUrl = "https://api.avax-test.network/ext/bc/C/rpc";
-      break;
     case "bsc":
       jsonRpcUrl = "https://bsc-dataseed1.binance.org";
       break;
@@ -114,8 +108,8 @@ const config: HardhatUserConfig = {
       chainId: chainIds.goerli,
     },
     arbitrum: getChainConfig("arbitrum-mainnet"),
-    avalanche: getChainConfig("avalanche"),
-    avalancheTestnet: getChainConfig("avalancheTestnet"),
+    "avalanche-mainnet": getChainConfig("avalanche-mainnet"),
+    "avalanche-fuji": getChainConfig("avalanche-fuji"),
     bsc: getChainConfig("bsc"),
     optimism: getChainConfig("optimism-mainnet"),
     "polygon-mainnet": getChainConfig("polygon-mainnet"),
