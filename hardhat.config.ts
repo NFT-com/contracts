@@ -170,11 +170,13 @@ const config: HardhatUserConfig = {
         enabled: true,
         runs: 0,
       },
-      outputSelection: process.env.WITH_IR ? {
-        "*": {
-          "*": ["evm.assembly", "irOptimized"],
-        },
-      } : {},
+      outputSelection: process.env.WITH_IR
+        ? {
+            "*": {
+              "*": ["evm.assembly", "irOptimized"],
+            },
+          }
+        : {},
     },
   },
   typechain: {
