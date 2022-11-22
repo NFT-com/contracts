@@ -819,13 +819,8 @@ describe("NFT Aggregator", function () {
 
         const combinedOrders = [setData];
 
-        console.log('========================================================> 1')
-
         expect((await deployedMarketplaceRegistry.marketplaces(1))?.isActive).to.be.equal(true);
-
-        console.log('========================================================> 2')
-        await deployedMarketplaceRegistry.setMarketplaceStatus("1", false);
-        console.log('========================================================> 3')
+        await deployedMarketplaceRegistry.setMarketplaceStatus("1", false)
         expect((await deployedMarketplaceRegistry.marketplaces(1))?.isActive).to.be.equal(false);
 
         // reverts due to marketplace not being active
@@ -835,29 +830,17 @@ describe("NFT Aggregator", function () {
             .batchTradeWithETH(combinedOrders, [[], [], [0, 0]], { value: totalValue }),
         ).to.be.reverted;
 
-        console.log('========================================================> 4')
-
-        console.log('deployedLooksrareLibV1.address: ', deployedLooksrareLibV1.address);
-
-        console.log('deployedMarketplaceRegistry: ', deployedMarketplaceRegistry);
-
         // due to no marketId being active
         await expect(
           deployedMarketplaceRegistry.connect(owner).setMarketplaceProxy("10", deployedLooksrareLibV1.address, false)
         ).to.be.reverted;
 
-        console.log('========================================================> 5')
-
         // swap marketIds
         await deployedMarketplaceRegistry.setMarketplaceProxy("0", deployedSeaportLib1_1.address, true);
         await deployedMarketplaceRegistry.setMarketplaceProxy("1", deployedLooksrareLibV1.address, true);
 
-        console.log('========================================================> 6')
-
         await deployedMarketplaceRegistry.setMarketplaceStatus("1", true);
         expect((await deployedMarketplaceRegistry.marketplaces(1))?.isActive).to.be.equal(true);
-
-        console.log('========================================================> 7')
 
         // use new setData since marketIds are swapped
         const setData2 = {
@@ -868,13 +851,9 @@ describe("NFT Aggregator", function () {
 
         const combinedOrders2 = [setData2];
 
-        console.log('========================================================> 8')
-
         await deployedNftAggregator
           .connect(owner)
           .batchTradeWithETH(combinedOrders2, [[], [], [0, 0]], { value: totalValue });
-
-          console.log('========================================================> 9')
 
         for (let i = 0; i < tokenIds.length; i++) {
           expect(await deployedMock721.ownerOf(tokenIds[i])).to.be.equal(second.address);
