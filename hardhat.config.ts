@@ -158,7 +158,7 @@ const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.17",
     settings: {
-      viaIR: process.env.WITH_IR || false,
+      viaIR: Boolean(process.env.WITH_IR) || false,
       metadata: {
         // Not including the metadata hash
         // https://github.com/paulrberg/solidity-template/issues/31
