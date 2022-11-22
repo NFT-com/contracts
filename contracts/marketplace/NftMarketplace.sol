@@ -284,11 +284,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             ? ROYALTY.FUNGIBLE_BUYER_MAKE_ASSETS
             : ROYALTY.NEITHER;
 
-        uint256 totalBuyOrderMakeAssets = buyOrder.makeAssets.length;
-        uint256 totalSellOrderMakeAssets = sellOrder.makeAssets.length;
-
         // interactions (i.e. perform swap, fees and royalties)
-        for (uint256 i = 0; i < totalBuyOrderMakeAssets;) {
+        for (uint256 i = 0; i < buyOrder.makeAssets.length;) {
             // send assets from buyer to seller (payment for goods)
             transfer(
                 sellOrder.auctionType,
@@ -305,7 +302,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             }
         }
 
-        for (uint256 j = 0; j < totalSellOrderMakeAssets;) {
+        for (uint256 j = 0; j < sellOrder.makeAssets.length;) {
             // send assets from seller to buyer (goods)
             transfer(
                 sellOrder.auctionType,
