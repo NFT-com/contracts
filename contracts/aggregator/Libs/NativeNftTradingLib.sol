@@ -16,7 +16,7 @@ interface INativeNftTrading {
 error InvalidChain();
 
 library NativeNftTradingLib {
-    function _run(
+    function _executeSwap(
         LibSignature.Order calldata sellOrder,
         LibSignature.Order calldata buyOrder,
         uint8[2] calldata v,
