@@ -994,11 +994,27 @@ task("upgrade:NftMarketplace").setAction(async function (taskArguments, hre) {
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
 
   const upgradedNftMarketplace = await hre.upgrades.upgradeProxy(
-    "0xA3509a064A54a7a60Fc4Db0245ef44F812f439f6",
+    (
+      await getTokens(hre)
+    ).deployedNftMarketplace,
     NftMarketplace,
   );
   console.log(chalk.green("upgraded nft marketplace: ", upgradedNftMarketplace.address));
   await delayedVerifyImp("upgradedNftMarketplace", upgradedNftMarketplace.address, hre);
+});
+
+task("upgrade:ValidationLogic").setAction(async function (taskArguments, hre) {
+  console.log(chalk.green("starting to upgrade..."));
+  const ValidationLogic = await hre.ethers.getContractFactory("ValidationLogic");
+
+  const upgradedValidationLogic = await hre.upgrades.upgradeProxy(
+    (
+      await getTokens(hre)
+    ).deployedValidationLogic,
+    ValidationLogic,
+  );
+  console.log(chalk.green("upgraded validation logic: ", upgradedValidationLogic.address));
+  await delayedVerifyImp("upgradedValidationLogic", upgradedValidationLogic.address, hre);
 });
 
 task("upgrade:Vesting").setAction(async function (taskArguments, hre) {

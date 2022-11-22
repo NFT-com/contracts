@@ -42,6 +42,7 @@ const {
   convertNftToken,
   convertSmallNftToken,
   AuctionType,
+  MAX_UINT,
 } = require("./utils/sign-utils");
 
 describe("NFT Aggregator", function () {
@@ -242,7 +243,7 @@ describe("NFT Aggregator", function () {
       `[{"inputs":[],"name":"InvalidChain","type":"error"},{"inputs":[{"components":[{"components":[{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"address","name":"user","type":"address"},{"internalType":"uint256","name":"network","type":"uint256"},{"internalType":"uint256","name":"intent","type":"uint256"},{"internalType":"uint256","name":"delegateType","type":"uint256"},{"internalType":"uint256","name":"deadline","type":"uint256"},{"internalType":"contract IERC20Upgradeable","name":"currency","type":"address"},{"internalType":"bytes","name":"dataMask","type":"bytes"},{"components":[{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct OrderItem[]","name":"items","type":"tuple[]"},{"internalType":"bytes32","name":"r","type":"bytes32"},{"internalType":"bytes32","name":"s","type":"bytes32"},{"internalType":"uint8","name":"v","type":"uint8"},{"internalType":"uint8","name":"signVersion","type":"uint8"}],"internalType":"struct Order[]","name":"orders","type":"tuple[]"},{"components":[{"internalType":"enum Op","name":"op","type":"uint8"},{"internalType":"uint256","name":"orderIdx","type":"uint256"},{"internalType":"uint256","name":"itemIdx","type":"uint256"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"bytes32","name":"itemHash","type":"bytes32"},{"internalType":"contract IDelegate","name":"executionDelegate","type":"address"},{"internalType":"bytes","name":"dataReplacement","type":"bytes"},{"internalType":"uint256","name":"bidIncentivePct","type":"uint256"},{"internalType":"uint256","name":"aucMinIncrementPct","type":"uint256"},{"internalType":"uint256","name":"aucIncDurationSecs","type":"uint256"},{"components":[{"internalType":"uint256","name":"percentage","type":"uint256"},{"internalType":"address","name":"to","type":"address"}],"internalType":"struct Fee[]","name":"fees","type":"tuple[]"}],"internalType":"struct SettleDetail[]","name":"details","type":"tuple[]"},{"components":[{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"uint256","name":"deadline","type":"uint256"},{"internalType":"uint256","name":"amountToEth","type":"uint256"},{"internalType":"uint256","name":"amountToWeth","type":"uint256"},{"internalType":"address","name":"user","type":"address"},{"internalType":"bool","name":"canFail","type":"bool"}],"internalType":"struct SettleShared","name":"shared","type":"tuple"},{"internalType":"bytes32","name":"r","type":"bytes32"},{"internalType":"bytes32","name":"s","type":"bytes32"},{"internalType":"uint8","name":"v","type":"uint8"}],"internalType":"struct RunInput","name":"_input","type":"tuple"},{"internalType":"uint256","name":"_msgValue","type":"uint256"},{"internalType":"address","name":"asset","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bool","name":"_revertIfTrxFails","type":"bool"}],"name":"_run","outputs":[],"stateMutability":"nonpayable","type":"function"}]`,
     );
     const nativeTradingLibrary = new ethers.utils.Interface(
-      `[{"inputs":[],"name":"InvalidChain","type":"error"},{"inputs":[{"components":[{"internalType":"address","name":"maker","type":"address"},{"components":[{"components":[{"internalType":"bytes4","name":"assetClass","type":"bytes4"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.AssetType","name":"assetType","type":"tuple"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.Asset[]","name":"makeAssets","type":"tuple[]"},{"internalType":"address","name":"taker","type":"address"},{"components":[{"components":[{"internalType":"bytes4","name":"assetClass","type":"bytes4"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.AssetType","name":"assetType","type":"tuple"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.Asset[]","name":"takeAssets","type":"tuple[]"},{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"uint256","name":"start","type":"uint256"},{"internalType":"uint256","name":"end","type":"uint256"},{"internalType":"uint256","name":"nonce","type":"uint256"},{"internalType":"enum LibSignature.AuctionType","name":"auctionType","type":"uint8"}],"internalType":"struct LibSignature.Order","name":"sellOrder","type":"tuple"},{"components":[{"internalType":"address","name":"maker","type":"address"},{"components":[{"components":[{"internalType":"bytes4","name":"assetClass","type":"bytes4"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.AssetType","name":"assetType","type":"tuple"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.Asset[]","name":"makeAssets","type":"tuple[]"},{"internalType":"address","name":"taker","type":"address"},{"components":[{"components":[{"internalType":"bytes4","name":"assetClass","type":"bytes4"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.AssetType","name":"assetType","type":"tuple"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.Asset[]","name":"takeAssets","type":"tuple[]"},{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"uint256","name":"start","type":"uint256"},{"internalType":"uint256","name":"end","type":"uint256"},{"internalType":"uint256","name":"nonce","type":"uint256"},{"internalType":"enum LibSignature.AuctionType","name":"auctionType","type":"uint8"}],"internalType":"struct LibSignature.Order","name":"buyOrder","type":"tuple"},{"internalType":"uint8[2]","name":"v","type":"uint8[2]"},{"internalType":"bytes32[2]","name":"r","type":"bytes32[2]"},{"internalType":"bytes32[2]","name":"s","type":"bytes32[2]"},{"internalType":"uint256","name":"_msgValue","type":"uint256"},{"internalType":"bool","name":"_revertIfTrxFails","type":"bool"}],"name":"_executeSwap","outputs":[],"stateMutability":"nonpayable","type":"function"}]`,
+      `[{"inputs":[],"name":"InvalidChain","type":"error"},{"inputs":[{"components":[{"components":[{"internalType":"address","name":"maker","type":"address"},{"components":[{"components":[{"internalType":"bytes4","name":"assetClass","type":"bytes4"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.AssetType","name":"assetType","type":"tuple"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.Asset[]","name":"makeAssets","type":"tuple[]"},{"internalType":"address","name":"taker","type":"address"},{"components":[{"components":[{"internalType":"bytes4","name":"assetClass","type":"bytes4"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.AssetType","name":"assetType","type":"tuple"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.Asset[]","name":"takeAssets","type":"tuple[]"},{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"uint256","name":"start","type":"uint256"},{"internalType":"uint256","name":"end","type":"uint256"},{"internalType":"uint256","name":"nonce","type":"uint256"},{"internalType":"enum LibSignature.AuctionType","name":"auctionType","type":"uint8"}],"internalType":"struct LibSignature.Order","name":"sellOrder","type":"tuple"},{"components":[{"internalType":"address","name":"maker","type":"address"},{"components":[{"components":[{"internalType":"bytes4","name":"assetClass","type":"bytes4"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.AssetType","name":"assetType","type":"tuple"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.Asset[]","name":"makeAssets","type":"tuple[]"},{"internalType":"address","name":"taker","type":"address"},{"components":[{"components":[{"internalType":"bytes4","name":"assetClass","type":"bytes4"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.AssetType","name":"assetType","type":"tuple"},{"internalType":"bytes","name":"data","type":"bytes"}],"internalType":"struct LibAsset.Asset[]","name":"takeAssets","type":"tuple[]"},{"internalType":"uint256","name":"salt","type":"uint256"},{"internalType":"uint256","name":"start","type":"uint256"},{"internalType":"uint256","name":"end","type":"uint256"},{"internalType":"uint256","name":"nonce","type":"uint256"},{"internalType":"enum LibSignature.AuctionType","name":"auctionType","type":"uint8"}],"internalType":"struct LibSignature.Order","name":"buyOrder","type":"tuple"},{"internalType":"uint8[2]","name":"v","type":"uint8[2]"},{"internalType":"bytes32[2]","name":"r","type":"bytes32[2]"},{"internalType":"bytes32[2]","name":"s","type":"bytes32[2]"}],"internalType":"struct ExecuteSwapParams","name":"params","type":"tuple"},{"internalType":"uint256","name":"_msgValue","type":"uint256"},{"internalType":"bool","name":"_revertIfTrxFails","type":"bool"}],"name":"_executeSwap","outputs":[],"stateMutability":"nonpayable","type":"function"}]`,
     );
 
     // `beforeEach` will run before each test, re-deploying the contract every
@@ -302,57 +303,9 @@ describe("NFT Aggregator", function () {
         },
       );
 
-      // NATIVE NFT.com Exchange
-      const UNI_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
-      const weth = await hre.ethers.getContractFactory("WETH");
-      deployedWETH = await weth.deploy();
-      const TESTNET_WETH = deployedWETH.address;
-
-      NftMarketplace = await ethers.getContractFactory("NftMarketplace");
-      NftStake = await ethers.getContractFactory("NftStake");
-      NftBuyer = await ethers.getContractFactory("NftBuyer");
-      NftTransferProxy = await ethers.getContractFactory("NftTransferProxy");
-      ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");
-      CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
-      ERC1155Factory = await ethers.getContractFactory("TestERC1155");
-      ValidationLogic = await ethers.getContractFactory("ValidationLogic");
-      MarketplaceEvent = await ethers.getContractFactory("MarketplaceEvent");
-
-      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
-
-      deployedNftBuyer = await NftBuyer.deploy(
-        UNI_FACTORY_V2,
-        deployedNftStake.address,
-        deployedNftToken.address,
-        TESTNET_WETH,
-      );
-      deployedNftTransferProxy = await upgrades.deployProxy(NftTransferProxy, { kind: "uups" });
-      deployedERC20TransferProxy = await upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
-      deployedCryptoKittyTransferProxy = await upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
-      deployedValidationLogic = await upgrades.deployProxy(ValidationLogic, { kind: "uups" });
-      deployedMarketplaceEvent = await upgrades.deployProxy(MarketplaceEvent, { kind: "uups" });
-
-      deployedNftMarketplace = await upgrades.deployProxy(
-        NftMarketplace,
-        [
-          deployedNftTransferProxy.address,
-          deployedERC20TransferProxy.address,
-          deployedCryptoKittyTransferProxy.address,
-          deployedNftBuyer.address,
-          deployedNftToken.address,
-          deployedValidationLogic.address,
-          deployedMarketplaceEvent.address,
-        ],
-        { kind: "uups" },
-      );
-
-      await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
-      await deployedNftMarketplace.setTransferProxy(ERC20_ASSET_CLASS, deployedERC20TransferProxy.address);
-
-      // add operator being the marketplace
-      await deployedNftTransferProxy.addOperator(deployedNftMarketplace.address);
-      await deployedERC20TransferProxy.addOperator(deployedNftMarketplace.address);
-      await deployedCryptoKittyTransferProxy.addOperator(deployedNftMarketplace.address);
+      const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
+      const GOERLI_NFT_MARKETPLACE = "0xa75F995f252ba5F7C17f834b314201271d32eC35";
+      deployedNftMarketplace = NftMarketplace.attach(GOERLI_NFT_MARKETPLACE);
     });
 
     describe("NFT Aggregation", async function () {
@@ -798,6 +751,7 @@ describe("NFT Aggregator", function () {
         try {
           await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
           await deployedNftMarketplace.modifyWhitelist(TESTNET_XEENUS, true);
+          await deployedNftMarketplace.editAggregator(deployedNftAggregator.address, true);
           await owner.sendTransaction({ to: second.address, value: convertNftToken(2) });
 
           const tokenIds = ["1", "2", "3"];
@@ -819,7 +773,7 @@ describe("NFT Aggregator", function () {
               [
                 ERC721_ASSET_CLASS, // asset class
                 ["address", "uint256", "bool"], // types
-                [deployedMock721.address, 0, true], // values
+                [deployedMock721.address, 1, true], // values
                 [1, 0], // data to be encoded
               ],
             ],
@@ -855,7 +809,7 @@ describe("NFT Aggregator", function () {
               [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertSmallNftToken(1), 0]],
             ],
             owner.address,
-            [[ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [deployedMock721.address, 0, true], [1, 0]]],
+            [[ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [deployedMock721.address, 1, true], [1, 0]]],
             0,
             0,
             await deployedNftMarketplace.nonces(owner.address),
@@ -864,15 +818,27 @@ describe("NFT Aggregator", function () {
             AuctionType.English,
           );
 
+          expect((await deployedNftMarketplace.validateOrder_(buyOrder, v1, r1, s1))[0]).to.be.true;
+
+          // add approvals
+          const NFT_PROXY_GOERLI = "0x73994Fc4aC9EAb8e8E1c29E5C9d27A761D9Ab1eF"; // NFT proxy
+          const ERC20_PROXY_GOERLI = "0xCD979ec33B43eCE6523B41BA5c9e409568eDFB97"; // ERC20 proxy
+
+          await deployedNftToken.connect(second).approve(ERC20_PROXY_GOERLI, MAX_UINT);
+          await deployedXEENUS.connect(second).approve(ERC20_PROXY_GOERLI, MAX_UINT);
+          await deployedMock721.connect(owner).approve(NFT_PROXY_GOERLI, 1);
+          await deployedMock721.connect(owner).approve(NFT_PROXY_GOERLI, 2);
+
+          // transfer tokens
+          await deployedXEENUS.connect(owner).transfer(second.address, convertNftToken(500));
+          await deployedNftToken.connect(owner).transfer(second.address, convertNftToken(1000));
+
           const totalValue = convertSmallNftToken(1);
 
-          const inputData = [sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1], totalValue, failIfRevert];
+          const inputData = [[sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1]], totalValue, failIfRevert];
           const wholeHex = await nativeTradingLibrary.encodeFunctionData("_executeSwap", inputData);
 
-          const genHex = libraryCall(
-            "_executeSwap(LibSignature.Order,LibSignature.Order,uint8[],bytes32[],bytes32[],uint256,bool)",
-            wholeHex.slice(10),
-          );
+          const genHex = libraryCall("_executeSwap(ExecuteSwapParams,uint256,bool)", wholeHex.slice(10));
 
           const setData = {
             tradeData: genHex,
@@ -886,9 +852,9 @@ describe("NFT Aggregator", function () {
             .connect(second)
             .batchTradeWithETH(combinedOrders, [[], [], [0, 0]], { value: totalValue });
 
-          expect(await deployed721.ownerOf(tokenId)).to.be.equal(second.address);
+          expect(await deployedMock721.ownerOf(1)).to.be.equal(second.address);
         } catch (err) {
-          console.log("error with submitting native nft.com order: ", JSON.stringify(err));
+          console.log("error with submitting native nft.com order: ", err);
         }
       });
 

@@ -15,23 +15,23 @@ interface INativeNftTrading {
 
 error InvalidChain();
 
+struct ExecuteSwapParams {
+    LibSignature.Order sellOrder;
+    LibSignature.Order buyOrder;
+    uint8[2] v;
+    bytes32[2] r;
+    bytes32[2] s;
+}
+
 library NativeNftTradingLib {
-    function _executeSwap(
-        LibSignature.Order calldata sellOrder,
-        LibSignature.Order calldata buyOrder,
-        uint8[2] calldata v,
-        bytes32[2] calldata r,
-        bytes32[2] calldata s,
-        uint256 _msgValue,
-        bool _revertIfTrxFails
-    ) external {
+    function _executeSwap(ExecuteSwapParams calldata params, uint256 _msgValue, bool _revertIfTrxFails) external {
         bytes memory _data = abi.encodeWithSelector(
             INativeNftTrading.executeSwap.selector,
-            sellOrder,
-            buyOrder,
-            v,
-            r,
-            s
+            params.sellOrder,
+            params.buyOrder,
+            params.v,
+            params.r,
+            params.s
         );
 
         address NftNativeTrading;

@@ -20,11 +20,13 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     mapping(address => uint256) public nonces; // nonce for each account
     ValidationLogic public validationLogic;
     MarketplaceEvent public marketplaceEvent;
+    mapping(address => bool) public aggregator;
 
     //events
     event Cancel(bytes32 structHash, address indexed maker);
     event Approval(bytes32 structHash, address indexed maker);
     event NonceIncremented(address indexed maker, uint256 newNonce);
+    event EditAggregator(address indexed aggregator, bool status);
 
     enum ROYALTY {
         FUNGIBLE_MAKE_ASSETS,
@@ -59,6 +61,11 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}
+
+    function editAggregator(address _aggregator, bool _status) external onlyOwner {
+        aggregator[_aggregator] = _status;
+        emit EditAggregator(_aggregator, _status);
+    }
 
     /**
      * @dev internal functions for returning struct hash, after verifying it is valid
@@ -266,7 +273,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         // checks
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v[0], r[0], s[0]), nonces[sellOrder.maker]);
         bytes32 buyHash = requireValidOrder(buyOrder, Sig(v[1], r[1], s[1]), nonces[buyOrder.maker]);
-        require(msg.sender == sellOrder.maker || msg.sender == buyOrder.maker, "!maker");
+        require(msg.sender == sellOrder.maker || msg.sender == buyOrder.maker || aggregator[msg.sender], "!maker");
         require(validationLogic.validateMatch_(sellOrder, buyOrder, msg.sender, false));
 
         if (sellOrder.end != 0) {
