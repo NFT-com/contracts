@@ -35,6 +35,7 @@ jobs:
           envkey_ETHERSCAN_API_KEY: "25E9BG3FRGXFBFK6VRNEQ37W2A8784B475"
           envkey_REPORT_GAS: "true"
           envkey_COINMARKETCAP_API: "5ec52c38-7684-455d-8553-47e327d4687d"
+          envkey_WITH_IR: "false"
           file_name: .env
           fail_on_empty: false
 
