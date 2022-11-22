@@ -59,7 +59,7 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
       await deployedGenesisKey.connect(owner).mintKey(secondSigner.address);
 
       NftStake = await ethers.getContractFactory("NftStake");
-      deployedNftGenesisStake = await NftStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
+      deployedNftGenesisStake = await NftStake.deploy(deployedNftToken.address);
 
       await owner.sendTransaction({ to: addr1.address, value: convertTinyNumber(1) });
 
@@ -141,36 +141,21 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
         await deployedGenesisKey.approve(deployedNftGenesisStake.address, 1);
 
-        // reverts since owner does not own genesis key tokenId = 2
-        await expect(deployedNftGenesisStake.connect(owner).enter(1000, 2, v0, r0, s0)).to.be.reverted;
-
         // make sure owner owns token Id 1
         expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(owner.address);
 
         // succeeds since owner owns genesis key tokenId = 1
-        await expect(deployedNftGenesisStake.connect(owner).enter(1000, 1, v0, r0, s0))
+        await expect(deployedNftGenesisStake.connect(owner).enter(1000, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(ownerSigner.address, deployedNftGenesisStake.address, 1000);
-
-        // key is now staked as well
-        expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(deployedNftGenesisStake.address);
-        expect(await deployedNftGenesisStake.stakedKeys(1)).to.be.equal(owner.address);
-        expect(await deployedNftGenesisStake.stakedAddress(owner.address)).to.be.equal(1);
 
         expect(await deployedNftToken.balanceOf(ownerSigner.address)).to.be.equal("9999999999999999999999999000");
         expect(await deployedNftToken.balanceOf(deployedNftGenesisStake.address)).to.be.equal(1000);
         expect(await deployedNftGenesisStake.balanceOf(ownerSigner.address)).to.be.equal(1000);
 
-        // reverts due to tokenId being wrong
-        await expect(deployedNftGenesisStake.connect(owner).leave(1000, 2)).to.be.reverted;
-
-        await expect(deployedNftGenesisStake.connect(owner).leave(1000, 1))
+        await expect(deployedNftGenesisStake.connect(owner).leave(1000))
           .to.emit(deployedNftGenesisStake, "Transfer")
           .withArgs(ownerSigner.address, ethers.constants.AddressZero, 1000);
-
-        expect(await deployedGenesisKey.ownerOf(1)).to.be.equal(owner.address);
-        expect(await deployedNftGenesisStake.stakedKeys(1)).to.be.equal(ethers.constants.AddressZero);
-        expect(await deployedNftGenesisStake.stakedAddress(owner.address)).to.be.equal(0);
       });
 
       it("should allow staking users to receive additional NFT tokens as yield", async function () {
@@ -196,13 +181,13 @@ describe("NFT Token Genesis Staking (Localnet)", function () {
 
         await deployedGenesisKey.approve(deployedNftGenesisStake.address, 1);
 
-        await expect(deployedNftGenesisStake.connect(owner).enter(1000, 1, v0, r0, s0))
+        await expect(deployedNftGenesisStake.connect(owner).enter(1000, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(ownerSigner.address, deployedNftGenesisStake.address, 1000);
 
         await deployedNftToken.connect(owner).transfer(deployedNftGenesisStake.address, 5000);
 
-        await expect(deployedNftGenesisStake.connect(owner).leave(1000, 1))
+        await expect(deployedNftGenesisStake.connect(owner).leave(1000))
           .to.emit(deployedNftGenesisStake, "Transfer")
           .withArgs(ownerSigner.address, ethers.constants.AddressZero, 1000);
 

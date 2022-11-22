@@ -727,52 +727,100 @@ describe("NFT Aggregator", function () {
         expect(await deployedMock721.ownerOf(tokenId)).to.be.equal(second.address);
       });
 
-      // TODO: fill in soon
-      // it("should allow atomic nft purchases on the native NFT.com marketplace", async function () {
-      //   try {
-      //     const tokenIds = ["1", "2", "3"];
-      //     const recipient = second.address;
+      it("should allow atomic nft purchases on the native NFT.com marketplace", async function () {
+        try {
+          const tokenIds = ["1", "2", "3"];
+          const recipient = second.address;
 
-      //     for (let i = 0; i < tokenIds.length; i++) {
-      //       await deployedMock721.connect(owner).mint(tokenIds[i]);
-      //     }
+          for (let i = 0; i < tokenIds.length; i++) {
+            await deployedMock721.connect(owner).mint(tokenIds[i]);
+          }
 
-      //     const totalValue =
-      //         submittedOrders?.data?.[0]?.currency == "0x0000000000000000000000000000000000000000"
-      //           ? submittedOrders?.data?.[0]?.price
-      //           : "0";
+          const totalValue =
+              submittedOrders?.data?.[0]?.currency == "0x0000000000000000000000000000000000000000"
+                ? submittedOrders?.data?.[0]?.price
+                : "0";
 
-      //       const failIfRevert = true;
+            const failIfRevert = true;
 
-      //       const inputData = [runInput, totalValue, contractAddress, tokenId, failIfRevert];
-      //       const wholeHex = await nativeTradingLibrary.encodeFunctionData("_executeSwap", inputData);
+            const {
+              v: v0,
+              r: r0,
+              s: s0,
+              order: sellOrder,
+            } = await signMarketplaceOrder(
+              ownerSigner,
+              [
+                [
+                  ERC721_ASSET_CLASS, // asset class
+                  ["address", "uint256", "bool"], // types
+                  [deployedTest721.address, 0, true], // values
+                  [1, 0], // data to be encoded
+                ],
+              ],
+              ethers.constants.AddressZero,
+              [
+                [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(100), convertNftToken(10)]],
+                [ERC20_ASSET_CLASS, ["address"], [TESTNET_XEENUS], [convertNftToken(500), convertNftToken(50)]],
+                [
+                  ETH_ASSET_CLASS,
+                  ["address"],
+                  [ethers.constants.AddressZero],
+                  [convertSmallNftToken(2), convertSmallNftToken(1)],
+                ],
+              ],
+              0,
+              0,
+              await deployedNftMarketplace.nonces(owner.address),
+              ethers.provider,
+              deployedNftMarketplace.address,
+              AuctionType.English,
+            );
 
-      //       LibSignature.Order calldata sellOrder,
-      //       LibSignature.Order calldata buyOrder,
-      //       uint8[2] calldata v,
-      //       bytes32[2] calldata r,
-      //       bytes32[2] calldata s,
-      //       uint256 _msgValue,
-      //       bool _revertIfTrxFails
-      //       const genHex = libraryCall("_executeSwap(RunInput,uint256,address,uint256,bool)", wholeHex.slice(10));
+            const {
+              v: v1,
+              r: r1,
+              s: s1,
+              order: buyOrder,
+            } = await signMarketplaceOrder(
+              buyerSigner,
+              [
+                [ERC20_ASSET_CLASS, ["address"], [deployedNftToken.address], [convertNftToken(500), 0]],
+                [ERC20_ASSET_CLASS, ["address"], [TESTNET_XEENUS], [convertNftToken(250), 0]],
+                [ETH_ASSET_CLASS, ["address"], [ethers.constants.AddressZero], [convertSmallNftToken(1), 0]],
+              ],
+              owner.address,
+              [[ERC721_ASSET_CLASS, ["address", "uint256", "bool"], [deployedTest721.address, 0, true], [1, 0]]],
+              0,
+              0,
+              await deployedNftMarketplace.nonces(owner.address),
+              ethers.provider,
+              deployedNftMarketplace.address,
+              AuctionType.English,
+            );
 
-      //       const setData = {
-      //         tradeData: genHex,
-      //         value: totalValue,
-      //         marketId: "3", // native nft.com exchange
-      //       };
+            const inputData = [sellOrder, buyOrder, [v0, v1], [r0, r1], [s0, s1], totalValue, failIfRevert];
+            const wholeHex = await nativeTradingLibrary.encodeFunctionData("_executeSwap", inputData);
 
-      //       const combinedOrders = [setData];
+            const genHex = libraryCall("_executeSwap(LibSignature.Order,LibSignature.Order,uint8[],bytes32[],bytes32[],uint256,bool)", wholeHex.slice(10));
 
-      //       await deployedNftAggregator
-      //         .connect(second)
-      //         .batchTradeWithETH(combinedOrders, [[], [], [0, 0]], { value: totalValue });
+            const setData = {
+              tradeData: genHex,
+              value: totalValue,
+              marketId: "3", // native nft.com exchange
+            };
 
-      //       expect(await deployed721.ownerOf(tokenId)).to.be.equal(second.address);
-      //     } catch (err) {
-      //       console.log("error with submitting native nft.com order: ", err);
-      //     }
-      // });
+            const combinedOrders = [setData];
+
+            await deployedNftAggregator
+              .connect(second)
+              .batchTradeWithETH(combinedOrders, [[], [], [0, 0]], { value: totalValue });
+
+            expect(await deployed721.ownerOf(tokenId)).to.be.equal(second.address);
+          } catch (err) {
+            console.log("error with submitting native nft.com order: ", err);
+          }
+      });
 
       it("should allow two nft purchases in one and throw errors on edge cases", async function () {
         const tokenIds = ["1", "2", "3"];
