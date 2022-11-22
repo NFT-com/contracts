@@ -99,6 +99,7 @@ contract MarketplaceEvent is Initializable, UUPSUpgradeable, OwnableUpgradeable,
         LibSignature.Order calldata buyOrder,
         bytes32 buyStructHash
     ) private {
+        uint256 totalSellOrderTakeAssets = sellOrder.takeAssets.length;
         bytes[] memory sellerMakerOrderAssetData = new bytes[](sellOrder.makeAssets.length);
         bytes[] memory sellerMakerOrderAssetTypeData = new bytes[](sellOrder.makeAssets.length);
         bytes4[] memory sellerMakerOrderAssetClass = new bytes4[](sellOrder.makeAssets.length);
@@ -111,10 +112,13 @@ contract MarketplaceEvent is Initializable, UUPSUpgradeable, OwnableUpgradeable,
         bytes[] memory sellerTakerOrderAssetData = new bytes[](sellOrder.takeAssets.length);
         bytes[] memory sellerTakerOrderAssetTypeData = new bytes[](sellOrder.takeAssets.length);
         bytes4[] memory sellerTakerOrderAssetClass = new bytes4[](sellOrder.takeAssets.length);
-        for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
+        for (uint256 i = 0; i < totalSellOrderTakeAssets;) {
             sellerTakerOrderAssetData[i] = sellOrder.takeAssets[i].data;
             sellerTakerOrderAssetTypeData[i] = sellOrder.takeAssets[i].assetType.data;
             sellerTakerOrderAssetClass[i] = sellOrder.takeAssets[i].assetType.assetClass;
+            unchecked {
+                i++;
+            }
         }
 
         emit Match2B(
@@ -137,19 +141,27 @@ contract MarketplaceEvent is Initializable, UUPSUpgradeable, OwnableUpgradeable,
         bytes[] memory buyerMakerOrderAssetData = new bytes[](buyOrder.makeAssets.length);
         bytes[] memory buyerMakerOrderAssetTypeData = new bytes[](buyOrder.makeAssets.length);
         bytes4[] memory buyerMakerOrderAssetClass = new bytes4[](buyOrder.makeAssets.length);
-        for (uint256 i = 0; i < buyOrder.makeAssets.length; i++) {
+        uint256 totalBuyOrderMakeAssets = buyOrder.makeAssets.length;
+        for (uint256 i = 0; i < totalBuyOrderMakeAssets;) {
             buyerMakerOrderAssetData[i] = buyOrder.makeAssets[i].data;
             buyerMakerOrderAssetTypeData[i] = buyOrder.makeAssets[i].assetType.data;
             buyerMakerOrderAssetClass[i] = buyOrder.makeAssets[i].assetType.assetClass;
+            unchecked {
+                ++i;
+            }
         }
 
         bytes[] memory buyerTakerOrderAssetData = new bytes[](buyOrder.takeAssets.length);
         bytes[] memory buyerTakerOrderAssetTypeData = new bytes[](buyOrder.takeAssets.length);
         bytes4[] memory buyerTakerOrderAssetClass = new bytes4[](buyOrder.takeAssets.length);
-        for (uint256 i = 0; i < buyOrder.takeAssets.length; i++) {
+        uint256 totalBuyOrderTakeAssets = buyOrder.takeAssets.length;
+        for (uint256 i = 0; i < totalBuyOrderTakeAssets;) {
             buyerTakerOrderAssetData[i] = buyOrder.takeAssets[i].data;
             buyerTakerOrderAssetTypeData[i] = buyOrder.takeAssets[i].assetType.data;
             buyerTakerOrderAssetClass[i] = buyOrder.takeAssets[i].assetType.assetClass;
+            unchecked {
+                ++i;
+            }
         }
 
         emit Match3A(

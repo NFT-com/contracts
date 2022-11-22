@@ -196,6 +196,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         bytes32 sellHash = requireValidOrder(sellOrder, Sig(v, r, s), nonces[sellOrder.maker]);
         require(validationLogic.validateBuyNow(sellOrder, msg.sender));
         require(msg.sender != sellOrder.maker, "!maker");
+        uint256 totalSellOrderTakeAssets = sellOrder.takeAssets.length;
+        uint256 totalSellOrderMakeAssets = sellOrder.makeAssets.length;
 
         cancelledOrFinalized[sellHash] = true;
 
@@ -207,7 +209,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             : ROYALTY.NEITHER;
 
         // interactions (i.e. perform swap, fees and royalties)
-        for (uint256 i = 0; i < sellOrder.takeAssets.length;) {
+        for (uint256 i = 0; i < totalSellOrderTakeAssets;) {
             // send assets from buyer to seller (payment for goods)
             transfer(
                 sellOrder.auctionType,
@@ -226,7 +228,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             }
         }
 
-        for (uint256 j = 0; j < sellOrder.makeAssets.length;) {
+        for (uint256 j = 0; j < totalSellOrderMakeAssets;) {
             // send assets from seller to buyer (goods)
             transfer(
                 sellOrder.auctionType,
@@ -282,8 +284,11 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             ? ROYALTY.FUNGIBLE_BUYER_MAKE_ASSETS
             : ROYALTY.NEITHER;
 
+        uint256 totalBuyOrderMakeAssets = buyOrder.makeAssets.length;
+        uint256 totalSellOrderMakeAssets = sellOrder.makeAssets.length;
+
         // interactions (i.e. perform swap, fees and royalties)
-        for (uint256 i = 0; i < buyOrder.makeAssets.length;) {
+        for (uint256 i = 0; i < totalBuyOrderMakeAssets;) {
             // send assets from buyer to seller (payment for goods)
             transfer(
                 sellOrder.auctionType,
@@ -300,7 +305,7 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             }
         }
 
-        for (uint256 j = 0; j < sellOrder.makeAssets.length;) {
+        for (uint256 j = 0; j < totalSellOrderMakeAssets;) {
             // send assets from seller to buyer (goods)
             transfer(
                 sellOrder.auctionType,
