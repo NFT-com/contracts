@@ -983,7 +983,7 @@ task("deploy:4").setAction(async function (taskArguments, hre) {
 task("upgrade:NftProfile").setAction(async function (taskArguments, hre) {
   const NftProfile = await hre.ethers.getContractFactory("NftProfile");
 
-  const upgradedNftProfile = await hre.upgrades.upgradeProxy("0x734a14f4df41f2fA90f8bF7fb7Ce3E2ab68d9cF0", NftProfile);
+  const upgradedNftProfile = await hre.upgrades.upgradeProxy((await getTokens(hre)).deployedNftProfile, NftProfile);
   console.log(chalk.green("upgradedNftProfile: ", upgradedNftProfile.address));
 
   await delayedVerifyImp("upgradedNftProfile", upgradedNftProfile.address, hre);

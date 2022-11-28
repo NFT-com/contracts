@@ -159,7 +159,7 @@ const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.17",
     settings: {
-      // viaIR: Boolean(process.env.WITH_IR) || false,
+      // viaIR: Boolean(process.env.WITH_IR),
       metadata: {
         // Not including the metadata hash
         // https://github.com/paulrberg/solidity-template/issues/31
@@ -171,13 +171,14 @@ const config: HardhatUserConfig = {
         enabled: true,
         runs: 0,
       },
-      outputSelection: process.env.WITH_IR
-        ? {
-            "*": {
-              "*": ["evm.assembly", "irOptimized"],
-            },
-          }
-        : {},
+      // eslint-disable-next-line no-extra-boolean-cast
+      // outputSelection: Boolean(process.env.WITH_IR)
+      //   ? {
+      //       "*": {
+      //         "*": ["evm.assembly", "irOptimized"],
+      //       },
+      //     }
+      //   : {},
     },
   },
   typechain: {

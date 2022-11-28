@@ -134,8 +134,17 @@ contract NftProfile is
      @param _string profile URI
      @return the unix timestamp of the expiry
     */
-    function getExpiryTimeline(string memory _string) external view returns (uint256) {
-        return _expiryTimeline[_string];
+    function getExpiryTimeline(string[] memory _string) external view returns (uint256[] memory) {
+        uint256[] memory expiryTimeline = new uint256[](_string.length);
+        uint256 stringLength = _string.length;
+
+        for (uint256 i = 0; i < stringLength;) {
+            expiryTimeline[i] = _expiryTimeline[_string[i]];
+            unchecked {
+                 ++i;
+            }
+        }
+        return expiryTimeline;
     }
 
     /**
