@@ -87,14 +87,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         uint256 _fee,
         address _paymentToken
     );
-    event ExtendLicense(
-        address _receiver,
-        string _profileUrl,
-        uint256 _duration,
-        uint256 _fee,
-        bool _expired,
-        address _paymentToken
-    );
     event NewLengthPremium(uint256 _length, uint256 _premium);
     event NewYearlyFee(uint96 _fee);
     event NewMaxProfile(uint88 _max);
@@ -373,8 +365,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         require(transferTokens(getFee(profileUrl, duration)), "el: insufficient funds");
 
         INftProfile(nftProfile).extendLicense(profileUrl, duration, msg.sender);
-
-        emit ExtendLicense(msg.sender, profileUrl, duration, getFee(profileUrl, duration), false, usdc_);
     }
 
     function purchaseExpiredProfile(
@@ -397,8 +387,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         require(transferTokens(getFee(profileUrl, duration)), "pe: insufficient funds");
 
         INftProfile(nftProfile).purchaseExpiredProfile(profileUrl, duration, msg.sender);
-
-        emit ExtendLicense(msg.sender, profileUrl, duration, getFee(profileUrl, duration), true, usdc_);
     }
 
     function safeTransferETH(address to, uint256 value) internal {

@@ -199,8 +199,8 @@ contract NftProfile is
         address _licensee
     ) external override {
         // checks
-        require(_exists(_tokenUsedURIs[_profileURI]), "!exists");
-        require(msg.sender == profileAuctionContract, "only auction");
+        require(_exists(_tokenUsedURIs[_profileURI]));
+        require(msg.sender == profileAuctionContract, "!auc");
         require(ownerOf(_tokenUsedURIs[_profileURI].sub(1)) == _licensee, "!owner");
 
         // effects
@@ -220,8 +220,8 @@ contract NftProfile is
         address _receiver
     ) external override {
         // checks
-        require(msg.sender == profileAuctionContract, "only auction");
         require(_exists(_tokenUsedURIs[_profileURI]));
+        require(msg.sender == profileAuctionContract, "!auc");
         require(_expiryTimeline[_profileURI] < block.timestamp, "!expired");
         uint256 tokenId = _tokenUsedURIs[_profileURI].sub(1);
         require(ownerOf(tokenId) != _receiver, "!receiver");

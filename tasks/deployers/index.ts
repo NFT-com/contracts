@@ -1103,6 +1103,9 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
         await getTokens(hre)
       ).deployedProfileAuction,
       ProfileAuction,
+      // {
+      //   unsafeSkipStorageCheck: true
+      // },
     );
     console.log(chalk.green("upgradedProfileAuction: ", upgradedProfileAuction.address));
 
