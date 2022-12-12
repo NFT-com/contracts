@@ -998,10 +998,10 @@ task("upgrade:NftMarketplace").setAction(async function (taskArguments, hre) {
       await getTokens(hre)
     ).deployedNftMarketplace,
     NftMarketplace,
-    {
-      unsafeAllowRenames: true,
-      unsafeSkipStorageCheck: true,
-    }
+    // {
+    //   unsafeAllowRenames: true,
+    //   unsafeSkipStorageCheck: true,
+    // }
   );
   console.log(chalk.green("upgraded nft marketplace: ", upgradedNftMarketplace.address));
   await delayedVerifyImp("upgradedNftMarketplace", upgradedNftMarketplace.address, hre);

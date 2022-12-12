@@ -153,7 +153,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         );
 
         // check if seller maker and buyer take match on every corresponding index
-        for (uint256 i = 0; i < sellOrder.makeAssets.length; i++) {
+        for (uint256 i = 0; i < sellOrder.makeAssets.length;) {
             if (!validateSingleAssetMatch1(buyOrder.takeAssets[i], sellOrder.makeAssets[i])) {
                 return false;
             }
@@ -164,6 +164,10 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
                 require(viewOnly || sender != buyOrder.maker, "vma sellerEth"); // buyer cannot pay ETH, seller must
                 ETH_ASSET_USED = true;
             }
+
+            unchecked {
+                ++i;
+            }
         }
 
         // if seller's takeAssets = 0, that means seller doesn't make what buyer's makeAssets are, so ignore
@@ -171,7 +175,7 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
         if (sellOrder.takeAssets.length != 0) {
             require(sellOrder.takeAssets.length == buyOrder.makeAssets.length, "vm assets_len");
             // check if seller maker and buyer take match on every corresponding index
-            for (uint256 i = 0; i < sellOrder.takeAssets.length; i++) {
+            for (uint256 i = 0; i < sellOrder.takeAssets.length;) {
                 if (!validateSingleAssetMatch2(sellOrder.takeAssets[i], buyOrder.makeAssets[i])) {
                     return false;
                 }
@@ -181,6 +185,10 @@ contract ValidationLogic is Initializable, UUPSUpgradeable, OwnableUpgradeable, 
                     require(!ETH_ASSET_USED, "vm eth2");
                     require(viewOnly || sender != sellOrder.maker, "vmb buyerEth"); // seller cannot pay ETH, buyer must
                     ETH_ASSET_USED = true;
+                }
+
+                unchecked {
+                    ++i;
                 }
             }
         }
