@@ -592,11 +592,22 @@ describe("NFT Profile Auction / Minting", function () {
         const { hash: h13, signature: s13 } = signHashProfile(owner.address, "profile6");
         const { hash: h14, signature: s14 } = signHashProfile(owner.address, "profile7");
 
-        await deployedProfileAuction.connect(owner).publicMint("profile5", 0, 27, ZERO_BYTES, ZERO_BYTES, h12, s12);
+        // less than 1 year
+        await expect(
+          deployedProfileAuction.connect(owner).publicMint("profile5", 31535999, 27, ZERO_BYTES, ZERO_BYTES, h12, s12),
+        ).to.be.reverted;
 
-        await deployedProfileAuction.connect(owner).publicMint("profile6", 0, 27, ZERO_BYTES, ZERO_BYTES, h13, s13);
+        await deployedProfileAuction
+          .connect(owner)
+          .publicMint("profile5", 31536000, 27, ZERO_BYTES, ZERO_BYTES, h12, s12);
 
-        await deployedProfileAuction.connect(owner).publicMint("profile7", 0, 27, ZERO_BYTES, ZERO_BYTES, h14, s14);
+        await deployedProfileAuction
+          .connect(owner)
+          .publicMint("profile6", 31536000, 27, ZERO_BYTES, ZERO_BYTES, h13, s13);
+
+        await deployedProfileAuction
+          .connect(owner)
+          .publicMint("profile7", 31536000, 27, ZERO_BYTES, ZERO_BYTES, h14, s14);
 
         // only used for this portion =====================================================================================
         await deployedProfileAuction.connect(owner).setPublicMint(false);

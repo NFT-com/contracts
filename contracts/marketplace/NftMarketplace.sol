@@ -36,6 +36,11 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         NEITHER
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(
         INftTransferProxy _transferProxy,
         IERC20TransferProxy _erc20TransferProxy,
@@ -43,7 +48,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         address _stakingContract,
         address _nftToken,
         ValidationLogic _validationLogic,
-        MarketplaceEvent _marketplaceEvent
+        MarketplaceEvent _marketplaceEvent,
+        address _nftProfile
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
@@ -53,7 +59,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             _cryptoKittyProxy,
             _stakingContract,
             _nftToken,
-            100
+            100,
+            _nftProfile
         );
         validationLogic = _validationLogic;
         marketplaceEvent = _marketplaceEvent;

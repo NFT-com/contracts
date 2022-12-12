@@ -26,6 +26,7 @@ describe("NFT.com Marketplace", function () {
       MarketplaceEvent,
       ValidationLogic,
       GenesisKey,
+      NftProfile,
       ERC1155Factory;
     let deployedNftMarketplace,
       deployedNftTransferProxy,
@@ -37,6 +38,7 @@ describe("NFT.com Marketplace", function () {
       deployedValidationLogic,
       deployedMarketplaceEvent,
       deployedWETH,
+      deployedNftProfile,
       deployedNftStake,
       deployedUniV2Router,
       deployedXEENUS,
@@ -61,6 +63,7 @@ describe("NFT.com Marketplace", function () {
       CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
       ERC1155Factory = await ethers.getContractFactory("TestERC1155");
       ValidationLogic = await ethers.getContractFactory("ValidationLogic");
+      NftProfile = await ethers.getContractFactory("NftProfile");
       MarketplaceEvent = await ethers.getContractFactory("MarketplaceEvent");
 
       NftToken = await ethers.getContractFactory("NftToken");
@@ -103,6 +106,16 @@ describe("NFT.com Marketplace", function () {
         { kind: "uups" },
       );
 
+      deployedNftProfile = await upgrades.deployProxy(
+        NftProfile,
+        [
+          "NFT.com", // string memory name,
+          "NFT.com", // string memory symbol,
+          "https://api.nft.com/uri/",
+        ],
+        { kind: "uups" },
+      );
+
       deployedNftStake = await NftStake.deploy(deployedNftToken.address);
 
       deployedNftBuyer = await NftBuyer.deploy(
@@ -127,6 +140,7 @@ describe("NFT.com Marketplace", function () {
           deployedNftToken.address,
           deployedValidationLogic.address,
           deployedMarketplaceEvent.address,
+          deployedNftProfile.address
         ],
         { kind: "uups" },
       );

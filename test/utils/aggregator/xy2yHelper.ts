@@ -93,6 +93,7 @@ async function signOrder(signer: ethers.Signer, order: X2Y2Order): Promise<void>
     order.items.length,
     order.items,
   ]);
+
   const orderHash = ethers.utils.keccak256(orderData);
 
   // signMessage

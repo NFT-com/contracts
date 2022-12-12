@@ -316,6 +316,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         require(publicMintBool, "pm: !publicMint");
         require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pm: !sig");
         require(hashTransaction(msg.sender, profileUrl) == hash, "pm: !hash");
+        require(duration >= 365 days, "pm: !t");
 
         // interactions
         if (usdc_ != address(0) && IERC20Upgradeable(usdc_).allowance(msg.sender, address(this)) == 0) {
