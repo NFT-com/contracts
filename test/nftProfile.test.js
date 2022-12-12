@@ -204,9 +204,9 @@ describe("NFT Profile Auction / Minting", function () {
       await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
 
       const { hash: h1, signature: s1 } = signHashProfile(second.address, "testminter");
-      await deployedProfileAuction.connect(second).genesisKeyClaimProfile("testminter", 2, second.address, h1, s1);
+      await deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile(["testminter", 2, second.address, h1, s1]);
       const { hash: h2, signature: s2 } = signHashProfile(second.address, "testminter2");
-      await deployedProfileAuction.connect(second).genesisKeyClaimProfile("testminter2", 2, second.address, h2, s2);
+      await deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile(["testminter2", 2, second.address, h2, s2]);
       await deployedNftProfile.connect(second).transferFrom(second.address, addr1.address, 1); // transfer
 
       // owner edits
@@ -301,10 +301,6 @@ describe("NFT Profile Auction / Minting", function () {
 
       it("should revert on public functions without protection", async function () {
         await expect(deployedProfileAuction.publicMint("test_profile", 0, ZERO_BYTES, ZERO_BYTES)).to.be.reverted;
-
-        // fails because only merkle distributor can call this
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile(0, "test", owner.address)).to.be
-          .reverted;
       });
 
       it("should enforce mints through batch genesis keys with case insensitivity and enforce trademark edits", async function () {
@@ -528,10 +524,10 @@ describe("NFT Profile Auction / Minting", function () {
         expect(await deployedNftProfile.totalSupply()).to.be.equal(2);
 
         const { hash: h0, signature: s0 } = signHashProfile(owner.address, "gavin");
-        // await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h0, s0);
+        // await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["gavin", 1, owner.address, h0, s0]);
 
         const { hash: h1, signature: s1 } = signHashProfile(owner.address, "boled");
-        // await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address, h1, s1);
+        // await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["boled", 1, owner.address, h1, s1]);
 
         // batch claim
         await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile([
@@ -541,35 +537,35 @@ describe("NFT Profile Auction / Minting", function () {
 
         // should go thru
         const { hash: h2, signature: s2 } = signHashProfile(second.address, "satoshi");
-        await deployedProfileAuction.connect(second).genesisKeyClaimProfile("satoshi", 2, second.address, h2, s2);
+        await deployedProfileAuction.connect(second).genesisKeyBatchClaimProfile(["satoshi", 2, second.address, h2, s2]);
 
         // no more merkle tree claims -> now general claims
         await deployedProfileAuction.connect(owner).setGenKeyWhitelistOnly(false);
 
         // reverts due to owner not having ownership over tokenId 1
         const { hash: h3, signature: s3 } = signHashProfile(owner.address, "1");
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("1", 2, owner.address, h3, s3)).to.be
+        await expect(deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["1", 2, owner.address, h3, s3])).to.be
           .reverted;
 
         const { hash: h4, signature: s4 } = signHashProfile(owner.address, "profile0");
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile0", 1, owner.address, h4, s4);
+        await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["profile0", 1, owner.address, h4, s4]);
 
         const { hash: h5, signature: s5 } = signHashProfile(owner.address, "gavin");
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("gavin", 1, owner.address, h5, s5)).to
+        await expect(deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["gavin", 1, owner.address, h5, s5])).to
           .be.reverted;
 
         const { hash: h6, signature: s6 } = signHashProfile(owner.address, "boled");
-        await expect(deployedProfileAuction.connect(owner).genesisKeyClaimProfile("boled", 1, owner.address, h6, s6)).to
+        await expect(deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["boled", 1, owner.address, h6, s6])).to
           .be.reverted;
 
         const { hash: h7, signature: s7 } = signHashProfile(owner.address, "profile1");
         const { hash: h8, signature: s8 } = signHashProfile(owner.address, "profile2");
         const { hash: h9, signature: s9 } = signHashProfile(owner.address, "profile3");
         const { hash: h10, signature: s10 } = signHashProfile(owner.address, "profile4");
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile1", 1, owner.address, h7, s7);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile2", 1, owner.address, h8, s8);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile3", 1, owner.address, h9, s9);
-        await deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile4", 1, owner.address, h10, s10);
+        await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["profile1", 1, owner.address, h7, s7]);
+        await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["profile2", 1, owner.address, h8, s8]);
+        await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["profile3", 1, owner.address, h9, s9]);
+        await deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["profile4", 1, owner.address, h10, s10]);
 
         // reverts due to expiry
         await expect(
@@ -578,7 +574,7 @@ describe("NFT Profile Auction / Minting", function () {
 
         const { hash: h11, signature: s11 } = signHashProfile(owner.address, "profile5");
         await expect(
-          deployedProfileAuction.connect(owner).genesisKeyClaimProfile("profile5", 1, owner.address, h11, s11),
+          deployedProfileAuction.connect(owner).genesisKeyBatchClaimProfile(["profile5", 1, owner.address, h11, s11]),
         ).to.be.reverted;
 
         expect(await deployedNftProfile.totalSupply()).to.be.equal(10);
