@@ -1,6 +1,7 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { convertBigNumber, convertSmallNumber, signHashProfile } = require("./utils/sign-utils");
+const { advanceTimeAndBlock } = require("./utils/time");
 
 const { parseBalanceMap } = require("./utils/parse-balance-map");
 
@@ -668,6 +669,9 @@ describe("NFT Profile Auction / Minting", function () {
         const feeRent2 = await deployedProfileAuction.getFee("profile6", 86400);
         console.log(`fee rent ETH for profile6 for 86400 is: ${Number(feeRent2)}`);
 
+        const expiryTime = await deployedNftProfile.getExpiryTimeline(["profile6"]);
+        await advanceTimeAndBlock(Number(expiryTime[0]) + 86400 * 10); // advance expiry + 10 days
+
         await deployedProfileAuction
           .connect(second)
           .purchaseExpiredProfile("profile6", 86400, 27, ZERO_BYTES, ZERO_BYTES, { value: "10000000000000000" });
@@ -918,11 +922,6 @@ describe("NFT Profile Auction / Minting", function () {
         expect(await deployedProfileAuction.yearlyFee()).to.be.equal(convertBigNumber(100));
         await deployedProfileAuction.setYearlyFee(200);
         expect(await deployedProfileAuction.yearlyFee()).to.be.equal(200);
-
-        // years to own
-        expect(await deployedProfileAuction.yearsToOwn()).to.be.equal(2);
-        await deployedProfileAuction.setYearsToOwn(3);
-        expect(await deployedProfileAuction.yearsToOwn()).to.be.equal(3);
       });
 
       it("should be able to associate contract addresses", async function () {
