@@ -7,9 +7,5 @@ interface ITransferProxy {
     event AddOperator(address indexed operator);
     event RemoveOperator(address indexed operator);
 
-    function transfer(
-        LibAsset.Asset calldata asset,
-        address from,
-        address to
-    ) external;
+    function transfer(LibAsset.Asset calldata asset, address from, address to) external;
 }

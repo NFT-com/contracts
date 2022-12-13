@@ -18,8 +18,8 @@ describe("Genesis Key Old Testing + Auction Mechanics", function () {
     let deployedWETH;
     let NftProfileHelper;
     let deployedNftProfileHelper;
-    let GenesisStake;
-    let deployedNftGenesisStake;
+    let NftStake;
+    let deployedNftStake;
     let GenesisKeyTeamClaim;
     let deployedGenesisKeyTeamClaim;
     let GenesisKeyTeamDistributor;
@@ -68,8 +68,8 @@ describe("Genesis Key Old Testing + Auction Mechanics", function () {
         { kind: "uups" },
       );
 
-      GenesisStake = await ethers.getContractFactory("GenesisNftStake");
-      deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
+      NftStake = await ethers.getContractFactory("NftStake");
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
 
       GenesisKeyTeamClaim = await ethers.getContractFactory("GenesisKeyTeamClaim");
       deployedGenesisKeyTeamClaim = await upgrades.deployProxy(GenesisKeyTeamClaim, [deployedGenesisKey.address], {
@@ -91,7 +91,7 @@ describe("Genesis Key Old Testing + Auction Mechanics", function () {
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       deployedNftBuyer = await NftBuyer.deploy(
         UNI_FACTORY_V2,
-        deployedNftGenesisStake.address,
+        deployedNftStake.address,
         deployedNftToken.address,
         wethAddress,
       );
@@ -107,7 +107,7 @@ describe("Genesis Key Old Testing + Auction Mechanics", function () {
       await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
       await deployedProfileAuction.setUsdc(deployedNftToken.address);
       await deployedProfileAuction.setContract1(deployedNftBuyer.address);
-      await deployedProfileAuction.setContract2(deployedNftGenesisStake.address);
+      await deployedProfileAuction.setContract2(deployedNftStake.address);
 
       await deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
     });
@@ -421,29 +421,6 @@ describe("Genesis Key Old Testing + Auction Mechanics", function () {
 
         await deployedGenesisKey.connect(owner).transferFrom(owner.address, second.address, 25);
         expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
-
-        expect(await deployedGenesisKey.lockupBoolean()).to.be.false;
-        // reverts due to lockUp booelan being false
-        await expect(deployedGenesisKey.connect(owner).toggleLockup([25])).to.be.reverted;
-        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
-        // owner != ownerOf(2)
-        await expect(deployedGenesisKey.connect(owner).toggleLockup([25])).to.be.reverted;
-        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
-        await expect(deployedGenesisKey.connect(owner).toggleLockup([21])).to.be.reverted;
-        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
-        await deployedGenesisKey.connect(owner).toggleLockup([21]);
-        expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
-        await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 21)).to.be.reverted;
-
-        console.log("currentXP 1: ", await deployedGenesisKey.currentXP(21));
-        console.log("currentXP 2: ", await deployedGenesisKey.currentXP(25));
-
-        await deployedGenesisKey.connect(owner).toggleLockup([21]);
-        await deployedGenesisKey.transferFrom(owner.address, second.address, 21);
-        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(2);
-
-        console.log("currentXP after 2: ", await deployedGenesisKey.currentXP(21));
-        console.log("currentXP after 1: ", await deployedGenesisKey.currentXP(25));
       });
     });
 

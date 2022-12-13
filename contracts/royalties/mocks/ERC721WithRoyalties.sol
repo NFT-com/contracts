@@ -22,11 +22,7 @@ contract ERC721WithRoyalties is ERC721, ERC2981PerTokenRoyalties {
     /// @param to the recipient of the token
     /// @param royaltyRecipient the recipient for royalties (if royaltyValue > 0)
     /// @param royaltyValue the royalties asked for (EIP2981)
-    function mint(
-        address to,
-        address royaltyRecipient,
-        uint256 royaltyValue
-    ) external {
+    function mint(address to, address royaltyRecipient, uint256 royaltyValue) external {
         uint256 tokenId = nextTokenId;
         _safeMint(to, tokenId, "");
 

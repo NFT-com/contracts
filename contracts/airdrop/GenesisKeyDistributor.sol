@@ -16,11 +16,7 @@ contract GenesisKeyDistributor is IGenesisKeyDistributor {
     // This is a packed array of booleans.
     mapping(uint256 => uint256) private claimedBitMap;
 
-    constructor(
-        address genesisKey_,
-        bytes32 merkleRoot_,
-        uint256 ethAmount_
-    ) {
+    constructor(address genesisKey_, bytes32 merkleRoot_, uint256 ethAmount_) {
         genesisKey = genesisKey_;
         merkleRoot = merkleRoot_;
         ethAmount = ethAmount_;

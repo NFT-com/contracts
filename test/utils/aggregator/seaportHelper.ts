@@ -17,7 +17,7 @@ import {
   SeaportOrderComponents,
   SeaportOrderParameters,
   Maybe,
-  Domain
+  Domain,
 } from "./types";
 
 import { BigNumber, BigNumberish, ethers } from "ethers";
@@ -27,7 +27,7 @@ import { Seaport__factory } from "../../../typechain/seaport/factories/Seaport__
 export const NULL_ADDRESS = ethers.utils.getAddress("0x0000000000000000000000000000000000000000");
 
 // @ts-ignore
-export const filterNulls = <T>(items: Maybe<T>[]): T[] => items.filter(item => item != null);
+export const filterNulls = <T>(items: Maybe<T>[]): T[] => items.filter((item) => item != null);
 
 export function getTypedDataDomain(chainId: string | number): Domain {
   return {
@@ -54,7 +54,7 @@ export const isCurrencyItem = ({ itemType }: SeaportConsiderationItem): boolean 
 
 export function deductFees(considerationItems: SeaportConsiderationItem[], fees: Fee[]): any {
   const totalBasisPoints = fees.reduce((accBasisPoints, fee) => accBasisPoints + fee.basisPoints, 0);
-  return considerationItems.map(item => ({
+  return considerationItems.map((item) => ({
     ...item,
     startAmount: isCurrencyItem(item)
       ? BigNumber.from(item.startAmount).sub(multiplyBasisPoints(item.startAmount, totalBasisPoints)).toString()
@@ -134,12 +134,7 @@ export function createSeaportParametersForNFTListing(
   ]);
   return {
     offerer: offerer ?? NULL_ADDRESS,
-    zone:
-      chainId === "5"
-        ? customZone || SEAPORT_ZONE_GOERLI
-        : chainId === "1"
-        ? SEAPORT_ZONE
-        : customZone,
+    zone: chainId === "5" ? customZone || SEAPORT_ZONE_GOERLI : chainId === "1" ? SEAPORT_ZONE : customZone,
     offer: [
       {
         itemType: ItemType.ERC721,

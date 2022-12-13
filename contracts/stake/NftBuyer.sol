@@ -20,25 +20,25 @@ contract NftBuyer {
     using SafeERC20 for IERC20;
 
     IUniswapV2Factory public factory;
-    address public immutable genesisStaking;
+    address public immutable nftStaking;
     address public immutable nft;
     address public immutable weth;
     uint256 public constant MAX_PERCENT = 10000; // 10000 = 100%
 
     constructor(
         IUniswapV2Factory _factory,
-        address _genesisStaking,
+        address _nftStake,
         address _nft,
         address _weth
     ) {
         require(address(_factory) != address(0));
-        require(_genesisStaking != address(0));
+        require(_nftStake != address(0));
         require(_nft != address(0));
         require(_weth != address(0));
 
         factory = _factory;
         nft = _nft;
-        genesisStaking = _genesisStaking;
+        nftStaking = _nftStake;
         weth = _weth;
     }
 
@@ -62,7 +62,7 @@ contract NftBuyer {
         require(!isContract(msg.sender), "do not convert from contract");
         if (erc20 == nft) {
             // split proceeds
-            _transfer(nft, genesisStaking, IERC20(nft).balanceOf(address(this)));
+            _transfer(nft, nftStaking, IERC20(nft).balanceOf(address(this)));
         } else {
             uint256 wethAmount = _toWETH(erc20);
             // Then we convert the WETH to Nft
@@ -79,7 +79,7 @@ contract NftBuyer {
         // If the passed token is Nft, don't convert anything
         if (token == nft) {
             uint256 amount = IERC20(token).balanceOf(address(this));
-            _transfer(token, genesisStaking, amount);
+            _transfer(token, nftStaking, amount);
             return 0;
         }
         // If the passed token is WETH, don't convert anything
@@ -128,7 +128,7 @@ contract NftBuyer {
         pair.swap(amount0Out, amount1Out, address(this), new bytes(0));
 
         // split proceeds
-        _transfer(nft, genesisStaking, IERC20(nft).balanceOf(address(this)));
+        _transfer(nft, nftStaking, IERC20(nft).balanceOf(address(this)));
     }
 
     function _transfer(

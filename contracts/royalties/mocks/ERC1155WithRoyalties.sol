@@ -22,13 +22,7 @@ contract ERC1155WithRoyalties is ERC1155, ERC2981PerTokenRoyalties {
     /// @param amount amount of the token type to mint
     /// @param royaltyRecipient the recipient for royalties (if royaltyValue > 0)
     /// @param royaltyValue the royalties asked for (EIP2981)
-    function mint(
-        address to,
-        uint256 id,
-        uint256 amount,
-        address royaltyRecipient,
-        uint256 royaltyValue
-    ) external {
+    function mint(address to, uint256 id, uint256 amount, address royaltyRecipient, uint256 royaltyValue) external {
         _mint(to, id, amount, "");
 
         if (royaltyValue > 0) {

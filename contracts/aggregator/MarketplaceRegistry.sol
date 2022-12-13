@@ -67,11 +67,7 @@ contract MarketplaceRegistry is Initializable, UUPSUpgradeable {
      * @param newProxy is the updated proxy address
      * @param isLib is a boolean dictating whether newProxy is a library or not
      */
-    function setMarketplaceProxy(
-        uint256 marketId,
-        address newProxy,
-        bool isLib
-    ) external onlyOwner {
+    function setMarketplaceProxy(uint256 marketId, address newProxy, bool isLib) external onlyOwner {
         Marketplace storage market = marketplaces[marketId];
         market.proxy = newProxy;
         market.isLib = isLib;

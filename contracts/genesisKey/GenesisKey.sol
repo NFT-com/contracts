@@ -56,9 +56,9 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     mapping(uint256 => LockupInfo) private _genesisKeyLockUp;
 
     uint256 public constant MAX_SUPPLY = 10000;
-    uint256 public latestClaimTokenId;
+    uint256 public latestClaimTokenId; // Deprecated
 
-    event ClaimedGenesisKey(address indexed _user, uint256 _amount, uint256 _blockNum, bool _whitelist);
+    event Stake(address indexed _user, uint256 _tokenId, bool _enter, uint128 _totalLockup);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "GEN_KEY: !AUTH");
@@ -93,39 +93,11 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         owner = _owner;
     }
 
-    function currentXP(uint256 tokenId)
-        external
-        view
-        returns (
-            bool locked,
-            uint256 current,
-            uint256 total
-        )
-    {
-        uint256 start = _genesisKeyLockUp[tokenId].currentLockup;
-        if (start != 0) {
-            locked = true;
-            current = block.timestamp - start;
-        }
-        total = current + _genesisKeyLockUp[tokenId].totalLockup;
-    }
-
-    function toggleLockup(uint256 tokenId) internal {
-        require(msg.sender == ownerOf(tokenId));
-        uint256 start = _genesisKeyLockUp[tokenId].currentLockup;
-        if (start == 0) {
-            if (!lockupBoolean) revert LockUpUnavailable();
-            _genesisKeyLockUp[tokenId].currentLockup = uint128(block.timestamp);
-        } else {
-            _genesisKeyLockUp[tokenId].totalLockup += uint128(block.timestamp - start);
-            _genesisKeyLockUp[tokenId].currentLockup = 0;
-        }
-    }
-
-    function toggleLockup(uint256[] calldata tokenIds) external {
-        uint256 n = tokenIds.length;
-        for (uint256 i = 0; i < n; ++i) {
-            toggleLockup(tokenIds[i]);
+    function bulkTransfer(uint256[] calldata tokenIds, address _to) external {
+        for (uint256 i = 0; i < tokenIds.length;) {
+            if (_genesisKeyLockUp[tokenIds[i]].currentLockup != 0) revert PausedTransfer();
+            _transfer(msg.sender, _to, tokenIds[i]);
+            unchecked { i++; }
         }
     }
 
@@ -135,7 +107,6 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         uint256 tokenId
     ) public override {
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
-
         _transfer(from, to, tokenId);
     }
 
@@ -144,8 +115,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         address to,
         uint256 tokenId
     ) public override {
+        // staked keys cannot be transferred
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
-
         safeTransferFrom(from, to, tokenId, "");
     }
 
@@ -158,8 +129,8 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         uint256 tokenId,
         bytes memory _data
     ) public override {
+        // staked keys cannot be transferred
         if (_genesisKeyLockUp[tokenId].currentLockup != 0) revert PausedTransfer();
-
         _transfer(from, to, tokenId);
         if (to.isContract() && !_checkContractOnERC721Received(from, to, tokenId, _data)) {
             revert TransferToNonERC721ReceiverImplementer();
@@ -174,23 +145,50 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
         lockupBoolean = !lockupBoolean;
     }
 
-    function setPublicSaleDuration(uint96 _seconds) external onlyOwner {
-        publicSaleDurationSeconds = _seconds;
+    function currentXP(uint256 tokenId)
+        external
+        view
+        returns (
+            bool locked,
+            uint128 current,
+            uint128 total
+        )
+    {
+        uint128 start = _genesisKeyLockUp[tokenId].currentLockup;
+        if (start != 0) { // staked
+            locked = true;
+            current = uint128(block.timestamp) - start;
+        }
+        total = current + _genesisKeyLockUp[tokenId].totalLockup;
     }
 
-    function setSigner(address _signer) external onlyOwner {
-        signerAddress = _signer;
+    function toggleLockup(uint256 tokenId) internal {
+        require(msg.sender == ownerOf(tokenId));
+        uint128 start = _genesisKeyLockUp[tokenId].currentLockup;
+        if (start == 0) { // unstaked -> staked
+            if (!lockupBoolean) revert LockUpUnavailable();
+            _genesisKeyLockUp[tokenId].currentLockup = uint128(block.timestamp);
+            emit Stake(msg.sender, tokenId, true, _genesisKeyLockUp[tokenId].totalLockup);
+        } else { // staked -> unstaked
+            _genesisKeyLockUp[tokenId].totalLockup += uint128(block.timestamp - start);
+            _genesisKeyLockUp[tokenId].currentLockup = 0;
+            emit Stake(msg.sender, tokenId, false, _genesisKeyLockUp[tokenId].totalLockup);
+        }
     }
 
-    // initial weth price is the high price (starting point)
-    // final weth price is the lowest floor price we allow
-    // num keys for sale is total keys allowed to mint
-    function initializePublicSale(uint96 _initialEthPrice, uint96 _finalEthPrice) external onlyOwner {
-        require(!startPublicSale, "GEN_KEY: sale already initialized");
-        initialEthPrice = _initialEthPrice;
-        finalEthPrice = _finalEthPrice;
-        publicSaleStartSecond = uint96(block.timestamp);
-        startPublicSale = true;
+    function toggleLockup(uint256[] calldata tokenIds) external {
+        uint256 n = tokenIds.length;
+        for (uint256 i = 0; i < n; ++i) {
+            toggleLockup(tokenIds[i]);
+        }
+    }
+
+    // function used for internal testing
+    function mintKey(address _recipient) external onlyOwner {
+        if (block.chainid == 5) {
+            if (totalSupply() == MAX_SUPPLY) revert MaxSupply();
+            _mint(_recipient, 1, "", false);
+        }
     }
 
     function _startTokenId() internal pure override returns (uint256) {
@@ -209,51 +207,5 @@ contract GenesisKey is Initializable, ERC721AUpgradeable, ReentrancyGuardUpgrade
     // helper function for transferring eth from the public auction to MS
     function transferETH() external onlyOwner {
         safeTransferETH(multiSig, address(this).balance);
-    }
-
-    // function used for internal testing
-    function mintKey(address _recipient) external onlyOwner {
-        if (totalSupply() == MAX_SUPPLY) revert MaxSupply();
-        _mint(_recipient, 1, "", false);
-    }
-
-    function publicBuyKey() external payable nonReentrant {
-        // checks
-        require(startPublicSale, "GEN_KEY: invalid time");
-        require(block.timestamp > 1651705200, "Q.E.D"); // 5/4/22 11pm utc
-        if (totalSupply() != MAX_SUPPLY) revert MaxSupply();
-        if (latestClaimTokenId == 5000) revert MaxSupply();
-
-        uint256 currPrice = getCurrentPrice();
-        require(msg.value >= currPrice, "GEN_KEY: INSUFFICIENT FUNDS");
-
-        // effects
-        latestClaimTokenId += 1;
-
-        // interactions
-        if (msg.value > currPrice) {
-            safeTransferETH(msg.sender, msg.value - currPrice);
-        }
-
-        safeTransferETH(multiSig, address(this).balance);
-        _adminTransfer(address(this), msg.sender, latestClaimTokenId);
-    }
-
-    // public function for returning the current price
-    function getCurrentPrice() public view returns (uint256) {
-        require(startPublicSale, "GEN_KEY: invalid time");
-        uint256 secondsPassed = 0;
-
-        secondsPassed = block.timestamp - publicSaleStartSecond;
-
-        if (secondsPassed >= publicSaleDurationSeconds) {
-            return finalEthPrice;
-        } else {
-            uint256 totalPriceChange = initialEthPrice - finalEthPrice;
-            uint256 currentPriceChange = totalPriceChange.mul(secondsPassed).div(publicSaleDurationSeconds);
-            uint256 currentPrice = initialEthPrice - currentPriceChange;
-
-            return currentPrice;
-        }
     }
 }

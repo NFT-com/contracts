@@ -9,9 +9,5 @@ interface ICryptoPunksMarket {
 
     function transferPunk(address to, uint256 punkIndex) external;
 
-    function offerPunkForSaleToAddress(
-        uint256 punkIndex,
-        uint256 minSalePriceInWei,
-        address toAddress
-    ) external;
+    function offerPunkForSaleToAddress(uint256 punkIndex, uint256 minSalePriceInWei, address toAddress) external;
 }

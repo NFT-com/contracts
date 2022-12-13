@@ -2,38 +2,18 @@ const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
 const {
-  sign,
-  getDigest,
-  getHash,
-  convertToHash,
-  ERC20_PERMIT_TYPEHASH,
   ETH_ASSET_CLASS,
   signMarketplaceOrder,
   ERC20_ASSET_CLASS,
   ERC721_ASSET_CLASS,
   ERC1155_ASSET_CLASS,
   CRYPTO_KITTY,
-  COLLECTION,
-  getAssetHash,
-  makeSalt,
-  encode,
-  MARKETPLACE_ORDER_TYPEHASH,
+  convertNftToken,
+  convertSmallNftToken,
+  AuctionType,
+  MAX_UINT,
+  signHashProfile
 } = require("./utils/sign-utils");
-
-// whole number
-const convertNftToken = tokens => {
-  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(18)));
-};
-
-const convertSmallNftToken = tokens => {
-  return BigNumber.from(tokens).mul(BigNumber.from(10).pow(BigNumber.from(16)));
-};
-
-const AuctionType = {
-  FixedPrice: 0,
-  English: 1,
-  Decreasing: 2,
-};
 
 describe("NFT.com Marketplace", function () {
   try {
@@ -42,11 +22,14 @@ describe("NFT.com Marketplace", function () {
       CryptoKittyTransferProxy,
       ERC20TransferProxy,
       NftToken,
-      GenesisStake,
+      NftStake,
       NftBuyer,
       MarketplaceEvent,
       ValidationLogic,
       GenesisKey,
+      NftProfileHelper,
+      ProfileAuction,
+      NftProfile,
       ERC1155Factory;
     let deployedNftMarketplace,
       deployedNftTransferProxy,
@@ -58,7 +41,10 @@ describe("NFT.com Marketplace", function () {
       deployedValidationLogic,
       deployedMarketplaceEvent,
       deployedWETH,
-      deployedGenesisStake,
+      deployedNftProfile,
+      deployedNftProfileHelper,
+      deployedProfileAuction,
+      deployedNftStake,
       deployedUniV2Router,
       deployedXEENUS,
       deployedGenesisKey,
@@ -69,21 +55,23 @@ describe("NFT.com Marketplace", function () {
     let TESTNET_XEENUS;
     const UNI_FACTORY_V2 = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
     const UNI_ROUTER_V2 = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
-    const MAX_UINT = BigNumber.from(2).pow(BigNumber.from(256)).sub(1);
 
     // `beforeEach` will run before each test, re-deploying the contract every
     // time. It receives a callback, which can be async.
     beforeEach(async function () {
       // Get the ContractFactory and Signers here.
       NftMarketplace = await ethers.getContractFactory("NftMarketplace");
-      GenesisStake = await ethers.getContractFactory("GenesisNftStake");
+      NftStake = await ethers.getContractFactory("NftStake");
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       NftTransferProxy = await ethers.getContractFactory("NftTransferProxy");
       ERC20TransferProxy = await ethers.getContractFactory("ERC20TransferProxy");
       CryptoKittyTransferProxy = await ethers.getContractFactory("CryptoKittyTransferProxy");
       ERC1155Factory = await ethers.getContractFactory("TestERC1155");
       ValidationLogic = await ethers.getContractFactory("ValidationLogic");
+      NftProfile = await ethers.getContractFactory("NftProfile");
       MarketplaceEvent = await ethers.getContractFactory("MarketplaceEvent");
+      ProfileAuction = await ethers.getContractFactory("ProfileAuction");
+      NftProfileHelper = await ethers.getContractFactory("NftProfileHelper");
 
       NftToken = await ethers.getContractFactory("NftToken");
 
@@ -125,11 +113,31 @@ describe("NFT.com Marketplace", function () {
         { kind: "uups" },
       );
 
-      deployedGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
+      deployedNftProfile = await upgrades.deployProxy(
+        NftProfile,
+        [
+          "NFT.com", // string memory name,
+          "NFT.com", // string memory symbol,
+          "https://api.nft.com/uri/",
+        ],
+        { kind: "uups" },
+      );
+
+      deployedNftProfileHelper = await NftProfileHelper.deploy();
+
+      deployedProfileAuction = await upgrades.deployProxy(
+        ProfileAuction,
+        [deployedNftProfile.address, owner.address, deployedNftProfileHelper.address, deployedGenesisKey.address],
+        { kind: "uups" },
+      );
+
+      await deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
+
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
 
       deployedNftBuyer = await NftBuyer.deploy(
         UNI_FACTORY_V2,
-        deployedGenesisStake.address,
+        deployedNftStake.address,
         deployedNftToken.address,
         TESTNET_WETH,
       );
@@ -138,6 +146,17 @@ describe("NFT.com Marketplace", function () {
       deployedCryptoKittyTransferProxy = await upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
       deployedValidationLogic = await upgrades.deployProxy(ValidationLogic, { kind: "uups" });
       deployedMarketplaceEvent = await upgrades.deployProxy(MarketplaceEvent, { kind: "uups" });
+
+      // allow public claim
+      await deployedProfileAuction.setPublicClaim(true);
+      await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
+      await deployedProfileAuction.setMaxProfilePerAddress(1);
+      expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(true);
+
+      const { hash: h1, signature: s1 } = signHashProfile(owner.address, "test_test_test");
+      await deployedProfileAuction.connect(owner).publicClaim('test_test_test', h1, s1);
+
+      expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
 
       deployedNftMarketplace = await upgrades.deployProxy(
         NftMarketplace,
@@ -149,9 +168,15 @@ describe("NFT.com Marketplace", function () {
           deployedNftToken.address,
           deployedValidationLogic.address,
           deployedMarketplaceEvent.address,
+          deployedNftProfile.address
         ],
         { kind: "uups" },
       );
+
+      const protocolFee = await deployedNftMarketplace.protocolFee(); // 1%
+      expect(protocolFee).to.be.equal(100);
+      await deployedNftMarketplace.changeProfileFee(protocolFee.div(2)); // 0.5%
+      expect(await deployedNftMarketplace.profileFee()).to.be.equal(50);
 
       await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
       await deployedNftMarketplace.setTransferProxy(ERC20_ASSET_CLASS, deployedERC20TransferProxy.address);
@@ -868,7 +893,7 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(owner.address);
         expect(await deployedXEENUS.balanceOf(buyer.address)).to.be.equal(
-          beforeXeenusBalance.add(convertNftToken(495)),
+          beforeXeenusBalance.add(BigNumber.from(`4975`).mul(BigNumber.from(10).pow(BigNumber.from(17)))), // 50% discount
         );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
@@ -962,7 +987,7 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(owner.address);
         expect(await deployedXEENUS.balanceOf(buyer.address)).to.be.equal(
-          beforeXeenusBalance.add(convertNftToken(495)),
+          beforeXeenusBalance.add(BigNumber.from(`4975`).mul(BigNumber.from(10).pow(BigNumber.from(17)))),
         );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
@@ -1189,7 +1214,7 @@ describe("NFT.com Marketplace", function () {
         console.log("========> deployedNftBuyerXEENUS: ", Number(deployedNftBuyerXEENUS) / 10 ** 18);
 
         // no funds yet
-        expect(await deployedNftToken.balanceOf(deployedGenesisStake.address)).to.be.equal(0);
+        expect(await deployedNftToken.balanceOf(deployedNftStake.address)).to.be.equal(0);
         expect(await deployedWETH.balanceOf(deployedNftBuyer.address)).to.be.equal(0);
 
         await deployedNftBuyer.connect(owner).convertETH();
@@ -1239,10 +1264,10 @@ describe("NFT.com Marketplace", function () {
 
         expect(await deployedXEENUS.balanceOf(deployedNftBuyer.address)).to.be.equal(0);
 
-        expect(await deployedNftToken.balanceOf(deployedGenesisStake.address)).to.be.gt(0);
+        expect(await deployedNftToken.balanceOf(deployedNftStake.address)).to.be.gt(0);
         console.log(
-          "deployedNftToken.balanceOf(deployedGenesisStake.address): ",
-          Number(await deployedNftToken.balanceOf(deployedGenesisStake.address)) / 10 ** 18,
+          "deployedNftToken.balanceOf(deployedNftStake.address): ",
+          Number(await deployedNftToken.balanceOf(deployedNftStake.address)) / 10 ** 18,
         );
         expect(await deployedWETH.balanceOf(deployedNftBuyer.address)).to.be.equal(0);
 

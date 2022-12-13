@@ -6,5 +6,5 @@ interface IGenesisKeyStake {
 
     function totalSupply() external view returns (uint256);
 
-    function totalStakedNftCoin() external view returns (uint256);
+    function totalStakedCoin() external view returns (uint256);
 }

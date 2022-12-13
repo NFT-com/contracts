@@ -27,7 +27,7 @@ interface ConsiderationObject {
 }
 
 interface ConsiderationObjMap {
-  [key: string]:  Array<ConsiderationFulfillmentUnit>;
+  [key: string]: Array<ConsiderationFulfillmentUnit>;
 }
 
 interface ConsiderationFulfillmentUnit {
@@ -142,32 +142,36 @@ const getSeaportOrder = async (
 // @ts-ignore
 export const getLooksrareTotalValue = (results): any => {
   const totalValue: ethers.BigNumber = (results || [])
-  .map((i: any) => {
-    return ethers.BigNumber.from(i.value)
-  }).reduce(
-    (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
-    ethers.BigNumber.from(0),
-  );
+    .map((i: any) => {
+      return ethers.BigNumber.from(i.value);
+    })
+    .reduce(
+      (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
+      ethers.BigNumber.from(0),
+    );
 
   return totalValue;
-}
+};
 
 // @ts-ignore
 export const getSeaportTotalValue = (results): any => {
   const totalValue: ethers.BigNumber = (results || [])
-  .map((i: any) => {
-    const inner = i.data.consideration.map((j: any) => ethers.BigNumber.from(j.token === "0x0000000000000000000000000000000000000000" ? j.startAmount : 0))
-    return inner.reduce(
+    .map((i: any) => {
+      const inner = i.data.consideration.map((j: any) =>
+        ethers.BigNumber.from(j.token === "0x0000000000000000000000000000000000000000" ? j.startAmount : 0),
+      );
+      return inner.reduce(
+        (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
+        ethers.BigNumber.from(0),
+      );
+    })
+    .reduce(
       (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
       ethers.BigNumber.from(0),
     );
-  }).reduce(
-    (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
-    ethers.BigNumber.from(0),
-  );
 
   return totalValue;
-}
+};
 
 // @ts-ignore
 export const generateParameters = (results, denominator: string): any => {
@@ -190,9 +194,9 @@ export const generateParameters = (results, denominator: string): any => {
       },
       signature: r.signature,
       extraData: "0x",
-    }
+    };
   });
-}
+};
 
 export const generateOfferArray = (array: any) => {
   return array.map((item: any, index: string) => [
@@ -265,8 +269,8 @@ const getSeaportHex = async (input: SeaportCompleteInput): Promise<AggregatorRes
       [
         orderParams, // advancedOrders
         [], // criteria resolvers
-        generateOfferArray(orderParams.map(i => i.parameters.offer)), // array of all offers (offers fulfillment)
-        generateOrderConsiderationArray(orderParams.map(i => i.parameters.consideration)), // array of all considerations (considerations fulfillment)
+        generateOfferArray(orderParams.map((i) => i.parameters.offer)), // array of all offers (offers fulfillment)
+        generateOrderConsiderationArray(orderParams.map((i) => i.parameters.consideration)), // array of all considerations (considerations fulfillment)
         "0x0000000000000000000000000000000000000000000000000000000000000000", // fulfillerConduitKey
         recipient, // recipient
         order.length.toString(), // maximumFulfilled
@@ -274,7 +278,7 @@ const getSeaportHex = async (input: SeaportCompleteInput): Promise<AggregatorRes
     ];
 
     const msgValue: ethers.BigNumber = input.order
-      .map(i => ethers.BigNumber.from(i.msgValue))
+      .map((i) => ethers.BigNumber.from(i.msgValue))
       .reduce(
         (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
         ethers.BigNumber.from(0),
@@ -416,8 +420,8 @@ export const combineOrders = async (
   }
 
   const totalValue: ethers.BigNumber = (seaportOrders.order || [])
-    .map(i => ethers.BigNumber.from(i.msgValue))
-    .concat(looksrareOrders.map(i => ethers.BigNumber.from(i.msgValue)))
+    .map((i) => ethers.BigNumber.from(i.msgValue))
+    .concat(looksrareOrders.map((i) => ethers.BigNumber.from(i.msgValue)))
     .reduce(
       (partialSum: ethers.BigNumber, a: ethers.BigNumber) => ethers.BigNumber.from(partialSum).add(a),
       ethers.BigNumber.from(0),

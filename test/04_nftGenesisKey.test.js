@@ -15,8 +15,8 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
     let deployedWETH;
     let NftProfileHelper;
     let deployedNftProfileHelper;
-    let GenesisStake;
-    let deployedNftGenesisStake;
+    let NftStake;
+    let deployedNftStake;
     let GenesisKeyTeamClaim;
     let deployedGenesisKeyTeamClaim;
     let GenesisKeyTeamDistributor;
@@ -63,8 +63,8 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         { kind: "uups" },
       );
 
-      GenesisStake = await ethers.getContractFactory("GenesisNftStake");
-      deployedNftGenesisStake = await GenesisStake.deploy(deployedNftToken.address, deployedGenesisKey.address);
+      NftStake = await ethers.getContractFactory("NftStake");
+      deployedNftStake = await NftStake.deploy(deployedNftToken.address);
 
       GenesisKeyTeamClaim = await ethers.getContractFactory("GenesisKeyTeamClaim");
       deployedGenesisKeyTeamClaim = await upgrades.deployProxy(GenesisKeyTeamClaim, [deployedGenesisKey.address], {
@@ -74,13 +74,10 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       GenesisKeyTeamDistributor = await ethers.getContractFactory("GenesisKeyTeamDistributor");
       deployedGkTeamDistributor = await GenesisKeyTeamDistributor.deploy(deployedGenesisKeyTeamClaim.address);
 
-      // only set pause transfer until public sale is over
-      await deployedGenesisKey.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
-
       NftBuyer = await ethers.getContractFactory("NftBuyer");
       deployedNftBuyer = await NftBuyer.deploy(
         UNI_FACTORY_V2,
-        deployedNftGenesisStake.address,
+        deployedNftStake.address,
         deployedNftToken.address,
         wethAddress,
       );
@@ -96,7 +93,7 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
       await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
       await deployedProfileAuction.setUsdc(deployedNftToken.address);
       await deployedProfileAuction.setContract1(deployedNftBuyer.address);
-      await deployedProfileAuction.setContract2(deployedNftGenesisStake.address);
+      await deployedProfileAuction.setContract2(deployedNftStake.address);
 
       await deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
     });
@@ -134,9 +131,79 @@ describe("Genesis Key Testing + Auction Mechanics", function () {
         expect(await deployedGenesisKey.owner()).to.eq(owner.address);
       });
 
-      it("should let owner set duration in seconds of public auction", async function () {
-        await deployedGenesisKey.setPublicSaleDuration(Number(auctionSeconds) + 100);
-        expect(await deployedGenesisKey.publicSaleDurationSeconds()).to.eq(Number(auctionSeconds) + 100);
+      it("should allow users to correctly bulk transfer keys they own", async function () {
+        for (let i = 0; i < 1000; i++) {
+          await deployedGenesisKey.connect(owner).mintKey(owner.address);
+          expect(await deployedGenesisKey.totalSupply()).to.eq(i + 1);
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(owner.address);
+        }
+
+        await expect(deployedGenesisKey.connect(owner).bulkTransfer([1, 2, 3, 1001], addr1.address)).to.be.reverted; // reverts due to token id 1001 not existing
+        await expect(deployedGenesisKey.connect(owner).bulkTransfer([0, 1, 2], addr1.address)).to.be.reverted; // reverts due to token id 0 not existing
+        await deployedGenesisKey.connect(owner).bulkTransfer(
+          Array.from({ length: 1000 }, (_, i) => i + 1),
+          addr1.address,
+        ); // 1 - 1000 inclusive
+        for (let i = 0; i < 1000; i++) {
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(addr1.address);
+        }
+
+        // send to GK to test deprecation
+        await deployedGenesisKey.connect(addr1).bulkTransfer(
+          Array.from({ length: 1000 }, (_, i) => i + 1),
+          deployedGenesisKey.address,
+        ); // 1 - 1000 inclusive
+        for (let i = 0; i < 1000; i++) {
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(deployedGenesisKey.address);
+        }
+      });
+
+      it("should allow for GK staking", async function () {
+        for (let i = 0; i < 1000; i++) {
+          await deployedGenesisKey.connect(owner).mintKey(owner.address);
+          expect(await deployedGenesisKey.totalSupply()).to.eq(i + 1);
+          expect(await deployedGenesisKey.ownerOf(i + 1)).to.eq(owner.address);
+        }
+
+        expect(await deployedGenesisKey.lockupBoolean()).to.be.false;
+
+        // reverts due to lockUp boolean being false
+        await expect(deployedGenesisKey.connect(owner).toggleLockup([25])).to.be.reverted;
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean();
+
+        expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
+
+        // owner != ownerOf(2)
+        await expect(deployedGenesisKey.connect(second).toggleLockup([25])).to.be.reverted;
+
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean(); // false
+
+        // reverts due to lockUp boolean being false
+        await expect(deployedGenesisKey.connect(owner).toggleLockup([21])).to.be.reverted;
+
+        await deployedGenesisKey.connect(owner).toggleLockupBoolean(); // true
+
+        await deployedGenesisKey.connect(owner).toggleLockup([21]);
+        expect(await deployedGenesisKey.lockupBoolean()).to.be.true;
+
+        await deployedGenesisKey.connect(owner).toggleLockup([20]);
+        await deployedGenesisKey.connect(owner).toggleLockup([20]);
+
+        // token 20 = unstaked, 21 staked
+        await expect(deployedGenesisKey.transferFrom(owner.address, second.address, 21)).to.be.reverted;
+        await expect(deployedGenesisKey.connect(owner).bulkTransfer([21], second.address, 21)).to.be.reverted;
+
+        console.log("currentXP 1: ", await deployedGenesisKey.currentXP(21));
+        console.log("currentXP 2: ", await deployedGenesisKey.currentXP(25));
+
+        // token 21 is unstaked
+        await deployedGenesisKey.connect(owner).toggleLockup([21]);
+        await deployedGenesisKey.transferFrom(owner.address, second.address, 21);
+        expect(await deployedGenesisKey.balanceOf(second.address)).to.be.equal(1);
+        expect(await deployedGenesisKey.ownerOf(21)).to.be.equal(second.address);
+
+        console.log("currentXP after 2: ", await deployedGenesisKey.currentXP(21));
+        console.log("currentXP after 1: ", await deployedGenesisKey.currentXP(25));
       });
     });
 

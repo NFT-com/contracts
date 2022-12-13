@@ -7,10 +7,5 @@ interface IERC20TransferProxy {
     event AddOperator(address indexed operator);
     event RemoveOperator(address indexed operator);
 
-    function erc20safeTransferFrom(
-        IERC20Upgradeable token,
-        address from,
-        address to,
-        uint256 value
-    ) external;
+    function erc20safeTransferFrom(IERC20Upgradeable token, address from, address to, uint256 value) external;
 }

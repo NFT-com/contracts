@@ -2,14 +2,17 @@
 
 [![codecov](https://codecov.io/gh/NFT-com/contracts/branch/main/graph/badge.svg?token=A91QO5LR7O)](https://codecov.io/gh/NFT-com/contracts)
 
-Welcome to the NFT.com Ethereum Smart Contract repository. To get setup, please copy over `.env.example` for the necessary secrets.
+Welcome to the NFT.com Ethereum Smart Contract repository. To get setup, please copy over `.env.example` for the
+necessary secrets.
 
 ## High Level Architecture
+
 ![NFT.com Architecture](./9-19-22.svg)
 
 ## Mainnet Contracts
+
 | Contract             | Deployed Address                                                        |
-|----------------------|-------------------------------------------------------------------------|
+| -------------------- | ----------------------------------------------------------------------- |
 | Udo NFT              | https://etherscan/address/0xa16DD71dE047A086730a0E46Ea60251f2f4104c1    |
 | NFT Token            | https://etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F |
 | Vesting              | https://etherscan.io/address/0x774c2204D9e50CD9d6A579D194c067360604933f |
@@ -24,13 +27,14 @@ Welcome to the NFT.com Ethereum Smart Contract repository. To get setup, please 
 | GK Distributor       | https://etherscan.io/address/0x0eBa8d862AF4E01A0573B663FB3eb3A06D7937dE |
 | Looksrare Lib        | https://etherscan.io/address/0xf3d4636d92977b16499c73b1fd3a759e45050d90 |
 | Seaport 1.1 Lib      | https://etherscan.io/address/0x14be7c58087d73b8557438bf9ae3def395837176 |
-| X2Y2 Lib             | https://etherscan.io/address/                                           |
+| X2Y2 Lib             | https://etherscan.io/address/0xD933Bf5C5B14D9cB86D83eacdbE001c127b699D7 |
 | Marketplace Registry | https://etherscan.io/address/0x24851a6783fB586E49b1dC71FA40B8307802f2A5 |
 | NFT Aggregator       | https://etherscan.io/address/0xf2821154d4752862b49a7C7fA7728B76ea44495e |
 
 ## Goerli Contracts
+
 | Contract             | Deployed Address                                                               |
-|----------------------|--------------------------------------------------------------------------------|
+| -------------------- | ------------------------------------------------------------------------------ |
 | NFT Token            | https://goerli.etherscan.io/address/0x7ffe04f3213d893bb4ebe76fbb49ca2a8f9c4610 |
 | Vesting              | https://goerli.etherscan.io/address/0x0638A014c45BE910d4611bAfaBcC8219A075788B |
 | GK Team Distributor  | https://goerli.etherscan.io/address/0x85c7fBFD62C4470Ee6C0Eb8a722c92d7cD840A11 |
@@ -46,6 +50,12 @@ Welcome to the NFT.com Ethereum Smart Contract repository. To get setup, please 
 | X2Y2 Lib             | https://goerli.etherscan.io/address/0x36D7407dDB103EE8D605759D4a129F500567289C |
 | Marketplace Registry | https://goerli.etherscan.io/address/0xeBc58f24393c8488DcD47CFC351F869618348dFC |
 | NFT Aggregator       | https://goerli.etherscan.io/address/0x89b030Ba3424C7A145c23dA2042cd46C073dE4e6 |
+| NFT Marketplace      | https://goerli.etherscan.io/address/0xa75F995f252ba5F7C17f834b314201271d32eC35 |
+| Marketplace Event    | https://goerli.etherscan.io/address/0xca2A56282ac2B8B42c506225c2bD4dbB8169aC25 |
+| NFT Transfer Proxy   | https://goerli.etherscan.io/address/0x73994Fc4aC9EAb8e8E1c29E5C9d27A761D9Ab1eF |
+| ERC20 Transfer Proxy | https://goerli.etherscan.io/address/0xCD979ec33B43eCE6523B41BA5c9e409568eDFB97 |
+| CK Transfer Proxy    | https://goerli.etherscan.io/address/0xB8E272017D402E6e9243953CFef1AC256F3E2e84 |
+| Validation Logic     | https://goerli.etherscan.io/address/0x69267B594C79F6C37d827B7f8D2bdDb755307Be8 |
 
 ### Regex Generation
 
@@ -55,16 +65,18 @@ Welcome to the NFT.com Ethereum Smart Contract repository. To get setup, please 
 ### Pre Requisites
 
 Before running any command, you need to create a `.env` file and set a BIP-39 compatible mnemonic as an environment
-variable. Follow the example in `.env.example`. If you don't already have a mnemonic, use this [website](https://iancoleman.io/bip39/) to generate one.
+variable. Follow the example in `.env.example`. If you don't already have a mnemonic, use this
+[website](https://iancoleman.io/bip39/) to generate one.
 
 You will also need to set the following pairs:
-* Signing Pairs
-  * `PUBLIC_SALE_PK`
-  * `PUBLIC_SALE_SIGNER_ADDRESS`
-* `CICD` = true
-* Mnemonic Pair
-  * `MNEMONIC_PUBLIC_ADDR`
-  * `MNEMONIC`
+
+- Signing Pairs
+  - `PUBLIC_SALE_PK`
+  - `PUBLIC_SALE_SIGNER_ADDRESS`
+- `CICD` = true
+- Mnemonic Pair
+  - `MNEMONIC_PUBLIC_ADDR`
+  - `MNEMONIC`
 
 Then, proceed with installing dependencies:
 
@@ -81,7 +93,6 @@ yarn install
 - [Solhint](https://github.com/protofire/solhint): linter
 - [Solcover](https://github.com/sc-forks/solidity-coverage): code coverage
 - [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
-
 
 ### Compile
 

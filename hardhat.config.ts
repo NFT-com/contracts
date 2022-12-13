@@ -19,13 +19,31 @@ import { NetworkUserConfig } from "hardhat/types";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
-const chainIds = {
+export const chainIds = {
   ganache: 1337,
   goerli: 5,
   hardhat: 31337,
   mainnet: 1,
-  sepolia: 11155111
+  sepolia: 11155111,
+  "optimism-mainnet": 10,
+  "polygon-mainnet": 137,
+  "polygon-mumbai": 80001,
+  "arbitrum-mainnet": 42161,
+  "avalanche-mainnet": 43114,
+  "avalanche-fuji": 43113,
+  bsc: 56,
 };
+
+export interface networkType {
+  goerli: string;
+  mainnet: string;
+  "polygon-mainnet": string;
+  "polygon-mumbai": string;
+  "avalanche-mainnet": string;
+  "avalanche-fuji": string;
+}
+
+export const chainIdToNetwork = Object.fromEntries(Object.entries(chainIds).map(([key, value]) => [value, key]));
 
 // Ensure that we have all the environment variables we need.
 const mnemonic: string | undefined = process.env.MNEMONIC;
@@ -49,31 +67,34 @@ if (!infuraApiKey) {
   throw new Error("Please set your INFURA_API_KEY in a .env file");
 }
 
-const alchemyApiKey: string | undefined = process.env.ALCHEMY_API_KEY;
-if (!infuraApiKey) {
-  throw new Error("Please set your ALCHEMY_API_KEY in a .env file");
-}
-
 function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = "https://" + network + ".infura.io/v3/" + infuraApiKey;
   return {
     accounts: [`${network === "mainnet" ? mainnetPK : testnetPK}`],
     chainId: chainIds[network],
     url,
-    gasPrice: network === "mainnet" ? 11 * 1000000000 : "auto",
+    gasPrice: network === "mainnet" ? 10 * 1000000000 : "auto",
   };
 }
 
-function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url: string = `https://eth-${network}.alchemyapi.io/v2/${alchemyApiKey}`;
+function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
+  let jsonRpcUrl: string;
+  switch (chain) {
+    case "bsc":
+      jsonRpcUrl = "https://bsc-dataseed1.binance.org";
+      break;
+    default:
+      jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
+  }
+
   return {
     accounts: {
       count: 10,
       mnemonic,
       path: "m/44'/60'/0'/0",
     },
-    chainId: chainIds[network],
-    url,
+    chainId: chainIds[chain],
+    url: jsonRpcUrl,
   };
 }
 
@@ -85,6 +106,7 @@ const config: HardhatUserConfig = {
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: ["./contracts/test/NftProfileV2a.sol"],
     src: "./contracts",
+    outputFile: ".gas_snapshot",
   },
   networks: {
     hardhat: {
@@ -96,9 +118,29 @@ const config: HardhatUserConfig = {
       },
       chainId: chainIds.goerli,
     },
+    arbitrum: getChainConfig("arbitrum-mainnet"),
+    "avalanche-mainnet": getChainConfig("avalanche-mainnet"),
+    "avalanche-fuji": getChainConfig("avalanche-fuji"),
+    bsc: getChainConfig("bsc"),
+    optimism: getChainConfig("optimism-mainnet"),
+    "polygon-mainnet": getChainConfig("polygon-mainnet"),
+    "polygon-mumbai": getChainConfig("polygon-mumbai"),
     mainnet: getChainConfigPK("mainnet"),
     goerli: getChainConfig("goerli"),
     sepolia: getChainConfig("sepolia"),
+  },
+  etherscan: {
+    apiKey: {
+      arbitrumOne: process.env.ARBISCAN_API_KEY || "",
+      avalanche: process.env.SNOWTRACE_API_KEY || "",
+      bsc: process.env.BSCSCAN_API_KEY || "",
+      mainnet: process.env.ETHERSCAN_API_KEY || "",
+      goerli: process.env.ETHERSCAN_API_KEY || "",
+      optimisticEthereum: process.env.OPTIMISM_API_KEY || "",
+      polygon: process.env.POLYGONSCAN_API_KEY || "",
+      polygonMumbai: process.env.POLYGONSCAN_API_KEY || "",
+      sepolia: process.env.ETHERSCAN_API_KEY || "",
+    },
   },
   contractSizer: {
     alphaSort: true,
@@ -115,9 +157,9 @@ const config: HardhatUserConfig = {
     timeout: 1000000,
   },
   solidity: {
-    version: "0.8.6",
+    version: "0.8.17",
     settings: {
-      // viaIR: true,
+      // viaIR: Boolean(process.env.WITH_IR),
       metadata: {
         // Not including the metadata hash
         // https://github.com/paulrberg/solidity-template/issues/31
@@ -129,15 +171,15 @@ const config: HardhatUserConfig = {
         enabled: true,
         runs: 0,
       },
-      // outputSelection: {
-      //   "*": {
-      //     "*": ["evm.assembly", "irOptimized"]
-      //   }
-      // }
+      // eslint-disable-next-line no-extra-boolean-cast
+      // outputSelection: Boolean(process.env.WITH_IR)
+      //   ? {
+      //       "*": {
+      //         "*": ["evm.assembly", "irOptimized"],
+      //       },
+      //     }
+      //   : {},
     },
-  },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
   },
   typechain: {
     outDir: "typechain",

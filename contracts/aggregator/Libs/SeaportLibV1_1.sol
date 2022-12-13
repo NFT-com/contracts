@@ -33,10 +33,10 @@ interface ISeaport {
         uint256 maximumFulfilled
     ) external payable returns (bool[] memory availableOrders, Execution[] memory executions);
 
-    function matchOrders(Order[] memory orders, Fulfillment[] memory fulfillments)
-        external
-        payable
-        returns (Execution[] memory executions);
+    function matchOrders(
+        Order[] memory orders,
+        Fulfillment[] memory fulfillments
+    ) external payable returns (Execution[] memory executions);
 
     function matchAdvancedOrders(
         AdvancedOrder[] memory orders,
