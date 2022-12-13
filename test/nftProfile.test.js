@@ -617,7 +617,7 @@ describe("NFT Profile Auction / Minting", function () {
 
         expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(false);
         await expect(deployedProfileAuction.connect(addr5).publicClaim("profile_addr5", h15, s15)).to.be.revertedWith(
-          "pm: publicClaimBool",
+          "pc: publicClaimBool",
         );
         await deployedProfileAuction.connect(owner).setPublicClaim(true);
         expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(true);
