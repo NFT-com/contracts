@@ -289,9 +289,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         bytes memory signature
     ) external nonReentrant validAndUnusedURI(profileUrl) {
         // checks
-        require(publicClaimBool, "pm: publicClaimBool");
-        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pm: !sig");
-        require(hashTransaction(msg.sender, profileUrl) == hash, "pm: !hash");
+        require(publicClaimBool, "pc: publicClaimBool");
+        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pc: !sig");
+        require(hashTransaction(msg.sender, profileUrl) == hash, "pc: !hash");
         if (publicMinted[msg.sender] >= maxProfilePerAddress) revert MaxProfiles();
 
         // effects

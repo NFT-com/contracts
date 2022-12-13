@@ -106,7 +106,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         emit ProtocolFeeChange(protocolFee, uint256(profileFee));
     }
 
-    function changePublicFee(uint48 _newProfile) external onlyOwner {
+    function changeProfileFee(uint48 _newProfile) external onlyOwner {
         require(_newProfile <= MAX_PROTOCOL_FEE);
         profileFee = _newProfile;
         emit ProtocolFeeChange(protocolFee, uint256(profileFee));
