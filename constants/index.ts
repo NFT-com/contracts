@@ -127,6 +127,14 @@ export const contracts = {
     "avalanche-fuji": "",
     mainnet: "",
   },
+  deployedNativeNftTradingLib: {
+    goerli: "",
+    "polygon-mainnet": "",
+    "polygon-mumbai": "",
+    "avalanche-mainnet": "",
+    "avalanche-fuji": "",
+    mainnet: "0x672de25EA00c3dAEA6B4b017CA2C654eD0E55671",
+  },
   deployedMarketplaceRegistry: {
     goerli: "0xeBc58f24393c8488DcD47CFC351F869618348dFC",
     "polygon-mainnet": "",
@@ -157,7 +165,7 @@ export const contracts = {
     "polygon-mumbai": "",
     "avalanche-mainnet": "",
     "avalanche-fuji": "",
-    mainnet: "",
+    mainnet: "0x2E42652b9B539C849ECe944329C0Ba0bC4F70968",
   },
   deployedNftMarketplace: {
     goerli: "0xa75F995f252ba5F7C17f834b314201271d32eC35",
@@ -165,7 +173,7 @@ export const contracts = {
     "polygon-mumbai": "",
     "avalanche-mainnet": "",
     "avalanche-fuji": "",
-    mainnet: "",
+    mainnet: "0x1fd9bc58c7ffdb18d19a8a8d791b6ae9fa2bd097",
   },
   deployedNftTransferProxy: {
     goerli: "0x73994Fc4aC9EAb8e8E1c29E5C9d27A761D9Ab1eF",
@@ -173,7 +181,7 @@ export const contracts = {
     "polygon-mumbai": "",
     "avalanche-mainnet": "",
     "avalanche-fuji": "",
-    mainnet: "",
+    mainnet: "0x7AFAF0D3dd4aC87D21C326A7e07D0345f6071DAD",
   },
   deployedERC20TransferProxy: {
     goerli: "0xCD979ec33B43eCE6523B41BA5c9e409568eDFB97",
@@ -181,7 +189,7 @@ export const contracts = {
     "polygon-mumbai": "",
     "avalanche-mainnet": "",
     "avalanche-fuji": "",
-    mainnet: "",
+    mainnet: "0x151271EF11D8FA022A81f8de70feA53fdCCc0107",
   },
   deployedCryptoKittyTransferProxy: {
     goerli: "0xB8E272017D402E6e9243953CFef1AC256F3E2e84",
@@ -189,7 +197,7 @@ export const contracts = {
     "polygon-mumbai": "",
     "avalanche-mainnet": "",
     "avalanche-fuji": "",
-    mainnet: "",
+    mainnet: "0x3788201387b45456431Fb69817c3fa015A569a3c",
   },
   deployedValidationLogic: {
     goerli: "0x69267B594C79F6C37d827B7f8D2bdDb755307Be8",
@@ -197,7 +205,7 @@ export const contracts = {
     "polygon-mumbai": "",
     "avalanche-mainnet": "",
     "avalanche-fuji": "",
-    mainnet: "",
+    mainnet: "0x127beBc6380dF5C8d7c0A728D1dd125A50e4b88E",
   },
   deployedNftStake: {
     goerli: "0x6c7B5e7300e7a43fCEa7396BfB461623B1840A96",

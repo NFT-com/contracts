@@ -168,14 +168,15 @@ describe("NFT.com Marketplace", function () {
           deployedNftToken.address,
           deployedValidationLogic.address,
           deployedMarketplaceEvent.address,
-          deployedNftProfile.address
+          deployedNftProfile.address,
+          deployedGenesisKey.address
         ],
         { kind: "uups" },
       );
 
       const protocolFee = await deployedNftMarketplace.protocolFee(); // 1%
       expect(protocolFee).to.be.equal(100);
-      await deployedNftMarketplace.changeProfileFee(protocolFee.div(2)); // 0.5%
+      await deployedNftMarketplace.updateFee(1, protocolFee.div(2)); // 0.5%
       expect(await deployedNftMarketplace.profileFee()).to.be.equal(50);
 
       await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
@@ -516,9 +517,9 @@ describe("NFT.com Marketplace", function () {
         );
 
         // reverts due to > 2000
-        await expect(deployedNftMarketplace.connect(owner).changeProtocolFee(2001)).to.be.reverted;
+        await expect(deployedNftMarketplace.connect(owner).updateFee(0, 2001)).to.be.reverted;
 
-        await deployedNftMarketplace.connect(owner).changeProtocolFee(250);
+        await deployedNftMarketplace.connect(owner).updateFee(0, 250);
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
       });

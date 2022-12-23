@@ -14,6 +14,14 @@ export const AuctionType = {
   Decreasing: 2,
 };
 
+export const FeeType = {
+  ProtocolFee: 0,
+  ProfileFee: 1,
+  GkFee: 2,
+  OfferGK: 3,
+  OfferProfile: 4,
+}
+
 export const convertNftToken = (tokens: string | number): BigNumber => {
   return BigNumber.from(`${tokens}`).mul(BigNumber.from(10).pow(BigNumber.from(18)));
 };

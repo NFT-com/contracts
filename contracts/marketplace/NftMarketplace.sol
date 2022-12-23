@@ -46,10 +46,11 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         IERC20TransferProxy _erc20TransferProxy,
         address _cryptoKittyProxy,
         address _stakingContract,
-        address _nftToken,
+        address _funToken,
         ValidationLogic _validationLogic,
         MarketplaceEvent _marketplaceEvent,
-        address _nftProfile
+        address _nftProfile,
+        address _gkContract
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
@@ -58,9 +59,10 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             _erc20TransferProxy,
             _cryptoKittyProxy,
             _stakingContract,
-            _nftToken,
+            _funToken,
             100,
-            _nftProfile
+            _nftProfile,
+            _gkContract
         );
         validationLogic = _validationLogic;
         marketplaceEvent = _marketplaceEvent;
@@ -196,12 +198,14 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
     /**
      * @dev functions that allows anyone to execute a sell order that has a specified price > 0
      * @param sellOrder the listing
+     * @param recipient the recipient of the assets
      * @param v vSig (optional if order is already approved)
      * @param r rSig (optional if order is already approved)
      * @param s sSig (optional if order is already approved)
      */
     function buyNow(
         LibSignature.Order calldata sellOrder,
+        address recipient,
         uint8 v,
         bytes32 r,
         bytes32 s
@@ -226,15 +230,18 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         for (uint256 i = 0; i < totalSellOrderTakeAssets;) {
             // send assets from buyer to seller (payment for goods)
             transfer(
-                sellOrder.auctionType,
-                sellOrder.takeAssets[i],
-                msg.sender,
-                sellOrder.maker,
-                sellOrder.auctionType == LibSignature.AuctionType.Decreasing
-                    ? validationLogic.getDecreasingPrice(sellOrder)
-                    : 0,
-                royaltyScore == ROYALTY.FUNGIBLE_TAKE_ASSETS,
-                sellOrder.makeAssets
+                TransferParams(
+                    sellOrder.auctionType,
+                    sellOrder.takeAssets[i],
+                    msg.sender,
+                    sellOrder.maker,
+                    sellOrder.auctionType == LibSignature.AuctionType.Decreasing
+                        ? validationLogic.getDecreasingPrice(sellOrder)
+                        : 0,
+                    royaltyScore == ROYALTY.FUNGIBLE_TAKE_ASSETS,
+                    sellOrder.makeAssets,
+                    sellOrder.taker
+                )
             );
 
             unchecked {
@@ -245,13 +252,16 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         for (uint256 j = 0; j < totalSellOrderMakeAssets;) {
             // send assets from seller to buyer (goods)
             transfer(
-                sellOrder.auctionType,
-                sellOrder.makeAssets[j],
-                sellOrder.maker,
-                msg.sender,
-                0,
-                royaltyScore == ROYALTY.FUNGIBLE_MAKE_ASSETS,
-                sellOrder.takeAssets // nft asset for royalty calculation
+                TransferParams(
+                    sellOrder.auctionType,
+                    sellOrder.makeAssets[j],
+                    sellOrder.maker,
+                    recipient,
+                    0,
+                    royaltyScore == ROYALTY.FUNGIBLE_MAKE_ASSETS,
+                    sellOrder.takeAssets, // nft asset for royalty calculation
+                    sellOrder.taker
+                )
             );
 
             unchecked {
@@ -298,13 +308,16 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         for (uint256 i = 0; i < buyOrder.makeAssets.length;) {
             // send assets from buyer to seller (payment for goods)
             transfer(
-                sellOrder.auctionType,
-                buyOrder.makeAssets[i],
-                buyOrder.maker,
-                sellOrder.maker,
-                0,
-                royaltyScore == ROYALTY.FUNGIBLE_BUYER_MAKE_ASSETS,
-                sellOrder.makeAssets // nft asset for royalty calculation
+                TransferParams(
+                    sellOrder.auctionType,
+                    buyOrder.makeAssets[i],
+                    buyOrder.maker,
+                    sellOrder.maker,
+                    0,
+                    royaltyScore == ROYALTY.FUNGIBLE_BUYER_MAKE_ASSETS,
+                    sellOrder.makeAssets, // nft asset for royalty calculation
+                    sellOrder.taker
+                )
             );
 
             unchecked {
@@ -315,13 +328,16 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         for (uint256 j = 0; j < sellOrder.makeAssets.length;) {
             // send assets from seller to buyer (goods)
             transfer(
-                sellOrder.auctionType,
-                sellOrder.makeAssets[j],
-                sellOrder.maker,
-                buyOrder.maker,
-                0,
-                royaltyScore == ROYALTY.FUNGIBLE_SELLER_MAKE_ASSETS,
-                buyOrder.makeAssets // nft asset for royalty calculation
+                TransferParams(
+                    sellOrder.auctionType,
+                    sellOrder.makeAssets[j],
+                    sellOrder.maker,
+                    buyOrder.maker,
+                    0,
+                    royaltyScore == ROYALTY.FUNGIBLE_SELLER_MAKE_ASSETS,
+                    buyOrder.makeAssets, // nft asset for royalty calculation
+                    sellOrder.taker
+                )
             );
 
             unchecked {

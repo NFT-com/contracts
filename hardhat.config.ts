@@ -73,7 +73,7 @@ function getChainConfigPK(network: keyof typeof chainIds): NetworkUserConfig {
     accounts: [`${network === "mainnet" ? mainnetPK : testnetPK}`],
     chainId: chainIds[network],
     url,
-    gasPrice: network === "mainnet" ? 10 * 1000000000 : "auto",
+    gasPrice: network === "mainnet" ? 20 * 1000000000 : "auto",
   };
 }
 
@@ -154,7 +154,7 @@ const config: HardhatUserConfig = {
     tests: "./test",
   },
   mocha: {
-    timeout: 1000000,
+    timeout: 100000, // 1000000
   },
   solidity: {
     version: "0.8.17",

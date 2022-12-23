@@ -61,6 +61,7 @@ const getTokens = async (hre: any) => {
     deployedLooksrareLibV1: contracts.deployedLooksrareLibV1[network as keyof networkType] || "",
     deployedSeaportLib1_1: contracts.deployedSeaportLib1_1[network as keyof networkType] || "",
     deployedX2Y2Lib: contracts.deployedX2Y2Lib[network as keyof networkType] || "",
+    deployedNativeNftTradingLib: contracts.deployedNativeNftTradingLib[network as keyof networkType] || "",
     deployedNftStake: contracts.deployedNftStake[network as keyof networkType] || "",
     deployedMarketplaceRegistry: contracts.deployedMarketplaceRegistry[network as keyof networkType] || "",
     deployedMarketplaceEvent: contracts.deployedMarketplaceEvent[network as keyof networkType] || "",
@@ -449,7 +450,8 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
     "0xA6c5e4C08087a560c8c8087d11692411951BEBc7": "1",
     "0x118Ca661F189376DdD8f9a32Be6bbc963Eb46D7B": "1",
     "0xF1279239d782Cd522649fbE086046d2Cc6f54ab1": "1",
-    "0x577Acf21a0EE097Ee5E0Eb068A5128e381750eDd": "1"
+    "0x577Acf21a0EE097Ee5E0Eb068A5128e381750eDd": "1",
+    "0x9d51a7692c6d5648137c07bdb950e82ea2026079": "1"
   }`);
 
   const insiderGKClaimJSON_Testnet = JSON.parse(`{
@@ -598,9 +600,13 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   // const deployedSeaportLib1_1 = await SeaportLib1_1.deploy();
   // await waitTx("deployedSeaportLib1_1", deployedSeaportLib1_1, hre);
 
-  const X2Y2LibV1 = await hre.ethers.getContractFactory("X2Y2LibV1");
-  const deployedX2Y2LibV1 = await X2Y2LibV1.deploy();
-  await waitTx("deployedX2Y2LibV1", deployedX2Y2LibV1, hre);
+  // const X2Y2LibV1 = await hre.ethers.getContractFactory("X2Y2LibV1");
+  // const deployedX2Y2LibV1 = await X2Y2LibV1.deploy();
+  // await waitTx("deployedX2Y2LibV1", deployedX2Y2LibV1, hre);
+
+  const NativeNftTradingLib = await hre.ethers.getContractFactory("NativeNftTradingLib");
+  const deployedNativeNftTradingLib = await NativeNftTradingLib.deploy();
+  await waitTx("deployedNativeNftTradingLib", deployedNativeNftTradingLib, hre);
 
   const MarketplaceRegistry = await hre.ethers.getContractFactory("MarketplaceRegistry");
   const deployedMarketplaceRegistry = MarketplaceRegistry.attach((await getTokens(hre)).deployedMarketplaceRegistry);
@@ -623,9 +629,11 @@ task("deploy:2c").setAction(async function (taskArguments, hre) {
   // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedLooksrareLibV1 /* deployedLooksrareLibV1.address */, true);
   // await deployedMarketplaceRegistry.addMarketplace((await getTokens(hre)).deployedSeaportLib1_1 /* deployedSeaportLib1_1.address */, true);
   await deployedMarketplaceRegistry.addMarketplace(
-    /* (await getTokens(hre)).deployedX2Y2Lib  */ deployedX2Y2LibV1.address,
+    /* (await getTokens(hre)).deployedX2Y2Lib  */ deployedNativeNftTradingLib.address,
     true,
   );
+
+  await deployedMarketplaceRegistry.setMarketplaceStatus(4, false);
 
   // console.log(chalk.green(`${(TIME_DELAY * 3) / 1000} second delay`));
   // await delay(TIME_DELAY * 3);
@@ -777,57 +785,62 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
   console.log(chalk.green("deploying the marketplace contacts..."));
 
   const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
-  // const deployedNftMarketplace = NftMarketplace.attach((await getTokens(hre)).deployedNftMarketplace);
+  const deployedNftMarketplace = NftMarketplace.attach((await getTokens(hre)).deployedNftMarketplace);
   const NftTransferProxy = await hre.ethers.getContractFactory("NftTransferProxy");
-  // const deployedNftTransferProxy = NftTransferProxy.attach((await getTokens(hre)).deployedNftTransferProxy);
+  const deployedNftTransferProxy = NftTransferProxy.attach((await getTokens(hre)).deployedNftTransferProxy);
   const ERC20TransferProxy = await hre.ethers.getContractFactory("ERC20TransferProxy");
-  // const deployedERC20TransferProxy = ERC20TransferProxy.attach((await getTokens(hre)).deployedERC20TransferProxy);
+  const deployedERC20TransferProxy = ERC20TransferProxy.attach((await getTokens(hre)).deployedERC20TransferProxy);
   const CryptoKittyTransferProxy = await hre.ethers.getContractFactory("CryptoKittyTransferProxy");
-  // const deployedCryptoKittyTransferProxy = CryptoKittyTransferProxy.attach((await getTokens(hre)).deployedCryptoKittyTransferProxy);
-  const ValidationLogic = await hre.ethers.getContractFactory("ValidationLogic");
-  // const deployedValidationLogic = ValidationLogic.attach((await getTokens(hre)).deployedValidationLogic);
-  const MarketplaceEvent = await hre.ethers.getContractFactory("MarketplaceEvent");
-  // const deployedMarketplaceEvent = MarketplaceEvent.attach((await getTokens(hre)).deployedMarketplaceEvent);
-
-  const deployedNftTransferProxy = await hre.upgrades.deployProxy(NftTransferProxy, { kind: "uups" });
-  console.log(chalk.green("nftTransferProxy: ", deployedNftTransferProxy.address));
-
-  const deployedERC20TransferProxy = await hre.upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
-  console.log(chalk.green("deployedERC20TransferProxy: ", deployedERC20TransferProxy.address));
-
-  const deployedCryptoKittyTransferProxy = await hre.upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
-  console.log(chalk.green("deployedCryptoKittyTransferProxy: ", deployedCryptoKittyTransferProxy.address));
-
-  const deployedValidationLogic = await hre.upgrades.deployProxy(ValidationLogic, { kind: "uups" });
-  console.log(chalk.green("deployedValidationLogic: ", deployedValidationLogic.address));
-
-  const deployedMarketplaceEvent = await hre.upgrades.deployProxy(MarketplaceEvent, { kind: "uups" });
-  console.log(chalk.green("deployedMarketplaceEvent: ", deployedMarketplaceEvent.address));
-
-  const deployedNftMarketplace = await hre.upgrades.deployProxy(
-    NftMarketplace,
-    [
-      deployedNftTransferProxy.address,
-      deployedERC20TransferProxy.address,
-      deployedCryptoKittyTransferProxy.address,
-      (await getTokens(hre)).deployedNftBuyer,
-      (await getTokens(hre)).deployedNftTokenAddress,
-      deployedValidationLogic.address,
-      deployedMarketplaceEvent.address,
-    ],
-    { kind: "uups" },
+  const deployedCryptoKittyTransferProxy = CryptoKittyTransferProxy.attach(
+    (await getTokens(hre)).deployedCryptoKittyTransferProxy,
   );
+  const ValidationLogic = await hre.ethers.getContractFactory("ValidationLogic");
+  const deployedValidationLogic = ValidationLogic.attach((await getTokens(hre)).deployedValidationLogic);
+  const MarketplaceEvent = await hre.ethers.getContractFactory("MarketplaceEvent");
+  const deployedMarketplaceEvent = MarketplaceEvent.attach((await getTokens(hre)).deployedMarketplaceEvent);
+  // const NftProfile = await hre.ethers.getContractFactory("NftProfile");
+  // const deployedNftProfile = NftProfile.attach((await getTokens(hre)).deployedNftProfile);
 
-  console.log(chalk.green("deployedNftMarketplace: ", deployedNftMarketplace.address));
+  // const deployedNftTransferProxy = await hre.upgrades.deployProxy(NftTransferProxy, { kind: "uups" });
+  // console.log(chalk.green("nftTransferProxy: ", deployedNftTransferProxy.address));
 
-  await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
+  // const deployedERC20TransferProxy = await hre.upgrades.deployProxy(ERC20TransferProxy, { kind: "uups" });
+  // console.log(chalk.green("deployedERC20TransferProxy: ", deployedERC20TransferProxy.address));
+
+  // const deployedCryptoKittyTransferProxy = await hre.upgrades.deployProxy(CryptoKittyTransferProxy, { kind: "uups" });
+  // console.log(chalk.green("deployedCryptoKittyTransferProxy: ", deployedCryptoKittyTransferProxy.address));
+
+  // const deployedValidationLogic = await hre.upgrades.deployProxy(ValidationLogic, { kind: "uups" });
+  // console.log(chalk.green("deployedValidationLogic: ", deployedValidationLogic.address));
+
+  // const deployedMarketplaceEvent = await hre.upgrades.deployProxy(MarketplaceEvent, { kind: "uups" });
+  // console.log(chalk.green("deployedMarketplaceEvent: ", deployedMarketplaceEvent.address));
+
+  // const deployedNftMarketplace = await hre.upgrades.deployProxy(
+  //   NftMarketplace,
+  //   [
+  //     deployedNftTransferProxy.address,
+  //     deployedERC20TransferProxy.address,
+  //     deployedCryptoKittyTransferProxy.address,
+  //     '0x1d438f0Ca004E3Ec155Df9E7e0457215483de8D5', // (await getTokens(hre)).deployedNftBuyer,
+  //     '0x0000000000000000000000000000000000000000', // (await getTokens(hre)).deployedNftTokenAddress,
+  //     deployedValidationLogic.address,
+  //     deployedMarketplaceEvent.address,
+  //     deployedNftProfile.address,
+  //   ],
+  //   { kind: "uups" },
+  // );
+
+  // console.log(chalk.green("deployedNftMarketplace: ", deployedNftMarketplace.address));
+
+  // await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
 
   // await deployedNftMarketplace.modifyWhitelist((await getTokens(hre)).wethAddress, true);
   // console.log(chalk.green("whitelisted WETH: ", (await getTokens(hre)).wethAddress));
   // await deployedNftMarketplace.modifyWhitelist((await getTokens(hre)).usdcAddress, true);
   // console.log(chalk.green("whitelisted USDC: ", (await getTokens(hre)).usdcAddress));
-  // await deployedNftMarketplace.modifyWhitelist((await getTokens(hre)).deployedNftTokenAddress, true);
-  // console.log(chalk.green("whitelisted NftToken: ", (await getTokens(hre)).deployedNftTokenAddress));
+  // // await deployedNftMarketplace.modifyWhitelist((await getTokens(hre)).deployedNftTokenAddress, true);
+  // // console.log(chalk.green("whitelisted NftToken: ", (await getTokens(hre)).deployedNftTokenAddress));
 
   // // add operator being the marketplace
   // await deployedNftTransferProxy.addOperator(deployedNftMarketplace.address);
@@ -836,13 +849,13 @@ task("deploy:3").setAction(async function (taskArguments, hre) {
 
   // console.log(chalk.green("finished deploying nft marketplace contracts!"));
 
-  // console.log(chalk.green("verifying..."));
-  await getImplementation("deployedNftTransferProxy", deployedNftTransferProxy.address, hre);
-  await getImplementation("deployedERC20TransferProxy", deployedERC20TransferProxy.address, hre);
-  await getImplementation("deployedCryptoKittyTransferProxy", deployedCryptoKittyTransferProxy.address, hre);
-  await getImplementation("deployedValidationLogic", deployedValidationLogic.address, hre);
-  //
-  await getImplementation("deployedMarketplaceEvent", deployedMarketplaceEvent.address, hre);
+  console.log(chalk.green("verifying..."));
+  // await getImplementation("deployedNftTransferProxy", deployedNftTransferProxy.address, hre);
+  // await getImplementation("deployedERC20TransferProxy", deployedERC20TransferProxy.address, hre);
+  // await getImplementation("deployedCryptoKittyTransferProxy", deployedCryptoKittyTransferProxy.address, hre);
+  // await getImplementation("deployedValidationLogic", deployedValidationLogic.address, hre);
+  // //
+  // await getImplementation("deployedMarketplaceEvent", deployedMarketplaceEvent.address, hre);
   await getImplementation("deployedNftMarketplace", deployedNftMarketplace.address, hre);
 });
 
@@ -1187,9 +1200,9 @@ task("deploy:z").setAction(async function (taskArguments, hre) {
 });
 
 task("z").setAction(async function (taskArguments, hre) {
-  const Test721 = await hre.ethers.getContractFactory("Test721");
-  const deployed721 = Test721.attach("0x554CC509C75D8627090421A7dc0E1FfA6DCBB1Eb");
-  await deployed721.mint();
+  const TestRe = await hre.ethers.getContractFactory("TestRe");
+  const nat = await TestRe.deploy();
+  await nat.donate({ value: hre.ethers.utils.parseEther("0.000001") });
 });
 
 task("z:approve:x2y2").setAction(async function (taskArguments, hre) {

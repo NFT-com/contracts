@@ -21,6 +21,9 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     }
 
     address public nftBuyContract; // uint160
+    uint48 public offerProfile; // 0 - 2000, where 2000 = 20% fees, 100 = 1%
+    uint48 public unusedVar; // 0 - 2000, where 2000 = 20% fees, 100 = 1%
+
     uint256 public protocolFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
 
     mapping(bytes4 => address) public proxies;
@@ -37,9 +40,13 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     uint48 public profileFee; // value 0 - 2000, where 2000 = 20% fees, 100 = 1%
     uint48 public funTokenDiscount; // 0 - 10000, where 10000 = 100% discount, 100 = 1%
 
+    address public gkContract; // uint160
+    uint48 public gkFee; // 0 - 2000, where 2000 = 20% fees, 100 = 1%
+    uint48 public offerGk; // 0 - 2000, where 2000 = 20% fees, 100 = 1%
+
     event ProxyChange(bytes4 indexed assetType, address proxy);
     event WhitelistChange(address indexed token, bool value);
-    event ProtocolFeeChange(uint256 publicFee, uint256 profileFee);
+    event ProtocolFeeChange(uint256 publicFee, uint48 profileFee, uint48 gkFee, uint48 offerGk, uint48 offerProfile);
     event RoyaltyInfoChange(address indexed token, address indexed owner, uint256 percent, address indexed setter);
     event FunTokenDiscount(uint48 discount);
 
@@ -50,7 +57,8 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         address _nftBuyContract,
         address _funToken,
         uint256 _protocolFee,
-        address _nftProfile
+        address _nftProfile,
+        address _gkContract
     ) internal {
         proxies[LibAsset.ERC20_ASSET_CLASS] = address(_erc20TransferProxy);
         proxies[LibAsset.ERC721_ASSET_CLASS] = address(_transferProxy);
@@ -58,8 +66,10 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         proxies[LibAsset.CRYPTO_KITTY] = _cryptoKittyProxy;
         nftBuyContract = _nftBuyContract;
         protocolFee = _protocolFee;
+        profileFee = 50;
         funToken = _funToken;
         nftProfile = _nftProfile;
+        gkContract = _gkContract;
         funTokenDiscount = 5000; // 50% discount by default
     }
 
@@ -100,16 +110,20 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         emit RoyaltyInfoChange(nftContract, recipient, amount, msg.sender);
     }
 
-    function changeProtocolFee(uint256 _newPublic) external onlyOwner {
-        require(_newPublic <= MAX_PROTOCOL_FEE);
-        protocolFee = _newPublic;
-        emit ProtocolFeeChange(protocolFee, uint256(profileFee));
-    }
-
-    function changeProfileFee(uint48 _newProfile) external onlyOwner {
-        require(_newProfile <= MAX_PROTOCOL_FEE);
-        profileFee = _newProfile;
-        emit ProtocolFeeChange(protocolFee, uint256(profileFee));
+    function updateFee(uint256 feeType, uint256 _newFee) external onlyOwner {
+        require(_newFee <= MAX_PROTOCOL_FEE);
+        if (feeType == 0) { // protocolFee
+            protocolFee = _newFee;
+        } else if (feeType == 1) { // profileFee
+            profileFee = uint48(_newFee);
+        } else if (feeType == 2) { // gkFee
+            gkFee = uint48(_newFee);
+        } else if (feeType == 3) { // offerGk
+            offerGk = uint48(_newFee);
+        } else if (feeType == 4) { // offerProfile
+            offerProfile = uint48(_newFee);
+        }
+        emit ProtocolFeeChange(protocolFee, profileFee, gkFee, offerGk, offerProfile);
     }
 
     function modifyWhitelist(address _token, bool _val) external onlyOwner {
@@ -128,14 +142,26 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         nftProfile = _nftProfile;
     }
 
+    function setGkContract(address _gkContract) external onlyOwner {
+        gkContract = _gkContract;
+    }
+
     function setFunTokenDiscount(uint48 _discount) external onlyOwner {
         require(_discount <= 10000);
         funTokenDiscount = _discount;
         emit FunTokenDiscount(_discount);
     }
 
-    function hasNftProfile(address user) private view returns (bool) {
-        (bool success, bytes memory data) = nftProfile.staticcall(
+    function setFunToken(address _funToken) external onlyOwner {
+        funToken = _funToken;
+    }
+
+    function setNftBuyContract(address _nftBuyContract) external onlyOwner {
+        nftBuyContract = _nftBuyContract;
+    }
+
+    function hasNft(address nft, address user) private view returns (bool) {
+        (bool success, bytes memory data) = nft.staticcall(
             abi.encodeWithSelector(bytes4(keccak256("balanceOf(address)")), user)
         );
         require(success && data.length >= 32);
@@ -145,18 +171,18 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
     /**
      * @dev internal function for transferring ETH w/ fees
      * @notice fees are being sent in addition to base ETH price
-     * @param from party paying (original user, not aggregator)
      * @param to counterparty receiving ETH for transaction
      * @param value base value of ETH in wei
      * @param validRoyalty true if singular NFT asset paired with only fungible token(s) trade
      * @param optionalNftAssets only used if validRoyalty is true, should be 1 asset => NFT collection being traded
+     * @param feePercent is the percentage of the atomic sale proceeds
      */
     function transferEth(
-        address from,
         address to,
         uint256 value,
         bool validRoyalty,
-        LibAsset.Asset[] memory optionalNftAssets
+        LibAsset.Asset[] memory optionalNftAssets,
+        uint256 feePercent
     ) internal {
         uint256 royalty;
 
@@ -177,7 +203,7 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         }
 
         // ETH Fee
-        uint256 fee = ((value - royalty) * (hasNftProfile(from) ? profileFee : protocolFee)) / 10000;
+        uint256 fee = ((value - royalty) * feePercent) / 10000;
 
         (bool success1, ) = nftBuyContract.call{ value: fee }("");
         (bool success2, ) = to.call{ value: (value - royalty) - fee }("");
@@ -187,44 +213,45 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
 
     /**
      * @dev multi-asset transfer function
-     * @param auctionType type of auction
-     * @param asset the asset being transferred
-     * @param from address where asset is being sent from
-     * @param to address receiving said asset
-     * @param decreasingPriceValue value only used for decreasing price auction
-     * @param validRoyalty true if singular NFT asset paired with only fungible token(s) trade
-     * @param optionalNftAssets only used if validRoyalty is true, should be 1 asset => NFT collection being traded
+     * @param params struct containing all necessary data for transfer
      */
     function transfer(
-        LibSignature.AuctionType auctionType,
-        LibAsset.Asset memory asset,
-        address from,
-        address to,
-        uint256 decreasingPriceValue,
-        bool validRoyalty,
-        LibAsset.Asset[] memory optionalNftAssets
+        TransferParams memory params
     ) internal override {
         require(nftBuyContract != address(0));
-        require(to != address(0) && from != address(0));
+        require(params.to != address(0) && params.from != address(0));
         uint256 value;
+        bool hasGK = hasNft(gkContract, params.from);
+        bool hasProfile = hasNft(nftProfile, params.from);
+        bool privateOffer = params.taker != address(0);
 
-        if (auctionType == LibSignature.AuctionType.Decreasing && from == msg.sender) value = decreasingPriceValue;
-        else (value, ) = abi.decode(asset.data, (uint256, uint256));
+        if (privateOffer) {
+            require(hasGK && hasProfile, "t !gk_nft");
+        } 
+
+        if (params.auctionType == LibSignature.AuctionType.Decreasing && params.from == msg.sender) value = params.decreasingPriceValue;
+        else (value, ) = abi.decode(params.asset.data, (uint256, uint256));
 
         require(value != 0);
 
-        if (asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
-            transferEth(from, to, value, validRoyalty, optionalNftAssets);
-        } else if (asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
-            address token = abi.decode(asset.assetType.data, (address));
+        uint256 feePercent = hasGK ?
+            privateOffer ? offerGk : gkFee :
+            hasProfile ?
+                privateOffer ? offerProfile : profileFee :
+                protocolFee;
+
+        if (params.asset.assetType.assetClass == LibAsset.ETH_ASSET_CLASS) {
+            transferEth(params.to, value, params.validRoyalty, params.optionalNftAssets, feePercent);
+        } else if (params.asset.assetType.assetClass == LibAsset.ERC20_ASSET_CLASS) {
+            address token = abi.decode(params.asset.assetType.data, (address));
             require(whitelistERC20[token], "t !list");
             uint256 royalty;
 
             // handle royalty
-            if (validRoyalty) {
-                require(optionalNftAssets.length == 1, "t len");
-                require(optionalNftAssets[0].assetType.assetClass == LibAsset.ERC721_ASSET_CLASS, "t !721");
-                (address nftContract, , ) = abi.decode(optionalNftAssets[0].assetType.data, (address, uint256, bool));
+            if (params.validRoyalty) {
+                require(params.optionalNftAssets.length == 1, "t len");
+                require(params.optionalNftAssets[0].assetType.assetClass == LibAsset.ERC721_ASSET_CLASS, "t !721");
+                (address nftContract, , ) = abi.decode(params.optionalNftAssets[0].assetType.data, (address, uint256, bool));
 
                 if (royaltyInfo[nftContract].owner != address(0) && royaltyInfo[nftContract].percent != uint256(0)) {
                     royalty = (value * royaltyInfo[nftContract].percent) / 10000;
@@ -232,55 +259,54 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
                     // Royalty
                     IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
                         IERC20Upgradeable(token),
-                        from,
+                        params.from,
                         royaltyInfo[nftContract].owner,
                         royalty
                     );
                 }
             }
-
-            uint256 feePercent = hasNftProfile(from) ? profileFee : protocolFee;
+                        
             uint256 updatedFee = token == funToken ? ((10000 - funTokenDiscount) * feePercent / 10000) : feePercent;
             uint256 fee = ((value - royalty) *  updatedFee) / 10000;
             // ERC20 Fee
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
                 IERC20Upgradeable(token),
-                from,
+                params.from,
                 nftBuyContract,
                 fee
             );
 
             IERC20TransferProxy(proxies[LibAsset.ERC20_ASSET_CLASS]).erc20safeTransferFrom(
                 IERC20Upgradeable(token),
-                from,
-                to,
+                params.from,
+                params.to,
                 (value - royalty) - fee
             );
-        } else if (asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
-            (address token, uint256 tokenId, ) = abi.decode(asset.assetType.data, (address, uint256, bool));
+        } else if (params.asset.assetType.assetClass == LibAsset.ERC721_ASSET_CLASS) {
+            (address token, uint256 tokenId, ) = abi.decode(params.asset.assetType.data, (address, uint256, bool));
 
             require(value == 1, "t !1");
             INftTransferProxy(proxies[LibAsset.ERC721_ASSET_CLASS]).erc721safeTransferFrom(
                 IERC721Upgradeable(token),
-                from,
-                to,
+                params.from,
+                params.to,
                 tokenId
             );
-        } else if (asset.assetType.assetClass == LibAsset.ERC1155_ASSET_CLASS) {
-            (address token, uint256 tokenId, ) = abi.decode(asset.assetType.data, (address, uint256, bool));
+        } else if (params.asset.assetType.assetClass == LibAsset.ERC1155_ASSET_CLASS) {
+            (address token, uint256 tokenId, ) = abi.decode(params.asset.assetType.data, (address, uint256, bool));
             INftTransferProxy(proxies[LibAsset.ERC1155_ASSET_CLASS]).erc1155safeTransferFrom(
                 IERC1155Upgradeable(token),
-                from,
-                to,
+                params.from,
+                params.to,
                 tokenId,
                 value
             );
         } else {
             // non standard assets
-            ITransferProxy(proxies[asset.assetType.assetClass]).transfer(asset, from, to);
+            ITransferProxy(proxies[params.asset.assetType.assetClass]).transfer(params.asset, params.from, params.to);
         }
-        emit Transfer(asset, from, to);
+        emit Transfer(params.asset, params.from, params.to);
     }
 
-    uint256[48] private __gap;
+    uint256[47] private __gap;
 }

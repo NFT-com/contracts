@@ -12,7 +12,7 @@ necessary secrets.
 ## Mainnet Contracts
 
 | Contract             | Deployed Address                                                        |
-| -------------------- | ----------------------------------------------------------------------- |
+| -------------------- | ----------------------------------------------------------------------- | ------------------------------------------------ |
 | Udo NFT              | https://etherscan/address/0xa16DD71dE047A086730a0E46Ea60251f2f4104c1    |
 | NFT Token            | https://etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F |
 | Vesting              | https://etherscan.io/address/0x774c2204D9e50CD9d6A579D194c067360604933f |
@@ -28,8 +28,15 @@ necessary secrets.
 | Looksrare Lib        | https://etherscan.io/address/0xf3d4636d92977b16499c73b1fd3a759e45050d90 |
 | Seaport 1.1 Lib      | https://etherscan.io/address/0x14be7c58087d73b8557438bf9ae3def395837176 |
 | X2Y2 Lib             | https://etherscan.io/address/0xD933Bf5C5B14D9cB86D83eacdbE001c127b699D7 |
+| Native Trading Lib   | https://etherscan.io/address/0x672de25EA00c3dAEA6B4b017CA2C654eD0E55671 |
 | Marketplace Registry | https://etherscan.io/address/0x24851a6783fB586E49b1dC71FA40B8307802f2A5 |
 | NFT Aggregator       | https://etherscan.io/address/0xf2821154d4752862b49a7C7fA7728B76ea44495e |
+| NFT Transfer Proxy   | https://etherscan.io/address/0x7AFAF0D3dd4aC87D21C326A7e07D0345f6071DAD | imp = 0x2b99fFF627Ac02FCBbd8D2D23B42621D2FDb8b85 |
+| ERC20 Transfer Proxy | https://etherscan.io/address/0x151271EF11D8FA022A81f8de70feA53fdCCc0107 | imp = 0x25a7Da2E9ea88Be412416B96bb0a3B4d9e811CF5 |
+| CK Transfer Proxy    | https://etherscan.io/address/0x3788201387b45456431Fb69817c3fa015A569a3c | imp = 0xF620de9A68c5B3e3c015cdA1a97de7779E5Da86A |
+| Validation Logic     | https://etherscan.io/address/0x127beBc6380dF5C8d7c0A728D1dd125A50e4b88E | imp = 0x12a28d20B4DDCF5492c9b2C64fb726B2a01402bf |
+| Marketplace Event    | https://etherscan.io/address/0x2E42652b9B539C849ECe944329C0Ba0bC4F70968 | imp = 0xf5209aA94A7d8eb93Ff27534aCD9a86c44a74271 |
+| NFT Marketplace      | https://etherscan.io/address/0x1fD9Bc58C7FfdB18D19a8A8d791B6ae9fa2BD097 | imp = 0xBCcC0c32DB7abf19b59b4eb050B6607a8f56d36E |
 
 ## Goerli Contracts
 
