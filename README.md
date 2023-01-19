@@ -28,7 +28,7 @@ necessary secrets.
 | Looksrare Lib        | https://etherscan.io/address/0xf3d4636d92977b16499c73b1fd3a759e45050d90 |
 | Seaport 1.1 Lib      | https://etherscan.io/address/0x14be7c58087d73b8557438bf9ae3def395837176 |
 | X2Y2 Lib             | https://etherscan.io/address/0xD933Bf5C5B14D9cB86D83eacdbE001c127b699D7 |
-| Native Trading Lib   | https://etherscan.io/address/0x672de25EA00c3dAEA6B4b017CA2C654eD0E55671 |
+| Native Trading Lib   | https://etherscan.io/address/0x6EDEdFC4E902577074909c084b6Fa4E02F32e9C1 |
 | Marketplace Registry | https://etherscan.io/address/0x24851a6783fB586E49b1dC71FA40B8307802f2A5 |
 | NFT Aggregator       | https://etherscan.io/address/0xf2821154d4752862b49a7C7fA7728B76ea44495e |
 | NFT Transfer Proxy   | https://etherscan.io/address/0x7AFAF0D3dd4aC87D21C326A7e07D0345f6071DAD | imp = 0x2b99fFF627Ac02FCBbd8D2D23B42621D2FDb8b85 |

@@ -315,7 +315,7 @@ describe("NFT.com Marketplace", function () {
         await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
         expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);
 
-        await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0))
+        await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, buyer.address, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(buyer.address, ownerSigner.address, convertNftToken(995).div(10));
 
@@ -369,7 +369,7 @@ describe("NFT.com Marketplace", function () {
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
 
-        await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0))
+        await expect(deployedNftMarketplace.connect(buyer).buyNow(sellOrder, buyer.address, v0, r0, s0))
           .to.emit(deployedNftToken, "Transfer")
           .withArgs(buyer.address, ownerSigner.address, convertNftToken(995).div(10));
 
@@ -425,7 +425,7 @@ describe("NFT.com Marketplace", function () {
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
 
-        await deployedNftMarketplace.connect(buyer).buyNow(sellOrder, v0, r0, s0);
+        await deployedNftMarketplace.connect(buyer).buyNow(sellOrder, buyer.address, v0, r0, s0);
 
         // reset board
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
