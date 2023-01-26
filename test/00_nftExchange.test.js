@@ -148,13 +148,9 @@ describe("NFT.com Marketplace", function () {
       deployedMarketplaceEvent = await upgrades.deployProxy(MarketplaceEvent, { kind: "uups" });
 
       // allow public claim
-      await deployedProfileAuction.setPublicClaim(true);
       await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
-      await deployedProfileAuction.setMaxProfilePerAddress(1);
-      expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(true);
 
       const { hash: h1, signature: s1 } = signHashProfile(owner.address, "test_test_test");
-      await deployedProfileAuction.connect(owner).publicClaim('test_test_test', h1, s1);
 
       expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
 

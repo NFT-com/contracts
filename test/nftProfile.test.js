@@ -250,7 +250,6 @@ describe("NFT Profile Auction / Minting", function () {
       await deployedNftResolver.setRegex(3, deployedSolanaRegex.address);
       await deployedNftResolver.setRegex(4, deployedTezosRegex.address);
       await deployedNftResolver.setRegex(5, deployedFlowRegex.address);
-      await deployedProfileAuction.setMaxProfilePerAddress(100); // sufficient ceiling for tests overall, can modify within tests for more fine tuning
       await deployedNftResolver.setMaxArray(100);
     });
 
@@ -625,35 +624,6 @@ describe("NFT Profile Auction / Minting", function () {
           .connect(owner)
           .publicMint("profile7", 31536000, 27, ZERO_BYTES, ZERO_BYTES, h14, s14);
 
-        // only used for this portion =====================================================================================
-        await deployedProfileAuction.connect(owner).setPublicMint(false);
-        const { hash: h15, signature: s15 } = signHashProfile(addr5.address, "profile_addr5");
-        expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(0); // 0 publicly minted profiles for addr5
-        await expect(deployedProfileAuction.connect(addr5).publicClaim("test_profile_addr5", h15, s15)).to.be.reverted; // signature mismatch
-
-        const maxProfilePerAddress = await deployedProfileAuction.maxProfilePerAddress();
-        await deployedProfileAuction.setMaxProfilePerAddress(1); // for testing purposes
-
-        expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(false);
-        await expect(deployedProfileAuction.connect(addr5).publicClaim("profile_addr5", h15, s15)).to.be.revertedWith(
-          "pc: publicClaimBool",
-        );
-        await deployedProfileAuction.connect(owner).setPublicClaim(true);
-        expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(true);
-        await deployedProfileAuction.connect(addr5).publicClaim("profile_addr5", h15, s15); // succeeds
-        expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(1); // 1 since previous action succeeded
-
-        const { hash: h16, signature: s16 } = signHashProfile(addr5.address, "profile_addr5_2");
-        // should fail because max profile met (1 / 1)
-        await expect(deployedProfileAuction.connect(addr5).publicClaim("profile_addr5_2", h16, s16)).to.be.reverted;
-
-        await deployedProfileAuction.setMaxProfilePerAddress(2); // return back to norm
-        await deployedProfileAuction.connect(addr5).publicClaim("profile_addr5_2", h16, s16); // succeeds due to this bar being set
-        expect(await deployedProfileAuction.publicMinted(addr5.address)).to.be.equal(2); // 2 since previous action succeeded
-
-        await deployedProfileAuction.setMaxProfilePerAddress(maxProfilePerAddress); // return back to norm
-        // ================================================================================================================
-
         // go back
         await deployedProfileAuction.connect(owner).setPublicMint(true);
 
@@ -708,7 +678,7 @@ describe("NFT Profile Auction / Minting", function () {
         await deployedNftProfile.connect(owner).tradeMarkTransfer([["profile6", owner.address]]);
         expect(await deployedNftProfile.profileOwner("profile6")).to.be.equal(owner.address);
 
-        expect(await deployedNftProfile.totalSupply()).to.be.equal(15);
+        expect(await deployedNftProfile.totalSupply()).to.be.equal(13);
       });
 
       it("should allow profiles to associate other addresses", async function () {

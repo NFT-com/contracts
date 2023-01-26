@@ -46,8 +46,6 @@ struct BatchClaimProfile {
     bytes signature;
 }
 
-error MaxProfiles();
-
 contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     using StringUtils for *;
     using ECDSAUpgradeable for bytes32;
@@ -76,8 +74,8 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     mapping(address => uint256) public publicMinted; // record of profiles public minted per user
 
     address public emptySlot; // empty slot for now, to be used in future
-    uint88 public maxProfilePerAddress; // max profiles that can be minted per address, set by DAO
-    bool public publicClaimBool;
+    uint88 public maxProfilePerAddress; // unusued
+    bool public publicClaimBool; // unusued
 
     event MintedProfile(
         address _user,
@@ -89,7 +87,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     );
     event NewLengthPremium(uint256 _length, uint256 _premium);
     event NewYearlyFee(uint96 _fee);
-    event NewMaxProfile(uint88 _max);
 
     modifier validAndUnusedURI(string memory _profileURI) {
         require(validURI(_profileURI));
@@ -211,21 +208,12 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         emit NewYearlyFee(_fee);
     }
 
-    function setMaxProfilePerAddress(uint88 _max) external onlyGovernor {
-        maxProfilePerAddress = _max;
-        emit NewMaxProfile(_max);
-    }
-
     function setGenKeyWhitelistOnly(bool _genKeyWhitelistOnly) external onlyGovernor {
         genKeyWhitelistOnly = _genKeyWhitelistOnly;
     }
 
     function setPublicMint(bool _val) external onlyGovernor {
         publicMintBool = _val;
-    }
-
-    function setPublicClaim(bool _val) external onlyGovernor {
-        publicClaimBool = _val;
     }
 
     function hashTransaction(address sender, string memory profileUrl) private pure returns (bytes32) {
@@ -280,27 +268,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
                 ++i;
             }
         }
-    }
-
-    // used for profile factory
-    function publicClaim(
-        string memory profileUrl,
-        bytes32 hash,
-        bytes memory signature
-    ) external nonReentrant validAndUnusedURI(profileUrl) {
-        // checks
-        require(publicClaimBool, "pc: publicClaimBool");
-        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pc: !sig");
-        require(hashTransaction(msg.sender, profileUrl) == hash, "pc: !hash");
-        if (publicMinted[msg.sender] >= maxProfilePerAddress) revert MaxProfiles();
-
-        // effects
-        publicMinted[msg.sender] += 1;
-
-        // grace period of 1 year (unless DAO intervention)
-        INftProfile(nftProfile).createProfile(msg.sender, profileUrl, 365 days);
-
-        emit MintedProfile(msg.sender, profileUrl, INftProfile(nftProfile).totalSupply() - 1, 365 days, 0, usdc_);
     }
 
     function publicMint(
