@@ -887,7 +887,7 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(owner.address);
         expect(await deployedXEENUS.balanceOf(buyer.address)).to.be.equal(
-          beforeXeenusBalance.add(BigNumber.from(`4975`).mul(BigNumber.from(10).pow(BigNumber.from(17)))), // 50% discount
+          beforeXeenusBalance.add(BigNumber.from(`4950`).mul(BigNumber.from(10).pow(BigNumber.from(17)))), // 50% discount
         );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
@@ -981,7 +981,7 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(owner.address);
         expect(await deployedXEENUS.balanceOf(buyer.address)).to.be.equal(
-          beforeXeenusBalance.add(BigNumber.from(`4975`).mul(BigNumber.from(10).pow(BigNumber.from(17)))),
+          beforeXeenusBalance.add(BigNumber.from(`4950`).mul(BigNumber.from(10).pow(BigNumber.from(17)))),
         );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
