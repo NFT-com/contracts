@@ -996,10 +996,34 @@ task("deploy:4").setAction(async function (taskArguments, hre) {
 task("upgrade:NftProfile").setAction(async function (taskArguments, hre) {
   const NftProfile = await hre.ethers.getContractFactory("NftProfile");
 
-  const upgradedNftProfile = await hre.upgrades.upgradeProxy((await getTokens(hre)).deployedNftProfile, NftProfile);
-  console.log(chalk.green("upgradedNftProfile: ", upgradedNftProfile.address));
+  const chainId = hre.network.config.chainId;
+  const network = chainId === 5 ? "goerli" : chainId === 1 ? "mainnet" : chainId;
 
-  await delayedVerifyImp("upgradedNftProfile", upgradedNftProfile.address, hre);
+  console.log(chalk.green("starting to upgrade..."));
+
+  if (network == "mainnet") {
+    const upgradedNftProfile = await hre.upgrades.prepareUpgrade(
+      (
+        await getTokens(hre)
+      ).deployedNftProfile,
+      NftProfile,
+      {
+        unsafeAllowRenames: true,
+      },
+    );
+    console.log(chalk.green("new upgradedNftProfile imp: ", upgradedNftProfile));
+
+    console.log("upgradedNftProfile: ", upgradedNftProfile);
+    // GO TO OZ DEFENDER
+    await verifyContract(`upgrade upgradedNftProfile impl`, `${upgradedNftProfile}`, [], hre);
+  } else if (network == "goerli") {
+    const upgradedNftProfile = await hre.upgrades.upgradeProxy((await getTokens(hre)).deployedNftProfile, NftProfile);
+    console.log(chalk.green("upgradedNftProfile: ", upgradedNftProfile.address));
+
+    await delayedVerifyImp("upgradedNftProfile", upgradedNftProfile.address, hre);
+  } else {
+    console.log(chalk.red("invalid network"));
+  }
 });
 
 task("upgrade:NftMarketplace").setAction(async function (taskArguments, hre) {
@@ -1069,7 +1093,7 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
       /*`${'upgradedGKImp'}`*/ [],
       hre,
     );
-  } else {
+  } else if (network == "goerli") {
     const upgradedGenesisKey = await hre.upgrades.upgradeProxy(
       (
         await getTokens(hre)
@@ -1079,6 +1103,8 @@ task("upgrade:GenesisKey").setAction(async function (taskArguments, hre) {
     console.log(chalk.green("upgraded genesis key: ", upgradedGenesisKey.address));
 
     await delayedVerifyImp("upgradedGenesisKey", upgradedGenesisKey.address, hre);
+  } else {
+    console.log(chalk.red("not mainnet or goerli"));
   }
 });
 
@@ -1106,6 +1132,9 @@ task("upgrade:ProfileAuction").setAction(async function (taskArguments, hre) {
         await getTokens(hre)
       ).deployedProfileAuction,
       ProfileAuction,
+      {
+        unsafeAllowRenames: true,
+      },
     );
     console.log(chalk.green("new profile auction imp: ", upgradedProfileAuctionAddressImp));
 

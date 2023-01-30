@@ -20,8 +20,8 @@ necessary secrets.
 | GK Team Claim        | https://etherscan.io/address/0xfc99E6b4447a17EA0C6162854fcb572ddC8FbB37 |
 | Genesis Key          | https://etherscan.io/address/0x8fB5a7894AB461a59ACdfab8918335768e411414 |
 | NFT Profile Helper   | https://etherscan.io/address/0xB9A5A787153b6C4898cb2A05A596A22E73B1DCc1 |
-| NFT.com Profile      | https://etherscan.io/address/0x98ca78e89Dd1aBE48A53dEe5799F24cC1A462F2D |
-| Profile Auction      | https://etherscan.io/address/0x30f649D418AF7358f9c8CB036219fC7f1B646309 |
+| NFT.com Profile      | https://etherscan.io/address/0x98ca78e89Dd1aBE48A53dEe5799F24cC1A462F2D | imp = 0xc0B4990aC7A7A2f28f3370807a34b37251457406
+| Profile Auction      | https://etherscan.io/address/0x30f649D418AF7358f9c8CB036219fC7f1B646309 | imp = 0xe9DE56644ccfBf9779d880D0D8Db478b93B8BF6D
 | Ethereum Regex       | https://etherscan.io/address/0xe9F5CBeE4a58B1EB47b303c14765Ab102E4ABC37 |
 | Profile Resolver     | https://etherscan.io/address/0xA657C988e8aC39D3268D390eB7c522a535B10453 |
 | GK Distributor       | https://etherscan.io/address/0x0eBa8d862AF4E01A0573B663FB3eb3A06D7937dE |
