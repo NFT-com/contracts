@@ -82,7 +82,12 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         }
     }
 
-    // ADMIN over-ride
+    /**
+     * @dev external function for admin (onlyOwner) to update royalty amount
+     * @param nftContract is the ERC721/ERC1155 collection in questions
+     * @param recipient is where royalties are sent to
+     * @param amount is the percentage of the atomic sale proceeds
+     */
     function setRoyalty(
         address nftContract,
         address recipient,
