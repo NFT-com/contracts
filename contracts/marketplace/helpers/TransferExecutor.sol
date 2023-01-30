@@ -131,6 +131,8 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
             offerGk = uint48(_newFee);
         } else if (feeType == 4) { // offerProfile
             offerProfile = uint48(_newFee);
+        } else {
+            revert InvalidFeeType();
         }
         emit ProtocolFeeChange(protocolFee, profileFee, gkFee, offerGk, offerProfile);
     }

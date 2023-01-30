@@ -5,6 +5,7 @@ import "../lib/LibSignature.sol";
 
 abstract contract ITransferExecutor {
     event Transfer(LibAsset.Asset asset, address indexed from, address indexed to);
+    error InvalidFeeType();
 
     // * @param auctionType type of auction
     // * @param asset the asset being transferred
