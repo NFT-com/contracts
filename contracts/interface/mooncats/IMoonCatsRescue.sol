@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 interface IMoonCatsRescue {
     function acceptAdoptionOffer(bytes5 catId) external payable;

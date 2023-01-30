@@ -1,10 +1,19 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 import "../lib/LibSignature.sol";
 
 abstract contract ITransferExecutor {
+    enum FeeType {
+        PROTOCOL_FEE,
+        PROFILE_FEE,
+        GK_FEE,
+        OFFER_GK,
+        OFFER_PROFILE
+    }
+
     event Transfer(LibAsset.Asset asset, address indexed from, address indexed to);
+    error InvalidFeeType();
 
     // * @param auctionType type of auction
     // * @param asset the asset being transferred

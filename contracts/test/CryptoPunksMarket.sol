@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 // @dev forked version of CryptoPunksMarkets
 // https://etherscan.io/address/0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb
-// modified to adhere to solidity >=0.8.4
+// modified to adhere to solidity >=0.8.16
 contract CryptoPunksMarket {
     // You can use this hash to verify the image file containing all the punks
     string public imageHash = "ac39af4793119ee46bbff351d8cb6b5f23da60222126add4268e261199a2921b";

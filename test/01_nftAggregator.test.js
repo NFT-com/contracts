@@ -304,7 +304,7 @@ describe("NFT Aggregator", function () {
       );
 
       const NftMarketplace = await hre.ethers.getContractFactory("NftMarketplace");
-      const GOERLI_NFT_MARKETPLACE = "0xa75F995f252ba5F7C17f834b314201271d32eC35";
+      const GOERLI_NFT_MARKETPLACE = "0xa75F995f252ba5F7C17f834b314201271d32eC35"; // tits
       deployedNftMarketplace = NftMarketplace.attach(GOERLI_NFT_MARKETPLACE);
     });
 

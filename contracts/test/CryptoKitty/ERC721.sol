@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 /// @title Interface for contracts conforming to ERC-721: Non-Fungible Tokens
 /// @author Dieter Shirley <dete@axiomzen.co> (https://github.com/dete)

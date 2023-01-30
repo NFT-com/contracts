@@ -162,7 +162,8 @@ describe("NFT.com Marketplace", function () {
           deployedValidationLogic.address,
           deployedMarketplaceEvent.address,
           deployedNftProfile.address,
-          deployedGenesisKey.address
+          deployedGenesisKey.address,
+          [deployedNftToken.address, TESTNET_WETH, TESTNET_XEENUS]
         ],
         { kind: "uups" },
       );
@@ -171,6 +172,7 @@ describe("NFT.com Marketplace", function () {
       expect(protocolFee).to.be.equal(100);
       await deployedNftMarketplace.updateFee(1, protocolFee.div(2)); // 0.5%
       expect(await deployedNftMarketplace.profileFee()).to.be.equal(50);
+      await expect(deployedNftMarketplace.updateFee(10, 0)).to.be.reverted;
 
       await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
       await deployedNftMarketplace.setTransferProxy(ERC20_ASSET_CLASS, deployedERC20TransferProxy.address);
@@ -301,8 +303,6 @@ describe("NFT.com Marketplace", function () {
           .connect(owner)
           .transfer(buyer.address, BigNumber.from(1000).mul(BigNumber.from(10).pow(BigNumber.from(18))));
 
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
@@ -356,8 +356,6 @@ describe("NFT.com Marketplace", function () {
           .connect(owner)
           .transfer(buyer.address, BigNumber.from(1000).mul(BigNumber.from(10).pow(BigNumber.from(18))));
 
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-
         // add approvals
         await deployedNftToken.connect(buyer).approve(deployedERC20TransferProxy.address, MAX_UINT);
         await deployedTest721.connect(owner).approve(deployedNftTransferProxy.address, 0);
@@ -407,8 +405,6 @@ describe("NFT.com Marketplace", function () {
           deployedNftMarketplace.address,
           AuctionType.Decreasing,
         );
-
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
 
         expect((await deployedNftMarketplace.validateOrder_(sellOrder, v0, r0, s0))[0]).to.be.true;
 
@@ -475,8 +471,6 @@ describe("NFT.com Marketplace", function () {
 
         // send 1000 tokens to buyerSigner
         await deployedNftToken.connect(owner).transfer(buyerSigner.address, convertNftToken(1000));
-
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
 
         expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);
 
@@ -568,8 +562,6 @@ describe("NFT.com Marketplace", function () {
         // send 1000 tokens to buyerSigner
         await deployedNftToken.connect(owner).transfer(buyerSigner.address, convertNftToken(1000));
 
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-
         expect(await deployedTest721.ownerOf(0)).to.be.equal(owner.address);
 
         // add approvals
@@ -596,9 +588,6 @@ describe("NFT.com Marketplace", function () {
       });
 
       it("should allow multi-asset swaps", async function () {
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(TESTNET_WETH, true);
-
         // sell NFT profile NFT token 0 and 1
         // wants NFT token and WETH
         const {
@@ -687,9 +676,6 @@ describe("NFT.com Marketplace", function () {
       });
 
       it("should allow more complicated multi-asset swaps", async function () {
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(TESTNET_XEENUS, true);
-
         // sell NFT profile NFT token 0 and 1
         // wants NFT token and WETH
         const {
@@ -792,9 +778,6 @@ describe("NFT.com Marketplace", function () {
         // transfer profile back to buyer for this exchange
         await deployedTest721.connect(owner).transferFrom(owner.address, buyer.address, 1);
         await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1000));
-
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(TESTNET_XEENUS, true);
 
         // sell NFT profile NFT token 0 and 1
         // wants NFT token and WETH
@@ -899,9 +882,6 @@ describe("NFT.com Marketplace", function () {
         await deployedTest721.connect(owner).transferFrom(owner.address, buyer.address, 0);
         await deployedNftToken.connect(owner).transfer(buyer.address, convertNftToken(1000));
 
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(TESTNET_XEENUS, true);
-
         // sell NFT profile NFT token 0 and 1
         // wants NFT token and WETH
         const {
@@ -989,8 +969,6 @@ describe("NFT.com Marketplace", function () {
       });
 
       it("should allow valid eth swaps and convert fees to NFT coin", async function () {
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(TESTNET_XEENUS, true);
         await owner.sendTransaction({ to: buyer.address, value: convertNftToken(2) });
 
         // sell NFT profile NFT token 0 and 1
@@ -1273,8 +1251,6 @@ describe("NFT.com Marketplace", function () {
       });
 
       it("should allow royalties to be set and paid for ERC20s", async function () {
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(TESTNET_XEENUS, true);
         await owner.sendTransaction({ to: buyer.address, value: convertNftToken(2) });
 
         await deployedNftMarketplace.setRoyalty(deployedTest721.address, royaltyReceiver.address, 100); // 1% royalty
@@ -1496,8 +1472,6 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedKittyCore.kittyIndexToOwner(0)).to.be.equal(ethers.constants.AddressZero);
         expect(await deployedKittyCore.kittyIndexToOwner(1)).to.be.equal(owner.address);
 
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(TESTNET_XEENUS, true);
         await owner.sendTransaction({ to: buyer.address, value: convertNftToken(2) });
 
         // sell NFT profile NFT token 0 and 1
@@ -1661,9 +1635,6 @@ describe("NFT.com Marketplace", function () {
       });
 
       it("should not allow swaps with insufficient nft token", async function () {
-        await deployedNftMarketplace.modifyWhitelist(deployedNftToken.address, true);
-        await deployedNftMarketplace.modifyWhitelist(TESTNET_WETH, true);
-
         // sell NFT profile NFT token 0 and 1
         // wants NFT token and WETH
         const {

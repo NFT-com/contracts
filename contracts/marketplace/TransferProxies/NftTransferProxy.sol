@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../interfaces/INftTransferProxy.sol";
 
+// transfer logic modified from seaport commit hash: f62c14fe0a94fcb0d26ffdcee48238be63a85b4c
 contract NftTransferProxy is INftTransferProxy, Initializable, UUPSUpgradeable, OwnableUpgradeable {
     mapping(address => bool) operators;
 

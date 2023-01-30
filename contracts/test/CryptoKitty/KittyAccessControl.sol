@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 /// @title A facet of KittyCore that manages special access privileges.
 /// @author Axiom Zen (https://www.axiomzen.co)

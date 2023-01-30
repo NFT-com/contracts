@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -50,7 +50,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
         ValidationLogic _validationLogic,
         MarketplaceEvent _marketplaceEvent,
         address _nftProfile,
-        address _gkContract
+        address _gkContract,
+        address[] memory _whitelistERC20s
     ) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
@@ -62,7 +63,8 @@ contract NftMarketplace is Initializable, ReentrancyGuardUpgradeable, UUPSUpgrad
             _funToken,
             100,
             _nftProfile,
-            _gkContract
+            _gkContract,
+            _whitelistERC20s
         );
         validationLogic = _validationLogic;
         marketplaceEvent = _marketplaceEvent;
