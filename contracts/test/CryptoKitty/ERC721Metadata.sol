@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 /// @title The external contract that is responsible for generating metadata for the kitties,
 ///  it has one function that will return the data as bytes.

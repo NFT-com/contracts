@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 // h/t Opensea
 // Clever library for bitpacking an address + index + supply into a uint256 to represent the tokenId for an ERC1155

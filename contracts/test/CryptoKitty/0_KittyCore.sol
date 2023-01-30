@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 import "./KittyMinting.sol";
 
 // @dev forked version of KittyCore
 // https://etherscan.io/address/0x06012c8cf97bead5deae237070f9587f8e7a266d
-// modified to adhere to solidity >=0.8.4
+// modified to adhere to solidity >=0.8.16
 
 /// @title CryptoKitties: Collectible, breedable, and oh-so-adorable cats on the Ethereum blockchain.
 /// @author Axiom Zen (https://www.axiomzen.co)

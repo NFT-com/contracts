@@ -2,7 +2,7 @@
  *Submitted for verification at Etherscan.io on 2017-08-09
 */
 
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 contract MoonCatRescue {
   enum Modes { Inactive, Disabled, Test, Live }
