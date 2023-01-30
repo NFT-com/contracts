@@ -58,7 +58,8 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         address _funToken,
         uint256 _protocolFee,
         address _nftProfile,
-        address _gkContract
+        address _gkContract,
+        address[] memory _whitelistERC20s
     ) internal {
         proxies[LibAsset.ERC20_ASSET_CLASS] = address(_erc20TransferProxy);
         proxies[LibAsset.ERC721_ASSET_CLASS] = address(_transferProxy);
@@ -71,6 +72,14 @@ abstract contract TransferExecutor is Initializable, OwnableUpgradeable, ITransf
         nftProfile = _nftProfile;
         gkContract = _gkContract;
         funTokenDiscount = 5000; // 50% discount by default
+
+        for (uint256 i = 0; i < _whitelistERC20s.length;) {
+            whitelistERC20[_whitelistERC20s[i]] = true;
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     // ADMIN over-ride
