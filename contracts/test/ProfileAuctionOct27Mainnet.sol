@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 // PULLED FROM https://etherscan.io/address/0xde5f08d80ce23e959cfff6bebbaf5998fe9aa7a8#code
 // only change was import "../domain/StringUtils.sol"; on the import section

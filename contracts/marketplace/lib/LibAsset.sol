@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 library LibAsset {
     bytes4 constant public ETH_ASSET_CLASS = bytes4(keccak256("ETH"));
     bytes4 constant public ERC20_ASSET_CLASS = bytes4(keccak256("ERC20"));

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.16;
 
 library Resolver {
     function _parseAddr(string memory _a) internal pure returns (address) {
