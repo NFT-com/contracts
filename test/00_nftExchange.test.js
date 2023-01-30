@@ -179,6 +179,7 @@ describe("NFT.com Marketplace", function () {
       expect(protocolFee).to.be.equal(100);
       await deployedNftMarketplace.updateFee(1, protocolFee.div(2)); // 0.5%
       expect(await deployedNftMarketplace.profileFee()).to.be.equal(50);
+      await expect(deployedNftmarketplace.updateFee(10, 0)).to.be.reverted;
 
       await deployedMarketplaceEvent.setMarketPlace(deployedNftMarketplace.address);
       await deployedNftMarketplace.setTransferProxy(ERC20_ASSET_CLASS, deployedERC20TransferProxy.address);
