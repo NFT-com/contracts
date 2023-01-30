@@ -170,7 +170,7 @@ describe("NFT.com Marketplace", function () {
           deployedMarketplaceEvent.address,
           deployedNftProfile.address,
           deployedGenesisKey.address,
-          [deployedNftToken.address, TESTNET_WETH]
+          [deployedNftToken.address, TESTNET_WETH, TESTNET_XEENUS]
         ],
         { kind: "uups" },
       );
