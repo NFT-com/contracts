@@ -46,8 +46,6 @@ struct BatchClaimProfile {
     bytes signature;
 }
 
-error MaxProfiles();
-
 contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     using StringUtils for *;
     using ECDSAUpgradeable for bytes32;
@@ -64,7 +62,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
 
     address public nftProfile;
     address public contract2;
-    address public contract1;
+    address public mintFeesAddress;
     address public nftProfileHelperAddress;
     address public genesisKeyContract;
     address public signerAddress;
@@ -75,9 +73,9 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     mapping(bytes32 => bool) public cancelledOrFinalized; // used hash
     mapping(address => uint256) public publicMinted; // record of profiles public minted per user
 
-    address public emptySlot; // empty slot for now, to be used in future
-    uint88 public maxProfilePerAddress; // max profiles that can be minted per address, set by DAO
-    bool public publicClaimBool;
+    address public extendFeesAddress; // empty slot for now, to be used in future
+    uint88 public maxProfilePerAddress; // unusued
+    bool public publicClaimBool; // unusued
 
     event MintedProfile(
         address _user,
@@ -89,7 +87,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
     );
     event NewLengthPremium(uint256 _length, uint256 _premium);
     event NewYearlyFee(uint96 _fee);
-    event NewMaxProfile(uint88 _max);
 
     modifier validAndUnusedURI(string memory _profileURI) {
         require(validURI(_profileURI));
@@ -140,18 +137,18 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
      @notice helper function transfer tokens
      @param _amount number of tokens being transferred
     */
-    function transferTokens(uint256 _amount) private returns (bool) {
+    function transferTokens(address recipient, uint256 _amount) private returns (bool) {
         if (usdc_ == address(0)) {
             if (msg.value >= _amount) {
-                safeTransferETH(contract1, _amount); // send amount to contract1
+                safeTransferETH(recipient, _amount); // send amount to recipient
                 safeTransferETH(msg.sender, msg.value - _amount); // refund excess
                 return true;
             } else {
                 return false;
             }
         } else {
-            // send amount to contract1
-            return IERC20Upgradeable(usdc_).transferFrom(msg.sender, contract1, _amount);
+            // send amount to recipient
+            return IERC20Upgradeable(usdc_).transferFrom(msg.sender, recipient, _amount);
         }
     }
 
@@ -189,12 +186,16 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         usdc_ = _usdc;
     }
 
-    function setContract1(address _new) external onlyOwner {
-        contract1 = _new;
+    function setMintFeesAddress(address _new) external onlyOwner {
+        mintFeesAddress = _new;
     }
 
     function setContract2(address _new) external onlyOwner {
         contract2 = _new;
+    }
+
+    function setExtendFeeAddress(address _new) external onlyOwner {
+        extendFeesAddress = _new;
     }
 
     function verifySignature(bytes32 hash, bytes memory signature) public view returns (bool) {
@@ -211,21 +212,12 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         emit NewYearlyFee(_fee);
     }
 
-    function setMaxProfilePerAddress(uint88 _max) external onlyGovernor {
-        maxProfilePerAddress = _max;
-        emit NewMaxProfile(_max);
-    }
-
     function setGenKeyWhitelistOnly(bool _genKeyWhitelistOnly) external onlyGovernor {
         genKeyWhitelistOnly = _genKeyWhitelistOnly;
     }
 
     function setPublicMint(bool _val) external onlyGovernor {
         publicMintBool = _val;
-    }
-
-    function setPublicClaim(bool _val) external onlyGovernor {
-        publicClaimBool = _val;
     }
 
     function hashTransaction(address sender, string memory profileUrl) private pure returns (bytes32) {
@@ -282,27 +274,6 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
         }
     }
 
-    // used for profile factory
-    function publicClaim(
-        string memory profileUrl,
-        bytes32 hash,
-        bytes memory signature
-    ) external nonReentrant validAndUnusedURI(profileUrl) {
-        // checks
-        require(publicClaimBool, "pc: publicClaimBool");
-        require(verifySignature(hash, signature) && !cancelledOrFinalized[hash], "pc: !sig");
-        require(hashTransaction(msg.sender, profileUrl) == hash, "pc: !hash");
-        if (publicMinted[msg.sender] >= maxProfilePerAddress) revert MaxProfiles();
-
-        // effects
-        publicMinted[msg.sender] += 1;
-
-        // grace period of 1 year (unless DAO intervention)
-        INftProfile(nftProfile).createProfile(msg.sender, profileUrl, 365 days);
-
-        emit MintedProfile(msg.sender, profileUrl, INftProfile(nftProfile).totalSupply() - 1, 365 days, 0, usdc_);
-    }
-
     function publicMint(
         string memory profileUrl,
         uint256 duration,
@@ -323,7 +294,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             permitNFT(msg.sender, address(this), v, r, s); // approve token
         }
 
-        require(transferTokens(getFee(profileUrl, duration)), "pm: !funds");
+        require(transferTokens(mintFeesAddress, getFee(profileUrl, duration)), "pm: !funds");
 
         INftProfile(nftProfile).createProfile(msg.sender, profileUrl, duration);
 
@@ -363,7 +334,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             permitNFT(msg.sender, address(this), v, r, s);
         }
 
-        require(transferTokens(getFee(profileUrl, duration)), "el: insufficient funds");
+        require(transferTokens(extendFeesAddress, getFee(profileUrl, duration)), "el: insufficient funds");
 
         INftProfile(nftProfile).extendLicense(profileUrl, duration, msg.sender);
     }
@@ -385,7 +356,7 @@ contract ProfileAuction is Initializable, UUPSUpgradeable, ReentrancyGuardUpgrad
             permitNFT(msg.sender, address(this), v, r, s);
         }
 
-        require(transferTokens(getFee(profileUrl, duration)), "pe: insufficient funds");
+        require(transferTokens(extendFeesAddress, getFee(profileUrl, duration)), "pe: insufficient funds");
 
         INftProfile(nftProfile).purchaseExpiredProfile(profileUrl, duration, msg.sender);
     }

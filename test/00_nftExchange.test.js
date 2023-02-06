@@ -147,16 +147,9 @@ describe("NFT.com Marketplace", function () {
       deployedValidationLogic = await upgrades.deployProxy(ValidationLogic, { kind: "uups" });
       deployedMarketplaceEvent = await upgrades.deployProxy(MarketplaceEvent, { kind: "uups" });
 
-      // allow public claim
-      await deployedProfileAuction.setPublicClaim(true);
       await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
-      await deployedProfileAuction.setMaxProfilePerAddress(1);
-      expect(await deployedProfileAuction.publicClaimBool()).to.be.equal(true);
 
-      const { hash: h1, signature: s1 } = signHashProfile(owner.address, "test_test_test");
-      await deployedProfileAuction.connect(owner).publicClaim('test_test_test', h1, s1);
-
-      expect(await deployedNftProfile.totalSupply()).to.be.equal(1);
+      expect(await deployedNftProfile.totalSupply()).to.be.equal(0);
 
       deployedNftMarketplace = await upgrades.deployProxy(
         NftMarketplace,
@@ -877,7 +870,7 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(owner.address);
         expect(await deployedXEENUS.balanceOf(buyer.address)).to.be.equal(
-          beforeXeenusBalance.add(BigNumber.from(`4975`).mul(BigNumber.from(10).pow(BigNumber.from(17)))), // 50% discount
+          beforeXeenusBalance.add(BigNumber.from(`4950`).mul(BigNumber.from(10).pow(BigNumber.from(17)))), // 50% discount
         );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);
@@ -968,7 +961,7 @@ describe("NFT.com Marketplace", function () {
         expect(await deployedTest721.ownerOf(0)).to.be.equal(buyer.address);
         expect(await deployedTest721.ownerOf(1)).to.be.equal(owner.address);
         expect(await deployedXEENUS.balanceOf(buyer.address)).to.be.equal(
-          beforeXeenusBalance.add(BigNumber.from(`4975`).mul(BigNumber.from(10).pow(BigNumber.from(17)))),
+          beforeXeenusBalance.add(BigNumber.from(`4950`).mul(BigNumber.from(10).pow(BigNumber.from(17)))),
         );
 
         await deployedTest721.connect(buyer).transferFrom(buyer.address, owner.address, 0);

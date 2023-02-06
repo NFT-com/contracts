@@ -106,7 +106,7 @@ describe("Genesis Key Old Testing + Auction Mechanics", function () {
       // contract 2 = genesis stake
       await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
       await deployedProfileAuction.setUsdc(deployedNftToken.address);
-      await deployedProfileAuction.setContract1(deployedNftBuyer.address);
+      await deployedProfileAuction.setMintFeesAddress(deployedNftBuyer.address);
       await deployedProfileAuction.setContract2(deployedNftStake.address);
 
       await deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
