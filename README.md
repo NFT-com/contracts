@@ -36,7 +36,7 @@ necessary secrets.
 | CK Transfer Proxy    | https://etherscan.io/address/0x3788201387b45456431Fb69817c3fa015A569a3c | imp = 0xF620de9A68c5B3e3c015cdA1a97de7779E5Da86A |
 | Validation Logic     | https://etherscan.io/address/0x127beBc6380dF5C8d7c0A728D1dd125A50e4b88E | imp = 0x12a28d20B4DDCF5492c9b2C64fb726B2a01402bf |
 | Marketplace Event    | https://etherscan.io/address/0x2E42652b9B539C849ECe944329C0Ba0bC4F70968 | imp = 0xf5209aA94A7d8eb93Ff27534aCD9a86c44a74271 |
-| NFT Marketplace      | https://etherscan.io/address/0x1fD9Bc58C7FfdB18D19a8A8d791B6ae9fa2BD097 | imp = 0xBCcC0c32DB7abf19b59b4eb050B6607a8f56d36E |
+| NFT Marketplace      | https://etherscan.io/address/0x1fD9Bc58C7FfdB18D19a8A8d791B6ae9fa2BD097 | imp = 0xBCcC0c32DB7abf19b59b4eb050B6607a8f56d36E (new 0x3F5C763192F5CA45271E98F943c5d19A5ae63039) |
 
 ## Goerli Contracts
 
