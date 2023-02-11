@@ -183,9 +183,9 @@ describe("NFT Profile Auction / Minting", function () {
         { kind: "uups" },
       );
 
-      deployedProfileAuction.setUsdc(deployedNftToken.address);
-      deployedProfileAuction.setMintFeesAddress(deployedNftBuyer.address);
-      deployedProfileAuction.setContract2(deployedNftStake.address);
+      await deployedProfileAuction.setUsdc(deployedNftToken.address);
+      await deployedProfileAuction.setContract1(deployedNftBuyer.address);
+      await deployedProfileAuction.setContract2(deployedNftStake.address);
 
       // ===============================================================
       deployedEthereumRegex = await (await hre.ethers.getContractFactory("EthereumRegex")).deploy();
@@ -195,13 +195,19 @@ describe("NFT Profile Auction / Minting", function () {
       deployedTezosRegex = await (await hre.ethers.getContractFactory("TezosRegex")).deploy();
 
       // allow upgrades
-      const upgradedProfileAuction = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuction);
+      const upgradedProfileAuction = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuction, {
+        unsafeAllowRenames: true,
+      });
       deployedProfileAuction = upgradedProfileAuction;
 
-      const upgradedProfileAuction2 = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2);
+      const upgradedProfileAuction2 = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2, {
+        unsafeAllowRenames: true,
+      });
       deployedProfileAuction = upgradedProfileAuction2;
 
       await deployedNftProfile.setProfileAuction(deployedProfileAuction.address);
+      await deployedProfileAuction.setExtendFeeAddress(deployedNftBuyer.address);
+
       await deployedProfileAuction.setSigner(process.env.PUBLIC_SALE_SIGNER_ADDRESS);
 
       const { hash: h1, signature: s1 } = signHashProfile(second.address, "testminter");
@@ -967,7 +973,9 @@ describe("NFT Profile Auction / Minting", function () {
       it("should upgrade profile contract to V2", async function () {
         const ProfileAuctionV2 = await ethers.getContractFactory("ProfileAuctionV2");
 
-        let deployedProfileAuctionV2 = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2);
+        let deployedProfileAuctionV2 = await upgrades.upgradeProxy(deployedProfileAuction.address, ProfileAuctionV2, {
+          unsafeAllowRenames: true,
+        });
 
         expect(await deployedProfileAuctionV2.getVariable()).to.be.equal("hello");
 
