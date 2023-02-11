@@ -184,7 +184,7 @@ describe("NFT Profile Auction / Minting", function () {
       );
 
       deployedProfileAuction.setUsdc(deployedNftToken.address);
-      deployedProfileAuction.setMintFeesAddress(deployedNftBuyer.address);
+      deployedProfileAuction.setContract1(deployedNftBuyer.address);
       deployedProfileAuction.setContract2(deployedNftStake.address);
 
       // ===============================================================
