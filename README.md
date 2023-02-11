@@ -12,7 +12,7 @@ necessary secrets.
 ## Mainnet Contracts
 
 | Contract             | Deployed Address                                                        |
-| -------------------- | ----------------------------------------------------------------------- | ------------------------------------------------ |
+| -------------------- | ----------------------------------------------------------------------- |
 | Udo NFT              | https://etherscan/address/0xa16DD71dE047A086730a0E46Ea60251f2f4104c1    |
 | NFT Token            | https://etherscan.io/address/0x8C42428a747281B03F10C80e978C107D4d85E37F |
 | Vesting              | https://etherscan.io/address/0x774c2204D9e50CD9d6A579D194c067360604933f |
@@ -20,8 +20,8 @@ necessary secrets.
 | GK Team Claim        | https://etherscan.io/address/0xfc99E6b4447a17EA0C6162854fcb572ddC8FbB37 |
 | Genesis Key          | https://etherscan.io/address/0x8fB5a7894AB461a59ACdfab8918335768e411414 |
 | NFT Profile Helper   | https://etherscan.io/address/0xB9A5A787153b6C4898cb2A05A596A22E73B1DCc1 |
-| NFT.com Profile      | https://etherscan.io/address/0x98ca78e89Dd1aBE48A53dEe5799F24cC1A462F2D | imp = 0xc0B4990aC7A7A2f28f3370807a34b37251457406
-| Profile Auction      | https://etherscan.io/address/0x30f649D418AF7358f9c8CB036219fC7f1B646309 | imp = 0xe9DE56644ccfBf9779d880D0D8Db478b93B8BF6D
+| NFT.com Profile      | https://etherscan.io/address/0x98ca78e89Dd1aBE48A53dEe5799F24cC1A462F2D |
+| Profile Auction      | https://etherscan.io/address/0x30f649D418AF7358f9c8CB036219fC7f1B646309 |
 | Ethereum Regex       | https://etherscan.io/address/0xe9F5CBeE4a58B1EB47b303c14765Ab102E4ABC37 |
 | Profile Resolver     | https://etherscan.io/address/0xA657C988e8aC39D3268D390eB7c522a535B10453 |
 | GK Distributor       | https://etherscan.io/address/0x0eBa8d862AF4E01A0573B663FB3eb3A06D7937dE |
@@ -31,12 +31,12 @@ necessary secrets.
 | Native Trading Lib   | https://etherscan.io/address/0x6EDEdFC4E902577074909c084b6Fa4E02F32e9C1 |
 | Marketplace Registry | https://etherscan.io/address/0x24851a6783fB586E49b1dC71FA40B8307802f2A5 |
 | NFT Aggregator       | https://etherscan.io/address/0xf2821154d4752862b49a7C7fA7728B76ea44495e |
-| NFT Transfer Proxy   | https://etherscan.io/address/0x7AFAF0D3dd4aC87D21C326A7e07D0345f6071DAD | imp = 0x2b99fFF627Ac02FCBbd8D2D23B42621D2FDb8b85 |
-| ERC20 Transfer Proxy | https://etherscan.io/address/0x151271EF11D8FA022A81f8de70feA53fdCCc0107 | imp = 0x25a7Da2E9ea88Be412416B96bb0a3B4d9e811CF5 |
-| CK Transfer Proxy    | https://etherscan.io/address/0x3788201387b45456431Fb69817c3fa015A569a3c | imp = 0xF620de9A68c5B3e3c015cdA1a97de7779E5Da86A |
-| Validation Logic     | https://etherscan.io/address/0x127beBc6380dF5C8d7c0A728D1dd125A50e4b88E | imp = 0x12a28d20B4DDCF5492c9b2C64fb726B2a01402bf |
-| Marketplace Event    | https://etherscan.io/address/0x2E42652b9B539C849ECe944329C0Ba0bC4F70968 | imp = 0xf5209aA94A7d8eb93Ff27534aCD9a86c44a74271 |
-| NFT Marketplace      | https://etherscan.io/address/0x1fD9Bc58C7FfdB18D19a8A8d791B6ae9fa2BD097 | imp = 0xBCcC0c32DB7abf19b59b4eb050B6607a8f56d36E (new 0x3F5C763192F5CA45271E98F943c5d19A5ae63039) |
+| NFT Transfer Proxy   | https://etherscan.io/address/0x7AFAF0D3dd4aC87D21C326A7e07D0345f6071DAD |
+| ERC20 Transfer Proxy | https://etherscan.io/address/0x151271EF11D8FA022A81f8de70feA53fdCCc0107 |
+| CK Transfer Proxy    | https://etherscan.io/address/0x3788201387b45456431Fb69817c3fa015A569a3c |
+| Validation Logic     | https://etherscan.io/address/0x127beBc6380dF5C8d7c0A728D1dd125A50e4b88E |
+| Marketplace Event    | https://etherscan.io/address/0x2E42652b9B539C849ECe944329C0Ba0bC4F70968 |
+| NFT Marketplace      | https://etherscan.io/address/0x1fD9Bc58C7FfdB18D19a8A8d791B6ae9fa2BD097 |
 
 ## Goerli Contracts
 
