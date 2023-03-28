@@ -458,7 +458,9 @@ task("deploy:1b").setAction(async function (taskArguments, hre) {
     "0xdf2E60Af57C411F848B1eA12B10a404d194bce27": "1",
     "0xbef4Eb89D92c198E2d02F36989fEb4EB12f0d0c8": "1",
     "0x16BAcD96aA34857cCbC676910985CC319865cCC8": "1",
-    "0x433e8B0b56c25Cb43099dFF2Ee6a626325654014": "1"
+    "0x433e8B0b56c25Cb43099dFF2Ee6a626325654014": "1",
+    "0xc183b19E7d8c968FB06c4bCc84BBaF515D123DC5": "1",
+    "0x5793cBe17b960841f26C9a000dD782B974A5C233": "1"
   }`);
 
   const insiderGKClaimJSON_Testnet = JSON.parse(`{
